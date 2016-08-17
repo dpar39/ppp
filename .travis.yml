@@ -5,9 +5,10 @@ compiler:
   - gcc
 
 before_install:
- - apt-get install -qq cmake
+  - apt-get install -qq cmake
+  - apt-get install -qq npm
 
 before_script:
 
 script:
- - python build.py
+  - ./build.linux64.sh
