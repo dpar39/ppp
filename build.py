@@ -11,7 +11,7 @@ import multiprocessing
 # Configuration
 nodejs_src_url = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
 opencv_src_url = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
-poco_src_url   = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
+poco_src_url   = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.6.1-all.zip'
 
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
