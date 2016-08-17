@@ -18,23 +18,23 @@ poco_src_url   = 'http://pocoproject.org/releases/poco-1.6.1/poco-1.6.1-all.zip'
 _jN ='-j%i' % multiprocessing.cpu_count()
 
 def which(program):
-        """
-        Returns the full path of to a program if available in the system PATH, None otherwise
-        """
-        import os
-        def is_exe(fpath):
-            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-        fpath, fname = os.path.split(program)
-        if fpath:
-            if is_exe(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if is_exe(exe_file):
-                    return exe_file
-        return None
+    """
+    Returns the full path of to a program if available in the system PATH, None otherwise
+    """
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
 
 class Builder:
     def _detectVSVersion(self):
@@ -110,9 +110,7 @@ class Builder:
             + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end+1:]
         with open(solution_file, "w") as f:
             f.writelines(["%s\n" % item  for item in prj_lines])
-        self._runCmd(['call', 'devenv', solution_file])       
-
-    
+        self._runCmd(['call', 'devenv', solution_file])
 
     def _buildNodeJs(self):
         """ 
@@ -165,7 +163,7 @@ class Builder:
            'NET', 'NETSSL', 'NETSSL_WIN', 'CRYPTO', \
            'DATA', 'DATA_SQLITE', 'DATA_MYSQL', 'DATA_ODBC', 'ZIP', \
            'PAGECOMPILER', 'PAGECOMPILER_FILE2PAGE']
-        poco_build_modules = [] # Foundation always gets built
+        poco_build_modules = [] # Foundation always gets built - that's all we need for now
 
         install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config)
         lib_files = glob.glob(install_dir + '/lib/Poco*.lib') + glob.glob(install_dir + '/lib/Poco*.a')
@@ -191,15 +189,6 @@ class Builder:
         gmock_src_pkg =  os.path.join(self._third_party_dir, gmock_prefix + '.zip')
         
         self._extractThirdPartyLibrary(gmock_src_pkg)
-        # Skip building the library if it has been built already
-        #skip_build = False
-        #if sys.platform == 'win32':
-        #    skip_build = os.path.exists(os.path.join(gmock_root_dir, 'build', 'gmock.lib')) 
-        #else:
-        #    skip_build = os.path.exists(os.path.join(gmock_root_dir, 'build', 'libgmock.a'))
-        #if not skip_build or override:
-        #    self._extractThirdPartyLibrary(gmock_src_pkg)
-        #    #self._buildCMakeLibrary(gmock_root_dir);
     
     def _getThridPartyLibDirectory(self, prefix):
         """

@@ -1,7 +1,38 @@
 #pragma once
 
-#include <filesystem>
 #include <fstream>
+
+#ifdef POCO_STATIC
+#include <Poco/DirectoryIterator.h>
+
+inline void getImageFiles(const std::string &testImagesDir, std::vector<std::string> &imageFilenames)
+{
+    std::vector<std::string> supportedImageExtensions = { ".jpg", /*".png",*/ ".bmp" };
+
+    using Poco::DirectoryIterator;
+    using Poco::Path;
+
+    DirectoryIterator itr(testImagesDir);
+    DirectoryIterator end;
+    while (itr != end)
+    {
+        std::cout << itr.name();
+        if (!itr->isFile())
+        {
+            continue;
+        }
+        ;
+        auto fileExt = Poco::Path(itr->path()).getExtension();
+        std::transform(fileExt.begin(), fileExt.end(), fileExt.begin(), ::tolower);
+        if (std::find(supportedImageExtensions.begin(), supportedImageExtensions.end(), fileExt) != supportedImageExtensions.end())
+        {
+            imageFilenames.push_back(itr->path());
+        }
+        ++itr;
+    }
+}
+#else
+#include <filesystem>
 
 inline void getImageFiles(const std::string &testImagesDir, std::vector<std::string> &imageFilenames)
 {
@@ -14,7 +45,9 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
         for (fs::directory_iterator itr(testImagesDir); itr != endIter; ++itr)
         {
             if (!fs::is_regular_file(itr->status()))
+            {
                 continue;
+            }
             auto filePath = itr->path();
             auto fileExt = filePath.extension().string();
             std::transform(fileExt.begin(), fileExt.end(), fileExt.begin(), ::tolower);
@@ -25,6 +58,7 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
         }
     }
 }
+#endif
 
 inline bool importTextMatrix(const std::string&txtFileName, cv::Mat &output)
 {

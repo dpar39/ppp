@@ -3,8 +3,7 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#define USE_POCO
-#ifdef USE_POCO
+#ifdef POCO_SATIC
 #include <Poco/Path.h>
 #include <Poco/File.h>
 #else
@@ -16,7 +15,7 @@
 std::shared_ptr<cv::CascadeClassifier> IDetector::loadClassifier(const std::string& haarCascadeDir, const std::string& haarCascadeFile)
 {
     auto classifier = std::make_shared<cv::CascadeClassifier>();
-#ifdef USE_POCO
+#ifdef POCO_STATIC
     auto haarCascadeFilePathStr = resolvePath(Poco::Path(haarCascadeDir).append(haarCascadeFile).toString());
     if (!Poco::File(haarCascadeFilePathStr).exists())
 #else
