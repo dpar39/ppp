@@ -3,7 +3,7 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#ifdef POCO_SATIC
+#ifdef POCO_STATIC
 #include <Poco/Path.h>
 #include <Poco/File.h>
 #else
