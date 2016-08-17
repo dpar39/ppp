@@ -1,0 +1,15 @@
+{
+    "haarCascadeDir": "share/haarcascades",
+    "faceDetector": {
+        "haarCascade": "haarcascade_frontalface_alt.xml"
+    },
+    "eyesDetector": {
+        "useHaarCascade": true,
+        "haarCascadeLeft": "OjoI.xml",
+        "haarCascadeRight": "OjoD.xml"
+    },
+    "lipsDetector": {
+        "useHaarCascade": false,
+        "haarCascadeLeft": "Mouth.xml"
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "app",
+  "authors": [
+    "Darien Pardinas <dpar39@gmail.com>"
+  ],
+  "description": "Passport Photo App front-end",
+  "main": "",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "ppp"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "public/lib"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "interact": "^1.2.6"
+  }
+}

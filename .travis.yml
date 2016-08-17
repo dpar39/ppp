@@ -1,0 +1,13 @@
+
+language: cpp
+
+compiler:
+  - gcc
+
+before_install:
+ - apt-get install -qq cmake
+
+before_script:
+
+script:
+ - python build.py

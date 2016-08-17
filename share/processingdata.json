@@ -1,0 +1,24 @@
+{
+    "preprocessing": {},
+    "outputCanvas": {
+        "height": 6,
+        "width": 4,
+        "resolution": 330,
+        "border": 0.1,
+        "units": "inch"
+    },
+    "passportDefinition": {
+        "picWidth": 35,
+        "picHeight": 45,
+        "faceHeight": 34,
+        "units": "mm"
+    },
+    "crownMark": {
+        "x": 500,
+        "y": 10
+    },
+    "chinMark": {
+        "x": 500,
+        "y": 600
+    }
+}

@@ -1,0 +1,8 @@
+/.vs
+/build_*
+/install_*
+/thirdparty
+/visualstudio
+/research/*.asv
+/webapp/node_modules
+/addon/build

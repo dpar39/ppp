@@ -1,0 +1,86 @@
+body {
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding: 50px;
+}
+
+a { color: #00B7FF; }
+
+
+#drag-1, #drag-2 {
+    position: relative;
+    width: 15px;
+    height: 15px;
+    float: left;
+}
+
+#drag-me::before {
+    content: "#" attr(id);
+    font-weight: bold;
+}
+
+#container {
+    height: 400px;
+    width: 90%;
+    border: 1px solid black;
+    /*overflow: hidden;*/
+}
+
+#landmarks {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
+#video {
+    border: 1px solid black;
+    box-shadow: 2px 2px 3px black;
+    display: none;
+    height: 240px;
+    width: 320px;
+}
+
+#photo {
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+
+#canvas { display: none; }
+
+.camera {
+    display: inline-block;
+    width: 340px;
+}
+
+.output {
+    display: inline-block;
+    width: 340px;
+}
+
+button {
+    background-color: #009600;
+    background-color: rgba(0, 150, 0, 0.5);
+    border: 1px solid #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 0px 1px 2px #000000;
+    box-shadow: 0px 0px 1px 2px rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 1.0);
+    font-family: "Lucida Grande", "Arial", sans-serif;
+    font-size: 14px;
+    margin: 10px;
+}
+
+input[type=text] { max-width: 45px; }
+
+#divButtons {
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+
+.contentarea {
+    font-family: "Lucida Grande", "Arial", sans-serif;
+    font-size: 16px;
+    width: 760px;
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        Passport Photo App
+    </title>
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- vencodr scripts -->
+    <script src="lib/jquery/dist/jquery.min.js"></script>
+    <script src="lib/interact/dist/interact.min.js"></script>
+</head>
+
+<body>
+    <h1>Free passport photo ready to print and use</h1>
+
+    <div id="container">       
+        <svg id="landmarks">
+            <image xlink:href='data/38eedaa.jpg' width="96" height="96" 
+            onmousedown="selectElement(evt)" />
+            <circle id="aa" cx="190" cy="50" r="6" stroke="black" stroke-width="2" fill="salmon" />
+        </svg>
+         <img id="photo" alt="">     
+    </div> 
+    <video id="video">Video stream not available.</video>
+        <svg id="drag-1" class="draggable" >
+            <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
+        </svg>
+        <svg id="drag-2" class="draggable">
+            <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
+        </svg>  
+    <canvas id="canvas"></canvas>
+
+    <div id="divButtons">
+        <button id="buttonTakePicture">Take photo</button>
+        <button id="buttonLoadPicture">Choose photo</button>
+        <form>
+            <input type="file" id="loadImage" name="uploads[]"
+            accept="image/*" style="visibility: hidden;" />
+        </form>
+    </div>
+
+    <div id="divSettings">
+        <form>
+            Select photo standard:
+            <select id="comboBoxStandard"></select>
+            <br> Dimensions:
+            <input type="text" id="pictureWidth"> x
+            <input type="text" id="pictureHeight">
+            <select>
+                <option value="mm" selected="true">mm</option>
+                <option value="inch">inch</option>
+            </select>
+            <br>
+            <br> Output print:
+            <select id="comboboxPrintDefinition"></select>
+            <br> Dimensions:
+            <input type="text" id="printWidth"> x
+            <input type="text" id="printHeight">
+            <select id="selectPrintUnits">
+                <option value="mm" selected="true">mm</option>
+                <option value="inch">inch</option>
+            </select>
+            <select id="selectPrintResolution">
+                <option value="150dpi">150 dpi</option>
+                <option value="300dpi" selected="true">300 dpi</option>
+                <option value="600dpi">600 dpi</option>
+            </select>
+        </form>
+    </div>
+    
+    <div id="divResult">
+        <img src="" alt="">
+    </div>
+
+    <script src="js/capture.js"></script>
+
+</body>
+
+</html>
