@@ -15,8 +15,14 @@ addons:
 
 # Install cmake and npm/nodejs
 before_install:
-  - sudo apt-get install -qq npm
-
+#  - sudo apt-get install -qq npm
+  - cd ~/cmake_tmp
+  - wget https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz
+  - tar xf cmake-3.6.1-Linux-x86_64.tar.gz
+  - sudo cp -r cmake-3.6.1-Linux-x86_64/* /usr
+  - rm -f ~/cmake_tmp
+  - cd ~
+  
 before_script:
   - chmod +x ./build.*
 
