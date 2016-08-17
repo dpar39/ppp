@@ -4,6 +4,7 @@ language: cpp
 compiler:
   - gcc
 
+# Install cmake and npm/nodejs
 before_install:
   - apt-get install -qq cmake
   - apt-get install -qq npm
