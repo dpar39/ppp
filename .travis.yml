@@ -11,7 +11,8 @@ addons:
       sources:
           - ubuntu-toolchain-r-test
       packages:
-          - cmake
+          - g++-5
+          - gcc-5
 
 # Install cmake and npm/nodejs
 before_install:
