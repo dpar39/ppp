@@ -146,7 +146,7 @@ class Builder:
             os.chdir(self._root_dir)
         # Install built node executable into the install dir
         if self._run_install:
-            shutil.copy(node_exe_path, self._install_dir)
+            shutil.copy(node_exe_path, self._third_party_dir)
     
     def _buildPocoLibs(self, override = False):
         """

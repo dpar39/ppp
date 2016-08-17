@@ -38,8 +38,8 @@ set(MODULE_LIB_DIRS
     ${OpenCV_LIB_DIR}
 )
 # Build a shared library version 
-add_definitions(-DDLLEXPORT)
-add_library(${LIB_NAME} SHARED ${LIB_SRC_FILES})
+#add_definitions(-DDLLEXPORT)
+add_library(${LIB_NAME} STATIC ${LIB_SRC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_include_directories(${LIB_NAME} PUBLIC ${MODULE_INC_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})

@@ -20,7 +20,7 @@ using v8::Value;
 
 
 
-struct SetImageWorkItem 
+struct SetImageWorkItem
 {
     uv_work_t  request;
     Persistent<Function> callback;
@@ -56,7 +56,7 @@ struct CreateTilePrintWorkItem
 
 Persistent<Function> PppWrapper::constructor;
 
-PppWrapper::PppWrapper() 
+PppWrapper::PppWrapper()
     : m_enginePtr(std::make_shared<PublicPppEngine>())
 {
 }
@@ -112,7 +112,7 @@ void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
     auto isolate = args.GetIsolate();
     if (args.Length() != 1 || !args[0]->IsString())
     {
-        // Invalid 
+        // Invalid
         //v8::ThrowException(v8::Exception::TypeError(String::NewFromUtf8(isolate, "This is an error")));
     }
     // Get the configuration as a C++ std::string
@@ -125,8 +125,8 @@ void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
 {
-    if(args.Length() != 2 
-        || !args[0]->IsArrayBuffer() 
+    if(args.Length() != 2
+        || !args[0]->IsArrayBuffer()
         || !args[1]->IsFunction())
     {
         // Invalid
@@ -209,7 +209,7 @@ void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     uv_queue_work(uv_default_loop(), &work->request,
         CreateTilePrintWorkAsync, CreateTilePrintWorkAsyncComplete);
-    
+
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
@@ -311,7 +311,7 @@ void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
     // set up return arguments
     auto isError = v8::Boolean::New(isolate, work->isError);
     auto printPhoto = node::Buffer::Copy(isolate, reinterpret_cast<char *>(&work->printPhoto[0]), work->printPhoto.size());
-    
+
     v8::Handle<Value> argv[] = { isError, printPhoto.ToLocalChecked()};
 
     // execute the callback

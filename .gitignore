@@ -6,3 +6,4 @@
 /research/*.asv
 /webapp/node_modules
 /addon/build
+/libppp/include/common.h

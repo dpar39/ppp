@@ -5,7 +5,7 @@
 #ifdef DLLEXPORT
 #define DECLSPEC __declspec(dllexport)
 #else
-#define DECLSPEC __declspec(dllimport)
+#define DECLSPEC 
 #endif
 #else
 #define DECLSPEC

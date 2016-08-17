@@ -1,7 +1,7 @@
 #========================================
-# Passport Photo Print application (ppp)
+# Passport Photo Print application (ppp-app)
 #========================================
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(PassportPhoto CXX)
 
@@ -36,7 +36,7 @@ if (WIN32)
 endif()
 
 # Configure shared data
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/share/include/common.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/share/include/common.h")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libppp/include/common.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/libppp/include/common.h")
 
 # Add GMock/GTest as it is needed by all modules
 include_directories(${GMOCK_ROOT}/gtest/include)
@@ -52,4 +52,4 @@ add_subdirectory(libppp)
 
 # Add the C++ wrapper for node.js
 include_directories(addon/include)
-add_subdirectory(addon)
+add_subdirectory(addon) 
