@@ -1,13 +1,15 @@
 
 language: cpp
 
+sudo: required
+
 compiler:
   - gcc
 
 # Install cmake and npm/nodejs
 before_install:
-  - apt-get install -qq cmake
-  - apt-get install -qq npm
+  - sudo apt-get install -qq cmake
+  - sudo apt-get install -qq npm
 
 before_script:
 
