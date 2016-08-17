@@ -5,10 +5,18 @@ sudo: required
 
 compiler:
   - gcc
+  
+addons:
+  apt:
+      sources:
+          - ubuntu-toolchain-r-test
+      packages:
+          - g++-5
+          - gcc-5
+          - cmake
 
 # Install cmake and npm/nodejs
 before_install:
-  - sudo apt-get install -qq cmake
   - sudo apt-get install -qq npm
 
 before_script:
