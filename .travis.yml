@@ -12,6 +12,10 @@ before_install:
   - sudo apt-get install -qq npm
 
 before_script:
+  - chmod +x ./build.*
 
 script:
   - ./build.linux64.sh
+  
+notifications:
+  email: false
