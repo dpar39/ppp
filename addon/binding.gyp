@@ -27,7 +27,7 @@
         [ "OS=='win'",  { 
             "libraries": ["..\\..\\install_release_x64\\libppp.lib"]
           }, "OS='linux'", {
-            "libraries": [ "../install_release_x64", "-lppp"]
+            "libraries": [ "../../install_release_x64", "-lppp"]
           }
         ]
       ]      
