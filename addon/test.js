@@ -32,11 +32,11 @@ var printdef = {
 
 pppEngine.setImage(imageData, function(err) {
     if (err) {
-        throw "aaa";
+        throw err;
     }
     pppEngine.detectLandmarks(function(err1, landmarks) {
         if (err1) {
-            throw "bbb";
+            throw err1;
         }
         console.log(landmarks);
 
@@ -45,7 +45,7 @@ pppEngine.setImage(imageData, function(err) {
 
         pppEngine.createTilePrint(printdef, function(err2, bufferData) {
             if (err2) {
-                throw "ccc";
+                throw err2;
             }
             console.log(bufferData);
             fs.writeFile("test.png", bufferData, function(err3) {

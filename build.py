@@ -9,6 +9,7 @@ import tarfile
 import multiprocessing
 
 # Configuration
+gmock_src_url  = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 nodejs_src_url = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
 opencv_src_url = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
 poco_src_url   = 'http://pocoproject.org/releases/poco-1.6.1/poco-1.6.1-all.zip'
@@ -184,11 +185,19 @@ class Builder:
         """
         Extract and build GMock libraries
         """
-        gmock_prefix = 'gmock-1.7.0'
-        gmock_root_dir = os.path.join(self._third_party_dir, gmock_prefix)
-        gmock_src_pkg =  os.path.join(self._third_party_dir, gmock_prefix + '.zip')
+        # Download POCO sources if not done yet
+        gmock_src_pkg = self._downloadThirdPartyLib(gmock_src_url)
+        # Get the file prefix for POCO
+        gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
         
-        self._extractThirdPartyLibrary(gmock_src_pkg)
+        #gmock_root_dir = os.path.join(self._third_party_dir, gmock_prefix)
+        #gmock_src_pkg =  os.path.join(self._third_party_dir, gmock_prefix + '.zip')
+        
+        if gmock_extract_dir == None:  
+            # Extract the source files
+            self._extractThirdPartyLibrary(poco_src_pkg)
+            #gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
+        #self._extractThirdPartyLibrary(gmock_src_pkg)
     
     def _getThridPartyLibDirectory(self, prefix):
         """
