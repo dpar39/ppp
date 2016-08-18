@@ -189,16 +189,11 @@ class Builder:
         gmock_src_pkg = self._downloadThirdPartyLib(gmock_src_url)
         # Get the file prefix for POCO
         gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
-        
-        #gmock_root_dir = os.path.join(self._third_party_dir, gmock_prefix)
-        #gmock_src_pkg =  os.path.join(self._third_party_dir, gmock_prefix + '.zip')
-        
+
         if gmock_extract_dir == None:  
             # Extract the source files
-            self._extractThirdPartyLibrary(poco_src_pkg)
-            #gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
-        #self._extractThirdPartyLibrary(gmock_src_pkg)
-    
+            self._extractThirdPartyLibrary(gmock_src_pkg)
+
     def _getThridPartyLibDirectory(self, prefix):
         """
         Get the directory where a third party library with the specified prefix name was extracted, if any
