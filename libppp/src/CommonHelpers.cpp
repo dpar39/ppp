@@ -1,4 +1,4 @@
-#include "IDetector.h"
+#include "CommonHelpers.h"
 
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -12,7 +12,7 @@
 
 #include <common.h>
 
-std::shared_ptr<cv::CascadeClassifier> IDetector::loadClassifier(const std::string& haarCascadeDir, const std::string& haarCascadeFile)
+std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifier(const std::string& haarCascadeDir, const std::string& haarCascadeFile)
 {
     auto classifier = std::make_shared<cv::CascadeClassifier>();
 #ifdef POCO_STATIC
@@ -34,7 +34,7 @@ std::shared_ptr<cv::CascadeClassifier> IDetector::loadClassifier(const std::stri
     return classifier;
 }
 
-cv::Rect IDetector::detectObjectWithHaarCascade(const cv::Mat& image, cv::CascadeClassifier* cc, int dx /*= 0*/, int dy /*= 0*/)
+cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat& image, cv::CascadeClassifier* cc, int dx /*= 0*/, int dy /*= 0*/)
 {
     // Convert to gray scale if not done
     cv::Mat grayImage;

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
+#include "CommonHelpers.h"
 
 using namespace cv;
 using namespace std;
@@ -20,7 +21,7 @@ void LipsDetector::configure(rapidjson::Value& config)
 
     const string haarCascadeDir(config["haarCascadeDir"].GetString());
     const string haarCascadeFile(lipsDetectorCfg["haarCascade"].GetString());
-    m_pMouthDetector = loadClassifier(haarCascadeDir, haarCascadeFile);
+    m_pMouthDetector = CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFile);
 }
 
 bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMarks)

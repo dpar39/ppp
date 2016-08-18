@@ -10,10 +10,10 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # Third party dependencies
 #----------------------------
-# OpenCV
+# OpenCV Library
 find_package(OpenCV REQUIRED)
 
-# POCO
+# POCO Library
 add_definitions(-DPOCO_STATIC -DPOCO_NO_AUTOMATIC_LIBS)
 find_package(Poco REQUIRED COMPONENTS Foundation)
 

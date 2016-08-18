@@ -1,6 +1,7 @@
 #include "LandMarks.h"
 #include "EyeDetector.h"
 #include "Geometry.h"
+#include "CommonHelpers.h"
 
 #include <queue>
 
@@ -28,7 +29,7 @@ void EyeDetector::configure(rapidjson::Value& cfg)
         {
             auto haarCascadeDir = cfg["haarCascadeDir"].GetString();
             auto haarCascadeFileName = edCfg[(string("haarCascade") + eyeName).c_str()].GetString();
-            return loadClassifier(haarCascadeDir, haarCascadeFileName);
+            return CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFileName);
         };
 
     m_leftEyeCascadeClassifier = loadCascade("Left");

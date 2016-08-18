@@ -8,6 +8,7 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <EyeDetector.h>
+#include <CommonHelpers.h>
 
 using namespace std;
 using namespace cv;
@@ -60,5 +61,5 @@ void FaceDetector::configure(rapidjson::Value& cfg)
 {
     const string haarCascadeDir(cfg["haarCascadeDir"].GetString());
     const string haarCascadeFile(cfg["faceDetector"]["haarCascade"].GetString());
-    m_pFaceCascadeClassifier = loadClassifier(haarCascadeDir, haarCascadeFile);
+    m_pFaceCascadeClassifier = CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFile);
 }
