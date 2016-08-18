@@ -1,7 +1,7 @@
 #include "libppp.h"
 #include "PppEngine.h"
 #include "LandMarks.h"
-#include "PassportStandard.h"
+#include "PhotoStandard.h"
 #include "CanvasDefinition.h"
 
 #include <opencv2/imgcodecs.hpp>
@@ -48,7 +48,7 @@ void PublicPppEngine::createTiledPrint(const std::string& request, std::vector<b
     rapidjson::Document d;
     d.Parse(request.c_str());
 
-    auto ps = PassportStandard::fromJson(d["standard"]);
+    auto ps = PhotoStandard::fromJson(d["standard"]);
     auto canvas = CanvasDefinition::fromJson(d["canvas"]);
     auto cronwPoint = fromJson(d["crownPoint"]);
     auto chinPoint = fromJson(d["chinPoint"]);

@@ -6,15 +6,17 @@
 
 struct LandMarks;
 class IDetector;
+class IPhotoPrintMaker;
 class CanvasDefinition;
-class PassportStandard;
+class PhotoStandard;
 
 class PppEngine
 {
 public:
     explicit PppEngine(std::shared_ptr<IDetector> pFaceDetector = nullptr,
         std::shared_ptr<IDetector> pEyeDetector = nullptr,
-        std::shared_ptr<IDetector> pLipsDetector = nullptr);
+        std::shared_ptr<IDetector> pLipsDetector = nullptr,
+        std::shared_ptr<IPhotoPrintMaker> pPhotoPrintMaker = nullptr);
 
     void configure(rapidjson::Value &config);
 
@@ -27,7 +29,7 @@ public: // Native interface
 
     bool detectLandMarks(LandMarks &faceLandMarks);
 
-    cv::Mat createTiledPrint(PassportStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark);
+    cv::Mat createTiledPrint(PhotoStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark);
 
 private:
     /*!@brief Estimate chin and crown point from the available landmarks!
@@ -37,6 +39,8 @@ private:
     std::shared_ptr<IDetector> m_pFaceDetector;
     std::shared_ptr<IDetector> m_pEyesDetector;
     std::shared_ptr<IDetector> m_pLipsDetector;
+
+    std::shared_ptr<IPhotoPrintMaker> m_pPhotoPrintMaker;
 
     cv::Mat m_inputImage;
 

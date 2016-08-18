@@ -3,7 +3,7 @@
 #include <memory>
 #include <rapidjson/document.h>
 
-class PassportStandard;
+class PhotoStandard;
 namespace cv
 {
     class Mat;
@@ -19,7 +19,7 @@ private:
 public:
     CanvasDefinition(double canvasWidth, double canvasHeight, double resolution, const std::string &units = "mm");
 
-    cv::Mat tileCroppedPhoto(const PassportStandard &ps, const cv::Mat &croppedImage);
+    cv::Mat tileCroppedPhoto(const PhotoStandard &ps, const cv::Mat &croppedImage);
 
     // canvas:
     // {

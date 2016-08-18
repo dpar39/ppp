@@ -1,5 +1,5 @@
 #include "CanvasDefinition.h"
-#include "PassportStandard.h"
+#include "PhotoStandard.h"
 #include "Geometry.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -35,7 +35,7 @@ CanvasDefinition::CanvasDefinition(double canvasWidth, double canvasHeight, doub
     m_border_mm = 0.4;
 }
 
-cv::Mat CanvasDefinition::tileCroppedPhoto(const PassportStandard& ps, const cv::Mat& croppedImage)
+cv::Mat CanvasDefinition::tileCroppedPhoto(const PhotoStandard& ps, const cv::Mat& croppedImage)
 {
     int canvasWidthPixels = ROUND_INT(m_resolution_ppmm*m_canvasWidth_mm);
     int canvasHeightPixels = ROUND_INT(m_resolution_ppmm*m_canvasHeight_mm);

@@ -2,11 +2,16 @@
 #include "LandMarks.h"
 
 #include "IDetector.h"
+#include "IPhotoPrintMaker.h"
+
+// Implementations injected by default
 #include "EyeDetector.h"
 #include "FaceDetector.h"
 #include "LipsDetector.h"
+#include "PhotoPrintMaker.h"
 
-#include "PassportStandard.h"
+
+#include "PhotoStandard.h"
 #include "CanvasDefinition.h"
 #include <Geometry.h>
 
@@ -15,24 +20,26 @@
 using namespace std;
 
 PppEngine::PppEngine(std::shared_ptr<IDetector> pFaceDetector /*= nullptr*/
-    , std::shared_ptr<IDetector> pEyesDetector /*= nullptr*/
-    , std::shared_ptr<IDetector> pLipsDetector /*= nullptr*/)
+                     , std::shared_ptr<IDetector> pEyesDetector /*= nullptr*/
+                     , std::shared_ptr<IDetector> pLipsDetector /*= nullptr*/
+                     , std::shared_ptr<IPhotoPrintMaker> pPhotoPrintMaker /*= nullptr*/)
     : m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
-    , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
-    , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
+      , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
+      , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
+      , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
 {
     // Nothing to do here, just initialise stuffs
 }
 
 
-void PppEngine::configure(rapidjson::Value &config)
+void PppEngine::configure(rapidjson::Value& config)
 {
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);
     m_pLipsDetector->configure(config);
 }
 
-bool PppEngine::detectLandMarks(LandMarks &landMarks)
+bool PppEngine::detectLandMarks(LandMarks& landMarks)
 {
     // Convert the image to gray scale as needed by some algorithms
     cv::Mat grayImage;
@@ -63,14 +70,14 @@ bool PppEngine::detectLandMarks(LandMarks &landMarks)
 }
 
 
-cv::Mat PppEngine::createTiledPrint(PassportStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark)
+cv::Mat PppEngine::createTiledPrint(PhotoStandard& ps, CanvasDefinition& canvas, cv::Point& crownMark, cv::Point& chinMark)
 {
-    auto croppedImage = ps.cropPicture(m_inputImage, crownMark, chinMark);
+    auto croppedImage = m_pPhotoPrintMaker->cropPicture(m_inputImage, crownMark, chinMark, ps);
     auto tiledPrintPhoto = canvas.tileCroppedPhoto(ps, croppedImage);
     return tiledPrintPhoto;
 }
 
-void PppEngine::estimateHeadTopAndChinCorner(LandMarks &landMarks)
+void PppEngine::estimateHeadTopAndChinCorner(LandMarks& landMarks)
 {
     // Using normalised distance to be the sum of the distance between eye pupils and the distance mouth to frown
     // Distance chin to crown is estimated as 1.7699 of that value with correlation 0.7954
@@ -83,8 +90,8 @@ void PppEngine::estimateHeadTopAndChinCorner(LandMarks &landMarks)
     auto normalisedDistancePixels = cv::norm(landMarks.eyeLeftPupil - landMarks.eyeRightPupil)
         + cv::norm(frownPointPix - mouthPointPix);
 
-    auto chinFrownDistancePix = chinFrownCoeff*normalisedDistancePixels;
-    auto chinCrownDistancePix = chinCrownCoeff*normalisedDistancePixels;
+    auto chinFrownDistancePix = chinFrownCoeff * normalisedDistancePixels;
+    auto chinCrownDistancePix = chinCrownCoeff * normalisedDistancePixels;
 
     landMarks.chinPoint = pointInLineAtDistance(frownPointPix, mouthPointPix, chinFrownDistancePix);
     landMarks.crownPoint = pointInLineAtDistance(landMarks.chinPoint, frownPointPix, chinCrownDistancePix);
