@@ -5,4 +5,5 @@
 #sudo apt-get install -qq npm
 
 # Build script
+clear
 python build.py

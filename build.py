@@ -15,7 +15,7 @@ poco_src_url   = 'http://pocoproject.org/releases/poco-1.6.1/poco-1.6.1-all.zip'
 
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
-_jN ='-j%i' % multiprocessing.cpu_count()
+_jN ='-j%i' % min(multiprocessing.cpu_count(), 8) 
 
 def which(program):
     """
@@ -166,7 +166,7 @@ class Builder:
         poco_build_modules = [] # Foundation always gets built - that's all we need for now
 
         install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config)
-        lib_files = glob.glob(install_dir + '/lib/Poco*.lib') + glob.glob(install_dir + '/lib/Poco*.a')
+        lib_files = glob.glob(install_dir + '/lib/Poco*.lib') + glob.glob(install_dir + '/lib/libPoco*.a')
         if len(lib_files) < len(poco_build_modules) + 1 or override:
             # Build POCO libraries        
             cmake_definitions = ['-DPOCO_STATIC=ON', \
@@ -345,7 +345,7 @@ class Builder:
         parser = argparse.ArgumentParser(description='Builds my cool passport photo print generator application.')
         parser.add_argument('--arch_name', help='Target platform [x86 | x64]', default=default_arch_name)
         parser.add_argument('--build_config', help='Builds the code base in [debug | release] mode', default=default_build_cfg)
-        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
+        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_false")
         parser.add_argument('--skip_tests', help='Run existing unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Runs install commands', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects', action="store_true")
@@ -377,7 +377,7 @@ class Builder:
         self._runCmd(['node-gyp', 'build'])        
         os.chdir(self._root_dir)
         # Copy build output to install directory
-        shutil.copy(os.path.join(addon_dir, "build", "Release"), self._install_dir)
+        shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
         # TODO: Run javascript unit tests
     
