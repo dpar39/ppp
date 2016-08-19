@@ -14,10 +14,11 @@ nodejs_src_url = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
 opencv_src_url = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
 poco_src_url   = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
 
+MinusJN ='-j%i' % min(multiprocessing.cpu_count(), 8)
+IsWindows = sys.platform == 'win32'
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
-_jN ='-j%i' % min(multiprocessing.cpu_count(), 8) 
-
+ 
 def which(program):
     """
     Returns the full path of to a program if available in the system PATH, None otherwise
@@ -141,7 +142,7 @@ class Builder:
                 self._runCmd(build_cmd)
             else:
                 self._runCmd(['./configure'])
-                self._runCmd(['make', _jN])
+                self._runCmd(['make', MinusJN])
             os.chdir(self._root_dir)
         # Install built node executable into the install dir
         if self._run_install:
@@ -227,7 +228,7 @@ class Builder:
   
         # Skip building OpenCV if done already
         install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config)
-        if sys.platform == 'win32':
+        if IsWindows:
             if os.path.exists(os.path.join(install_dir, 'OpenCVConfig.cmake')):
                 return
         else:            
@@ -258,7 +259,7 @@ class Builder:
         if not os.path.exists(build_dir): # Create the build directory
             os.mkdir(build_dir)
         # Build
-        if not sys.platform == 'win32':
+        if not IsWindows:
             self._buildCMakeLibrary(opencv_extract_dir, cmake_extra_defs, [], False)
         else: # Windows OS: only builds with msbuild.exe           
             # Change directory to the build directory
@@ -327,7 +328,7 @@ class Builder:
             make_cmd = ['set','MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
         else:
             cmake_generator = 'Unix Makefiles'
-            make_cmd = ['make', _jN, 'install']
+            make_cmd = ['make', MinusJN, 'install']
         os.chdir(build_dir);
         cmake_cmd = ['cmake',  \
             '-DCMAKE_BUILD_TYPE=' + self._build_config,  \
@@ -384,6 +385,8 @@ class Builder:
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
         # TODO: Run javascript unit tests
+        
+        self._runCmd(["node", os.path.join(self._install_dir, "test.js"])
     
     def _buildProject(self):
         # Build actions
@@ -395,7 +398,7 @@ class Builder:
             os.mkdir(self._build_dir)
 
         # Configure build system
-        make_cmd = ['make', _jN]
+        make_cmd = ['make', MinusJN]
         cmake_generator = 'Unix Makefiles'
         if sys.platform == "win32":
             cmake_generator = 'NMake Makefiles'
@@ -409,23 +412,28 @@ class Builder:
             self._runCmake(cmake_generator, '..')
             self._setStartupProjectInVSSolution('ppp_test')
         else:
-            # Building code from the command line
+            # Building the project code from the command line
             self._runCmake(cmake_generator, '..')
             self._runCmd(make_cmd)
             if self._run_tests:
                 self._runCmd(make_cmd + ['test'])
             if self._run_install:
                 self._runCmd(make_cmd + ['install'])
-        os.chdir(self._root_dir)
+            
+            os.chdir(self._root_dir)
 
-        if self._build_config == 'release':
-            # Build the node addon with node-gyp
-            self._buildInstallAddonNodeGyp()
+            if not IsWindows:
+                # Build the node addon with node-gyp
+                self._buildInstallAddonNodeGyp()
+            # TODORun addon unit tests manually
+            #self._runCmd(['node', 'addon/test.js'])
+
+        os.chdir(self._root_dir)
         
     def __init__(self):
         # Detect OS version
         self._parseArguments()
-        if sys.platform == 'win32':
+        if IsWindows:
            self._detectVSVersion()
 
         # Create install directory if it doesn't exist
@@ -437,8 +445,8 @@ class Builder:
         self._buildPocoLibs()
         self._buildOpenCV()
         
-        if sys.platform == 'win32' and self._build_config == 'debug':
-            # Build Node JS from source so the addon can be build in Debug mode
+        if IsWindows:
+            # Build Node JS from source so the addon can be build reliably for Windows
             self._buildNodeJs()
         elif which('node-gyp') == None:
             # Install node-gyp as it is not available in the system
