@@ -162,7 +162,7 @@ void PppWrapper::DetectLandMarks(const v8::FunctionCallbackInfo<v8::Value>& args
     auto isolate = args.GetIsolate();
     if (args.Length() != 2 || !args[0]->IsString() || !args[1]->IsFunction())
     {
-        v8::Exception::TypeError(String::NewFromUtf8(isolate, 
+        v8::Exception::TypeError(String::NewFromUtf8(isolate,
             "detectLandMarks() takes 2 parameter: an image key of type string and a callback function"));
     }
 
@@ -221,9 +221,10 @@ void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& arg
 v8::Local<v8::Primitive> GetWorkItemError(WorkItemBase * work)
 {
     auto isolate = Isolate::GetCurrent();
-    return work->error.empty() ? v8::Null(isolate) : v8::String::NewFromUtf8(isolate, work->error.c_str());
+    return work->error.empty()
+        ? v8::Null(isolate)
+        : static_cast<v8::Local<v8::Primitive>>(v8::String::NewFromUtf8(isolate, work->error.c_str()));
 }
-
 
 void PppWrapper::SetImageWorkAsync(uv_work_t* req)
 {
