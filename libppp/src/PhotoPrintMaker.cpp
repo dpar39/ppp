@@ -1,5 +1,7 @@
 #include "PhotoStandard.h"
+#include "CanvasDefinition.h"
 #include "PhotoPrintMaker.h"
+
 #include "Geometry.h"
 
 #include <opencv2/imgproc.hpp>
@@ -29,4 +31,32 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
     Mat cropImage;
     warpAffine(originalImage, cropImage, tform, cv::Size(ROUND_INT(cropWidthPix), ROUND_INT(cropHeightPix)));
     return cropImage;
+}
+
+cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const PhotoStandard& ps, const cv::Mat& croppedImage)
+{
+    auto canvasWidthPixels = ROUND_INT(canvas.resolution()*canvas.width());
+    auto canvasHeightPixels = ROUND_INT(canvas.resolution()*canvas.height());
+
+    auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
+    auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
+
+    cv::Size tileSizePixels(ROUND_INT(canvas.resolution() * ps.photoWidthMM()), ROUND_INT(canvas.resolution() * ps.photoHeightMM()));
+
+    // Resize input crop to the canvas output
+    cv::Mat tileInCanvas;
+    cv::resize(croppedImage, tileInCanvas, tileSizePixels);
+
+    cv::Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type());
+
+    for (size_t row = 0; row < numPhotoRows; ++row)
+    {
+        for (size_t col = 0; col < numPhotoCols; ++col)
+        {
+            cv::Point topLeft(ROUND_INT(col*(ps.photoWidthMM() + canvas.border())*canvas.resolution()),
+                ROUND_INT(row*(ps.photoHeightMM() + canvas.border())*canvas.resolution()));
+            tileInCanvas.copyTo(printPhoto(cv::Rect(topLeft, tileSizePixels)));
+        }
+    }
+    return printPhoto;
 }

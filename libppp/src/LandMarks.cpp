@@ -4,24 +4,22 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
-#include <FaceDetector.h>
 
-
-rapidjson::Value pointToJson(const cv::Point& p, rapidjson::Document& d)
+rapidjson::Value pointToJson(const cv::Point& p, rapidjson::Document::AllocatorType& alloc)
 {
-    rapidjson::Value obj;
-    obj.AddMember("x", p.x, d.GetAllocator());
-    obj.AddMember("y", p.y, d.GetAllocator());
+    rapidjson::Value obj(rapidjson::kObjectType);
+    obj.AddMember("x", p.x, alloc);
+    obj.AddMember("y", p.y, alloc);
     return obj;
 }
 
-rapidjson::Value rectangleToJson(const cv::Rect& r, rapidjson::Document& d)
+rapidjson::Value rectangleToJson(const cv::Rect& r, rapidjson::Document::AllocatorType& alloc)
 {
-    rapidjson::Value obj;
-    obj.AddMember("x", r.x, d.GetAllocator());
-    obj.AddMember("y", r.y, d.GetAllocator());
-    obj.AddMember("width", r.width, d.GetAllocator());
-    obj.AddMember("height", r.height, d.GetAllocator());
+    rapidjson::Value obj(rapidjson::kObjectType);
+    obj.AddMember("x", r.x, alloc);
+    obj.AddMember("y", r.y, alloc);
+    obj.AddMember("width", r.width, alloc);
+    obj.AddMember("height", r.height, alloc);
     return obj;
 }
 
@@ -38,22 +36,22 @@ std::string LandMarks::toJson() const
 {
     using namespace rapidjson;
     Document d;
-    Value& obj = d.SetObject();
+    d.SetObject();
+    auto& alloc = d.GetAllocator();
+    d.AddMember("vjFaceRect", rectangleToJson(vjFaceRect, alloc), alloc);
 
-    d["vjFaceRect"] = rectangleToJson(vjFaceRect, d);
+    d.AddMember("eyeLeftPupil", pointToJson(eyeLeftPupil, alloc), alloc);
+    d.AddMember("eyeRightPupil", pointToJson(eyeRightPupil, alloc), alloc);
+    d.AddMember("vjLeftEyeRect", rectangleToJson(vjLeftEyeRect, alloc), alloc);
+    d.AddMember("vjRightEyeRect", rectangleToJson(vjRightEyeRect, alloc), alloc);
 
-    d["eyeLeftPupil"] = pointToJson(eyeLeftPupil, d);
-    d["eyeRightPupil"] = pointToJson(eyeRightPupil, d);
-    d["vjLeftEyeRect"] = rectangleToJson(vjLeftEyeRect, d);
-    d["vjRightEyeRect"] = rectangleToJson(vjRightEyeRect, d);
+    d.AddMember("lipUpperCenter", pointToJson(lipUpperCenter, alloc), alloc);
+    d.AddMember("lipLowerCenter", pointToJson(lipLowerCenter, alloc), alloc);
+    d.AddMember("lipLeftCorner", pointToJson(lipLeftCorner, alloc), alloc);
+    d.AddMember("lipRightCorner", pointToJson(lipRightCorner, alloc), alloc);
 
-    d["lipUpperCenter"] = pointToJson(lipUpperCenter, d);
-    d["lipLowerCenter"] = pointToJson(lipLowerCenter, d);
-    d["lipLeftCorner"] = pointToJson(lipLeftCorner, d);
-    d["lipRightCorner"] = pointToJson(lipRightCorner, d);
-
-    d["crownPoint"] = pointToJson(crownPoint, d);
-    d["chinPoint"] = pointToJson(chinPoint, d);
+    d.AddMember("crownPoint", pointToJson(crownPoint, alloc), alloc);
+    d.AddMember("chinPoint", pointToJson(chinPoint, alloc), alloc);
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);

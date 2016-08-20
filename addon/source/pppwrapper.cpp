@@ -18,9 +18,19 @@ using v8::Persistent;
 using v8::String;
 using v8::Value;
 
+std::string toStdString(v8::Local<v8::Value> arg)
+{
+    v8::String::Utf8Value value(arg->ToString());
+    return std::string(*value);
+}
 
+struct WorkItemBase
+{
+    std::string error;
+    std::string imageKey;
+};
 
-struct SetImageWorkItem
+struct SetImageWorkItem : WorkItemBase
 {
     uv_work_t  request;
     Persistent<Function> callback;
@@ -29,21 +39,18 @@ struct SetImageWorkItem
     char *imageDataPtr;
     int imageDataLength;
     std::shared_ptr<PublicPppEngine> pppEngine;
-    bool isError;
 };
 
-struct DetectLandMarksWorkItem
+struct DetectLandMarksWorkItem : WorkItemBase
 {
     uv_work_t  request;
     Persistent<Function> callback;
 
     std::shared_ptr<PublicPppEngine> pppEngine;
-    std::string options;
     std::string landmarks;
-    bool isError;
 };
 
-struct CreateTilePrintWorkItem
+struct CreateTilePrintWorkItem : WorkItemBase
 {
     uv_work_t  request;
     Persistent<Function> callback;
@@ -51,7 +58,6 @@ struct CreateTilePrintWorkItem
     std::shared_ptr<PublicPppEngine> pppEngine;
     std::string printOptions;
     std::vector<byte> printPhoto;
-    bool isError;
 };
 
 Persistent<Function> PppWrapper::constructor;
@@ -110,10 +116,9 @@ void PppWrapper::New(const FunctionCallbackInfo<Value>& args)
 void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (args.Length() != 1 || !(args[0]->IsString() || args[0]->IsObject()))
     {
-        // Invalid
-        //v8::ThrowException(v8::Exception::TypeError(String::NewFromUtf8(isolate, "This is an error")));
+        v8::Exception::TypeError(String::NewFromUtf8(isolate, "configure() expects a JSON string or configuration object"));
     }
     // Get the configuration as a C++ std::string
     v8::String::Utf8Value jsstr(args[0]->ToString());
@@ -125,17 +130,17 @@ void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
 {
+    auto isolate = args.GetIsolate();
     if(args.Length() != 2
         || !args[0]->IsArrayBuffer()
         || !args[1]->IsFunction())
     {
-        // Invalid
+        v8::Exception::TypeError(String::NewFromUtf8(isolate, "setImage() takes an array buffer (image data) and a callback function"));
     }
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
     auto imageDataPtr = node::Buffer::Data(args[0]);
     auto imageDataLen = node::Buffer::Length(args[0]);
-
-    Isolate* isolate = args.GetIsolate();
+;
     Local<Function> callback = Local<Function>::Cast(args[1]);
 
     auto work = new SetImageWorkItem();
@@ -154,21 +159,19 @@ void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
 
 void PppWrapper::DetectLandMarks(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    if (args.Length() != 1 || !args[0]->IsFunction())
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 2 || !args[0]->IsString() || !args[1]->IsFunction())
     {
-        // Invalid
+        v8::Exception::TypeError(String::NewFromUtf8(isolate, 
+            "detectLandMarks() takes 2 parameter: an image key of type string and a callback function"));
     }
 
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
-
-    Isolate* isolate = args.GetIsolate();
-    Local<Function> callback = Local<Function>::Cast(args[0]);
-
     auto work = new DetectLandMarksWorkItem();
     work->request.data = work;
-    work->options = "";
+    work->imageKey = toStdString(args[0]);
     work->pppEngine = pppWrapper->m_enginePtr;
-    work->callback.Reset(isolate, callback);
+    work->callback.Reset(isolate, Local<Function>::Cast(args[1]));
 
     // Kick off the worker thread
     uv_queue_work(uv_default_loop(), &work->request,
@@ -192,20 +195,19 @@ std::string PppWrapper::toJson(v8::Local<v8::Object> object)
 
 void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    if (args.Length() != 2 || !args[0]->IsObject() || !args[1]->IsFunction())
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsObject() || !args[2]->IsFunction())
     {
-        // Invalid
+        v8::Exception::TypeError(String::NewFromUtf8(isolate,
+            "detectLandMarks() takes 2 parameter: an image key of type string and a callback function"));
     }
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
-    auto callback = Local<Function>::Cast(args[1]);
-    Isolate* isolate = args.GetIsolate();
-
     auto work = new CreateTilePrintWorkItem();
     work->request.data = work;
-    work->printOptions =  toJson(Local<Object>::Cast(args[0]));
-
+    work->imageKey = toStdString(args[0]);
+    work->printOptions =  toJson(Local<Object>::Cast(args[1]));
     work->pppEngine = pppWrapper->m_enginePtr;
-    work->callback.Reset(isolate, callback);
+    work->callback.Reset(isolate, Local<Function>::Cast(args[2]));
 
     uv_queue_work(uv_default_loop(), &work->request,
         CreateTilePrintWorkAsync, CreateTilePrintWorkAsyncComplete);
@@ -216,17 +218,23 @@ void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 
 #pragma region Async Workers
+v8::Local<v8::Primitive> GetWorkItemError(WorkItemBase * work)
+{
+    auto isolate = Isolate::GetCurrent();
+    return work->error.empty() ? v8::Null(isolate) : v8::String::NewFromUtf8(isolate, work->error.c_str());
+}
+
+
 void PppWrapper::SetImageWorkAsync(uv_work_t* req)
 {
     auto work = static_cast<SetImageWorkItem *>(req->data);
     try
     {
-        work->pppEngine->setImage(work->imageDataPtr, work->imageDataLength);
-        work->isError = false;
+        work->imageKey = work->pppEngine->setImage(work->imageDataPtr, work->imageDataLength);
     }
     catch (const std::exception& ex)
     {
-        work->isError = true;
+        work->error = ex.what();
     }
 }
 
@@ -237,13 +245,12 @@ void PppWrapper::SetImageWorkAsyncComplete(uv_work_t* req, int status)
 
     auto work = static_cast<SetImageWorkItem *>(req->data);
 
-    // set up return arguments
-    auto isError = v8::Boolean::New(isolate, work->isError);
-    v8::Handle<Value> argv[] = { isError };
+    // Set up return arguments
+    v8::Handle<Value> argv[] = { GetWorkItemError(work),  v8::String::NewFromUtf8(isolate, work->imageKey.c_str()) };
 
     // execute the callback
     Local<Function>::New(isolate, work->callback)->
-        Call(isolate->GetCurrentContext()->Global(), 1, argv);
+        Call(isolate->GetCurrentContext()->Global(), 2, argv);
 
     // Free up the persistent function callback
     work->callback.Reset();
@@ -255,12 +262,11 @@ void PppWrapper::DetectLandMarksWorkAsync(uv_work_t* req)
     auto work = static_cast<DetectLandMarksWorkItem *>(req->data);
     try
     {
-        work->landmarks = work->pppEngine->detectLandmarks(work->options);
-        work->isError = false;
+        work->landmarks = work->pppEngine->detectLandmarks(work->imageKey);
     }
-    catch (...)
+    catch (const std::exception& ex)
     {
-        work->isError = true;
+        work->error = ex.what();
     }
 }
 
@@ -272,11 +278,10 @@ void PppWrapper::DetectLandMarksWorkAsyncComplete(uv_work_t* req, int status)
     auto work = static_cast<DetectLandMarksWorkItem *>(req->data);
 
     // set up return arguments
-    auto isError = v8::Boolean::New(isolate, work->isError);
     auto landmarksStr = v8::String::NewFromUtf8(isolate, work->landmarks.data());
     auto landmarks = v8::JSON::Parse(landmarksStr);
 
-    v8::Handle<Value> argv[] = { isError, landmarks};
+    v8::Handle<Value> argv[] = { GetWorkItemError(work), landmarks};
 
     // execute the callback
     Local<Function>::New(isolate, work->callback)->
@@ -292,12 +297,11 @@ void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
     try
     {
-        work->pppEngine->createTiledPrint(work->printOptions, work->printPhoto);
-        work->isError = false;
+        work->pppEngine->createTiledPrint(work->imageKey, work->printOptions, work->printPhoto);
     }
-    catch (...)
+    catch (const std::exception& ex)
     {
-        work->isError = true;
+        work->error = ex.what();
     }
 }
 
@@ -309,10 +313,9 @@ void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
 
     // set up return arguments
-    auto isError = v8::Boolean::New(isolate, work->isError);
     auto printPhoto = node::Buffer::Copy(isolate, reinterpret_cast<char *>(&work->printPhoto[0]), work->printPhoto.size());
 
-    v8::Handle<Value> argv[] = { isError, printPhoto.ToLocalChecked()};
+    v8::Handle<Value> argv[] = { GetWorkItemError(work), printPhoto.ToLocalChecked()};
 
     // execute the callback
     Local<Function>::New(isolate, work->callback)->

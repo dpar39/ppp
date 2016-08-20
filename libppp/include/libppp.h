@@ -30,7 +30,11 @@ public:
 
     void configure(const std::string &jsonConfig);
 
-    void setImage(const char *bufferData, int bufferLength);
+    /*!@brief Stores the image for processing 
+    *  param[in] bufferData Pointer to the image data
+    *  returns Image Id that can be used to recognise the image
+    !*/
+    std::string setImage(const char *bufferData, int bufferLength);
     
     std::string detectLandmarks(const std::string &imageId);
  
@@ -62,8 +66,8 @@ public:
     .    }
     .}
     !*/
-    void createTiledPrint(const std::string &options, std::vector<byte> &pictureData);
-    
+    void createTiledPrint(const std::string& imageId, const std::string &request, std::vector<byte> &pictureData);
+
 private:
     std::shared_ptr<PppEngine> m_pPppEngine;
 };

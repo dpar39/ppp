@@ -242,8 +242,8 @@ TEST(PppEngine, TestEndToEndLandmarkDetection)
     auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
             LandMarks& annotations, LandMarks& detectedLandMarks) -> bool
         {
-            engine.setInputImage(rgbImage);
-            engine.detectLandMarks(detectedLandMarks);
+            auto imageKey = engine.setInputImage(rgbImage);
+            engine.detectLandMarks(imageKey, detectedLandMarks);
 
             // Validate chin-crown distance error
             auto expectedDistance = cv::norm(annotations.chinPoint - annotations.crownPoint);

@@ -10,10 +10,10 @@ using namespace rapidjson;
 
 cv::Point fromJson(Value& v)
 {
-    if (v.Empty() || v["x"].Empty() || v["y"].Empty())
+    /*if (v.Empty() || v["x"].Empty() || v["y"].Empty())
     {
         return cv::Point(0, 0);
-    }
+    }*/
     return cv::Point(v["x"].GetInt(), v["y"].GetInt());
 }
 
@@ -29,21 +29,21 @@ void PublicPppEngine::configure(const std::string& jsonConfig)
     m_pPppEngine->configure(parser);
 }
 
-void PublicPppEngine::setImage(const char* bufferData, int bufferLength)
+std::string PublicPppEngine::setImage(const char* bufferData, int bufferLength)
 {
     cv::_InputArray inputArray(bufferData, bufferLength);
     auto inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
-    m_pPppEngine->setInputImage(inputImage);
+    return m_pPppEngine->setInputImage(inputImage);
 }
 
 std::string PublicPppEngine::detectLandmarks(const std::string& imageId)
 {
     LandMarks landMarks;
-    m_pPppEngine->detectLandMarks(landMarks);
+    m_pPppEngine->detectLandMarks(imageId, landMarks);
     return landMarks.toJson();
 }
 
-void PublicPppEngine::createTiledPrint(const std::string& request, std::vector<byte>& pictureData)
+void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request, std::vector<byte>& pictureData)
 {
     rapidjson::Document d;
     d.Parse(request.c_str());
@@ -53,7 +53,7 @@ void PublicPppEngine::createTiledPrint(const std::string& request, std::vector<b
     auto cronwPoint = fromJson(d["crownPoint"]);
     auto chinPoint = fromJson(d["chinPoint"]);
 
-    auto result = m_pPppEngine->createTiledPrint(*ps, *canvas, cronwPoint, chinPoint);
+    auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
     cv::imencode(".png", result, pictureData);
 }

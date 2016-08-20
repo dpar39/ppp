@@ -31,27 +31,27 @@ var printdef = {
     }
 };
 
-pppEngine.setImage(imageData, function(err) {
+pppEngine.setImage(imageData, function(err, imgKey) {
     if (err) {
         throw err;
     }
-    pppEngine.detectLandmarks(function(err1, landmarks) {
-        if (err1) {
-            throw err1;
+    pppEngine.detectLandmarks(imgKey, function(err, landmarks) {
+        if (err) {
+            throw err;
         }
         console.log(landmarks);
 
         printdef.crownPoint = landmarks.crownPoint;
         printdef.chinPoint = landmarks.chinPoint;
 
-        pppEngine.createTilePrint(printdef, function(err2, bufferData) {
-            if (err2) {
-                throw err2;
+        pppEngine.createTilePrint(imgKey, printdef, function(err, bufferData) {
+            if (err) {
+                throw err;
             }
             console.log(bufferData);
-            fs.writeFile("test.png", bufferData, function(err3) {
-                if (err3) {
-                    return console.error(err3);
+            fs.writeFile("test.png", bufferData, function(err) {
+                if (err) {
+                    return console.error(err);
                 }
             });
         });

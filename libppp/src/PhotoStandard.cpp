@@ -1,7 +1,6 @@
 #include "PhotoStandard.h"
-#include "Geometry.h"
 #include <memory>
-using namespace cv;
+
 
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfig)
 {
@@ -11,21 +10,21 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
     auto units = psConfig["units"].GetString();
 
     double unitsRatio_mm;
-    if (units == "inch")
+    if (!strcmp(units,"inch"))
     {
         unitsRatio_mm = 25.4;
     }
-    else if (units == "cm")
+    else if(!strcmp(units, "cm"))
     {
         unitsRatio_mm = 10.0;
     }
-    else if (units == "mm")
+    else if (!strcmp(units, "mm"))
     {
         unitsRatio_mm = 1.0;
     }
     else
     {
-        throw std::logic_error("Unknown input units");
+        throw std::logic_error("Unknown input units when creating the photo standard definition");
     }
 
     return std::make_shared<PhotoStandard>(picWidth * unitsRatio_mm, picHeight * unitsRatio_mm, faceLength * unitsRatio_mm);

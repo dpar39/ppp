@@ -11,7 +11,6 @@ namespace cv
 
 class CanvasDefinition
 {
-private:
     double m_canvasWidth_mm;  ///<- Output canvas width in mm
     double m_canvasHeight_mm; ///<- Output canvas height in mm
     double m_resolution_ppmm; ///<- Resolution in pixels per mm
@@ -19,7 +18,10 @@ private:
 public:
     CanvasDefinition(double canvasWidth, double canvasHeight, double resolution, const std::string &units = "mm");
 
-    cv::Mat tileCroppedPhoto(const PhotoStandard &ps, const cv::Mat &croppedImage);
+    double height() const { return m_canvasHeight_mm; }
+    double width() const { return m_canvasWidth_mm; }
+    double resolution() const { return m_resolution_ppmm; }
+    double border() const { return m_border_mm; }
 
     // canvas:
     // {

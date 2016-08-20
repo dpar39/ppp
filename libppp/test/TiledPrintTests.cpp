@@ -31,17 +31,17 @@ TEST(TiledPrintTest, TestCroppingWorks)
 
         cv::Point2d crownPos(landMarks.at<float>(0, 0), landMarks.at<float>(0, 1));
         cv::Point2d chinPos(landMarks.at<float>(16, 0), landMarks.at<float>(16, 1));
-        cv::Mat image = cv::imread(imageFileName);
+        auto image = cv::imread(imageFileName);
 
         PhotoPrintMaker maker;
-        cv::Mat croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
-
-        // Draw tiles
-        cv::Mat printPhoto = canvasDefinition.tileCroppedPhoto(passportStandard, croppedImage);
+        // Crop the picture
+        auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
+        // Draw tiles into the printing canvas
+        auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
     }
 }
 
-TEST(TiledPrintTest, TestForDarien)
+TEST(TiledPrintTest, TestForDarien_Disabled)
 {
     auto imageDir = resolvePath("research/sample_test_images");
 
@@ -54,10 +54,10 @@ TEST(TiledPrintTest, TestForDarien)
     auto image = cv::imread(imageFileName);
 
     PhotoPrintMaker maker;
-    cv::Mat croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
-
-    // Draw tiles
-    cv::Mat printPhoto = canvasDefinition.tileCroppedPhoto(passportStandard, croppedImage);
+        // Crop the picture
+        auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
+        // Draw tiles into the printing canvas
+        auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
 
     cv::imwrite(imageDir + "/output-loira.png", printPhoto);
 }
