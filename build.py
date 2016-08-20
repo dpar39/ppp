@@ -18,7 +18,7 @@ MinusJN ='-j%i' % min(multiprocessing.cpu_count(), 8)
 IsWindows = sys.platform == 'win32'
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
- 
+
 def which(program):
     """
     Returns the full path of to a program if available in the system PATH, None otherwise
@@ -115,39 +115,32 @@ class Builder:
         self._runCmd(['call', 'devenv', solution_file])
 
     def _buildNodeJs(self):
-        """ 
-        Downloads, extract and builds Node JS from source in debug (Windows Only)
+        """
+        Downloads, extract and builds Node JS from source (Windows ONLY)
         """
         # Download Node JS if not done yet
         node_src_pkg = self._downloadThirdPartyLib(nodejs_src_url)
         # Get the file prefix for node js
         node_extract_dir = self._getThridPartyLibDirectory('node')
-        if node_extract_dir == None:  
+        if node_extract_dir == None:
             # Extract the source files
             self._extractThirdPartyLibrary(node_src_pkg)
             node_extract_dir = self._getThridPartyLibDirectory('node')
         # Build Node JS if not done yet
-        if sys.platform == "win32":
-            node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
-        else:
-            node_exe_path = os.path.join(node_extract_dir, 'node');
+        node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
 
         if not os.path.exists(node_exe_path):
             print 'Building Node JS from sources ... please wait ...'
             os.chdir(node_extract_dir)
-            if sys.platform == "win32":
-                build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
-                if ("64" in self._arch_name):
-                    build_cmd.append('x64')
-                self._runCmd(build_cmd)
-            else:
-                self._runCmd(['./configure'])
-                self._runCmd(['make', MinusJN])
+            build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
+            if ("64" in self._arch_name):
+                build_cmd.append('x64')
+            self._runCmd(build_cmd)
             os.chdir(self._root_dir)
         # Install built node executable into the install dir
         if self._run_install:
-            shutil.copy(node_exe_path, self._third_party_dir)
-    
+            shutil.copy(node_exe_path, self._install_dir)
+
     def _buildPocoLibs(self, override = False):
         """
         Downloads, extracts and builds POCO libraries from source, if not done yet
@@ -156,30 +149,30 @@ class Builder:
         poco_src_pkg = self._downloadThirdPartyLib(poco_src_url)
         # Get the file prefix for POCO
         poco_extract_dir = self._getThridPartyLibDirectory('poco')
-        if poco_extract_dir == None:  
+        if poco_extract_dir == None:
             # Extract the source files
             self._extractThirdPartyLibrary(poco_src_pkg)
             poco_extract_dir = self._getThridPartyLibDirectory('poco')
-    
+
         poco_all_modules = ['XML', 'JSON', 'MONGODB', 'UTIL', \
            'NET', 'NETSSL', 'NETSSL_WIN', 'CRYPTO', \
            'DATA', 'DATA_SQLITE', 'DATA_MYSQL', 'DATA_ODBC', 'ZIP', \
            'PAGECOMPILER', 'PAGECOMPILER_FILE2PAGE']
         poco_build_modules = [] # Foundation always gets built - that's all we need for now
 
-        install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config)
-        lib_files = glob.glob(install_dir + '/lib/Poco*.lib') + glob.glob(install_dir + '/lib/libPoco*.a')
+        lib_files = glob.glob(self._third_party_install_dir + '/lib/Poco*.lib') \
+            + glob.glob(self._third_party_install_dir + '/lib/libPoco*.a')
         if len(lib_files) < len(poco_build_modules) + 1 or override:
-            # Build POCO libraries        
+            # Build POCO libraries
             cmake_definitions = ['-DPOCO_STATIC=ON', \
-                '-DCMAKE_INSTALL_PREFIX=' + install_dir, \
+                '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
                 '-DCMAKE_BUILD_TYPE=' + self._build_config]
 
             for module in poco_all_modules:
                 on_off = '=ON' if module in poco_build_modules else '=OFF'
                 cmake_def = '-DENABLE_' + module + on_off
                 cmake_definitions.append(cmake_def)
-            
+
             self._buildCMakeLibrary(poco_extract_dir, cmake_definitions, ['install']);
 
     def _extractGMock(self, override = False):
@@ -191,7 +184,7 @@ class Builder:
         # Get the file prefix for POCO
         gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
 
-        if gmock_extract_dir == None:  
+        if gmock_extract_dir == None:
             # Extract the source files
             self._extractThirdPartyLibrary(gmock_src_pkg)
 
@@ -206,38 +199,37 @@ class Builder:
         return None
 
     def _buildOpenCV(self):
-        """ 
+        """
         Downloads and builds OpenCV from source
         """
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self._downloadThirdPartyLib(opencv_src_url)
         # Get the file prefix for OpenCV
         opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
-        
-        if opencv_extract_dir == None:  
+
+        if opencv_extract_dir == None:
             # Extract the source files
             self._extractThirdPartyLibrary(opencv_src_pkg)
             opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
-        
+
         ocv_all_modules = ['core', 'flann', 'imgproc', \
             'ml', 'photo', 'video', 'imgcodecs', 'shape', \
             'videoio', 'highgui', 'objdetect', 'superres', \
             'ts', 'features2d', 'calib3d', 'stitching', 'videostab']
         ocv_build_modules = ['highgui', 'core', 'imgproc',\
             'ml', 'objdetect', 'imgcodecs', 'videoio']
-  
+
         # Skip building OpenCV if done already
-        install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config)
         if IsWindows:
-            if os.path.exists(os.path.join(install_dir, 'OpenCVConfig.cmake')):
+            if os.path.exists(os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')):
                 return
-        else:            
-            lib_files = glob.glob(install_dir + '/lib/libopencv_*.a')
+        else:
+            lib_files = glob.glob(self._third_party_install_dir + '/lib/libopencv_*.a')
             if len(lib_files) == len(ocv_build_modules):
                 return
 
         cmake_extra_defs = [ \
-            '-DCMAKE_INSTALL_PREFIX=' + install_dir, \
+            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
             '-DBUILD_SHARED_LIBS=OFF', \
             '-DBUILD_PERF_TESTS=OFF', \
             '-DBUILD_WITH_DEBUG_INFO=OFF', \
@@ -261,7 +253,7 @@ class Builder:
         # Build
         if not IsWindows:
             self._buildCMakeLibrary(opencv_extract_dir, cmake_extra_defs, [], False)
-        else: # Windows OS: only builds with msbuild.exe           
+        else: # Windows OS: only builds with msbuild.exe
             # Change directory to the build directory
             os.chdir(build_dir)
             cmake_cmd = ['cmake', '-G', self._vc_cmake_gen] \
@@ -289,7 +281,7 @@ class Builder:
         """
         lib_filepath = self._getFileNameFromUrl(url)
         if not os.path.exists(lib_filepath):
-            print 'Downloading ' + url + ' to "' + lib_filepath + '" please wait ...' 
+            print 'Downloading ' + url + ' to "' + lib_filepath + '" please wait ...'
             import urllib2
             lib_file = urllib2.urlopen(url)
             with open(lib_filepath,'wb') as output:
@@ -299,8 +291,8 @@ class Builder:
     def _extractThirdPartyLibrary(self, lib_src_pkg):
         """
         Extracts a third party lib package source file into a directory
-        """        
-        print 'Extracting third party library "' + lib_src_pkg + '" please wait ...'            
+        """
+        print 'Extracting third party library "' + lib_src_pkg + '" please wait ...'
         if 'zip' in lib_src_pkg:
             zip = zipfile.ZipFile(lib_src_pkg)
             for item in zip.namelist():
@@ -340,11 +332,11 @@ class Builder:
         for target in targets:
             self._runCmd(make_cmd + [target])
         os.chdir(self._root_dir)
-        
+
     def _parseArguments(self):
         default_arch_name = 'x64'
         default_build_cfg = 'release'
-        if sys.platform == "win32":
+        if IsWindows:
             default_arch_name = 'x86'
             default_build_cfg = 'debug'
         parser = argparse.ArgumentParser(description='Builds my cool passport photo print generator application.')
@@ -369,38 +361,36 @@ class Builder:
         self._build_dir = os.path.join(self._root_dir, 'build_' + self._build_config + '_' + self._arch_name)
         self._install_dir = os.path.join(self._root_dir, 'install_' + self._build_config + '_' + self._arch_name)
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
+        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config + '_' + self._arch_name)
         if (self._gen_vs_sln):
             self._build_dir = os.path.join(self._root_dir, 'visualstudio')
 
     def _buildInstallAddonNodeGyp(self):
         """
-        Builds the Node JS addon using node-gyp
+        Builds the Node JS addon using node-gyp (Linux only)
         """
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
         self._runCmd(['node-gyp', 'configure'])
-        self._runCmd(['node-gyp', 'build'])        
+        self._runCmd(['node-gyp', 'build'])
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
-        # TODO: Run javascript unit tests
-        
-        self._runCmd(["node", os.path.join(self._install_dir, "test.js"])
-    
+
     def _buildProject(self):
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
              # Remove the build directory - clean
             shutil.rmtree(self._build_dir)
-        if not os.path.exists(self._build_dir): 
+        if not os.path.exists(self._build_dir):
             # Create the build directory if doesn't exist
             os.mkdir(self._build_dir)
 
         # Configure build system
         make_cmd = ['make', MinusJN]
         cmake_generator = 'Unix Makefiles'
-        if sys.platform == "win32":
+        if IsWindows:
             cmake_generator = 'NMake Makefiles'
             make_cmd = ['nmake']
 
@@ -419,17 +409,16 @@ class Builder:
                 self._runCmd(make_cmd + ['test'])
             if self._run_install:
                 self._runCmd(make_cmd + ['install'])
-            
             os.chdir(self._root_dir)
 
             if not IsWindows:
                 # Build the node addon with node-gyp
                 self._buildInstallAddonNodeGyp()
-            # TODORun addon unit tests manually
-            #self._runCmd(['node', 'addon/test.js'])
-
+            # Run addon integration test
+            os.chdir(self._install_dir)
+            self._runCmd(["node", "test.js"])
         os.chdir(self._root_dir)
-        
+
     def __init__(self):
         # Detect OS version
         self._parseArguments()
@@ -439,12 +428,12 @@ class Builder:
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
-            
+
         # Build Third party libs
         self._extractGMock()
         self._buildPocoLibs()
         self._buildOpenCV()
-        
+
         if IsWindows:
             # Build Node JS from source so the addon can be build reliably for Windows
             self._buildNodeJs()

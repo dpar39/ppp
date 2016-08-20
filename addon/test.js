@@ -1,3 +1,4 @@
+
 var fs = require("fs");
 
 var addon = require("./addon");
@@ -6,14 +7,14 @@ var addon = require("./addon");
 var pppEngine = new addon.PppWrapper();
 
 
-var engineConfigFile = 'share/config.json';
+var engineConfigFile = '../share/config.json';
 // Read configuration json
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
 pppEngine.configure(jsonConfig);
 
 
 // Try to set an Image
-var imageData = fs.readFileSync("../../../research/mugshot_frontal_original_all/001_frontal.jpg");
+var imageData = fs.readFileSync("../research/sample_test_images/000.jpg");
 
 var printdef = {
     canvas: {

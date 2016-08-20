@@ -10,16 +10,17 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty")
 set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0" CACHE INTERNAL "" FORCE)
 
-if(${CMAKE_BUILD_TYPE} MATCHES debug)
-    set(THIRD_PARTY_DIR_INSTALL "${THIRD_PARTY_DIR}/install_debug")
+if (CMAKE_SIZEOF_VOID_P MATCHES "4")
+    set(ARCH_NAME "x86")
 else()
-    set(THIRD_PARTY_DIR_INSTALL "${THIRD_PARTY_DIR}/install_release")
+    set(ARCH_NAME "x64")
 endif()
+string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+set(THIRD_PARTY_DIR_INSTALL "${THIRD_PARTY_DIR}/install_${BUILD_TYPE}_${ARCH_NAME}")
 
 set(POCO_ROOT  ${THIRD_PARTY_DIR_INSTALL} CACHE INTERNAL "" FORCE)
 set(OPENCV_DIR ${THIRD_PARTY_DIR_INSTALL} CACHE INTERNAL "" FORCE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${THIRD_PARTY_DIR_INSTALL}" CACHE INTERNAL "" FORCE)
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${THIRD_PARTY_DIR_INSTALL}" CACHE INTERNAL "" FORCE)
 
 # Set compilers flags globally
@@ -52,4 +53,4 @@ add_subdirectory(libppp)
 
 # Add the C++ wrapper for node.js
 include_directories(addon/include)
-add_subdirectory(addon) 
+add_subdirectory(addon)

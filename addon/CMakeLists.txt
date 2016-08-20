@@ -1,15 +1,19 @@
-###############################################
-# CMake is only used to build the addon within visual studio
-#
+############################################################
+# CMake is only used to build the Nodejs addon for Windows
+############################################################
 cmake_minimum_required(VERSION 2.8.12)
 
-if(${CMAKE_BUILD_TYPE} MATCHES debug AND WIN32)
+if(WIN32)
     set(MODULE_NAME addon)
     project(${MODULE_NAME} CXX)
     message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 
     set(NODE_ROOT "${THIRD_PARTY_DIR}/node-v4.4.7")
-    set(NODE_LIB_DIR "${NODE_ROOT}/Debug")
+    if(${CMAKE_BUILD_TYPE} MATCHES debug)
+        set(NODE_LIB_DIR "${NODE_ROOT}/Debug")
+    else()
+        set(NODE_LIB_DIR "${NODE_ROOT}/Release")
+    endif()
 
     file(GLOB LIB_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
     set(MODULE_INC_DIRS
@@ -32,20 +36,18 @@ if(${CMAKE_BUILD_TYPE} MATCHES debug AND WIN32)
     target_include_directories(${MODULE_NAME} PUBLIC ${MODULE_INC_DIRS})
     target_link_libraries(${MODULE_NAME} ${MODULE_LIB_DEPS})
 
-    add_custom_command(TARGET ${MODULE_NAME} PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${PROJECT_SOURCE_DIR}/test.js"
-            $<TARGET_FILE_DIR:${MODULE_NAME}>)
-
-    add_custom_command(TARGET ${MODULE_NAME} PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/share"
-            $<TARGET_FILE_DIR:${MODULE_NAME}>/share)
-
-    # Configure visual studio to debug the addon native code 
+    # Configure visual studio to debug the addon native code
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/vs/addon.vcxproj.user" addon.vcxproj.user COPYONLY)
 
-    file(GLOB JS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.js")
-    install(TARGETS ${MODULE_NAME} DESTINATION ${MODULE_NAME})
-    install(FILES ${JS_FILES} DESTINATION ${MODULE_NAME})
+    # Copy test script to the installation directory
+    add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${PROJECT_SOURCE_DIR}/test.js"
+            ${CMAKE_INSTALL_PREFIX})
+
+    # Copy addon to the installation directory
+    add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:${MODULE_NAME}>
+            ${CMAKE_INSTALL_PREFIX})
 endif()
