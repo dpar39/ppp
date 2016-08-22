@@ -6,7 +6,6 @@ var addon = require("./addon");
 // Create object under test
 var pppEngine = new addon.PppWrapper();
 
-
 var engineConfigFile = '../share/config.json';
 // Read configuration json
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
@@ -48,7 +47,7 @@ pppEngine.setImage(imageData, function(err, imgKey) {
             if (err) {
                 throw err;
             }
-            console.log(bufferData);
+
             fs.writeFile("test.png", bufferData, function(err) {
                 if (err) {
                     return console.error(err);
@@ -57,9 +56,3 @@ pppEngine.setImage(imageData, function(err, imgKey) {
         });
     });
 });
-
-
-// var engine = addon.createEngine();
-// engine.configure();
-// var sampleImage = fs.readFile()
-// engine.setImage()
