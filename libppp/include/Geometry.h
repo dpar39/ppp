@@ -2,6 +2,10 @@
 
 #define ROUND_INT(x) (static_cast<int>((x)+0.5))
 
+#define POINT2D(p) (cv::Point2d(p.x, p.y))
+
+#define MEDIAN_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
+
 #include <opencv2/core/core.hpp>
 #include <utility>
 
@@ -12,7 +16,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    cv::Point2d p0 = (p1 + p2) / 2;
+    cv::Point2d p0 = MEDIAN_POINT(p1, p2);
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
@@ -46,7 +50,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceParallelToCentreOf(cv
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    cv::Point2d p0 = (p1 + p2) / 2;
+    cv::Point2d p0 = MEDIAN_POINT(p1, p2);
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
