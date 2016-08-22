@@ -5,8 +5,8 @@
     },
     "eyesDetector": {
         "useHaarCascade": true,
-        "haarCascadeLeft": "OjoI.xml",
-        "haarCascadeRight": "OjoD.xml"
+        "haarCascadeLeft": "ojoI.xml",
+        "haarCascadeRight": "ojoD.xml"
     },
     "lipsDetector": {
         "useHaarCascade": false,

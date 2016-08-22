@@ -58,19 +58,20 @@ class Builder:
         """
         Runs a shell command
         """
+        env = os.environ.copy()
         cmd_all = [];
         if sys.platform == "win32":
             # Load visual studio environmental variables first
             if not hasattr(self, '_vcvarsbat'):
                 self._detectVSVersion()
-            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&'];
-            for elmt in cmd_args:
-                cmd_all.append(elmt);
+            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']            
         else:
-            # In Unix we don't need to load anything
-            cmd_all = cmd_args;
+            env['CXXFLAGS']="-fPIC"
+
+        cmd_all = cmd_all + cmd_args
+
         print ' '.join(cmd_args)
-        process = subprocess.Popen(cmd_all);
+        process = subprocess.Popen(cmd_all, env=env);
         process.wait()
         if(process.returncode != 0):
             print 'Command "' + ' '.join(cmd_args) + '" exitited with code ' + str(process.returncode)
@@ -416,7 +417,8 @@ class Builder:
                 self._buildInstallAddonNodeGyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            self._runCmd(["node", "test.js"])
+            node = 'node' if IsWindows else 'nodejs' 
+            self._runCmd([node, "test.js"])
         os.chdir(self._root_dir)
 
     def __init__(self):
