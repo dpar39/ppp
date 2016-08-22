@@ -421,6 +421,9 @@ class Builder:
         os.chdir(self._root_dir)
 
     def __init__(self):
+
+        node = 'node' if IsWindows else 'nodejs' 
+        self._runCmd([node, "-v"])
         # Detect OS version
         self._parseArguments()
         if IsWindows:
