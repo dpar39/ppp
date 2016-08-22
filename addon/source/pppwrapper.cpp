@@ -98,7 +98,6 @@ void PppWrapper::New(const FunctionCallbackInfo<Value>& args)
 
     if (args.IsConstructCall()) {
         // Invoked as constructor: `new PppWrapper(...)`
-        auto value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
         auto obj = new PppWrapper();
         obj->Wrap(args.This());
         args.GetReturnValue().Set(args.This());
