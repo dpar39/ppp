@@ -12,20 +12,19 @@
 
 using namespace std;
 
-TEST(TiledPrintTest, TestCroppingWorks)
+TEST(TiledPrintTest, DISABLED_TestCroppingWorks)
 {
     PhotoStandard passportStandard(35.0, 45.0, 34.0);
 
     CanvasDefinition canvasDefinition(6, 4, 300, "inch");
 
-    string imageDir = resolvePath("research/sample_test_images");
-    imageDir = resolvePath("research/mugshot_frontal_original_all");
+    string imageDir = resolvePath("research/mugshot_frontal_original_all");
     vector<string> imageFileNames;
     getImageFiles(imageDir, imageFileNames);
 
     for (const auto& imageFileName : imageFileNames)
     {
-        string landMarkFiles = imageFileName.substr(0, imageFileName.find_last_of('.')) + ".pos";
+        auto landMarkFiles = imageFileName.substr(0, imageFileName.find_last_of('.')) + ".pos";
         cv::Mat landMarks;
         ASSERT_TRUE(importTextMatrix(landMarkFiles, landMarks));
 
@@ -41,7 +40,7 @@ TEST(TiledPrintTest, TestCroppingWorks)
     }
 }
 
-TEST(TiledPrintTest, TestForDarien_Disabled)
+TEST(TiledPrintTest, DISABLED_TestForDarien_Disabled)
 {
     auto imageDir = resolvePath("research/sample_test_images");
 

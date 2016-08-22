@@ -13,7 +13,7 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
                                      const cv::Point& chinPoint,
                                      const PhotoStandard& ps)
 {
-    auto centerCrop = MEDIAN_POINT(crownPoint, chinPoint);
+    auto centerCrop = CENTER_POINT(crownPoint, chinPoint);
     auto faceHeightPix = cv::norm(crownPoint - chinPoint);
 
     auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;

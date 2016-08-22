@@ -4,7 +4,7 @@
 
 #define POINT2D(p) (cv::Point2d(p.x, p.y))
 
-#define MEDIAN_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
+#define CENTER_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
 
 #include <opencv2/core/core.hpp>
 #include <utility>
@@ -16,7 +16,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    cv::Point2d p0 = MEDIAN_POINT(p1, p2);
+    cv::Point2d p0 = CENTER_POINT(p1, p2);
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
@@ -50,7 +50,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceParallelToCentreOf(cv
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    cv::Point2d p0 = MEDIAN_POINT(p1, p2);
+    cv::Point2d p0 = CENTER_POINT(p1, p2);
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
@@ -201,34 +201,4 @@ inline int kittlerOptimumThreshold(std::vector<double> P, float mu)
 
 
     return opt_threshold;
-}
-
-// ----------------------------- crc32b --------------------------------
-
-/* This is the basic CRC-32 calculation with some optimization but no
-table lookup. The the byte reversal is avoided by shifting the crc reg
-right instead of left and by using a reversed 32-bit word to represent
-the polynomial.
-   When compiled to Cyclops with GCC, this function executes in 8 + 72n
-instructions, where n is the number of bytes in the input message. It
-should be doable in 4 + 61n instructions.
-   If the inner loop is strung out (approx. 5*8 = 40 instructions),
-it would take about 6 + 46n instructions. */
-
-inline unsigned int computeCRC32(unsigned char *message) {
-   int i, j;
-   unsigned int byte, crc, mask;
-
-   i = 0;
-   crc = 0xFFFFFFFF;
-   while (message[i] != 0) {
-      byte = message[i];            // Get next byte.
-      crc = crc ^ byte;
-      for (j = 7; j >= 0; j--) {    // Do eight times.
-         mask = -(crc & 1);
-         crc = (crc >> 1) ^ (0xEDB88320 & mask);
-      }
-      i = i + 1;
-   }
-   return ~crc;
 }

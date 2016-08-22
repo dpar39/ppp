@@ -34,12 +34,12 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     auto mouthRoiWidth = ROUND_INT(0.40*faceRectHeight);
     auto mouthRoiHeight = ROUND_INT(0.30*faceRectHeight);
 
-    auto eyeCentrePoint = MEDIAN_POINT(leftEyePos, rightEyePos);
+    auto eyeCentrePoint = CENTER_POINT(leftEyePos, rightEyePos);
     // Estimate center of the chin and crop a rectangle around it
     auto tmp = pointsAtDistanceNormalToCentreOf(leftEyePos, rightEyePos, distEyeLineToMouthCenter);
 
     auto mouthCenterPoint = tmp.first.y > tmp.second.y ? static_cast<Point2d>(tmp.first) : static_cast<Point2d>(tmp.second);
-    Point mouthRoiLeftTop(mouthCenterPoint.x - mouthRoiWidth / 2, mouthCenterPoint.y - mouthRoiHeight / 2);
+    Point mouthRoiLeftTop(ROUND_INT(mouthCenterPoint.x - mouthRoiWidth / 2), ROUND_INT( mouthCenterPoint.y - mouthRoiHeight / 2));
     Size mouthRoiSize(mouthRoiWidth, mouthRoiHeight);
     Rect mouthRoiRect(mouthRoiLeftTop, mouthRoiSize);
     auto mouthRoiImage = origImage(mouthRoiRect);

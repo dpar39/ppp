@@ -37,9 +37,16 @@ set(MODULE_LIB_DEPS
 set(MODULE_LIB_DIRS
     ${OpenCV_LIB_DIR}
 )
-# Build a shared library version 
-#add_definitions(-DDLLEXPORT)
-add_library(${LIB_NAME} SHARED ${LIB_SRC_FILES})
+
+if (WIN32)
+    # Build a static library for Windows
+    set(LIB_MODE STATIC)
+else()
+    # Build a shared version for Linux
+    # Avoid node-gyp mechanism to resolve third party libraries
+    set(LIB_MODE SHARED)
+endif()
+add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_include_directories(${LIB_NAME} PUBLIC ${MODULE_INC_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
@@ -67,11 +74,9 @@ set(TEST_LIB_DIRS
     ${MODULE_INC_DIRS}
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${LIB_SRC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 link_directories(${TEST_LIB_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
-#add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
-
-
+add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
