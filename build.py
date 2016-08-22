@@ -430,8 +430,7 @@ class Builder:
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
 
-        node = 'node' if IsWindows else 'nodejs' 
-        self._runCmd([node, "-v"])
+        
 
         # Build Third party libs
         self._extractGMock()
@@ -444,7 +443,10 @@ class Builder:
         elif which('node-gyp') == None:
             # Install node-gyp as it is not available in the system
             self._runCmd(['npm','install', '-g', 'node-gyp'])
-
+            self._runCmd(['sudo', 'apt-get', 'install', 'nodejs'])
+       
+        node = 'node' if IsWindows else 'nodejs' 
+        self._runCmd([node, "-v"])
         # Build this project
         self._buildProject()
 
