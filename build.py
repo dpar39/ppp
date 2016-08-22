@@ -60,16 +60,15 @@ class Builder:
         """
         env = os.environ.copy()
         cmd_all = [];
-        if sys.platform == "win32":
+        if IsWindows:
             # Load visual studio environmental variables first
             if not hasattr(self, '_vcvarsbat'):
                 self._detectVSVersion()
-            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']            
+            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
-            env['CXXFLAGS']="-fPIC"
-
+            env['CXXFLAGS'] = '-fPIC'
+            env['LD_LIBRARY_PATH'] = ':'+self._install_dir + env['LD_LIBRARY_PATH'] 
         cmd_all = cmd_all + cmd_args
-
         print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env);
         process.wait()
