@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <rapidjson/document.h>
-#include <opencv2/core/mat.hpp>
+#include <opencv2/core/core.hpp>
 #include <unordered_map>
 #include <functional>
 #include <vector>

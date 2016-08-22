@@ -27,7 +27,7 @@
         [ "OS=='win'",  { 
             "libraries": ["..\\..\\install_release_x64\\libppp.lib"]
           }, "OS=='linux'", {
-            "libraries": ["../../install_release_x64/liblibppp.a"],
+            "libraries": ["-L../../install_release_x64", "-llibppp"],
             "cflags_cc": [ "-fexceptions", "-fPIC", "-Wno-unknown-pragmas" ],
           }
         ]
