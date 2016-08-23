@@ -437,13 +437,7 @@ class Builder:
         if IsWindows:
             # Build Node JS from source so the addon can be build reliably for Windows
             self._buildNodeJs()
-        elif which('node-gyp') == None:
-            # Install node-gyp as it is not available in the system
-            self._runCmd(['npm','install', '-g', 'node-gyp'])
-            self._runCmd(['sudo', 'apt-get', 'install', 'nodejs'])
-       
-        node = 'node' if IsWindows else 'nodejs' 
-        self._runCmd([node, "-v"])
+
         # Build this project
         self._buildProject()
 

@@ -15,7 +15,7 @@ before_script:
 
 script:
   - sudo apt-get install -qq cmake
-  - nodejs --version
+  - npm install -g node-gyp
   - ./build.linux64.sh
   
 notifications:
