@@ -1,20 +1,22 @@
 
 language: cpp
 
-node_js:
-  - "4.2"
+compiler:
+  - gcc
+  
+env:
+  - TRAVIS_NODE_VERSION="4"
 
 dist: trusty
 
 sudo: required
 
-compiler:
-  - gcc
-  
+
 before_script:
   - chmod +x ./build.*
 
 script:
+  - nodejs --version
   - ./build.linux64.sh
   
 notifications:
