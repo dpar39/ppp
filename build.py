@@ -315,7 +315,7 @@ class Builder:
         # Define CMake generator and make command
         cmake_generator = ''
         make_cmd = ''
-        if sys.platform == "win32":
+        if IsWindows:
             cmake_generator = 'NMake Makefiles'
             make_cmd = ['set','MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
         else:
@@ -417,7 +417,7 @@ class Builder:
             # Run addon integration test
             os.chdir(self._install_dir)
             node = 'node' if IsWindows else 'nodejs' 
-            self._runCmd([node, "test.js"])
+            self._runCmd([node, "./test.js"])
         os.chdir(self._root_dir)
 
     def __init__(self):
@@ -429,8 +429,6 @@ class Builder:
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
-
-        
 
         # Build Third party libs
         self._extractGMock()
