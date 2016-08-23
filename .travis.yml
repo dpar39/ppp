@@ -1,6 +1,9 @@
 
 language: cpp
 
+node_js:
+  - "4.2"
+
 dist: trusty
 
 sudo: required
