@@ -416,8 +416,7 @@ class Builder:
                 self._buildInstallAddonNodeGyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            node = 'node' if IsWindows else 'nodejs' 
-            self._runCmd([node, "./test.js"])
+            self._runCmd(['node', "./test.js"])
         os.chdir(self._root_dir)
 
     def __init__(self):
