@@ -2,7 +2,7 @@
 
 #define ROUND_INT(x) (static_cast<int>((x)+0.5))
 
-#define POINT2D(p) (cv::Point2d(p.x, p.y))
+#define POINT2D(p) (cv::Point2d((p).x, (p).y))
 
 #define CENTER_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
 
@@ -35,40 +35,6 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
         auto m = (p1.x - p2.x) / (p2.y - p1.y); // m' = -1/m
         auto dx = d / sqrt(1 + m*m);
         if (m < 0) dx = -dx;
-        pa.x = p0.x + dx;
-        pb.x = p0.x - dx;
-        pa.y = m*(pa.x - p0.x) + p0.y;
-        pb.y = m*(pb.x - p0.x) + p0.y;
-    }
-    return std::pair<cv::Point2d, cv::Point2d>(pa, pb);
-}
-
-inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceParallelToCentreOf(cv::Point2d p1, cv::Point2d p2, double d)
-{
-    if (p1 == p2)
-    {
-        throw std::runtime_error("Input points cannot be equal");
-    }
-
-    cv::Point2d p0 = CENTER_POINT(p1, p2);
-    cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
-    if (p1.x == p2.x)
-    {
-        pa = pb = p0;
-        pa.y -= d;
-        pb.y += d;
-    }
-    else if (p1.y == p2.y)
-    {
-        pa = pb = p0;
-        pa.x -= d;
-        pb.x += d;
-    }
-    else
-    {
-        auto m = (p2.y - p1.y) / (p2.x - p1.x);
-        auto dx = d / sqrt(1 + m*m);
-        if (m > 0) dx = -dx;
         pa.x = p0.x + dx;
         pb.x = p0.x - dx;
         pa.y = m*(pa.x - p0.x) + p0.y;

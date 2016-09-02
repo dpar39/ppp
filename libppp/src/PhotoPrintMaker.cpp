@@ -13,23 +13,23 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
                                      const cv::Point& chinPoint,
                                      const PhotoStandard& ps)
 {
+
     auto centerCrop = CENTER_POINT(crownPoint, chinPoint);
-    auto faceHeightPix = cv::norm(crownPoint - chinPoint);
+    auto chinCrownVec = POINT2D(crownPoint - chinPoint);
+
+    auto faceHeightPix = cv::norm(chinCrownVec);
 
     auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;
     auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
 
-    auto pair1 = pointsAtDistanceParallelToCentreOf(crownPoint, chinPoint, cropHeightPix / 2.0);
-    auto centerTop = cv::norm(POINT2D(crownPoint) - pair1.first) 
-       < cv::norm(POINT2D(crownPoint) - pair1.second) 
-       ? pair1.first : pair1.second;
-    auto pair2 = pointsAtDistanceNormalToCentreOf(crownPoint, chinPoint, cropWidthPix / 2.0);
-    auto centerLeft = cv::norm(POINT2D(crownPoint) - pair2.first) 
-       < cv::norm(POINT2D(crownPoint) - pair2.second) ? pair2.first : pair2.second;
+    auto centerTop = centerCrop + POINT2D(chinCrownVec*(cropHeightPix / faceHeightPix/ 2.0));
+
+    auto chinCrown90degRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
+    auto centerLeft = centerCrop + chinCrown90degRotated*(cropWidthPix / faceHeightPix / 2.0);
 
     const Point2f srcs[3] = {centerCrop, centerLeft, centerTop};
     const Point2f dsts[3] = {Point2d(cropWidthPix / 2.0, cropHeightPix / 2.0), Point2d(0.0, cropHeightPix / 2.0), Point2d(cropWidthPix / 2.0, 0.0)};
-    Mat tform = getAffineTransform(srcs, dsts);
+    auto tform = getAffineTransform(srcs, dsts);
 
     Mat cropImage;
     warpAffine(originalImage, cropImage, tform, cv::Size(ROUND_INT(cropWidthPix), ROUND_INT(cropHeightPix)));
