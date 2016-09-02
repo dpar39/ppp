@@ -1,17 +1,21 @@
+language: node_js
 
-language: cpp
+node_js:
+  - '4.2.6'
+
+compiler:
+  - gcc  
 
 dist: trusty
 
 sudo: required
 
-compiler:
-  - gcc
-  
 before_script:
   - chmod +x ./build.*
 
 script:
+  - sudo apt-get install -qq cmake
+  - npm install -g node-gyp
   - ./build.linux64.sh
   
 notifications:

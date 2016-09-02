@@ -67,7 +67,7 @@ class Builder:
             cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
             env['CXXFLAGS'] = '-fPIC'
-            env['LD_LIBRARY_PATH'] = ':'+self._install_dir + env['LD_LIBRARY_PATH'] 
+            env['LD_LIBRARY_PATH'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env);
@@ -215,9 +215,10 @@ class Builder:
         ocv_all_modules = ['core', 'flann', 'imgproc', \
             'ml', 'photo', 'video', 'imgcodecs', 'shape', \
             'videoio', 'highgui', 'objdetect', 'superres', \
-            'ts', 'features2d', 'calib3d', 'stitching', 'videostab']
+            'ts', 'features2d', 'calib3d', 'stitching', \
+            'videostab', 'java']
         ocv_build_modules = ['highgui', 'core', 'imgproc',\
-            'ml', 'objdetect', 'imgcodecs', 'videoio']
+            'objdetect', 'imgcodecs', 'ml', 'videoio']
 
         # Skip building OpenCV if done already
         if IsWindows:
@@ -315,7 +316,7 @@ class Builder:
         # Define CMake generator and make command
         cmake_generator = ''
         make_cmd = ''
-        if sys.platform == "win32":
+        if IsWindows:
             cmake_generator = 'NMake Makefiles'
             make_cmd = ['set','MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
         else:
@@ -416,8 +417,7 @@ class Builder:
                 self._buildInstallAddonNodeGyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            node = 'node' if IsWindows else 'nodejs' 
-            self._runCmd([node, "test.js"])
+            self._runCmd(['node', "./test.js"])
         os.chdir(self._root_dir)
 
     def __init__(self):
@@ -438,9 +438,6 @@ class Builder:
         if IsWindows:
             # Build Node JS from source so the addon can be build reliably for Windows
             self._buildNodeJs()
-        elif which('node-gyp') == None:
-            # Install node-gyp as it is not available in the system
-            self._runCmd(['npm','install', '-g', 'node-gyp'])
 
         # Build this project
         self._buildProject()
