@@ -70,4 +70,7 @@ public:
 
 private:
     std::shared_ptr<PppEngine> m_pPppEngine;
+
+private:
+    static void setPngResolutionDpi(std::vector<byte>& imageStream, double resolution_ppmm);
 };

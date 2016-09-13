@@ -38,13 +38,13 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
 
 cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const PhotoStandard& ps, const cv::Mat& croppedImage)
 {
-    auto canvasWidthPixels = ROUND_INT(canvas.resolution()*canvas.width());
-    auto canvasHeightPixels = ROUND_INT(canvas.resolution()*canvas.height());
+    auto canvasWidthPixels = ROUND_INT(canvas.resolutionPixelsPerMM()*canvas.width());
+    auto canvasHeightPixels = ROUND_INT(canvas.resolutionPixelsPerMM()*canvas.height());
 
     auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
     auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
 
-    cv::Size tileSizePixels(ROUND_INT(canvas.resolution() * ps.photoWidthMM()), ROUND_INT(canvas.resolution() * ps.photoHeightMM()));
+    cv::Size tileSizePixels(ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoWidthMM()), ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoHeightMM()));
 
     // Resize input crop to the canvas output
     cv::Mat tileInCanvas;
@@ -56,8 +56,8 @@ cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const 
     {
         for (size_t col = 0; col < numPhotoCols; ++col)
         {
-            cv::Point topLeft(ROUND_INT(col*(ps.photoWidthMM() + canvas.border())*canvas.resolution()),
-                ROUND_INT(row*(ps.photoHeightMM() + canvas.border())*canvas.resolution()));
+            cv::Point topLeft(ROUND_INT(col*(ps.photoWidthMM() + canvas.border())*canvas.resolutionPixelsPerMM()),
+                ROUND_INT(row*(ps.photoHeightMM() + canvas.border())*canvas.resolutionPixelsPerMM()));
             tileInCanvas.copyTo(printPhoto(cv::Rect(topLeft, tileSizePixels)));
         }
     }

@@ -20,7 +20,7 @@ public:
 
     double height() const { return m_canvasHeight_mm; }
     double width() const { return m_canvasWidth_mm; }
-    double resolution() const { return m_resolution_ppmm; }
+    double resolutionPixelsPerMM() const { return m_resolution_ppmm; }
     double border() const { return m_border_mm; }
 
     // canvas:

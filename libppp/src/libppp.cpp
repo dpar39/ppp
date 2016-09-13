@@ -3,10 +3,12 @@
 #include "LandMarks.h"
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
+#include "Geometry.h"
 
 #include <opencv2/imgcodecs.hpp>
 
 using namespace rapidjson;
+using namespace std;
 
 cv::Point fromJson(Value& v)
 {
@@ -56,4 +58,53 @@ void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::st
     auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
     cv::imencode(".png", result, pictureData);
+
+    // Add image resolution to output
+
+    setPngResolutionDpi(pictureData, canvas->resolutionPixelsPerMM());
+
+}
+
+template <typename T> 
+std::vector<byte> toBytes(const T& x)
+{
+     vector<byte> v(static_cast<const byte*>(static_cast<const void*>(&x)),
+        static_cast<const byte*>(static_cast<const void*>(&x)) + sizeof(x));
+     reverse(v.begin(), v.end());
+     return v;
+}
+
+/*  The pHYs chunk specifies the intended pixel size or aspect ratio for display of the image. It contains:
+    Pixels per unit, X axis: 4 bytes (unsigned integer)
+    Pixels per unit, Y axis: 4 bytes (unsigned integer)
+    Unit specifier:          1 byte
+The following values are defined for the unit specifier:
+    0: unit is unknown
+    1: unit is the meter
+pHYs has to go before IDAT chunk
+*/
+void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double resolution_ppmm)
+{
+    auto chunkLenBytes = toBytes(9);
+    auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
+    string physStr = "pHYs";
+
+    auto pHYsChunk(chunkLenBytes);
+    pHYsChunk.insert(pHYsChunk.end(), physStr.begin(), physStr.end());
+
+    pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
+    pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
+    pHYsChunk.push_back(1); // Unit is the meter
+
+    auto crcBytes = toBytes(update_crc(0, &pHYsChunk[4], pHYsChunk.size() - 4));
+    pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
+
+    string idat = "IDAT";
+    auto it = search(imageStream.begin(), imageStream.end(), idat.begin(), idat.end());
+
+    if (it != imageStream.end())
+    {
+        // Insert the chunk in the stream
+        imageStream.insert(it, pHYsChunk.begin(), pHYsChunk.end());
+    }
 }
