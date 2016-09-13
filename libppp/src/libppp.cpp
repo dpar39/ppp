@@ -65,7 +65,7 @@ void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::st
 
 }
 
-template <typename T> 
+template <typename T>
 std::vector<byte> toBytes(const T& x)
 {
      vector<byte> v(static_cast<const byte*>(static_cast<const void*>(&x)),
@@ -105,6 +105,6 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
     if (it != imageStream.end())
     {
         // Insert the chunk in the stream
-        imageStream.insert(it, pHYsChunk.begin(), pHYsChunk.end());
+        imageStream.insert(it - 4, pHYsChunk.begin(), pHYsChunk.end());
     }
 }
