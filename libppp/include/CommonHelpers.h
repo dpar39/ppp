@@ -23,3 +23,13 @@ public:
     !*/
     static cv::Rect detectObjectWithHaarCascade(const cv::Mat& image, cv::CascadeClassifier *cc, int dx = 0, int dy = 0);
 };
+
+class noncopyable
+{
+protected:
+    noncopyable() {}
+    ~noncopyable() {}
+private:  // emphasize the following members are private
+    noncopyable(const noncopyable&);
+    const noncopyable& operator=(const noncopyable&);
+};

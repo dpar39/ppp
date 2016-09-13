@@ -4,8 +4,7 @@
 #include <rapidjson/document.h>
 #include <opencv2/core/core.hpp>
 #include <unordered_map>
-#include <functional>
-#include <vector>
+#include "CommonHelpers.h"
 
 struct LandMarks;
 class IDetector;
@@ -13,7 +12,7 @@ class IPhotoPrintMaker;
 class CanvasDefinition;
 class PhotoStandard;
 
-class PppEngine
+class PppEngine : noncopyable
 {
 public:
     explicit PppEngine(std::shared_ptr<IDetector> pFaceDetector = nullptr,

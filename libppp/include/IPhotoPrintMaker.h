@@ -1,10 +1,12 @@
 #pragma once
 
 #include <opencv2/core/core.hpp>
+#include "CommonHelpers.h"
+
 class CanvasDefinition;
 class PhotoStandard;
 
-class IPhotoPrintMaker
+class IPhotoPrintMaker : noncopyable
 {
 public:
     virtual ~IPhotoPrintMaker()
