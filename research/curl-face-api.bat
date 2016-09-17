@@ -1,0 +1,1 @@
+curl -v -X POST "https://api.projectoxford.ai/face/v1.0/detect?returnFaceLandmarks=true" -H "Ocp-Apim-Subscription-Key:69c8e3366021489a8394109c2488d2e8" -H "Content-type:application/octet-stream" --data-binary "@sample_test_images/000.jpg"

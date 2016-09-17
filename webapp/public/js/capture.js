@@ -239,7 +239,7 @@ $(function () {
             m_imgElmt.style.left = `${m_xleft}px`;
             m_imgElmt.style.top = `${m_ytop}px`;
 
-            
+
         };
 
 
@@ -322,7 +322,7 @@ var currentX = 0;
 var currentY = 0;
 var selectedElement = 0;
 
-function selectElement(evt){
+function selectElement(evt) {
     selectedElement = evt.target;
     currentX = evt.clientX;
     currentY = evt.clientY;
@@ -346,13 +346,13 @@ function moveElement(evt) {
     currentY = evt.clientY;
 }
 
-function deselectElement(evt){
-  if(selectedElement != 0){
-    selectedElement.removeAttributeNS(null, "onmousemove");
-    selectedElement.removeAttributeNS(null, "onmouseout");
-    selectedElement.removeAttributeNS(null, "onmouseup");
-    selectedElement = 0;
-  }
+function deselectElement(evt) {
+    if (selectedElement != 0) {
+        selectedElement.removeAttributeNS(null, "onmousemove");
+        selectedElement.removeAttributeNS(null, "onmouseout");
+        selectedElement.removeAttributeNS(null, "onmouseup");
+        selectedElement = 0;
+    }
 }
 
 ///////////////////////////////////////////////

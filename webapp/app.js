@@ -19,6 +19,7 @@ app.get('/', function (req, res) {
     res.sendfile('public/index.html', { root: __dirname })
 });
 
+// Rest API
 app.post('/upload', function (req, res) {
 
     var form = new formidable.IncomingForm();
@@ -69,7 +70,6 @@ app.get('/photoprint', function (req, res) {
 if (!fs.existsSync(uploadImageDirectory)) {
     fs.mkdirSync(uploadImageDirectory);
 }
-
 
 // start server on the specified port and binding host
 var port = process.env.PORT || 3000;

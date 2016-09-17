@@ -14,29 +14,27 @@
 <body>
     <h1>Free passport photo ready to print and use</h1>
 
-    <div id="container">       
+    <div id="container">
         <svg id="landmarks">
-            <image xlink:href='data/38eedaa.jpg' width="96" height="96" 
-            onmousedown="selectElement(evt)" />
+            <image xlink:href='data/38eedaa.jpg' width="96" height="96" onmousedown="selectElement(evt)" />
             <circle id="aa" cx="190" cy="50" r="6" stroke="black" stroke-width="2" fill="salmon" />
         </svg>
-         <img id="photo" alt="">     
-    </div> 
+        <img id="photo" alt="">
+    </div>
     <video id="video">Video stream not available.</video>
-        <svg id="drag-1" class="draggable" >
-            <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
-        </svg>
-        <svg id="drag-2" class="draggable">
-            <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
-        </svg>  
+    <svg id="drag-1" class="draggable">
+        <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
+    </svg>
+    <svg id="drag-2" class="draggable">
+        <circle cx="7.5" cy="7.5" r="6" stroke="black" stroke-width="2" fill="salmon" />
+    </svg>
     <canvas id="canvas"></canvas>
 
     <div id="divButtons">
         <button id="buttonTakePicture">Take photo</button>
         <button id="buttonLoadPicture">Choose photo</button>
         <form>
-            <input type="file" id="loadImage" name="uploads[]"
-            accept="image/*" style="visibility: hidden;" />
+            <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
         </form>
     </div>
 
@@ -68,7 +66,7 @@
             </select>
         </form>
     </div>
-    
+
     <div id="divResult">
         <img src="" alt="">
     </div>
