@@ -6,13 +6,6 @@ body {
 a { color: #00B7FF; }
 
 
-#drag-1, #drag-2 {
-    position: relative;
-    width: 15px;
-    height: 15px;
-    float: left;
-}
-
 #drag-me::before {
     content: "#" attr(id);
     font-weight: bold;
@@ -22,13 +15,19 @@ a { color: #00B7FF; }
     height: 400px;
     width: 90%;
     border: 1px solid black;
-    /*overflow: hidden;*/
 }
 
 #landmarks {
     height: 100%;
     width: 100%;
     position: absolute;
+    overflow: hidden;
+}
+svg:not(:root), symbol, image, marker, pattern, foreignObject {
+  overflow: hidden;
+}
+#imginput{
+    overflow: hidden;
 }
 
 #video {

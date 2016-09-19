@@ -265,7 +265,8 @@ $(function () {
             reader.onload = function (e) {
                 var imgdata = e.target.result;
 
-                viz.setImage(imgdata);
+                $("#imginput").attr("xlink:href", imgdata);
+                //viz.setImage(imgdata);
             }
             reader.readAsDataURL(file);
         }
