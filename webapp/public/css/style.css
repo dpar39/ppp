@@ -3,15 +3,18 @@ body {
     padding: 50px;
 }
 
-a { color: #00B7FF; }
-
-
-#drag-1, #drag-2 {
-    position: relative;
+.landmark {
     width: 15px;
     height: 15px;
+    border: 2px solid lightcoral;
+    border-radius: 50%;
+    background-color: orangered;
     float: left;
+    clear: left;
+    position: relative;
 }
+
+a { color: #00B7FF; }
 
 #drag-me::before {
     content: "#" attr(id);
@@ -22,13 +25,7 @@ a { color: #00B7FF; }
     height: 400px;
     width: 90%;
     border: 1px solid black;
-    /*overflow: hidden;*/
-}
-
-#landmarks {
-    height: 100%;
-    width: 100%;
-    position: absolute;
+    overflow: hidden;
 }
 
 #video {
@@ -43,6 +40,7 @@ a { color: #00B7FF; }
     width: 100%;
     height: auto;
     position: relative;
+    clear: left;
 }
 
 #canvas { display: none; }
@@ -67,7 +65,7 @@ button {
     color: rgba(255, 255, 255, 1.0);
     font-family: "Lucida Grande", "Arial", sans-serif;
     font-size: 14px;
-    margin: 10px;
+    margin: 20px;
 }
 
 input[type=text] { max-width: 45px; }
@@ -77,10 +75,4 @@ input[type=text] { max-width: 45px; }
     margin-left: auto;
     margin-right: auto;
     position: relative;
-}
-
-.contentarea {
-    font-family: "Lucida Grande", "Arial", sans-serif;
-    font-size: 16px;
-    width: 760px;
 }
