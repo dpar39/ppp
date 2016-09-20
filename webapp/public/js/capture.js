@@ -212,8 +212,15 @@ $(function () {
                 calculateViewPort();
                 zoomFit();
                 renderImage();
+                setLandMarks();
             };
             newImg.src = imgData;
+        };
+        var pixelToScreen = function(pt){
+            return {
+                x: m_xleft + pt.x*m_ratio,
+                y: m_ytop + pt.y*m_ratio
+            };
         };
 
         var calculateViewPort = function () {
@@ -222,6 +229,24 @@ $(function () {
             if (m_viewPortHeight > 0 && m_viewPortWidth > 0) {
                 //renderImage();
             }
+        };
+
+        var setLandMarks = function(){
+            var crownPt = viz.pixelToScreen({"x":1.136017e+003, "y":6.216124e+002});
+
+            var chinPt  = viz.pixelToScreen({"x":1.136017e+003, "y":1.701095e+003});
+
+            var crownMarkElmt = $("#crownMark")[0];
+            var chinMarkElmt = $("#chinMark")[0];
+
+            var a = crownMarkElmt.style.width/2;
+
+            crownMarkElmt.style.transform = `translate(${crownPt.x-a}px, ${crownPt.y-a}px)`;
+            chinMarkElmt.style.transform = `translate(${chinPt.x-a}px, ${chinPt.y-a}px)`;
+            crownMarkElmt.setAttribute('data-x', crownPt.x-a);
+            crownMarkElmt.setAttribute('data-y', crownPt.y-a);
+            chinMarkElmt.setAttribute('data-x', chinPt.x-a);
+            chinMarkElmt.setAttribute('data-y', chinPt.y-a);
         };
 
         var zoomFit = function () {
@@ -245,7 +270,8 @@ $(function () {
             calculteViewPort: calculateViewPort,
             setImage: setImage,
             zoomFit: zoomFit,
-            renderImage: renderImage
+            renderImage: renderImage,
+            pixelToScreen: pixelToScreen
         };
 
     })($("#container"), $("#photo")[0]);
@@ -265,6 +291,7 @@ $(function () {
                 viz.setImage(imgdata);
                 //--
                 
+
             }
             reader.readAsDataURL(file);
         }

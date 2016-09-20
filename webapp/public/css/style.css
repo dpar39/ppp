@@ -4,14 +4,22 @@ body {
 }
 
 .landmark {
-    width: 15px;
-    height: 15px;
-    border: 2px solid lightcoral;
+    width: 14px;
+    height: 14px;
+    border: 2px solid orange;
     border-radius: 50%;
-    background-color: orangered;
+    background-color: olivedrab;
     float: left;
-    clear: left;
+    clear: both;
+    position: absolute;
+}
+
+#photo {
+    width: 100%;
+    height: auto;
     position: relative;
+    float: left;
+    clear: right;
 }
 
 a { color: #00B7FF; }
@@ -36,12 +44,7 @@ a { color: #00B7FF; }
     width: 320px;
 }
 
-#photo {
-    width: 100%;
-    height: auto;
-    position: relative;
-    clear: left;
-}
+
 
 #canvas { display: none; }
 
