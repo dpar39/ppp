@@ -6,20 +6,16 @@ body {
 .landmark {
     width: 14px;
     height: 14px;
-    border: 2px solid orange;
+    border: 1px solid orange;
     border-radius: 50%;
-    background-color: olivedrab;
-    float: left;
-    clear: both;
+    background-color: transparent;
+    float: left ;
+    /*clear: both;*/
     position: absolute;
 }
 
 #photo {
-    width: 100%;
-    height: auto;
-    position: relative;
-    float: left;
-    clear: right;
+    position: absolute;
 }
 
 a { color: #00B7FF; }
@@ -30,8 +26,8 @@ a { color: #00B7FF; }
 }
 
 #container {
-    height: 400px;
-    width: 90%;
+    height: 500px;
+    width: 100%;
     border: 1px solid black;
     overflow: hidden;
 }

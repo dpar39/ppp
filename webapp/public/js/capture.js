@@ -218,8 +218,8 @@ $(function () {
         };
         var pixelToScreen = function(pt){
             return {
-                x: m_xleft + pt.x*m_ratio,
-                y: m_ytop + pt.y*m_ratio
+                x: m_xleft + pt.x*m_ratio -7,
+                y: m_ytop + pt.y*m_ratio - 7
             };
         };
 
@@ -241,12 +241,12 @@ $(function () {
 
             var a = crownMarkElmt.style.width/2;
 
-            crownMarkElmt.style.transform = `translate(${crownPt.x-a}px, ${crownPt.y-a}px)`;
-            chinMarkElmt.style.transform = `translate(${chinPt.x-a}px, ${chinPt.y-a}px)`;
-            crownMarkElmt.setAttribute('data-x', crownPt.x-a);
-            crownMarkElmt.setAttribute('data-y', crownPt.y-a);
-            chinMarkElmt.setAttribute('data-x', chinPt.x-a);
-            chinMarkElmt.setAttribute('data-y', chinPt.y-a);
+            crownMarkElmt.style.transform = `translate(${crownPt.x}px, ${crownPt.y}px)`;
+            chinMarkElmt.style.transform = `translate(${chinPt.x}px, ${chinPt.y}px)`;
+            crownMarkElmt.setAttribute('data-x', crownPt.x);
+            crownMarkElmt.setAttribute('data-y', crownPt.y);
+            chinMarkElmt.setAttribute('data-x', chinPt.x);
+            chinMarkElmt.setAttribute('data-y', chinPt.y);
         };
 
         var zoomFit = function () {
@@ -258,12 +258,15 @@ $(function () {
         };
 
         var renderImage = function () {
-            var xw = m_imageWidth * m_ratio;
-            var yh = m_imageHeight * m_ratio;
-            m_imgElmt.style.width = `${xw}px`;
-            m_imgElmt.style.height = `${yh}px`;
-            m_imgElmt.style.left = `${m_xleft}px`;
-            m_imgElmt.style.top = `${m_ytop}px`;
+             var xw = m_imageWidth * m_ratio;
+             var yh = m_imageHeight * m_ratio;
+             m_imgElmt.style.width = `${xw}px`;
+             m_imgElmt.style.height = `${yh}px`;
+            // m_imgElmt.style.left = `${m_xleft}px`;
+            // m_imgElmt.style.top = `${m_ytop}px`;
+            m_imgElmt.style.webkitTransform =
+            m_imgElmt.style.transform = `translate(${m_xleft}px,${m_ytop}px)`;
+            //m_imgElmt.style.transform = `matrix(${m_ratio},0,0,${m_ratio},${m_xleft},${m_ytop});`
         };
 
         return {
@@ -271,7 +274,8 @@ $(function () {
             setImage: setImage,
             zoomFit: zoomFit,
             renderImage: renderImage,
-            pixelToScreen: pixelToScreen
+            pixelToScreen: pixelToScreen,
+            setLandMarks: setLandMarks
         };
 
     })($("#container"), $("#photo")[0]);
@@ -301,6 +305,7 @@ $(function () {
         viz.calculteViewPort();
         viz.zoomFit();
         viz.renderImage();
+        viz.setLandMarks();
     });
 
 
@@ -325,10 +330,10 @@ $(function () {
             var yh = imageHeight * yratio;
 
             var imgElmt = $("#photo")[0];
-            imgElmt.style.width = `${xw}px`;
-            imgElmt.style.height = `${yh}px`;
-            imgElmt.style.left = `${xleft}px`;
-            imgElmt.style.top = `${ytop}px`;
+            // imgElmt.style.width = `${xw}px`;
+            // imgElmt.style.height = `${yh}px`;
+            // imgElmt.style.left = `${xleft}px`;
+            // imgElmt.style.top = `${ytop}px`;
 
             $("#photo").attr("src", newImg.src);
         };
