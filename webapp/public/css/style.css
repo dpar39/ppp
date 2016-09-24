@@ -3,6 +3,14 @@ body {
     padding: 50px;
 }
 
+
+#container {
+    height: 500px;
+    width: 100%;
+    border: 1px solid black;
+    overflow: hidden;
+}
+
 .landmark {
     width: 14px;
     height: 14px;
@@ -18,31 +26,10 @@ body {
     position: absolute;
 }
 
-a { color: #00B7FF; }
-
 #drag-me::before {
     content: "#" attr(id);
     font-weight: bold;
 }
-
-#container {
-    height: 500px;
-    width: 100%;
-    border: 1px solid black;
-    overflow: hidden;
-}
-
-#video {
-    border: 1px solid black;
-    box-shadow: 2px 2px 3px black;
-    display: none;
-    height: 240px;
-    width: 320px;
-}
-
-
-
-#canvas { display: none; }
 
 .camera {
     display: inline-block;

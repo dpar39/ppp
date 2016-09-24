@@ -114,6 +114,16 @@
 })();
 */
 
+function translateElement(elmt, x, y) {
+    // Translate the element position
+    elmt.style.transform = 
+    elmt.style.webkitTransform = 
+    'translate(' + x + 'px, ' + y + 'px)';
+    // Store it in attached properties
+    elmt.setAttribute('x', x);
+    elmt.setAttribute('y', y);
+}
+
 $(function () {
     var standards = null;
     var selectedStandard = null;
@@ -178,7 +188,8 @@ $(function () {
                         console.log("Image successfully uploaded to the server");
 
                         var imageKey = JSON.parse(xhr.responseText);
-                        // TODO: 
+                        
+
                     }
                 };
                 return xhr;
@@ -186,15 +197,18 @@ $(function () {
         });
     }
 
-    function detectLandMarks(imageKey) {
-
+    function createTilePrint(imageKey) {
+        
     }
 
-    var viz = (function (divContainer, imgElmt) {
+    var viz = (function () {
+        // UI Elements
+        var m_imgElmt = $("#photo")[0];
+        var m_containerElmt = $("#container"); 
+        var m_crownMarkElmt = $("#crownMark")[0];
+        var m_chinMarkElmt = $("#chinMark")[0];
         
-        var m_imgElmt = imgElmt;
-        var m_container = divContainer;
-
+        var m_markerHalfSize = m_crownMarkElmt.style.width/2; // Landmark size
         var m_imageWidth = 0, m_imageHeight = 0; // Width and height in image pixels
         var m_viewPortWidth = 0, m_viewPortHeight = 0; // Width and height of the container
 
@@ -216,37 +230,38 @@ $(function () {
             };
             newImg.src = imgData;
         };
-        var pixelToScreen = function(pt){
+
+        var pixelToScreen = function(elmt, pt) {
             return {
-                x: m_xleft + pt.x*m_ratio -7,
-                y: m_ytop + pt.y*m_ratio - 7
+                x: m_xleft + pt.x*m_ratio - elmt.clientWidth/2,
+                y: m_ytop + pt.y*m_ratio - elmt.clientHeight/2
             };
         };
 
+        var screenToPixel = function(elmt) {
+            return {
+                x: elmt.getAttribute('x') + elmt.clientWidth/2 - m_xleft,
+                y: elmt.getAttribute('y') + elmt.clientHeight/2 - m_ytop
+            };
+        }
+
         var calculateViewPort = function () {
-            m_viewPortWidth = m_container.width();
-            m_viewPortHeight = m_container.height();
+            m_viewPortWidth = m_containerElmt.width();
+            m_viewPortHeight = m_containerElmt.height();
             if (m_viewPortHeight > 0 && m_viewPortWidth > 0) {
                 //renderImage();
             }
         };
 
-        var setLandMarks = function(){
-            var crownPt = viz.pixelToScreen({"x":1.136017e+003, "y":6.216124e+002});
-
-            var chinPt  = viz.pixelToScreen({"x":1.136017e+003, "y":1.701095e+003});
-
-            var crownMarkElmt = $("#crownMark")[0];
-            var chinMarkElmt = $("#chinMark")[0];
-
-            var a = crownMarkElmt.style.width/2;
-
-            crownMarkElmt.style.transform = `translate(${crownPt.x}px, ${crownPt.y}px)`;
-            chinMarkElmt.style.transform = `translate(${chinPt.x}px, ${chinPt.y}px)`;
-            crownMarkElmt.setAttribute('data-x', crownPt.x);
-            crownMarkElmt.setAttribute('data-y', crownPt.y);
-            chinMarkElmt.setAttribute('data-x', chinPt.x);
-            chinMarkElmt.setAttribute('data-y', chinPt.y);
+        var setLandMarks = function(crownPoint, chinPoint) {
+            // Testing data
+            crownPoint = crownPoint || {"x":1.136017e+003, "y":6.216124e+002};
+            chinPoint = chinPoint || {"x":1.136017e+003, "y":1.701095e+003};
+            
+            var p1 = pixelToScreen(m_crownMarkElmt, crownPoint);
+            var p2 = pixelToScreen(m_chinMarkElmt, chinPoint);            
+            translateElement(m_crownMarkElmt, p1.x, p1.y);
+            translateElement(m_chinMarkElmt, p2.x, p2.y);
         };
 
         var zoomFit = function () {
@@ -260,13 +275,9 @@ $(function () {
         var renderImage = function () {
              var xw = m_imageWidth * m_ratio;
              var yh = m_imageHeight * m_ratio;
-             m_imgElmt.style.width = `${xw}px`;
-             m_imgElmt.style.height = `${yh}px`;
-            // m_imgElmt.style.left = `${m_xleft}px`;
-            // m_imgElmt.style.top = `${m_ytop}px`;
-            m_imgElmt.style.webkitTransform =
-            m_imgElmt.style.transform = `translate(${m_xleft}px,${m_ytop}px)`;
-            //m_imgElmt.style.transform = `matrix(${m_ratio},0,0,${m_ratio},${m_xleft},${m_ytop});`
+             m_imgElmt.style.width = '' + xw + 'px';
+             m_imgElmt.style.height = '' + yh + 'px';    
+             translateElement(m_imgElmt, m_xleft, m_ytop);
         };
 
         return {
@@ -274,11 +285,10 @@ $(function () {
             setImage: setImage,
             zoomFit: zoomFit,
             renderImage: renderImage,
-            pixelToScreen: pixelToScreen,
             setLandMarks: setLandMarks
         };
 
-    })($("#container"), $("#photo")[0]);
+    })();
 
     $("#loadImage").change(function () {
         var source = this;
@@ -291,11 +301,8 @@ $(function () {
             var reader = new FileReader();
             reader.onload = function (e) {
                 var imgdata = e.target.result;
-
+                // Set the image to visualise
                 viz.setImage(imgdata);
-                //--
-                
-
             }
             reader.readAsDataURL(file);
         }
@@ -308,39 +315,7 @@ $(function () {
         viz.setLandMarks();
     });
 
-
-    function computeViewPort(imgData) {
-        var viewPortWidth = $("#container").width();
-        var viewPortHeight = $("#container").height();
-        var newImg = new Image();
-        newImg.onload = function () {
-
-            var imageWidth = newImg.width;
-            var imageHeight = newImg.height;
-
-            var xratio = viewPortWidth / imageWidth;
-            var yratio = viewPortHeight / imageHeight;
-
-            xratio = xratio < yratio ? xratio : yratio;
-            yratio = yratio < xratio ? yratio : xratio;
-
-            var xleft = viewPortWidth / 2 - xratio * imageWidth / 2;
-            var ytop = viewPortHeight / 2 - yratio * imageHeight / 2;
-            var xw = imageWidth * xratio;
-            var yh = imageHeight * yratio;
-
-            var imgElmt = $("#photo")[0];
-            // imgElmt.style.width = `${xw}px`;
-            // imgElmt.style.height = `${yh}px`;
-            // imgElmt.style.left = `${xleft}px`;
-            // imgElmt.style.top = `${ytop}px`;
-
-            $("#photo").attr("src", newImg.src);
-        };
-        newImg.src = imgData;
-    }
-
-
+    
     // Hook the click button to choose picture to the file selection dialog
     $("#buttonLoadPicture").on("click", function () {
         $("#loadImage").click();
@@ -352,8 +327,7 @@ $(function () {
 
 ///////////////////////////////////////////////
 // Dragging the crown point and chin point
-/////////////////////////////////////////////// 
-
+///////////////////////////////////////////////
 interact('.landmark')
     .draggable({
         // enable inertial throwing
@@ -364,30 +338,18 @@ interact('.landmark')
             endOnly: true,
             elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
         },
-
         // call this function on every dragmove event
         onmove: function (event) {
-            var target = event.target,
-                // keep the dragged position in the data-x/data-y attributes
-                x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            var target = event.target;
+            // keep the dragged position in the x/y attributes
+            var x = (parseFloat(target.getAttribute('x')) || 0) + event.dx;
+            var y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;        
             // translate the element
-            target.style.webkitTransform =
-                target.style.transform =
-                'translate(' + x + 'px, ' + y + 'px)';
-
-            // update the posiion attributes
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
+            translateElement(target, x, y);
         },
         // call this function on every dragend event
         onend: function(event) {
-            var textEl = event.target.querySelector('p');
-
-            textEl && (textEl.textContent =
-                'moved a distance of '
-                + (Math.sqrt(event.dx * event.dx +
-                    event.dy * event.dy) | 0) + 'px');
+            var id = event.target.getAttribute('id');      
         }
     });
 
