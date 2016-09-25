@@ -8,20 +8,17 @@
     <link rel="stylesheet" href="css/style.css" />
     <!-- vencodr scripts -->
     <script src="lib/jquery/dist/jquery.min.js"></script>
+    <script src="lib/interact/dist/interact.min.js"></script>
 </head>
 
 <body>
     <h1>Free passport photo ready to print and use</h1>
 
     <div id="container">
-        <svg id="landmarks">
-            <image id="imginput" xlink:href='data/a.jpg' width="396" height="500" onmousedown="selectElement(evt)" />
-            <circle id="crownPt" cx="190" cy="50" r="6" stroke="black" stroke-width="2" fill="salmon" />
-            <circle id="chinPt"  cx="190" cy="350" r="6" stroke="black" stroke-width="2" fill="salmon" />        </svg>
         <img id="photo" alt="">
+        <div class="landmark" id="crownMark"></div>
+        <div class="landmark" id="chinMark"></div>
     </div>
-    <video id="video">Video stream not available.</video>
-    <canvas id="canvas"></canvas>
 
     <div id="divButtons">
         <button id="buttonTakePicture">Take photo</button>
@@ -64,7 +61,7 @@
         <img src="" alt="">
     </div>
 
-    <script src="js/client.js"></script>
+    <script src="js/capture.js"></script>
 
 </body>
 

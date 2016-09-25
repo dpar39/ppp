@@ -3,48 +3,33 @@ body {
     padding: 50px;
 }
 
-a { color: #00B7FF; }
 
+#container {
+    height: 500px;
+    width: 100%;
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.landmark {
+    width: 14px;
+    height: 14px;
+    border: 1px solid orange;
+    border-radius: 50%;
+    background-color: transparent;
+    float: left ;
+    /*clear: both;*/
+    position: absolute;
+}
+
+#photo {
+    position: absolute;
+}
 
 #drag-me::before {
     content: "#" attr(id);
     font-weight: bold;
 }
-
-#container {
-    height: 400px;
-    width: 90%;
-    border: 1px solid black;
-}
-
-#landmarks {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    overflow: hidden;
-}
-svg:not(:root), symbol, image, marker, pattern, foreignObject {
-  overflow: hidden;
-}
-#imginput{
-    overflow: hidden;
-}
-
-#video {
-    border: 1px solid black;
-    box-shadow: 2px 2px 3px black;
-    display: none;
-    height: 240px;
-    width: 320px;
-}
-
-#photo {
-    width: 100%;
-    height: auto;
-    position: relative;
-}
-
-#canvas { display: none; }
 
 .camera {
     display: inline-block;
@@ -66,7 +51,7 @@ button {
     color: rgba(255, 255, 255, 1.0);
     font-family: "Lucida Grande", "Arial", sans-serif;
     font-size: 14px;
-    margin: 10px;
+    margin: 20px;
 }
 
 input[type=text] { max-width: 45px; }
@@ -76,10 +61,4 @@ input[type=text] { max-width: 45px; }
     margin-left: auto;
     margin-right: auto;
     position: relative;
-}
-
-.contentarea {
-    font-family: "Lucida Grande", "Arial", sans-serif;
-    font-size: 16px;
-    width: 760px;
 }
