@@ -39,6 +39,11 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
 {
     auto faceRect = landMarks.vjFaceRect;
 
+    if (faceRect.width <= 10 && faceRect.height <=10)
+    {
+        throw std::runtime_error("Face rectangle is too small or not defined");
+    }
+
     auto faceImage = grayImage(faceRect);
 
     if (kSmoothFaceImage)
@@ -309,8 +314,6 @@ cv::Point2f EyeDetector::findSubpixelEyeCorner(cv::Mat region, cv::Point maxP)
                        static_cast<float>(sizeRegion.height / 2 + maxP2.y / 10));
 }
 
-cv::Mat floodKillEdges(cv::Mat& mat);
-
 cv::Point EyeDetector::unscalePoint(cv::Point p, cv::Rect origSize)
 {
     float ratio = static_cast<float>(kFastEyeWidth) / origSize.width;
@@ -424,8 +427,8 @@ cv::Mat EyeDetector::matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY)
         double* Mr = mags.ptr<double>(y);
         for (int x = 0; x < matX.cols; ++x)
         {
-            double gX = Xr[x], gY = Yr[x];
-            double magnitude = sqrt((gX * gX) + (gY * gY));
+            auto gX = Xr[x], gY = Yr[x];
+            auto magnitude = sqrt((gX * gX) + (gY * gY));
             Mr[x] = magnitude;
         }
     }

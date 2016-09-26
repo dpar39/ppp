@@ -1,14 +1,12 @@
+#include "CommonHelpers.h"
 #include "FaceDetector.h"
 #include "LandMarks.h"
 
 #include <vector>
 
-#include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/core/mat.hpp>
-
 #include <opencv2/imgproc/imgproc.hpp>
-#include <EyeDetector.h>
-#include <CommonHelpers.h>
+#include <opencv2/objdetect/objdetect.hpp>
 
 using namespace std;
 using namespace cv;
@@ -16,8 +14,8 @@ using namespace cv;
 bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landmarks)
 {
     // Configuration
-    double minFaceRatio = 0.15;
-    double maxFaceRatio = 0.85;
+    const auto minFaceRatio = 0.15;
+    const auto maxFaceRatio = 0.85;
 
     // Calculate search domain on the image
     Size minFaceSize, maxFaceSize, imgSize = inputPicture.size();
@@ -51,8 +49,8 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
 void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFaceRatio, double maxFaceRatio, Size& minFaceSize, Size& maxFaceSize)
 {
     auto dim = std::minmax(inputImageSize.height, inputImageSize.width);
-    int minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);
-    int maxFaceSizePix = static_cast<int>(dim.second * maxFaceRatio);
+    auto minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);
+    auto maxFaceSizePix = static_cast<int>(dim.second * maxFaceRatio);
     minFaceSize = Size(minFaceSizePix, minFaceSizePix);
     maxFaceSize = Size(maxFaceSizePix, maxFaceSizePix);
 }

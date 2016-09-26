@@ -12,10 +12,6 @@ using namespace std;
 
 cv::Point fromJson(Value& v)
 {
-    /*if (v.Empty() || v["x"].Empty() || v["y"].Empty())
-    {
-        return cv::Point(0, 0);
-    }*/
     return cv::Point(v["x"].GetInt(), v["y"].GetInt());
 }
 

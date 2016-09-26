@@ -2,14 +2,12 @@
 #include "IDetector.h"
 #include "CommonHelpers.h"
 
+#include <memory>
+
 namespace cv
 {
     class CascadeClassifier;
 }
-
-#define kEyeLeft true
-#define kEyeRight false
-#include <memory>
 
 class EyeDetector : public IDetector
 {
