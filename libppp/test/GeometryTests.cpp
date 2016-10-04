@@ -8,7 +8,7 @@ using namespace cv;
 
 TEST(GeometryTests, TestCalculatePointAtDistance)
 {
-    vector<tuple<Point2d, Point2d, double, Point2d, Point2d> > data = 
+    vector<tuple<Point2d, Point2d, double, Point2d, Point2d> > data =
     {
         make_tuple<Point2d, Point2d, double, Point2d, Point2d>(
         Point2d(1, 1), Point2d(3, 3), 1.0, Point2d(2 - sqrt(0.5), 2 + sqrt(0.5)), Point2d(2 + sqrt(0.5), 2 - sqrt(0.5))

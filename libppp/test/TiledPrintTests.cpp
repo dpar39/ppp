@@ -12,7 +12,7 @@
 
 using namespace std;
 
-TEST(TiledPrintTest, DISABLED_TestCroppingWorks)
+TEST(TiledPrintTest, TestCroppingWorks)
 {
     PhotoStandard passportStandard(35.0, 45.0, 34.0);
 
@@ -38,25 +38,4 @@ TEST(TiledPrintTest, DISABLED_TestCroppingWorks)
         // Draw tiles into the printing canvas
         auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
     }
-}
-
-TEST(TiledPrintTest, TestForDarien)
-{
-    auto imageDir = resolvePath("research/sample_test_images");
-
-    PhotoStandard passportStandard(35.0, 45.0, 34.0);
-    CanvasDefinition canvasDefinition(6, 4, 300, "inch");
-
-    auto imageFileName = imageDir + "/001.jpg";
-    cv::Point2d crownPos(298, 150), chinPos(299, 670);
-
-    auto image = cv::imread(imageFileName);
-
-    PhotoPrintMaker maker;
-        // Crop the picture
-    auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
-    // Draw tiles into the printing canvas
-    auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
-
-    cv::imwrite(imageDir + "/output.png", printPhoto);
 }

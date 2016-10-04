@@ -379,6 +379,35 @@ class Builder:
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
 
+    def _extractValidationData(self):
+        """
+        Extracts validation imageset with annotations from a password protected zip file
+        These images were requested at http://www.scface.org/ and are copyrighted,
+        so please do not share them
+        """
+        print 'Extracting validation data ...'
+        def extract(research_dir, zip_file):
+            zip_file =  os.path.join(research_dir, zip_file)
+            if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
+                return # Nothing to do, data already been extracted
+            zip = zipfile.ZipFile(zip_file)
+            for item in zip.namelist():
+                zip.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
+            zip.close()
+
+        research_dir = os.path.join(self._root_dir, 'research')
+        extract(research_dir, 'annotated_imageset0.zip')
+        extract(research_dir, 'annotated_imageset1.zip')
+        extract(research_dir, 'annotated_imageset2.zip')
+        extract(research_dir, 'annotated_imageset3.zip')
+
+        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
+            return # Nothing to do, data already been extracted
+        zip = zipfile.ZipFile(zip_file)
+        for item in zip.namelist():
+            zip.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
+        zip.close()
+
     def _buildProject(self):
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
@@ -438,6 +467,9 @@ class Builder:
         if IsWindows:
             # Build Node JS from source so the addon can be build reliably for Windows
             self._buildNodeJs()
+
+        #Extract validatio data (imageset with annotations)
+        self._extractValidationData()
 
         # Build this project
         self._buildProject()

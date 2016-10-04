@@ -7,7 +7,7 @@
 
 inline void getImageFiles(const std::string &testImagesDir, std::vector<std::string> &imageFilenames)
 {
-    std::vector<std::string> supportedImageExtensions = { ".jpg", /*".png",*/ ".bmp" };
+    std::vector<std::string> supportedImageExtensions = { "jpg", /*"png",*/ "bmp" };
 
     using Poco::DirectoryIterator;
     using Poco::Path;
@@ -21,7 +21,6 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
         {
             continue;
         }
-        ;
         auto fileExt = Poco::Path(itr->path()).getExtension();
         std::transform(fileExt.begin(), fileExt.end(), fileExt.begin(), ::tolower);
         if (std::find(supportedImageExtensions.begin(), supportedImageExtensions.end(), fileExt) != supportedImageExtensions.end())

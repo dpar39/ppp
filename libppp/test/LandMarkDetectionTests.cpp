@@ -135,7 +135,7 @@ TEST(PppEngine, CanConfigure)
     EXPECT_NO_THROW(pa.configure(config));
 }
 
-TEST(PppEngine, DISABLED_CanDetectFaces)
+TEST(PppEngine, CanDetectFaces)
 {
     auto config = readConfigFromFile(g_defaultConfigPath);
     FaceDetector fd;
@@ -161,7 +161,7 @@ TEST(PppEngine, DISABLED_CanDetectFaces)
     processDatabase(process);
 }
 
-TEST(PppEngine, DISABLED_CanDetectEyesAndLips)
+TEST(PppEngine, CanDetectEyesAndLips)
 {
     using namespace std;
     auto config = readConfigFromFile(g_defaultConfigPath);
@@ -230,7 +230,7 @@ TEST(PppEngine, DISABLED_CanDetectEyesAndLips)
     processDatabase(process);
 }
 
-TEST(PppEngine, DISABLED_TestEndToEndLandmarkDetection)
+TEST(PppEngine, TestEndToEndLandmarkDetection)
 {
     using namespace std;
     auto config = readConfigFromFile(g_defaultConfigPath);
