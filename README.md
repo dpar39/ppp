@@ -1,7 +1,7 @@
 # Passport photo app
 
 
-Recruiters please read [this](https://github.com/dpar39/ppp/wiki/Recruiters-README)
+Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
 
 [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
