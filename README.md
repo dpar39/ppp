@@ -1,9 +1,6 @@
-# Passport photo app
-
+# Passport photo app  [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
 Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
-
-[![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
 This app *WILL* allow to create passport photo prints with automatic picture cropping and rotation based on the standard accepted in most countries. You'll get a tiled photo in your favorite format (e.g. 4"x6" or 5"x7") with the appropriate resolution ready to print.
 
@@ -21,3 +18,6 @@ The software can be built and run in either Windows or Unix based operating syst
 ## Linux-only
 - Node.js 4.x
 - Node-gyp (needed to compile the C++ addon) 
+
+# Usage
+At the moment, the web app is still under construction, but the Node.js addon that does the heavy lifting can alredy be used to generate passport photos from the command line... 
