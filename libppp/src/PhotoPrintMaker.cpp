@@ -14,7 +14,9 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
                                      const PhotoStandard& ps)
 {
 
-    auto centerCrop = CENTER_POINT(crownPoint, chinPoint);
+    auto centerCrop = centerCropEstimation(ps, crownPoint, chinPoint);
+
+
     auto chinCrownVec = POINT2D(crownPoint - chinPoint);
 
     auto faceHeightPix = cv::norm(chinCrownVec);
@@ -62,4 +64,25 @@ cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const 
         }
     }
     return printPhoto;
+}
+
+cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const cv::Point& crownPoint, const cv::Point& chinPoint)
+{
+    if (ps.eyesHeightMM() <= 0)
+    {
+        // Estimate the center of the picture to be the median point between the crown point and the chin point
+        return CENTER_POINT(crownPoint, chinPoint);
+    }
+
+    const auto eyeCrownToFaceHeightRatio = 0.5;
+
+    auto crownToPictureBottomMM = eyeCrownToFaceHeightRatio * ps.faceHeightMM() + ps.eyesHeightMM();
+
+    auto crownToCenterMM = crownToPictureBottomMM - ps.photoHeightMM() / 2;
+
+    auto mmToPixRatio = cv::norm(crownPoint - chinPoint)/ps.faceHeightMM();
+
+    auto crownToCenterPix = mmToPixRatio*crownToCenterMM;
+
+    return pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }

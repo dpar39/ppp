@@ -26,7 +26,7 @@ CanvasDefinition::CanvasDefinition(double canvasWidth, double canvasHeight, doub
     m_canvasWidth_mm = canvasWidth * unitsRatio_mm;
     m_canvasHeight_mm = canvasHeight * unitsRatio_mm;
     m_resolution_ppmm = resolution / unitsRatio_mm;
-    m_border_mm = 0.4;
+    m_border_mm = 0.0;
 }
 
 std::shared_ptr<CanvasDefinition> CanvasDefinition::fromJson(rapidjson::Value& canvas)

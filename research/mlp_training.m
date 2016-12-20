@@ -15,6 +15,7 @@ image_indices = 1:num_faces;
 pupil_separ = zeros(num_faces,1); % Distance between the eye pupils
 mouth_width = zeros(num_faces,1); % Mouth width (left lip to right lip corner)
 frown_mouth = zeros(num_faces,1); % Distance from the frown point to the center of the mouth
+crown_frown = zeros(num_faces,1); % Distance from crown point to frown point
 
 chin_crown = zeros(num_faces,1); % Distance from chin to crown
 chin_frown = zeros(num_faces,1); % Distance from face center to frown
@@ -33,6 +34,8 @@ for k=1:length(image_indices),
     mouthy = (lm(15,2)+lm(16,2))/2;
 
     frown_mouth(i) = distance(frownx, frowny, mouthx, mouthy);
+    
+    crown_frown(i) = distance(frownx, frowny, lm(1,1), lm(1,2));
 
     [crownx, crowny] = closest_point(frownx, frowny, mouthx, mouthy, lm(1,1), lm(1,2));
     [chinx, chiny] = closest_point(frownx, frowny, mouthx, mouthy, lm(17,1), lm(17,2));
@@ -64,10 +67,18 @@ iiss = frown_mouth + pupil_separ;
 c1 = mean(chin_crown./iiss);
 c2 = mean(chin_frown./iiss);
 
+output_c3 = chin_frown./chin_crown;
+c3 = mean(output_c3);
+
+
 output_c2_prime = iiss *c2; 
 output_c1_prime = iiss *c1;
 rrc1 = corrcoef(output_c1, output_c1_prime);
 rrc2 = corrcoef(output_c2, output_c2_prime);
+
+
+output_c3_prime = chin_crown*c3;
+rrc3 = corrcoef(crown_frown, output_c3_prime);
 
 
 

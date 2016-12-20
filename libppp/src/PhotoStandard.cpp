@@ -7,14 +7,22 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
     auto picHeight = psConfig["pictureHeight"].GetDouble();
     auto picWidth = psConfig["pictureWidth"].GetDouble();
     auto faceLength = psConfig["faceHeight"].GetDouble();
+
+    auto eyesHeight = 0.0;
+
+    if (psConfig.HasMember("eyesHeight"))
+    {
+        eyesHeight = psConfig["eyesHeight"].GetDouble();
+    }
+
     auto units = psConfig["units"].GetString();
 
     double unitsRatio_mm;
-    if (!strcmp(units,"inch"))
+    if (!strcmp(units, "inch"))
     {
         unitsRatio_mm = 25.4;
     }
-    else if(!strcmp(units, "cm"))
+    else if (!strcmp(units, "cm"))
     {
         unitsRatio_mm = 10.0;
     }
@@ -24,8 +32,9 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
     }
     else
     {
-        throw std::logic_error("Unknown input units when creating the photo standard definition");
+        throw std::runtime_error("Unknown input units when creating the photo standard definition");
     }
 
-    return std::make_shared<PhotoStandard>(picWidth * unitsRatio_mm, picHeight * unitsRatio_mm, faceLength * unitsRatio_mm);
+    return std::make_shared<PhotoStandard>(picWidth * unitsRatio_mm, picHeight * unitsRatio_mm,
+        faceLength * unitsRatio_mm, eyesHeight * unitsRatio_mm);
 }
