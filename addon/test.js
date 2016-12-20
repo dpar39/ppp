@@ -1,7 +1,7 @@
 
 var engineConfigFile = '../share/config.json';
-var inImgName = '../research/sample_test_images/20161219_123451.jpg';
-var outImgName = 'loira-4x6.png';
+var inImgName = '../research/sample_test_images/000.jpg';
+var outImgName = 'output.png';
 
 var fs = require("fs");
 
@@ -11,7 +11,6 @@ var pppEngine = new addon.PppWrapper();
 // Read configuration json
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
 pppEngine.configure(jsonConfig);
-
 
 // Try to set an Image
 var imageData = fs.readFileSync(inImgName);
@@ -60,9 +59,6 @@ pppEngine.setImage(imageData, function(err, imgKey) {
 
         printdef.crownPoint = landmarks.crownPoint;
         printdef.chinPoint = landmarks.chinPoint;
-
-        printdef.crownPoint = {x: 574, y: 635};
-        printdef.chinPoint = {x: 561, y: 1097};
 
         pppEngine.createTilePrint(imgKey, printdef, function(err, bufferData) {
             if (err) {
