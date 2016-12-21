@@ -20,8 +20,6 @@ The software can be built and run in either Windows or Unix based operating syst
 - Node-gyp (needed to compile the C++ addon)
 
 ## Compiling and running
-
-#### Note
 At the moment, the web app is still under construction, but the Node.js addon that does the heavy lifting can alredy be used to generate passport photos from the command line:
 
 - Clone this repository somewhere in your computer. Then run scripts _build.linux64.sh_ or _build.win64.bat_ depending on your platform. This will take a while because third party libraries such as _OpenCV_, _Poco_ and _GMock_ are built from source code. If everything goes well the install directory (e.g. install_release_x64) should contain the addon module (_addon.node_) and a script _test.js_.
