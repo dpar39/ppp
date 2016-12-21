@@ -30,7 +30,6 @@ PppEngine::PppEngine(std::shared_ptr<IDetector> pFaceDetector /*= nullptr*/
       , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
       , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
 {
-    // Nothing to do here, just initialise stuffs
 }
 
 
@@ -45,7 +44,7 @@ void PppEngine::verifyImageExists(const std::string& imageKey)
 {
     if (m_imageCollection.find(imageKey) == m_imageCollection.end())
     {
-        throw std::runtime_error("Image with key '" + imageKey + "' not found!");
+        throw std::runtime_error("Image with key='" + imageKey + "' not found!");
     }
 }
 

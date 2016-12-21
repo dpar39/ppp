@@ -58,7 +58,7 @@ pppEngine.setImage(imageData, function(err, imgKey) {
         if (err) {
             throw err;
         }
-        console.log(landmarks);
+        console.log('landMarks=' + landmarks);
 
         // Copy the estimated crown and chin points 
         printDef.crownPoint = landmarks.crownPoint;
