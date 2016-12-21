@@ -23,7 +23,7 @@ The software can be built and run in either Windows or Unix based operating syst
 At the moment, the web app is still under construction, but the Node.js addon that does the heavy lifting can alredy be used to generate passport photos from the command line:
 
 - Clone this repository somewhere in your computer. Then run scripts _build.linux64.sh_ or _build.win64.bat_ depending on your platform. This will take a while because third party libraries such as _OpenCV_, _Poco_ and _GMock_ are built from source code. If everything goes well the install directory (e.g. install_release_x64) should contain the addon module (_addon.node_) and a script _test.js_.
-- Edit _test.js_ and set the path of the input picture you would like to process. Feel free to edit the printing definition to your needs. By default, it is configured for the US Passport standard (2" x 2" with face length of 1.1875" and eyes to picture bottom distance of 1.25"). The output size is 4" x 6" with 300dpi resolution.
+- Edit _test.js_ and set the path of the input picture you would like to process. Feel free to edit the printing definition to your needs. By default, it is configured for the [US Passport standard](https://travel.state.gov/content/passports/en/passports/photos/photos.html) (2" x 2" with face length of 1.1875" and eyes to picture bottom distance of 1.25"). The output size is 4" x 6" with 300dpi resolution.
 - Run a terminal and change directory to your install directory, then run _node_ _test.js_
 
 
