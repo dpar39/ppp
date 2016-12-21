@@ -23,8 +23,8 @@ The software can be built and run in either Windows or Unix based operating syst
 Clone this repo somewhere in your computer. Then run scripts _build.linux64.sh_ or _build.win64.bat_ depending on your platform. This will take a while because third party libraries such as _OpenCV_, _Poco_ and _GMock_ are built from source code.
 If everything goes well the install directory (e.g. install_release_x64) should contain the addon module (_addon.node_) and a _test.js_ that can be edited for testing.
 
-Edit _test.js_ and set the path of the input picture you would like to process. Feel free to edit the printing definition to your needs. At the moment it is configured for the US Passport standard (2"x2" with face height to
-Run a terminal and change directory to your install directory
+- Edit _test.js_ and set the path of the input picture you would like to process. Feel free to edit the printing definition to your needs. By default, it is configured for the US Passport standard (2" x 2" with face length of 1.1875" and eyes to picture bottom distance of 1.25"). The output size is 4" x 6" with 300dpi resolution.
+- Run a terminal and change directory to your install directory, then run _node_ _test.js_
 
 
 # Usage
