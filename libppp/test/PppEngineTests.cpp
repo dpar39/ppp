@@ -8,6 +8,7 @@
 #include "PppEngine.h"
 #include "MockDetector.h"
 #include "MockPhotoPrintMaker.h"
+#include "MockImageStore.h"
 
 using namespace testing;
 
@@ -20,22 +21,24 @@ protected:
 
     std::shared_ptr<MockDetector> m_lipsDetector;
 
-
-    std::shared_ptr<PppEngine> m_pppEngine;
+    std::shared_ptr<MockImageStore> m_imageStore;
 
     std::shared_ptr<MockPhotoPrintMaker> m_photoPrintMaker;
 
+    std::shared_ptr<PppEngine> m_pppEngine;
 
 public:
     void SetUp() override
     {
-
         m_faceDetector = std::make_shared<MockDetector>();
         m_eyesDetector = std::make_shared<MockDetector>();
         m_lipsDetector = std::make_shared<MockDetector>();
 
-        m_pppEngine = std::make_shared<PppEngine>(m_faceDetector, m_eyesDetector, m_lipsDetector, m_photoPrintMaker);
 
+        m_imageStore = std::make_shared<MockImageStore>();
+        m_photoPrintMaker = std::make_shared<MockPhotoPrintMaker>();
+
+        m_pppEngine = std::make_shared<PppEngine>(m_faceDetector, m_eyesDetector, m_lipsDetector, m_photoPrintMaker, m_imageStore);
     }
 
 };
@@ -57,21 +60,14 @@ TEST_F(PppEngineTests, ConfigureWorks)
 TEST_F(PppEngineTests, CanSetInputImage)
 {
     cv::Mat dummyImage1(3, 3, CV_8UC3, cv::Scalar(0, 0, 0));
-    cv::Mat dummyImage2(3, 3, CV_8UC3, cv::Scalar(0, 10, 20));
-    cv::Mat dummyImage3(3, 3, CV_8UC3, cv::Scalar(0, 0, 0));
-
 
     const auto crc1e = "1a7a52b3";
-    const auto crc2e = "510301a7";
+
+    EXPECT_CALL(*m_imageStore, setImage(Ref(dummyImage1))).WillOnce(Return(crc1e));
 
     auto crc1 = m_pppEngine->setInputImage(dummyImage1);
 
-    //EXPECT_EQ(m_pppEngine->m_imageCollection.size(), 1);
-
-
-    auto crc2 = m_pppEngine->setInputImage(dummyImage2);
-
-
+    ASSERT_EQ(crc1e, crc1) << "CRC should be returned by the mocked image store as per setup";
 }
 
 TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
