@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 #include "CommonHelpers.h"
@@ -22,5 +21,5 @@ public:
     *  @returns true if the intended landmarks were detected and can be used as input for subsequent detection, false otherwise !*/
     virtual bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) = 0;
 
-    virtual ~IDetector() { }
+    virtual ~IDetector() = default;
 };

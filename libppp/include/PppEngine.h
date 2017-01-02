@@ -4,13 +4,17 @@
 #include <rapidjson/document.h>
 #include <opencv2/core/core.hpp>
 #include <unordered_map>
+
 #include "CommonHelpers.h"
+
 
 struct LandMarks;
 class IDetector;
+class IImageStore;
 class IPhotoPrintMaker;
 class CanvasDefinition;
 class PhotoStandard;
+
 
 class PppEngine : noncopyable
 {
@@ -18,7 +22,8 @@ public:
     explicit PppEngine(std::shared_ptr<IDetector> pFaceDetector = nullptr,
         std::shared_ptr<IDetector> pEyeDetector = nullptr,
         std::shared_ptr<IDetector> pLipsDetector = nullptr,
-        std::shared_ptr<IPhotoPrintMaker> pPhotoPrintMaker = nullptr);
+        std::shared_ptr<IPhotoPrintMaker> pPhotoPrintMaker = nullptr,
+        std::shared_ptr<IImageStore> pImageStore = nullptr);
 
     // Native interface
     void configure(rapidjson::Value &config);
@@ -32,18 +37,14 @@ public:
 private:
     /*!@brief Estimate chin and crown point from the available landmarks!
     *  The result is written in the same LandMark structure !*/
-    void estimateHeadTopAndChinCorner(LandMarks &landMarks);
+    void estimateHeadTopAndChinCorner(LandMarks &landMarks) const;
 
     std::shared_ptr<IDetector> m_pFaceDetector;
     std::shared_ptr<IDetector> m_pEyesDetector;
     std::shared_ptr<IDetector> m_pLipsDetector;
 
     std::shared_ptr<IPhotoPrintMaker> m_pPhotoPrintMaker;
-
-    std::unordered_map<std::string, cv::Mat> m_imageCollection;
+    std::shared_ptr<IImageStore> m_pImageStore;
 
     void verifyImageExists(const std::string& imageKey);
-
-public:
-    std::shared_ptr<PppEngine> fromJson(const std::string &config);
 };
