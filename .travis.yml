@@ -18,6 +18,8 @@ addons:
     - gcc-5
     - g++-5
 
+env: COMPILER=g++-5
+
 before_script:
   - chmod +x ./build.*
 

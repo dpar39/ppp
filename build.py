@@ -39,7 +39,7 @@ def which(program):
     return None
 
 class Builder:
-    def _detectVSVersion(self):
+    def detect_vs_version(self):
         """
         Detects the first available version of Visual Studio
         """
@@ -63,7 +63,7 @@ class Builder:
         if IsWindows:
             # Load visual studio environmental variables first
             if not hasattr(self, '_vcvarsbat'):
-                self._detectVSVersion()
+                self.detect_vs_version()
             cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
             env['CXXFLAGS'] = '-fPIC'
@@ -114,17 +114,17 @@ class Builder:
             f.writelines(["%s\n" % item  for item in prj_lines])
         self._runCmd(['call', 'devenv', solution_file])
 
-    def _buildNodeJs(self):
+    def build_nodejs(self):
         """
         Downloads, extract and builds Node JS from source (Windows ONLY)
         """
         # Download Node JS if not done yet
-        node_src_pkg = self._downloadThirdPartyLib(nodejs_src_url)
+        node_src_pkg = self.download_third_party_lib(nodejs_src_url)
         # Get the file prefix for node js
         node_extract_dir = self._getThridPartyLibDirectory('node')
         if node_extract_dir == None:
             # Extract the source files
-            self._extractThirdPartyLibrary(node_src_pkg)
+            self.extract_third_party_lib(node_src_pkg)
             node_extract_dir = self._getThridPartyLibDirectory('node')
         # Build Node JS if not done yet
         node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
@@ -141,17 +141,17 @@ class Builder:
         if self._run_install:
             shutil.copy(node_exe_path, self._install_dir)
 
-    def _buildPocoLibs(self, override = False):
+    def build_poco_lib(self, override = False):
         """
         Downloads, extracts and builds POCO libraries from source, if not done yet
         """
         # Download POCO sources if not done yet
-        poco_src_pkg = self._downloadThirdPartyLib(poco_src_url)
+        poco_src_pkg = self.download_third_party_lib(poco_src_url)
         # Get the file prefix for POCO
         poco_extract_dir = self._getThridPartyLibDirectory('poco')
         if poco_extract_dir == None:
             # Extract the source files
-            self._extractThirdPartyLibrary(poco_src_pkg)
+            self.extract_third_party_lib(poco_src_pkg)
             poco_extract_dir = self._getThridPartyLibDirectory('poco')
 
         poco_all_modules = ['XML', 'JSON', 'MONGODB', 'UTIL', \
@@ -175,18 +175,18 @@ class Builder:
 
             self._buildCMakeLibrary(poco_extract_dir, cmake_definitions, ['install']);
 
-    def _extractGMock(self, override = False):
+    def extract_gmock(self, override = False):
         """
         Extract and build GMock libraries
         """
         # Download POCO sources if not done yet
-        gmock_src_pkg = self._downloadThirdPartyLib(gmock_src_url)
+        gmock_src_pkg = self.download_third_party_lib(gmock_src_url)
         # Get the file prefix for POCO
         gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
 
         if gmock_extract_dir == None:
             # Extract the source files
-            self._extractThirdPartyLibrary(gmock_src_pkg)
+            self.extract_third_party_lib(gmock_src_pkg)
 
     def _getThridPartyLibDirectory(self, prefix):
         """
@@ -198,18 +198,18 @@ class Builder:
                 return os.path.join(self._third_party_dir, lib_dir)
         return None
 
-    def _buildOpenCV(self):
+    def build_opencv(self):
         """
         Downloads and builds OpenCV from source
         """
         # Download OpenCV sources if not done yet
-        opencv_src_pkg = self._downloadThirdPartyLib(opencv_src_url)
+        opencv_src_pkg = self.download_third_party_lib(opencv_src_url)
         # Get the file prefix for OpenCV
         opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
 
-        if opencv_extract_dir == None:
+        if opencv_extract_dir is None:
             # Extract the source files
-            self._extractThirdPartyLibrary(opencv_src_pkg)
+            self.extract_third_party_lib(opencv_src_pkg)
             opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
 
         ocv_all_modules = ['core', 'flann', 'imgproc', \
@@ -246,7 +246,7 @@ class Builder:
             cmake_extra_defs.append(cmake_def)
 
         # Clean and create the build directory
-        build_dir = os.path.join(opencv_extract_dir, 'build');
+        build_dir = os.path.join(opencv_extract_dir, 'build')
         if True and os.path.exists(build_dir): # Remove the build directory
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir): # Create the build directory
@@ -268,7 +268,7 @@ class Builder:
                 '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
 
-    def _getFileNameFromUrl(self, url):
+    def get_filename_from_url(self, url):
         """
         Extracts the file name from a given URL
         """
@@ -276,20 +276,20 @@ class Builder:
         lib_filepath = os.path.join(self._third_party_dir, lib_filename)
         return lib_filepath
 
-    def _downloadThirdPartyLib(self, url):
+    def download_third_party_lib(self, url):
         """
         Download a third party dependency from the internet if is not available offline
         """
-        lib_filepath = self._getFileNameFromUrl(url)
+        lib_filepath = self.get_filename_from_url(url)
         if not os.path.exists(lib_filepath):
             print 'Downloading ' + url + ' to "' + lib_filepath + '" please wait ...'
             import urllib2
             lib_file = urllib2.urlopen(url)
-            with open(lib_filepath,'wb') as output:
-                 output.write(lib_file.read())
+            with open(lib_filepath, 'wb') as output:
+                output.write(lib_file.read())
         return lib_filepath
 
-    def _extractThirdPartyLibrary(self, lib_src_pkg):
+    def extract_third_party_lib(self, lib_src_pkg):
         """
         Extracts a third party lib package source file into a directory
         """
@@ -379,7 +379,7 @@ class Builder:
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
 
-    def _extractValidationData(self):
+    def extract_validation_data(self):
         """
         Extracts validation imageset with annotations from a password protected zip file
         These images were requested at http://www.scface.org/ and are copyrighted,
@@ -387,6 +387,9 @@ class Builder:
         """
         print 'Extracting validation data ...'
         def extract(research_dir, zip_file):
+            """
+            Extracts file
+            """
             zip_file = os.path.join(research_dir, zip_file)
             if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
                 return # Nothing to do, data already been extracted
@@ -401,14 +404,10 @@ class Builder:
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
 
-        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
-            return # Nothing to do, data already been extracted
-        zip = zipfile.ZipFile(zip_file)
-        for item in zip.namelist():
-            zip.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
-        zip.close()
-
-    def _buildProject(self):
+    def build_project(self):
+        """
+        Builds the project from sources
+        """
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
              # Remove the build directory - clean
@@ -453,25 +452,25 @@ class Builder:
         # Detect OS version
         self._parseArguments()
         if IsWindows:
-            self._detectVSVersion()
+            self.detect_vs_version()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
 
         # Build Third party libs
-        self._extractGMock()
-        self._buildPocoLibs()
-        self._buildOpenCV()
+        self.extract_gmock()
+        self.build_poco_lib()
+        self.build_opencv()
 
         if IsWindows:
             # Build Node JS from source so the addon can be build reliably for Windows
-            self._buildNodeJs()
+            self.build_nodejs()
 
         #Extract validatio data (imageset with annotations)
-        self._extractValidationData()
+        self.extract_validation_data()
 
         # Build this project
-        self._buildProject()
+        self.build_project()
 
 b = Builder()
