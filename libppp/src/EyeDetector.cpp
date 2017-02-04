@@ -165,7 +165,7 @@ void EyeDetector::validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize,
         throw std::logic_error("Detected eye position is outside the specifiied eye ROI");
     }
 
-    const int epsilon = 2.0;
+    const auto epsilon = 2.0;
     
     if (eyeRoiSize.width- eyeCenter.x < epsilon || eyeCenter.x < epsilon 
         || eyeRoiSize.height - eyeCenter.y < epsilon || eyeCenter.y < epsilon)
@@ -189,18 +189,17 @@ cv::Rect EyeDetector::detectWithHaarCascadeClassifier(const cv::Mat &image, cv::
 
 void EyeDetector::createCornerKernels()
 {
-    float kEyeCornerKernel[4][6] = {
-        {-1, -1, -1, 1, 1, 1},
-        {-1, -1, -1, -1, 1, 1},
-        {-1, -1, -1, -1, 0, 3},
-        {1, 1, 1, 1, 1, 1},
-    };
+    m_rightCornerKernel = (cv::Mat_<float>(4, 6) <<
+        -1, -1, -1,  1, 1, 1,
+        -1, -1, -1, -1, 1, 1,
+        -1, -1, -1, -1, 0, 3,
+         1,  1,  1,  1, 1, 1);
+    m_xGradKernel = (cv::Mat_<float>(3, 3) << 0, 0, 0, -0.5, 0, 0.5, 0, 0, 0);
 
-    m_rightCornerKernel = make_unique<cv::Mat>(4, 6,CV_32F, kEyeCornerKernel);
-    m_leftCornerKernel  = make_unique<cv::Mat>(4, 6, CV_32F);
+    m_yGradKernel = m_xGradKernel.t();
 
     // flip horizontally
-    cv::flip(*m_rightCornerKernel, *m_leftCornerKernel, 1);
+    cv::flip(m_rightCornerKernel, m_leftCornerKernel, 1);
 }
 
 cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled)
@@ -209,8 +208,10 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled)
     scaleToFastSize(eyeROIUnscaled, eyeROI);
 
     //-- Find the gradient
-    cv::Mat gradientX = computeMatXGradient(eyeROI);
-    cv::Mat gradientY = computeMatXGradient(eyeROI.t()).t();
+    cv::Mat gradientX, gradientY;
+
+    cv::filter2D(eyeROI, gradientX, CV_64F, m_xGradKernel);
+    cv::filter2D(eyeROI, gradientY, CV_64F, m_yGradKernel);
 
     //-- Normalize and threshold the gradient, compute all the magnitudes
     cv::Mat mags = matrixMagnitude(gradientX, gradientY);
@@ -264,7 +265,9 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled)
         {
             double gX = Xr[x], gY = Yr[x];
             if (gX == 0.0 && gY == 0.0)
+            {
                 continue;
+            }
             testPossibleCentersFormula(x, y, Wr[x], gX, gY, outSum);
         }
     }
@@ -287,8 +290,6 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled)
         cv::threshold(out, floodClone, floodThresh, 0.0f, cv::THRESH_TOZERO);
 
         cv::Mat mask = floodKillEdges(floodClone);
-        //imshow(debugWindow + " Mask",mask);
-        //imshow(debugWindow,out);
         // redo max
         cv::minMaxLoc(out, nullptr, &maxVal, nullptr, &maxP, mask);
     }
@@ -306,7 +307,7 @@ cv::Mat EyeDetector::eyeCornerMap(const cv::Mat& region, bool left, bool left2) 
     cv::Mat miRegion(region, rowRange, colRange);
 
     cv::filter2D(miRegion, cornerMap, CV_32F,
-        (left && !left2) || (!left && !left2) ? *m_leftCornerKernel : *m_rightCornerKernel);
+        (left && !left2) || (!left && !left2) ? m_leftCornerKernel : m_rightCornerKernel);
     return cornerMap;
 }
 
@@ -350,25 +351,6 @@ void EyeDetector::scaleToFastSize(const cv::Mat& src, cv::Mat& dst) const
 {
     cv::resize(src, dst, cv::Size(kFastEyeWidth, 
         static_cast<int>(static_cast<float>(kFastEyeWidth) / src.cols * src.rows)));
-}
-
-cv::Mat EyeDetector::computeMatXGradient(const cv::Mat& mat)
-{
-    cv::Mat out(mat.rows, mat.cols, CV_64F);
-
-    for (int y = 0; y < mat.rows; ++y)
-    {
-        const uchar* Mr = mat.ptr<uchar>(y);
-        double* Or = out.ptr<double>(y);
-
-        Or[0] = Mr[1] - Mr[0];
-        for (int x = 1; x < mat.cols - 1; ++x)
-        {
-            Or[x] = (Mr[x + 1] - Mr[x - 1]) / 2.0;
-        }
-        Or[mat.cols - 1] = Mr[mat.cols - 1] - Mr[mat.cols - 2];
-    }
-    return out;
 }
 
 void EyeDetector::testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out)

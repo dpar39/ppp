@@ -18,7 +18,7 @@ TEST(TiledPrintTest, TestCroppingWorks)
 
     CanvasDefinition canvasDefinition(6, 4, 300, "inch");
 
-    string imageDir = resolvePath("research/mugshot_frontal_original_all");
+    auto imageDir = resolvePath("research/mugshot_frontal_original_all");
     vector<string> imageFileNames;
     getImageFiles(imageDir, imageFileNames);
 

@@ -5,7 +5,7 @@
 
 namespace cv
 {
-	class CascadeClassifier;
+    class CascadeClassifier;
 }
 
 struct LandMarks;
@@ -13,13 +13,13 @@ struct LandMarks;
 class FaceDetector : public IDetector
 {
 public:
-	virtual void configure(rapidjson::Value &cfg) override;
+    void configure(rapidjson::Value &cfg) override;
 
-	virtual bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
+    bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
 
 private:
-	std::shared_ptr<cv::CascadeClassifier> m_pFaceCascadeClassifier;
+    std::shared_ptr<cv::CascadeClassifier> m_pFaceCascadeClassifier;
 
-	void calculateScaleSearch(const cv::Size& inputImageSize, double minFaceRatio, double maxFaceRatio, cv::Size& minFaceSize, cv::Size &maxFaceSize);
+    void calculateScaleSearch(const cv::Size& inputImageSize, double minFaceRatio, double maxFaceRatio, cv::Size& minFaceSize, cv::Size &maxFaceSize) const;
 
 };

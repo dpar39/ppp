@@ -32,10 +32,8 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
     vector<int> rejectLevels;
     vector<double> levelWeights;
     m_pFaceCascadeClassifier->detectMultiScale(grayImage, facesRects, 1.05, 3,
-                                               CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT, minFaceSize, maxFaceSize);
-
-    //m_pCascadeClassifier->detectMultiScale(grayImage, facesRects,
-    //rejectLevels, levelWeights, 1.05, 3, CV_HAAR_SCALE_IMAGE , minFaceSize , maxFaceSize, true);
+        CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT,
+        minFaceSize, maxFaceSize);
 
     if (facesRects.size() == 0)
     {
@@ -46,7 +44,7 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
 }
 
 
-void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFaceRatio, double maxFaceRatio, Size& minFaceSize, Size& maxFaceSize)
+void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFaceRatio, double maxFaceRatio, Size& minFaceSize, Size& maxFaceSize) const
 {
     auto dim = std::minmax(inputImageSize.height, inputImageSize.width);
     auto minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);

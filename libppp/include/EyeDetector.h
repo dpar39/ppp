@@ -3,6 +3,7 @@
 #include "CommonHelpers.h"
 
 #include <memory>
+#include <type_traits>
 
 namespace cv
 {
@@ -18,8 +19,10 @@ public:
     bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
 
 private:
-    std::unique_ptr<cv::Mat> m_leftCornerKernel;
-    std::unique_ptr<cv::Mat> m_rightCornerKernel;
+    cv::Mat m_leftCornerKernel;
+    cv::Mat m_rightCornerKernel;
+    cv::Mat m_xGradKernel;
+    cv::Mat m_yGradKernel;
 
 private:  // Configuration
 
@@ -50,6 +53,7 @@ private:  // Configuration
 
     // Eye Corner detection
     const bool kEnableEyeCorner = false;
+    
 
 private:
     static void validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize, cv::Point &eyeCenter);
@@ -65,8 +69,6 @@ private:
     void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out);
 
     cv::Mat floodKillEdges(cv::Mat& mat);
-
-    static cv::Mat computeMatXGradient(const cv::Mat &mat);
 
     cv::Mat matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY);
 
