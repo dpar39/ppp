@@ -71,13 +71,13 @@ static uint32_t crc32_tab[] = {
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-uint32_t  crc32(uint32_t crc, const uchar *buf, const uchar *bufferEnd)
+uint32_t  crc32(uint32_t crc, const uchar *begin, const uchar *end)
 {
-    auto p = buf;
+    auto it = begin;
     crc = crc ^ ~0U;
-    while (p != bufferEnd)
+    while (it != end)
     {
-        crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+        crc = crc32_tab[(crc ^ *it++) & 0xFF] ^ (crc >> 8);
     }
     return crc ^ ~0U;
 }

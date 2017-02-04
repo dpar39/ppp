@@ -29,7 +29,7 @@ typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, LandMarks&, L
 
 const std::string g_defaultConfigPath(resolvePath("share/config.json"));
 
-void processDatabase(DetectionCallback callback, bool annotateResults = false)
+void processDatabase(DetectionCallback callback, bool annotateResults = true)
 {
     using namespace std;
     auto imageDir = resolvePath("research/sample_test_images");
@@ -51,12 +51,12 @@ void processDatabase(DetectionCallback callback, bool annotateResults = false)
 
     //imageIndices = { 61 };
     vector<int> excludeList = {
-        56, // Glasses with some reflexion
-        74, // Eyes totally closed
-        76, // Glasses with some reflexion
-        88, // Glasses, eyes mostly closed
-        92, // Right eye fail <<<<<<<<<
-        115, // Old guy, eyes very closed
+        //56, // Glasses with some reflexion
+        //74, // Eyes totally closed
+        //76, // Glasses with some reflexion
+        //88, // Glasses, eyes mostly closed
+        //92, // Right eye fail <<<<<<<<<
+        //115, // Old guy, eyes very closed
         121
     };
 
@@ -74,7 +74,7 @@ void processDatabase(DetectionCallback callback, bool annotateResults = false)
 
         auto imagePrefix = imageFileName.substr(0, imageFileName.find_last_of('.'));
 
-        string annotatedLandMarkFiles = imagePrefix + ".pos";
+        auto annotatedLandMarkFiles = imagePrefix + ".pos";
         cv::Mat landMarksAnn;
         ASSERT_TRUE(importTextMatrix(annotatedLandMarkFiles, landMarksAnn));
 
@@ -86,7 +86,8 @@ void processDatabase(DetectionCallback callback, bool annotateResults = false)
         annotations.crownPoint = LANDMARK_POINT(landMarksAnn, 0);
         annotations.chinPoint = LANDMARK_POINT(landMarksAnn, 16);
 
-        bool success = callback(imagePrefix, inputImage, grayImage, annotations, results);
+        
+        auto success = callback(imagePrefix, inputImage, grayImage, annotations, results);
         EXPECT_TRUE(success);
 
         if (annotateResults)
@@ -104,6 +105,7 @@ void processDatabase(DetectionCallback callback, bool annotateResults = false)
             rectangle(inputImage, results.vjFaceRect, Scalar(0, 128, 0), 2);
             rectangle(inputImage, results.vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
             rectangle(inputImage, results.vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
+            //rectangle(inputImage, results.vjMouth, Scalar(0xA0, 0x52, 0x2D), 3);
 
             circle(inputImage, results.eyeLeftPupil, 5, detectionColor, 2);
             circle(inputImage, results.eyeRightPupil, 5, detectionColor, 2);
@@ -113,6 +115,11 @@ void processDatabase(DetectionCallback callback, bool annotateResults = false)
 
             circle(inputImage, results.crownPoint, 5, detectionColor, 2);
             circle(inputImage, results.chinPoint, 5, detectionColor, 2);
+        }
+
+        if (idx == 40)
+        {
+            idx = 40;
         }
     }
 }

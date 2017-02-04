@@ -16,7 +16,6 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
     DirectoryIterator end;
     while (itr != end)
     {
-        std::cout << itr.name();
         if (!itr->isFile())
         {
             continue;

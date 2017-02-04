@@ -18,8 +18,8 @@ public:
     bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
 
 private:
-    std::shared_ptr<cv::Mat> leftCornerKernel;
-    std::shared_ptr<cv::Mat> rightCornerKernel;
+    std::unique_ptr<cv::Mat> m_leftCornerKernel;
+    std::unique_ptr<cv::Mat> m_rightCornerKernel;
 
 private:  // Configuration
 
@@ -30,8 +30,8 @@ private:  // Configuration
     // Definition of the search areas to locate pupils expressed as the ratios of the face rectangle
     const double m_topFaceRatio = 0.28;  ///<- Distance from the top of the face 
     const double m_sideFaceRatio = 0.13; ///<- Distance from the sides of the face rectangle
-    const double m_widthRatio = 0.35;    ///<- ROI width 
-    const double m_heightRatio = 0.25;   ///<- ROI height
+    const double m_widthRatio = 0.35;    ///<- ROI width ratio with respect to head size
+    const double m_heightRatio = 0.25;   ///<- ROI height ratio with respect to head size
 
     // Preprocessing
     const bool kSmoothFaceImage = false;
@@ -48,27 +48,35 @@ private:  // Configuration
     const bool kEnablePostProcess = true;
     const float kPostProcessThreshold = 0.97f;
 
-    // Eye Corner
+    // Eye Corner detection
     const bool kEnableEyeCorner = false;
 
 private:
-    cv::Rect detectWithHaarCascadeClassifier(cv::Mat image, cv::CascadeClassifier *cc);
+    static void validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize, cv::Point &eyeCenter);
+
+    static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat &img, cv::CascadeClassifier *cc);
 
     cv::Point findEyeCenter(const cv::Mat& image);
 
     void createCornerKernels();
 
-    cv::Mat eyeCornerMap(const cv::Mat& region, bool left, bool left2);
+    cv::Mat eyeCornerMap(const cv::Mat& region, bool left, bool left2) const;
 
     void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out);
 
     cv::Mat floodKillEdges(cv::Mat& mat);
-    cv::Mat computeMatXGradient(const cv::Mat &mat);
+
+    static cv::Mat computeMatXGradient(const cv::Mat &mat);
+
     cv::Mat matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY);
-    double computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor);
-    void releaseCornerKernels();
-    cv::Point2f findEyeCorner(cv::Mat region, bool left, bool left2);
-    cv::Point2f findSubpixelEyeCorner(cv::Mat region, cv::Point maxP);
-    cv::Point unscalePoint(cv::Point p, cv::Rect origSize);
-    void scaleToFastSize(const cv::Mat& src, cv::Mat& dst);
+
+    double computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor) const;
+
+    cv::Point2f findEyeCorner(cv::Mat region, bool left, bool left2) const;
+
+    static cv::Point2f findSubpixelEyeCorner(cv::Mat region, cv::Point maxP);
+
+    cv::Point unscalePoint(cv::Point p, cv::Rect origSize) const;
+
+    void scaleToFastSize(const cv::Mat& src, cv::Mat& dst) const;
 };

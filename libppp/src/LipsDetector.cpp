@@ -50,7 +50,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     auto srcBeg = mouthRoiImage.begin<Vec3b>();
     auto srcEnd = mouthRoiImage.end<Vec3b>();
 
-    std::transform(srcBeg, srcEnd, dstBeg, [](Vec3b pixel)
+    std::transform(srcBeg, srcEnd, dstBeg, [](const auto & pixel)
                    {
                        auto rgbSum = static_cast<float>(pixel[0]) + pixel[1] + pixel[2];
                        auto r = pixel[2] / rgbSum;
@@ -75,7 +75,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     // Select the two biggest regions (assuming they are the lips)
     for (auto c = contours.begin(); c != contours.end(); ++c)
     {
-        double area = contourArea(*c);
+        auto area = contourArea(*c);
         if (area > maxArea1st)
         {
             maxArea2nd = maxArea1st;
@@ -87,8 +87,8 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
 
     auto candidates = contourLineIntersection(*c1st, eyeCentrePoint, mouthCenterPoint);
 
-    Point leftCorner = Point(INT_MAX, 0), rightCorner = Point(INT_MIN, 0);
-    for (auto& p : *c1st)
+    auto leftCorner = Point(INT_MAX, 0), rightCorner = Point(INT_MIN, 0);
+    for (const auto& p : *c1st)
     {
         if (p.x < leftCorner.x)
         {
@@ -117,11 +117,11 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         }
     }
 
-    auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](Point2d& a, Point2d& b)
+    auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](const auto &a, const auto &b)
                                       {
                                           return a.y < b.y;
                                       });
-    auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](Point2d& a, Point2d& b)
+    auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](const auto &a, const auto &b)
                                       {
                                           return a.y > b.y;
                                       });

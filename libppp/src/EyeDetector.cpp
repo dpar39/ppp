@@ -9,7 +9,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;
-using namespace cv;
 
 void EyeDetector::configure(rapidjson::Value& cfg)
 {
@@ -37,7 +36,7 @@ void EyeDetector::configure(rapidjson::Value& cfg)
 
 bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks)
 {
-    auto faceRect = landMarks.vjFaceRect;
+    const auto& faceRect = landMarks.vjFaceRect;
 
     if (faceRect.width <= 10 && faceRect.height <=10)
     {
@@ -58,8 +57,8 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
     auto eyeRegionLeft = ROUND_INT(faceRect.width* m_sideFaceRatio);
 
 
-    Rect leftEyeRegion(eyeRegionLeft, eyeRegionTop, eyeRegionWidth, eyeRegionHeight);
-    Rect rightEyeRegion(faceRect.width - eyeRegionWidth - eyeRegionLeft,
+    cv::Rect leftEyeRegion(eyeRegionLeft, eyeRegionTop, eyeRegionWidth, eyeRegionHeight);
+    cv::Rect rightEyeRegion(faceRect.width - eyeRegionWidth - eyeRegionLeft,
                         eyeRegionTop, eyeRegionWidth, eyeRegionHeight);
 
     auto leftEyeImage = faceImage(leftEyeRegion);
@@ -98,35 +97,40 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
     }
 
     //-- Find Eye Centers
-    auto leftPupil = findEyeCenter(faceImage(leftEyeRegion));
-    auto rightPupil = findEyeCenter(faceImage(rightEyeRegion));
+    auto leftEyeCenter = findEyeCenter(faceImage(leftEyeRegion));
+    auto rightEyeCenter = findEyeCenter(faceImage(rightEyeRegion));
 
-    // change eye centers to face coordinates
-    rightPupil.x += rightEyeRegion.x + faceRect.x;
-    rightPupil.y += rightEyeRegion.y + faceRect.y;
-    leftPupil.x += leftEyeRegion.x + faceRect.x;
-    leftPupil.y += leftEyeRegion.y + faceRect.y;
+    //-- If eye center touches or is very close to the eye ROI apply fallback method
+    validateAndApplyFallbackIfRequired(leftEyeRegion.size(), leftEyeCenter);
+    validateAndApplyFallbackIfRequired(rightEyeRegion.size(), rightEyeCenter);
+
+    // Change eye centers to face coordinates
+    rightEyeCenter.x += rightEyeRegion.x + faceRect.x;
+    rightEyeCenter.y += rightEyeRegion.y + faceRect.y;
+    leftEyeCenter.x += leftEyeRegion.x + faceRect.x;
+    leftEyeCenter.y += leftEyeRegion.y + faceRect.y;
+
 
     //-- Find Eye Corners
     if (kEnableEyeCorner)
     {
         // Get corner regions
         cv::Rect leftRightCornerRegion(leftEyeRegion);
-        leftRightCornerRegion.width -= leftPupil.x;
-        leftRightCornerRegion.x += leftPupil.x;
+        leftRightCornerRegion.width -= leftEyeCenter.x;
+        leftRightCornerRegion.x += leftEyeCenter.x;
         leftRightCornerRegion.height /= 2;
         leftRightCornerRegion.y += leftRightCornerRegion.height / 2;
         cv::Rect leftLeftCornerRegion(leftEyeRegion);
-        leftLeftCornerRegion.width = leftPupil.x;
+        leftLeftCornerRegion.width = leftEyeCenter.x;
         leftLeftCornerRegion.height /= 2;
         leftLeftCornerRegion.y += leftLeftCornerRegion.height / 2;
         cv::Rect rightLeftCornerRegion(rightEyeRegion);
-        rightLeftCornerRegion.width = rightPupil.x;
+        rightLeftCornerRegion.width = rightEyeCenter.x;
         rightLeftCornerRegion.height /= 2;
         rightLeftCornerRegion.y += rightLeftCornerRegion.height / 2;
         cv::Rect rightRightCornerRegion(rightEyeRegion);
-        rightRightCornerRegion.width -= rightPupil.x;
-        rightRightCornerRegion.x += rightPupil.x;
+        rightRightCornerRegion.width -= rightEyeCenter.x;
+        rightRightCornerRegion.x += rightEyeCenter.x;
         rightRightCornerRegion.height /= 2;
         rightRightCornerRegion.y += rightRightCornerRegion.height / 2;
 
@@ -148,19 +152,38 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
         circle(faceImage, rightRightCorner, 3, 200);
     }
 
-    landMarks.eyeLeftPupil = leftPupil;
-    landMarks.eyeRightPupil = rightPupil;
+    landMarks.eyeLeftPupil = leftEyeCenter;
+    landMarks.eyeRightPupil = rightEyeCenter;
 
     return true;
 }
 
-cv::Rect EyeDetector::detectWithHaarCascadeClassifier(cv::Mat image, cv::CascadeClassifier* cc)
+void EyeDetector::validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize, cv::Point &eyeCenter)
 {
-    vector<Rect> results;
+    if (eyeRoiSize.width <= eyeCenter.x || eyeRoiSize.height < eyeCenter.y)
+    {
+        throw std::logic_error("Detected eye position is outside the specifiied eye ROI");
+    }
+
+    const int epsilon = 2.0;
+    
+    if (eyeRoiSize.width- eyeCenter.x < epsilon || eyeCenter.x < epsilon 
+        || eyeRoiSize.height - eyeCenter.y < epsilon || eyeCenter.y < epsilon)
+    {
+        eyeCenter.x = eyeRoiSize.width / 2;
+        eyeCenter.y = eyeRoiSize.height / 2;
+    }
+}
+
+cv::Rect EyeDetector::detectWithHaarCascadeClassifier(const cv::Mat &image, cv::CascadeClassifier* cc)
+{
+    vector<cv::Rect> results;
     cc->detectMultiScale(image, results, 1.05, 3,
                          CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT);
     if (results.empty() || results.size() > 1)
-        return Rect();
+    {
+        return cv::Rect();
+    }
     return results.front();
 }
 
@@ -173,17 +196,16 @@ void EyeDetector::createCornerKernels()
         {1, 1, 1, 1, 1, 1},
     };
 
-    rightCornerKernel = make_shared<cv::Mat>(4, 6,CV_32F, kEyeCornerKernel);
-    leftCornerKernel = make_shared<cv::Mat>(4, 6, CV_32F);
+    m_rightCornerKernel = make_unique<cv::Mat>(4, 6,CV_32F, kEyeCornerKernel);
+    m_leftCornerKernel  = make_unique<cv::Mat>(4, 6, CV_32F);
 
     // flip horizontally
-    cv::flip(*rightCornerKernel, *leftCornerKernel, 1);
+    cv::flip(*m_rightCornerKernel, *m_leftCornerKernel, 1);
 }
 
-cv::Point EyeDetector::findEyeCenter(const cv::Mat& image)
+cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled)
 {
-    cv::Mat eyeROIUnscaled = image;
-    cv::Mat eyeROI;
+    cv::Mat eyeROI; 
     scaleToFastSize(eyeROIUnscaled, eyeROI);
 
     //-- Find the gradient
@@ -197,11 +219,12 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& image)
     //double gradientThresh = kGradientThreshold;
     //double gradientThresh = 0;
     //normalize
-    for (int y = 0; y < eyeROI.rows; ++y)
+    for (auto y = 0; y < eyeROI.rows; ++y)
     {
         double* Xr = gradientX.ptr<double>(y);
         double* Yr = gradientY.ptr<double>(y);
         const double* Mr = mags.ptr<double>(y);
+
         for (int x = 0; x < eyeROI.cols; ++x)
         {
             double gX = Xr[x], gY = Yr[x];
@@ -235,7 +258,8 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& image)
     for (int y = 0; y < weight.rows; ++y)
     {
         const unsigned char* Wr = weight.ptr<unsigned char>(y);
-        const double *Xr = gradientX.ptr<double>(y), *Yr = gradientY.ptr<double>(y);
+        const double *Xr = gradientX.ptr<double>(y),
+        *Yr = gradientY.ptr<double>(y);
         for (int x = 0; x < weight.cols; ++x)
         {
             double gX = Xr[x], gY = Yr[x];
@@ -268,27 +292,27 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat& image)
         // redo max
         cv::minMaxLoc(out, nullptr, &maxVal, nullptr, &maxP, mask);
     }
-    return unscalePoint(maxP, Rect(Point(0, 0), image.size()));
+    return unscalePoint(maxP, cv::Rect(cv::Point(0, 0), eyeROIUnscaled.size()));
 }
 
-cv::Mat EyeDetector::eyeCornerMap(const cv::Mat& region, bool left, bool left2)
+cv::Mat EyeDetector::eyeCornerMap(const cv::Mat& region, bool left, bool left2) const
 {
     cv::Mat cornerMap;
 
-    cv::Size sizeRegion = region.size();
+    auto sizeRegion = region.size();
     cv::Range colRange(sizeRegion.width / 4, sizeRegion.width * 3 / 4);
     cv::Range rowRange(sizeRegion.height / 4, sizeRegion.height * 3 / 4);
 
     cv::Mat miRegion(region, rowRange, colRange);
 
     cv::filter2D(miRegion, cornerMap, CV_32F,
-                 (left && !left2) || (!left && !left2) ? *leftCornerKernel : *rightCornerKernel);
+        (left && !left2) || (!left && !left2) ? *m_leftCornerKernel : *m_rightCornerKernel);
     return cornerMap;
 }
 
-cv::Point2f EyeDetector::findEyeCorner(cv::Mat region, bool left, bool left2)
+cv::Point2f EyeDetector::findEyeCorner(cv::Mat region, bool left, bool left2) const
 {
-    cv::Mat cornerMap = eyeCornerMap(region, left, left2);
+    auto cornerMap = eyeCornerMap(region, left, left2);
 
     cv::Point maxP;
     cv::minMaxLoc(cornerMap, nullptr, nullptr, nullptr, &maxP);
@@ -301,7 +325,7 @@ cv::Point2f EyeDetector::findEyeCorner(cv::Mat region, bool left, bool left2)
 
 cv::Point2f EyeDetector::findSubpixelEyeCorner(cv::Mat region, cv::Point maxP)
 {
-    cv::Size sizeRegion = region.size();
+    auto sizeRegion = region.size();
 
     cv::Mat cornerMap(sizeRegion.height * 10, sizeRegion.width * 10, CV_32F);
 
@@ -314,17 +338,18 @@ cv::Point2f EyeDetector::findSubpixelEyeCorner(cv::Mat region, cv::Point maxP)
                        static_cast<float>(sizeRegion.height / 2 + maxP2.y / 10));
 }
 
-cv::Point EyeDetector::unscalePoint(cv::Point p, cv::Rect origSize)
+cv::Point EyeDetector::unscalePoint(cv::Point p, cv::Rect origSize) const
 {
-    float ratio = static_cast<float>(kFastEyeWidth) / origSize.width;
-    int x = ROUND_INT(p.x / ratio);
-    int y = ROUND_INT(p.y / ratio);
+    auto ratio = static_cast<float>(kFastEyeWidth) / origSize.width;
+    auto x = ROUND_INT(p.x / ratio);
+    auto y = ROUND_INT(p.y / ratio);
     return cv::Point(x, y);
 }
 
-void EyeDetector::scaleToFastSize(const cv::Mat& src, cv::Mat& dst)
+void EyeDetector::scaleToFastSize(const cv::Mat& src, cv::Mat& dst) const
 {
-    cv::resize(src, dst, cv::Size(kFastEyeWidth, static_cast<int>(static_cast<float>(kFastEyeWidth) / src.cols * src.rows)));
+    cv::resize(src, dst, cv::Size(kFastEyeWidth, 
+        static_cast<int>(static_cast<float>(kFastEyeWidth) / src.cols * src.rows)));
 }
 
 cv::Mat EyeDetector::computeMatXGradient(const cv::Mat& mat)
@@ -420,25 +445,29 @@ cv::Mat EyeDetector::floodKillEdges(cv::Mat& mat)
 
 cv::Mat EyeDetector::matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY)
 {
-    cv::Mat mags(matX.rows, matX.cols, CV_64F);
-    for (int y = 0; y < matX.rows; ++y)
-    {
-        const double *Xr = matX.ptr<double>(y), *Yr = matY.ptr<double>(y);
-        double* Mr = mags.ptr<double>(y);
-        for (int x = 0; x < matX.cols; ++x)
-        {
-            auto gX = Xr[x], gY = Yr[x];
-            auto magnitude = sqrt((gX * gX) + (gY * gY));
-            Mr[x] = magnitude;
-        }
-    }
-    return mags;
+    cv::Mat magnitude(matX.rows, matX.cols, CV_64F);
+    cv::sqrt(matX.mul(matX) + matY.mul(matY), magnitude);
+    return magnitude;
+
+    //cv::Mat mags(matX.rows, matX.cols, CV_64F);
+    //for (int y = 0; y < matX.rows; ++y)
+    //{
+    //    const double *Xr = matX.ptr<double>(y), *Yr = matY.ptr<double>(y);
+    //    double* Mr = mags.ptr<double>(y);
+    //    for (int x = 0; x < matX.cols; ++x)
+    //    {
+    //        auto gX = Xr[x], gY = Yr[x];
+    //        auto magnitude = sqrt((gX * gX) + (gY * gY));
+    //        Mr[x] = magnitude;
+    //    }
+    //}
+    //return mags;
 }
 
-double EyeDetector::computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor)
+double EyeDetector::computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor) const
 {
     cv::Scalar stdMagnGrad, meanMagnGrad;
     cv::meanStdDev(mat, meanMagnGrad, stdMagnGrad);
-    double stdDev = stdMagnGrad[0] / sqrt(mat.rows * mat.cols);
+    auto stdDev = stdMagnGrad[0] / sqrt(mat.rows * mat.cols);
     return stdDevFactor * stdDev + meanMagnGrad[0];
 }

@@ -70,7 +70,7 @@ class Builder:
             env['LD_LIBRARY_PATH'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         print ' '.join(cmd_args)
-        process = subprocess.Popen(cmd_all, env=env);
+        process = subprocess.Popen(cmd_all, env=env)
         process.wait()
         if(process.returncode != 0):
             print 'Command "' + ' '.join(cmd_args) + '" exitited with code ' + str(process.returncode)
@@ -85,13 +85,13 @@ class Builder:
         '-DCMAKE_INSTALL_PREFIX=' + self._install_dir,  \
         '-DCMAKE_PREFIX_PATH=' + self._install_dir,  \
         '-DCMAKE_BUILD_TYPE=' + self._build_config,  \
-        '-G', cmake_generator];
+        '-G', cmake_generator]
 
         for elmt in extra_definitions:
-            cmake_args.append(elmt);
+            cmake_args.append(elmt)
 
-        cmake_args.append(cmakelists_path);
-        self._runCmd(cmake_args);
+        cmake_args.append(cmakelists_path)
+        self._runCmd(cmake_args)
 
     def _setStartupProjectInVSSolution(self, project_name):
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
@@ -322,7 +322,7 @@ class Builder:
         else:
             cmake_generator = 'Unix Makefiles'
             make_cmd = ['make', MinusJN, 'install']
-        os.chdir(build_dir);
+        os.chdir(build_dir)
         cmake_cmd = ['cmake',  \
             '-DCMAKE_BUILD_TYPE=' + self._build_config,  \
             '-G', cmake_generator] + extra_definitions
@@ -387,7 +387,7 @@ class Builder:
         """
         print 'Extracting validation data ...'
         def extract(research_dir, zip_file):
-            zip_file =  os.path.join(research_dir, zip_file)
+            zip_file = os.path.join(research_dir, zip_file)
             if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
                 return # Nothing to do, data already been extracted
             zip = zipfile.ZipFile(zip_file)
@@ -426,7 +426,7 @@ class Builder:
 
         # Change directory to build directory
         os.chdir(self._build_dir)
-        if (self._gen_vs_sln):
+        if self._gen_vs_sln:
             # Generating visual studio solution
             cmake_generator = self._vc_cmake_gen
             self._runCmake(cmake_generator, '..')
@@ -453,7 +453,7 @@ class Builder:
         # Detect OS version
         self._parseArguments()
         if IsWindows:
-           self._detectVSVersion()
+            self._detectVSVersion()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):

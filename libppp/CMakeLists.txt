@@ -21,10 +21,11 @@ find_package(Poco REQUIRED COMPONENTS Foundation)
 # Build the module library
 #-----------------------------
 file(GLOB LIB_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+
 set(MODULE_INC_DIRS
     ${CMAKE_SOURCE_DIR}/share/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${LIB_INCLUDE_DIR}
     ${OpenCV_INCLUDE_DIRS}
     ${Poco_INCLUDE_DIRS}
 )
@@ -46,7 +47,7 @@ else()
     # Avoid node-gyp mechanism to resolve third party libraries
     set(LIB_MODE SHARED)
 endif()
-add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES})
+add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_include_directories(${LIB_NAME} PUBLIC ${MODULE_INC_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
@@ -58,7 +59,9 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_I
 #-----------------------------
 # Build the module tests
 #-----------------------------
-file(GLOB TEST_SRC_FILES  "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
+file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
+file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
+
 set(TEST_INC_DIRS
     "tests/include"
     ${GMOCK_ROOT}/gtest/include
@@ -74,7 +77,7 @@ set(TEST_LIB_DIRS
     ${MODULE_INC_DIRS}
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 link_directories(${TEST_LIB_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
