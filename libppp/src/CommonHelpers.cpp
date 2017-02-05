@@ -71,13 +71,19 @@ void make_crc_table(void)
     unsigned long c;
     int n, k;
 
-    for (n = 0; n < 256; n++) {
+    for (n = 0; n < 256; n++)
+    {
         c = static_cast<unsigned long>(n);
-        for (k = 0; k < 8; k++) {
+        for (k = 0; k < 8; k++)
+        {
             if (c & 1)
+            {
                 c = 0xedb88320L ^ (c >> 1);
+            }
             else
+            {
                 c = c >> 1;
+            }
         }
         crc_table[n] = c;
     }
@@ -89,7 +95,7 @@ should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
 
-unsigned long update_crc(unsigned long crc, unsigned char *buf, int len)
+unsigned long update_crc(unsigned long crc, unsigned char *buf, size_t len)
 {
     auto c = crc;
     int n;

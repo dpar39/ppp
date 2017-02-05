@@ -34,4 +34,5 @@ private:
     const noncopyable& operator=(const noncopyable&) = delete;
 };
 
-unsigned long update_crc(unsigned long crc, unsigned char *buf, int len);
+/*!@brief Calculates CRC value for a buffer of specified length !*/
+unsigned long update_crc(unsigned long crc, unsigned char *buf, size_t len);

@@ -29,8 +29,9 @@ private:
     ///<- oldest images are to be deleted
     size_t m_storeSize = 1;
 
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
 
 private:
+    ///<- Keeps the amount of images in the store to a maximum specified by m_storeSize
     void handleStoreSize();
 };
