@@ -29,7 +29,7 @@ typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, LandMarks&, L
 
 const std::string g_defaultConfigPath(resolvePath("share/config.json"));
 
-void processDatabase(DetectionCallback callback, bool annotateResults = true)
+void processDatabase(DetectionCallback callback, bool annotateResults = false)
 {
     using namespace std;
     auto imageDir = resolvePath("research/sample_test_images");
@@ -54,7 +54,7 @@ void processDatabase(DetectionCallback callback, bool annotateResults = true)
         //56, // Glasses with some reflexion
         //74, // Eyes totally closed
         //76, // Glasses with some reflexion
-        //88, // Glasses, eyes mostly closed
+        88, // Glasses, eyes mostly closed
         //92, // Right eye fail <<<<<<<<<
         //115, // Old guy, eyes very closed
         121
@@ -88,6 +88,10 @@ void processDatabase(DetectionCallback callback, bool annotateResults = true)
 
         
         auto success = callback(imagePrefix, inputImage, grayImage, annotations, results);
+        if (!success)
+        {
+            success = false;
+        }
         EXPECT_TRUE(success);
 
         if (annotateResults)
@@ -245,7 +249,7 @@ TEST(PppEngine, TestEndToEndLandmarkDetection)
     engine.configure(config);
 
     vector<double> relativeErrors;
-
+    
     auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
             LandMarks& annotations, LandMarks& detectedLandMarks) -> bool
         {
@@ -256,7 +260,7 @@ TEST(PppEngine, TestEndToEndLandmarkDetection)
             auto expectedDistance = cv::norm(annotations.chinPoint - annotations.crownPoint);
             auto actualDistance = cv::norm(detectedLandMarks.chinPoint - detectedLandMarks.crownPoint);
 
-            const double maxError = (36.0 - 32.0) / 34.0;
+            const auto maxError = (36.0 - 32.0) / 34.0;
             auto relError = cv::abs(expectedDistance - actualDistance) / expectedDistance;
             relativeErrors.push_back(relError);
             auto accepted = relError < maxError;
@@ -268,5 +272,12 @@ TEST(PppEngine, TestEndToEndLandmarkDetection)
             return accepted;
         };
 
-    processDatabase(process);
+    try 
+    {
+        processDatabase(process);
+    }
+    catch(const std::exception &e)
+    {
+        ASSERT_FALSE(true) << e.what();
+    }
 }

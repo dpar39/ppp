@@ -6,23 +6,52 @@ uint32_t  crc32(uint32_t crc, const uchar *buf, const uchar *bufferEnd);
 
 std::string ImageStore::setImage(const cv::Mat &inputImage)
 {
-    using namespace std;
     auto crc32val = crc32(0, inputImage.datastart, inputImage.dataend);
-    stringstream s;
-    s << setfill('0') << setw(8) << hex << crc32val;
-    auto imageKey = s.str();
-    m_imageCollection[imageKey] = inputImage;
+    std::stringstream s;
+    s << std::setfill('0') << std::setw(8) << std::hex << crc32val;
+    const auto && imageKey = s.str();
+
+    {
+        std::lock_guard<std::mutex> lg(m_mutex);
+        m_imageCollection[imageKey] = inputImage;
+        m_imageKeynOrder.push(imageKey);
+    }
+
+    handleStoreSize();
+
     return imageKey;;
 }
 
-bool ImageStore::containsImage(const std::string &imageKey)
+bool ImageStore::containsImage(const std::string &imageKey) const
 {
     return m_imageCollection.find(imageKey) != m_imageCollection.end();
 }
 
-const cv::Mat &ImageStore::getImage(const std::string &imageKey)
+cv::Mat ImageStore::getImage(const std::string &imageKey)
 {
+    std::lock_guard<std::mutex> lg(m_mutex);
     return m_imageCollection[imageKey];
+}
+
+void ImageStore::setStoreSize(size_t storeSize)
+{
+    if (storeSize < 1)
+    {
+        throw std::logic_error("Invalid store size, should be greater than zero");
+    }
+    m_storeSize = storeSize;
+    handleStoreSize();
+}
+
+void ImageStore::handleStoreSize()
+{
+    std::lock_guard<std::mutex> lg(m_mutex);
+    while(m_imageKeynOrder.size() > m_storeSize)
+    {
+        const auto &imageKey = m_imageKeynOrder.front();
+        m_imageCollection.erase(imageKey);
+        m_imageKeynOrder.pop();
+    }
 }
 
 static uint32_t crc32_tab[] = {

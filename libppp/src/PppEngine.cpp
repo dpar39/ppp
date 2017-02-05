@@ -39,9 +39,12 @@ void PppEngine::configure(rapidjson::Value& config)
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);
     m_pLipsDetector->configure(config);
+
+    size_t imageStoreSize = config["imageStoreSize"].GetInt();
+    m_pImageStore->setStoreSize(imageStoreSize);
 }
 
-void PppEngine::verifyImageExists(const std::string& imageKey)
+void PppEngine::verifyImageExists(const std::string& imageKey) const
 {
     if (!m_pImageStore->containsImage(imageKey))
     {
@@ -89,7 +92,8 @@ bool PppEngine::detectLandMarks(const std::string& imageKey, LandMarks& landMark
 }
 
 
-cv::Mat PppEngine::createTiledPrint(const std::string& imageKey, PhotoStandard& ps, CanvasDefinition& canvas, cv::Point& crownMark, cv::Point& chinMark)
+cv::Mat PppEngine::createTiledPrint(const std::string& imageKey, PhotoStandard& ps, CanvasDefinition& canvas,
+                                    cv::Point& crownMark, cv::Point& chinMark)
 {
     verifyImageExists(imageKey);
 

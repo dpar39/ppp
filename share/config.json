@@ -11,5 +11,6 @@
     "lipsDetector": {
         "useHaarCascade": false,
         "haarCascadeLeft": "Mouth.xml"
-    }
+    },
+    "imageStoreSize": 32
 }

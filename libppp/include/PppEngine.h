@@ -46,5 +46,5 @@ private:
     std::shared_ptr<IPhotoPrintMaker> m_pPhotoPrintMaker;
     std::shared_ptr<IImageStore> m_pImageStore;
 
-    void verifyImageExists(const std::string& imageKey);
+    void verifyImageExists(const std::string& imageKey) const;
 };
