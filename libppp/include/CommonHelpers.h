@@ -12,8 +12,8 @@ class CommonHelpers
 {
 public:
     /*!@brief Loads a cascade classifier from file
-    *  @param[in] Directory containing the classifier file to load
-    *  @param[in] File name of the classifier file to load
+    *  @param[in] haarCascadeDir Directory containing the classifier file to load
+    *  @param[in] haarCascadeFile File name of the classifier XML file to load
     *  @returns The classifier loaded into memory
     !*/
     static std::shared_ptr<cv::CascadeClassifier> loadClassifier(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
