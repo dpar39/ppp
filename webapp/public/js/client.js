@@ -187,12 +187,32 @@ $(function () {
                         // We have a sucessful response from the server
                         console.log("Image successfully uploaded to the server");
 
-                        var imageKey = JSON.parse(xhr.responseText);
-                        
+                        var response = JSON.parse(xhr.responseText);
 
+                        if (response.imgKey) {
+                            retrieveLandmarks(response.imgKey);
+                        }
                     }
                 };
                 return xhr;
+            }
+        });
+    }
+
+    function retrieveLandmarks(imgKey) {
+        $.get({
+            url: '/landmarks',
+            data: {"imgKey" : imgKey},
+            success: function(data) {
+                landmarks = JSON.parse(data);
+                if (landmarks.errorMsg) {
+                    console.log(landmarks.errorMsg);
+                } else {
+
+                    if (landmarks.crownPoint && landmarks.chinPoint) {
+                        viz.setLandMarks(landmarks.crownPoint, landmarks.chinPoint);
+                    }
+                }
             }
         });
     }
@@ -204,10 +224,10 @@ $(function () {
     var viz = (function () {
         // UI Elements
         var m_imgElmt = $("#photo")[0];
-        var m_containerElmt = $("#container"); 
+        var m_containerElmt = $("#container");
         var m_crownMarkElmt = $("#crownMark")[0];
         var m_chinMarkElmt = $("#chinMark")[0];
-        
+
         var m_markerHalfSize = m_crownMarkElmt.style.width/2; // Landmark size
         var m_imageWidth = 0, m_imageHeight = 0; // Width and height in image pixels
         var m_viewPortWidth = 0, m_viewPortHeight = 0; // Width and height of the container
@@ -257,9 +277,9 @@ $(function () {
             // Testing data
             crownPoint = crownPoint || {"x":1.136017e+003, "y":6.216124e+002};
             chinPoint = chinPoint || {"x":1.136017e+003, "y":1.701095e+003};
-            
+
             var p1 = pixelToScreen(m_crownMarkElmt, crownPoint);
-            var p2 = pixelToScreen(m_chinMarkElmt, chinPoint);            
+            var p2 = pixelToScreen(m_chinMarkElmt, chinPoint);
             translateElement(m_crownMarkElmt, p1.x, p1.y);
             translateElement(m_chinMarkElmt, p2.x, p2.y);
         };
@@ -276,7 +296,7 @@ $(function () {
              var xw = m_imageWidth * m_ratio;
              var yh = m_imageHeight * m_ratio;
              m_imgElmt.style.width = '' + xw + 'px';
-             m_imgElmt.style.height = '' + yh + 'px';    
+             m_imgElmt.style.height = '' + yh + 'px';
              translateElement(m_imgElmt, m_xleft, m_ytop);
         };
 
@@ -315,7 +335,6 @@ $(function () {
         viz.setLandMarks();
     });
 
-    
     // Hook the click button to choose picture to the file selection dialog
     $("#buttonLoadPicture").on("click", function () {
         $("#loadImage").click();
