@@ -8,7 +8,6 @@
 #include "ImageStore.h"
 #include "PhotoPrintMaker.h"
 
-
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
 #include "Geometry.h"
@@ -100,9 +99,9 @@ cv::Mat PppEngine::createTiledPrint(const std::string& imageKey, PhotoStandard& 
     const auto &inputImage = m_pImageStore->getImage(imageKey);
 
     auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
-    
+
     auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
-    
+
     return tiledPrintPhoto;
 }
 
