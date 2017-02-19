@@ -23,10 +23,12 @@ def which(program):
     """
     Returns the full path of to a program if available in the system PATH, None otherwise
     """
-    import os
     def is_exe(fpath):
+        """
+        Returns true if the file can be executed, false otherwise
+        """
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-    fpath, fname = os.path.split(program)
+    fpath, _ = os.path.split(program)
     if fpath:
         if is_exe(program):
             return program
@@ -38,19 +40,22 @@ def which(program):
                 return exe_file
     return None
 
-class Builder:
+class Builder(object):
+    """
+    """
     def detect_vs_version(self):
         """
         Detects the first available version of Visual Studio
         """
         vc_releases = [('14', '2015'), ('12', '2013'), ('11', '2012'), ('10', '2010')]
         for (vc_version, vc_release) in vc_releases:
-            vcvarsbat = "C:\\Program Files (x86)\\Microsoft Visual Studio %s.0\\VC\\vcvarsall.bat" % vc_version
+            vcvarsbat = "C:\\Program Files (x86)\\Microsoft Visual Studio %s.0\\VC\\vcvarsall.bat" \
+                % vc_version
             if os.path.exists(vcvarsbat):
                 self._vc_version = vc_version
                 self._vcvarsbat = vcvarsbat
                 self._vc_cmake_gen = 'Visual Studio ' + vc_version + ' ' + vc_release
-                if ("64" in self._arch_name):
+                if "64" in self._arch_name:
                     self._vc_cmake_gen += ' Win64'
                 break
 
@@ -59,7 +64,7 @@ class Builder:
         Runs a shell command
         """
         env = os.environ.copy()
-        cmd_all = [];
+        cmd_all = []
         if IsWindows:
             # Load visual studio environmental variables first
             if not hasattr(self, '_vcvarsbat'):
@@ -72,14 +77,15 @@ class Builder:
         print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env)
         process.wait()
-        if(process.returncode != 0):
-            print 'Command "' + ' '.join(cmd_args) + '" exitited with code ' + str(process.returncode)
+        if process.returncode != 0:
+            print 'Command "%s" exited with code %d' % (' '.join(cmd_args), process.returncode)
             os.chdir(self._root_dir)
             sys.exit(process.returncode)
 
-    def run_cmake(self, cmake_generator, cmakelists_path = '.', extra_definitions = []):
+    def run_cmake(self, cmake_generator, cmakelists_path='.', extra_definitions=[]):
         """
-        Runs CMake with the specified generator in the specified path with possibly some extra definitions
+        Runs CMake with the specified generator in the specified path with
+        possibly some extra definitions
         """
         cmake_args = ['cmake',  \
         '-DCMAKE_INSTALL_PREFIX=' + self._install_dir,  \
@@ -94,6 +100,10 @@ class Builder:
         self.run_cmd(cmake_args)
 
     def set_startup_vs_prj(self, project_name):
+        """
+        Rearranges the projects so that the specified project is the first
+        therefore is the startup project within Visual Studio 
+        """
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
         sln_lines = []
         with open(solution_file) as f:
@@ -122,7 +132,7 @@ class Builder:
         node_src_pkg = self.download_third_party_lib(nodejs_src_url)
         # Get the file prefix for node js
         node_extract_dir = self.get_third_party_lib_dir('node')
-        if node_extract_dir == None:
+        if node_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(node_src_pkg)
             node_extract_dir = self.get_third_party_lib_dir('node')
@@ -133,7 +143,7 @@ class Builder:
             print 'Building Node JS from sources ... please wait ...'
             os.chdir(node_extract_dir)
             build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
-            if ("64" in self._arch_name):
+            if "64" in self._arch_name:
                 build_cmd.append('x64')
             self.run_cmd(build_cmd)
             os.chdir(self._root_dir)
@@ -141,7 +151,7 @@ class Builder:
         if self._run_install:
             shutil.copy(node_exe_path, self._install_dir)
 
-    def build_poco_lib(self, override = False):
+    def build_poco_lib(self, override=False):
         """
         Downloads, extracts and builds POCO libraries from source, if not done yet
         """
@@ -149,7 +159,7 @@ class Builder:
         poco_src_pkg = self.download_third_party_lib(poco_src_url)
         # Get the file prefix for POCO
         poco_extract_dir = self.get_third_party_lib_dir('poco')
-        if poco_extract_dir == None:
+        if poco_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(poco_src_pkg)
             poco_extract_dir = self.get_third_party_lib_dir('poco')
@@ -173,24 +183,25 @@ class Builder:
                 cmake_def = '-DENABLE_' + module + on_off
                 cmake_definitions.append(cmake_def)
 
-            self.build_cmake_lib(poco_extract_dir, cmake_definitions, ['install']);
+            self.build_cmake_lib(poco_extract_dir, cmake_definitions, ['install'])
 
-    def extract_gmock(self, override = False):
+    def extract_gmock(self):
         """
-        Extract and build GMock libraries
+        Extract and build GMock/GTest libraries
         """
         # Download POCO sources if not done yet
         gmock_src_pkg = self.download_third_party_lib(gmock_src_url)
         # Get the file prefix for POCO
         gmock_extract_dir = self.get_third_party_lib_dir('gmock')
 
-        if gmock_extract_dir == None:
+        if gmock_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
 
     def get_third_party_lib_dir(self, prefix):
         """
-        Get the directory where a third party library with the specified prefix name was extracted, if any
+        Get the directory where a third party library with the specified prefix 
+        name was extracted, if any
         """
         third_party_dirs = next(os.walk(self._third_party_dir))[1]
         for lib_dir in third_party_dirs:
@@ -305,8 +316,11 @@ class Builder:
                 tar.extract(item, self._third_party_dir)
             tar.close()
 
-    def build_cmake_lib(self, cmakelists_path, extra_definitions = [], targets=[], clean_build = False):
-        build_dir = os.path.join(cmakelists_path, 'build');
+    def build_cmake_lib(self, cmakelists_path, extra_definitions=[], targets=[], clean_build=False):
+        """
+        Builds a library using cmake
+        """
+        build_dir = os.path.join(cmakelists_path, 'build')
         # Clean and create the build directory
         if clean_build and os.path.exists(build_dir): # Remove the build directory
             shutil.rmtree(build_dir)
@@ -318,7 +332,7 @@ class Builder:
         make_cmd = ''
         if IsWindows:
             cmake_generator = 'NMake Makefiles'
-            make_cmd = ['set','MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
+            make_cmd = ['set', 'MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
         else:
             cmake_generator = 'Unix Makefiles'
             make_cmd = ['make', MinusJN, 'install']
@@ -335,6 +349,9 @@ class Builder:
         os.chdir(self._root_dir)
 
     def parse_arguments(self):
+        """
+        Parses command line arguments
+        """
         default_arch_name = 'x64'
         default_build_cfg = 'release'
         if IsWindows:
@@ -359,11 +376,14 @@ class Builder:
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
-        self._build_dir = os.path.join(self._root_dir, 'build_' + self._build_config + '_' + self._arch_name)
-        self._install_dir = os.path.join(self._root_dir, 'install_' + self._build_config + '_' + self._arch_name)
+        self._build_dir = os.path.join(self._root_dir, 'build_' \
+            + self._build_config + '_' + self._arch_name)
+        self._install_dir = os.path.join(self._root_dir, 'install_' \
+            + self._build_config + '_' + self._arch_name)
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self._build_config + '_' + self._arch_name)
-        if (self._gen_vs_sln):
+        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' \
+            + self._build_config + '_' + self._arch_name)
+        if self._gen_vs_sln:
             self._build_dir = os.path.join(self._root_dir, 'visualstudio')
 
     def build_addon_with_nodegyp(self):
@@ -494,7 +514,7 @@ class Builder:
         self.extract_validation_data()
 
         # Build this project
-        #self.build_cpp_code()
+        self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.deploy_addon()
@@ -502,4 +522,4 @@ class Builder:
         # Install nmp and bower dependencies
         self.install_web_dependencies()
 
-b = Builder()
+BUILDER = Builder()
