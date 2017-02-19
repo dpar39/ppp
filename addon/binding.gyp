@@ -24,14 +24,14 @@
             },
         },
       "conditions": [
-        [ "OS=='win'",  { 
+        [ "OS=='win'",  {
             "libraries": ["..\\..\\install_release_x64\\libppp.lib"]
           }, "OS=='linux'", {
             "libraries": ["-L../../install_release_x64", "-llibppp"],
             "cflags_cc": [ "-fexceptions", "-fPIC", "-Wno-unknown-pragmas" ],
           }
         ]
-      ]      
+      ]
     }
   ]
 }

@@ -54,7 +54,7 @@ class Builder:
                     self._vc_cmake_gen += ' Win64'
                 break
 
-    def _runCmd(self, cmd_args):
+    def run_cmd(self, cmd_args):
         """
         Runs a shell command
         """
@@ -77,7 +77,7 @@ class Builder:
             os.chdir(self._root_dir)
             sys.exit(process.returncode)
 
-    def _runCmake(self, cmake_generator, cmakelists_path = '.', extra_definitions = []):
+    def run_cmake(self, cmake_generator, cmakelists_path = '.', extra_definitions = []):
         """
         Runs CMake with the specified generator in the specified path with possibly some extra definitions
         """
@@ -91,9 +91,9 @@ class Builder:
             cmake_args.append(elmt)
 
         cmake_args.append(cmakelists_path)
-        self._runCmd(cmake_args)
+        self.run_cmd(cmake_args)
 
-    def _setStartupProjectInVSSolution(self, project_name):
+    def set_startup_vs_prj(self, project_name):
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
         sln_lines = []
         with open(solution_file) as f:
@@ -112,7 +112,7 @@ class Builder:
             + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end+1:]
         with open(solution_file, "w") as f:
             f.writelines(["%s\n" % item  for item in prj_lines])
-        self._runCmd(['call', 'devenv', solution_file])
+        self.run_cmd(['call', 'devenv', solution_file])
 
     def build_nodejs(self):
         """
@@ -121,11 +121,11 @@ class Builder:
         # Download Node JS if not done yet
         node_src_pkg = self.download_third_party_lib(nodejs_src_url)
         # Get the file prefix for node js
-        node_extract_dir = self._getThridPartyLibDirectory('node')
+        node_extract_dir = self.get_third_party_lib_dir('node')
         if node_extract_dir == None:
             # Extract the source files
             self.extract_third_party_lib(node_src_pkg)
-            node_extract_dir = self._getThridPartyLibDirectory('node')
+            node_extract_dir = self.get_third_party_lib_dir('node')
         # Build Node JS if not done yet
         node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
 
@@ -135,7 +135,7 @@ class Builder:
             build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
             if ("64" in self._arch_name):
                 build_cmd.append('x64')
-            self._runCmd(build_cmd)
+            self.run_cmd(build_cmd)
             os.chdir(self._root_dir)
         # Install built node executable into the install dir
         if self._run_install:
@@ -148,11 +148,11 @@ class Builder:
         # Download POCO sources if not done yet
         poco_src_pkg = self.download_third_party_lib(poco_src_url)
         # Get the file prefix for POCO
-        poco_extract_dir = self._getThridPartyLibDirectory('poco')
+        poco_extract_dir = self.get_third_party_lib_dir('poco')
         if poco_extract_dir == None:
             # Extract the source files
             self.extract_third_party_lib(poco_src_pkg)
-            poco_extract_dir = self._getThridPartyLibDirectory('poco')
+            poco_extract_dir = self.get_third_party_lib_dir('poco')
 
         poco_all_modules = ['XML', 'JSON', 'MONGODB', 'UTIL', \
            'NET', 'NETSSL', 'NETSSL_WIN', 'CRYPTO', \
@@ -182,13 +182,13 @@ class Builder:
         # Download POCO sources if not done yet
         gmock_src_pkg = self.download_third_party_lib(gmock_src_url)
         # Get the file prefix for POCO
-        gmock_extract_dir = self._getThridPartyLibDirectory('gmock')
+        gmock_extract_dir = self.get_third_party_lib_dir('gmock')
 
         if gmock_extract_dir == None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
 
-    def _getThridPartyLibDirectory(self, prefix):
+    def get_third_party_lib_dir(self, prefix):
         """
         Get the directory where a third party library with the specified prefix name was extracted, if any
         """
@@ -205,12 +205,12 @@ class Builder:
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self.download_third_party_lib(opencv_src_url)
         # Get the file prefix for OpenCV
-        opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
+        opencv_extract_dir = self.get_third_party_lib_dir('opencv')
 
         if opencv_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(opencv_src_pkg)
-            opencv_extract_dir = self._getThridPartyLibDirectory('opencv')
+            opencv_extract_dir = self.get_third_party_lib_dir('opencv')
 
         ocv_all_modules = ['core', 'flann', 'imgproc', \
             'ml', 'photo', 'video', 'imgcodecs', 'shape', \
@@ -259,12 +259,12 @@ class Builder:
             os.chdir(build_dir)
             cmake_cmd = ['cmake', '-G', self._vc_cmake_gen] \
                 + cmake_extra_defs + [opencv_extract_dir]
-            self._runCmd(cmake_cmd)
+            self.run_cmd(cmake_cmd)
             platform = 'x64' if '64' in self._arch_name else 'Win32'
             msbuild_conf = '/p:Configuration='+ self._build_config + ';Platform=' + platform
-            self._runCmd(['msbuild.exe', 'OpenCV.sln', \
+            self.run_cmd(['msbuild.exe', 'OpenCV.sln', \
                 '/t:Build', msbuild_conf])
-            self._runCmd(['msbuild.exe', 'INSTALL.vcxproj', \
+            self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj', \
                 '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
 
@@ -328,10 +328,10 @@ class Builder:
             '-G', cmake_generator] + extra_definitions
         cmake_cmd.append(cmakelists_path)
         # Run CMake and Make
-        self._runCmd(cmake_cmd)
-        self._runCmd(make_cmd)
+        self.run_cmd(cmake_cmd)
+        self.run_cmd(make_cmd)
         for target in targets:
-            self._runCmd(make_cmd + [target])
+            self.run_cmd(make_cmd + [target])
         os.chdir(self._root_dir)
 
     def _parseArguments(self):
@@ -372,8 +372,8 @@ class Builder:
         """
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
-        self._runCmd(['node-gyp', 'configure'])
-        self._runCmd(['node-gyp', 'build'])
+        self.run_cmd(['node-gyp', 'configure'])
+        self.run_cmd(['node-gyp', 'build'])
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
@@ -428,16 +428,16 @@ class Builder:
         if self._gen_vs_sln:
             # Generating visual studio solution
             cmake_generator = self._vc_cmake_gen
-            self._runCmake(cmake_generator, '..')
-            self._setStartupProjectInVSSolution('ppp_test')
+            self.run_cmake(cmake_generator, '..')
+            self.set_startup_vs_prj('ppp_test')
         else:
             # Building the project code from the command line
-            self._runCmake(cmake_generator, '..')
-            self._runCmd(make_cmd)
+            self.run_cmake(cmake_generator, '..')
+            self.run_cmd(make_cmd)
             if self._run_tests:
-                self._runCmd(make_cmd + ['test'])
+                self.run_cmd(make_cmd + ['test'])
             if self._run_install:
-                self._runCmd(make_cmd + ['install'])
+                self.run_cmd(make_cmd + ['install'])
             os.chdir(self._root_dir)
 
             if not IsWindows:
@@ -445,8 +445,21 @@ class Builder:
                 self._buildInstallAddonNodeGyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            self._runCmd(['node', "./test.js"])
+            self.run_cmd(['node', "./test.js"])
         os.chdir(self._root_dir)
+
+    def deploy_addon(self):
+        """
+        Deploys the addon to the webapp directory as well as the shared configuration
+        """
+        addon = os.path.join(self._install_dir, 'addon.node')
+        webapp_dir = os.path.join(self._root_dir, 'webapp')
+        share_dir = os.path.join(self._root_dir, 'share')
+        webapp_share = os.path.join(webapp_dir, 'share')
+        shutil.copy(addon, webapp_dir)
+        if os.path.exists(webapp_share):
+            shutil.rmtree(webapp_share)
+        shutil.copytree(share_dir, webapp_share)
 
     def __init__(self):
         # Detect OS version
@@ -472,5 +485,8 @@ class Builder:
 
         # Build this project
         self.build_project()
+
+        # Copy built addon and configuration to webapp
+        self.deploy_addon()
 
 b = Builder()
