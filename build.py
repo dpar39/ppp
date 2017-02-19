@@ -173,7 +173,7 @@ class Builder:
                 cmake_def = '-DENABLE_' + module + on_off
                 cmake_definitions.append(cmake_def)
 
-            self._buildCMakeLibrary(poco_extract_dir, cmake_definitions, ['install']);
+            self.build_cmake_lib(poco_extract_dir, cmake_definitions, ['install']);
 
     def extract_gmock(self, override = False):
         """
@@ -253,7 +253,7 @@ class Builder:
             os.mkdir(build_dir)
         # Build
         if not IsWindows:
-            self._buildCMakeLibrary(opencv_extract_dir, cmake_extra_defs, [], False)
+            self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, [], False)
         else: # Windows OS: only builds with msbuild.exe
             # Change directory to the build directory
             os.chdir(build_dir)
@@ -305,7 +305,7 @@ class Builder:
                 tar.extract(item, self._third_party_dir)
             tar.close()
 
-    def _buildCMakeLibrary(self, cmakelists_path, extra_definitions = [], targets=[], clean_build = False):
+    def build_cmake_lib(self, cmakelists_path, extra_definitions = [], targets=[], clean_build = False):
         build_dir = os.path.join(cmakelists_path, 'build');
         # Clean and create the build directory
         if clean_build and os.path.exists(build_dir): # Remove the build directory
@@ -334,7 +334,7 @@ class Builder:
             self.run_cmd(make_cmd + [target])
         os.chdir(self._root_dir)
 
-    def _parseArguments(self):
+    def parse_arguments(self):
         default_arch_name = 'x64'
         default_build_cfg = 'release'
         if IsWindows:
@@ -366,7 +366,7 @@ class Builder:
         if (self._gen_vs_sln):
             self._build_dir = os.path.join(self._root_dir, 'visualstudio')
 
-    def _buildInstallAddonNodeGyp(self):
+    def build_addon_with_nodegyp(self):
         """
         Builds the Node JS addon using node-gyp (Linux only)
         """
@@ -404,7 +404,7 @@ class Builder:
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
 
-    def build_project(self):
+    def build_cpp_code(self):
         """
         Builds the project from sources
         """
@@ -442,7 +442,7 @@ class Builder:
 
             if not IsWindows:
                 # Build the node addon with node-gyp
-                self._buildInstallAddonNodeGyp()
+                self.build_addon_with_nodegyp()
             # Run addon integration test
             os.chdir(self._install_dir)
             self.run_cmd(['node', "./test.js"])
@@ -461,9 +461,19 @@ class Builder:
             shutil.rmtree(webapp_share)
         shutil.copytree(share_dir, webapp_share)
 
+    def install_web_dependencies(self):
+        """
+        Installs nodejs and bower dependencies
+        """
+        webapp_dir = os.path.join(self._root_dir, 'webapp')
+        os.chdir(webapp_dir)
+        self.run_cmd(['npm', 'install'])
+        self.run_cmd(['bower', 'install'])
+        os.chdir(self._root_dir)
+
     def __init__(self):
         # Detect OS version
-        self._parseArguments()
+        self.parse_arguments()
         if IsWindows:
             self.detect_vs_version()
 
@@ -484,9 +494,12 @@ class Builder:
         self.extract_validation_data()
 
         # Build this project
-        self.build_project()
+        #self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.deploy_addon()
+
+        # Install nmp and bower dependencies
+        self.install_web_dependencies()
 
 b = Builder()
