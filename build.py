@@ -487,8 +487,8 @@ class Builder(object):
         """
         webapp_dir = os.path.join(self._root_dir, 'webapp')
         os.chdir(webapp_dir)
-        self.run_cmd(['npm', 'install'])
-        self.run_cmd(['bower', 'install'])
+        #self.run_cmd(['npm', 'install'])
+        #self.run_cmd(['bower', 'install'])
         os.chdir(self._root_dir)
 
     def __init__(self):
