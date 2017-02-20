@@ -343,7 +343,112 @@ $(function () {
 
 });
 
+function to_mm(x, units) {
+    if (units == "mm") {
+        return x;
+    }
+    if (units == "cm") {
+        return x*10;
+    }
+    if (units == "inch") {
+        return x*25.4;
+    }
+    throw "Unknown units";
+}
 
+var CANVASCONFIGURATIONS = [{
+    name: '6" x 4"',
+    width: 6,
+    height: 4,
+    units: 'inch',
+}, {
+    name: '7" x 5"',
+    width: 7,
+    height: 5,
+    units: 'inch'
+}, {
+    name: 'Custom'
+}];
+
+CanvasModel = Backbone.Model.extend({
+    defaults : {
+        width : 6,
+        height: 4,
+        units: "mm",
+        resolution : 300, //dpi
+        allunits : ["mm", "cm", "inch"],
+        allresolutions : [300, 400, 600, 800, 1200],
+        configurations : CANVASCONFIGURATIONS 
+    }
+});
+
+CanvasView = Backbone.View.extend({
+
+    _template : _.template($('#canvas-template').html()),
+
+    render : function() {
+        this.$el.html(this._template(this.model.toJSON()));
+        return this;
+    },
+
+    events : {
+        "change input": "edit",
+        "change #canvas-units": "unitsChanged",
+        "change #canvas-resol": "resolChanged",
+        "change #canvas-preconf": "preconfChanged"
+    },
+
+    unitsChanged: function(e) {
+        
+    },
+
+    resolChanged : function(e) {
+        this.model.set({
+            resolution: $("#canvas-resol").val()
+        });
+    },
+
+    preconfChanged : function(e) {
+        var name = $("#canvas-preconf").val();
+        conf = _.find(CANVASCONFIGURATIONS, function(c) {
+            return c.name === name;
+        });
+        if (conf.name === 'Custom') {
+
+        } else {
+           //$("#canvas-width").val(conf.width);
+           //$("#canvas-height").val(conf.height);
+           //$("#canvas-units").val(conf.units);
+           this.model.set(conf)
+        }
+    },
+
+    edit : function(e) {
+        var val = $(e.currentTarget).val();
+        if (val <= 0 || val > 1000) {
+            this.render();
+            return;
+        }
+        // Set the model now
+        this.model.set({
+
+        });
+    },
+
+
+
+    initialize: function(){
+     _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+    this.render();
+   }
+
+});
+
+var canvas = new CanvasModel;
+var canvasView = new CanvasView ({model : canvas});
+
+$('#divcanvas').html(canvasView.el);
 ///////////////////////////////////////////////
 // Dragging the crown point and chin point
 ///////////////////////////////////////////////

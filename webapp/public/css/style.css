@@ -56,6 +56,18 @@ button {
 
 input[type=text] { max-width: 45px; }
 
+input[type=number] {
+     width: 45px; height:
+     16px; margin: 3px;
+     text-align: right;
+}
+
+select {
+    height: 21px;
+     line-height: 16px;
+     margin: 3px;
+}
+
 #divButtons {
     display: flex;
     margin-left: auto;

@@ -2,69 +2,74 @@
 <html>
 
 <head>
-    <title>
-        Passport Photo App
-    </title>
-    <link rel="stylesheet" href="css/style.css" />
-    <!-- vendor scripts -->
-    <script src="lib/jquery/dist/jquery.min.js"></script>
-    <script src="lib/underscore/underscore-min.js"></script>
-    <script src="lib/backbone/backbone-min.js"></script>
-    <script src="lib/interact/dist/interact.min.js"></script>
+  <title>
+    Passport Photo App
+  </title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- vendor scripts -->
+  <script src="lib/jquery/dist/jquery.min.js"></script>
+  <script src="lib/underscore/underscore-min.js"></script>
+  <script src="lib/backbone/backbone-min.js"></script>
+  <script src="lib/interact/dist/interact.min.js"></script>
 </head>
 
 <body>
-    <h1>Free passport photo ready to print and use</h1>
+  <h1>Free passport photo ready to print and use</h1>
 
-    <div id="container">
-        <img id="photo" alt="">
-        <div class="landmark" id="crownMark"></div>
-        <div class="landmark" id="chinMark"></div>
-    </div>
+  <div id="container">
+    <img id="photo" alt="">
+    <div class="landmark" id="crownMark"></div>
+    <div class="landmark" id="chinMark"></div>
+  </div>
 
-    <div id="divButtons">
-        <button id="buttonTakePicture">Take photo</button>
-        <button id="buttonLoadPicture">Choose photo</button>
-        <form>
-            <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
-        </form>
-    </div>
+  <div id="divButtons">
+    <button id="buttonTakePicture">Take photo</button>
+    <button id="buttonLoadPicture">Choose photo</button>
+    <form>
+      <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
+    </form>
+  </div>
 
-    <div id="divSettings">
-        <form>
-            Select photo standard:
-            <select id="comboBoxStandard"></select>
-            <br> Dimensions:
-            <input type="text" id="pictureWidth"> x
-            <input type="text" id="pictureHeight">
-            <select>
-                <option value="mm" selected="true">mm</option>
-                <option value="inch">inch</option>
-            </select>
-            <br>
-            <br> Output print:
-            <select id="comboboxPrintDefinition"></select>
-            <br> Dimensions:
-            <input type="text" id="printWidth"> x
-            <input type="text" id="printHeight">
-            <select id="selectPrintUnits">
-                <option value="mm" selected="true">mm</option>
-                <option value="inch">inch</option>
-            </select>
-            <select id="selectPrintResolution">
-                <option value="150dpi">150 dpi</option>
-                <option value="300dpi" selected="true">300 dpi</option>
-                <option value="600dpi">600 dpi</option>
-            </select>
-        </form>
-    </div>
+  <div id="divSettings">
+    <form>
+      Select photo standard:
+      <select id="comboBoxStandard"></select>
+     
+    </form>
+  </div>
 
-    <div id="divResult">
-        <img src="" alt="">
-    </div>
-    <script type="text/tenplate"></script>
+  <div id="divResult">
+    <img src="" alt="">
+  </div>
 
-    <script src="js/client.js"></script>
+  <script type="text/backbone" id="canvas-template">
+    <span> Print Size: </span>
+     <select id="canvas-preconf">
+      <% _.each(configurations, function(config) { %>
+       <option value='<%=config.name %>' > <%=config.name %> </option>
+      <% }); %>
+    <br>
+    </br>
+    <span>Dimensions: </span>
+    <td><input id="canvas-width"  type="number" value=<%=width %> />
+    <spa> x </spa>
+    <td><input id="canvas-height" type="number" value=<%=height %> /> 
+    <select id="canvas-units">
+      <% _.each(allunits, function(units) { %>
+       <option value='<%=units %>' > <%=units %> </option>
+      <% }); %>
+    </select>
+    <span> at </span> 
+    <select id="canvas-resols">
+      <% _.each(allresolutions, function(resol) { %>
+       <option value='<%=resol %>' > <%=resol %> dpi </option>
+      <% }); %>
+    </select>
+  </script>
+
+  <div id="divcanvas"></div>
+
+  <script src="js/client.js"></script>
 
 </body>
 
