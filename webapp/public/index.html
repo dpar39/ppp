@@ -31,11 +31,8 @@
   </div>
 
   <div id="divSettings">
-    <form>
-      Select photo standard:
-      <select id="comboBoxStandard"></select>
-     
-    </form>
+    <div id="divpassport"></div>
+    <div id="divcanvas"></div>
   </div>
 
   <div id="divResult">
@@ -43,9 +40,9 @@
   </div>
 
   <script type="text/backbone" id="canvas-template">
-    <span> Print Size: </span>
+    <span>Print Size: </span>
      <select id="canvas-preconf">
-      <% _.each(configurations, function(config) { %>
+      <% _.each(CanvasConfigList, function(config) { %>
        <option value='<%=config.name %>' > <%=config.name %> </option>
       <% }); %>
     <br>
@@ -55,22 +52,26 @@
     <spa> x </spa>
     <td><input id="canvas-height" type="number" value=<%=height %> /> 
     <select id="canvas-units">
-      <% _.each(allunits, function(units) { %>
-       <option value='<%=units %>' > <%=units %> </option>
+      <% _.each(UnitsList, function(u) { %>
+        <option value='<%=u%>' <%=(u === units)?'selected':''%> > <%=u %> </option> 
       <% }); %>
     </select>
     <span> at </span> 
     <select id="canvas-resols">
-      <% _.each(allresolutions, function(resol) { %>
-       <option value='<%=resol %>' > <%=resol %> dpi </option>
+      <% _.each(ResolutionsList, function(resol) { %>
+       <option value='<%=resol%>' <%=(resol == resolution)?'selected':'' %> > <%=resol %> dpi </option>
       <% }); %>
     </select>
   </script>
 
-  <div id="divcanvas"></div>
+  <script type="text/backbone" id="passport-standard-template">
+    <span>Standard: </span>
+    <select id="standard-confs">
+      <% _.each(PassportStandardList, function(config) { %>
+       <option value='<%=config.name %>' > <%=config.name %> </option>
+      <% }); %>
+  </script>
 
   <script src="js/client.js"></script>
-
 </body>
-
 </html>

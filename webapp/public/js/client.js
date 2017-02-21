@@ -116,9 +116,9 @@
 
 function translateElement(elmt, x, y) {
     // Translate the element position
-    elmt.style.transform = 
-    elmt.style.webkitTransform = 
-    'translate(' + x + 'px, ' + y + 'px)';
+    elmt.style.transform =
+        elmt.style.webkitTransform =
+        'translate(' + x + 'px, ' + y + 'px)';
     // Store it in attached properties
     elmt.setAttribute('x', x);
     elmt.setAttribute('y', y);
@@ -127,29 +127,6 @@ function translateElement(elmt, x, y) {
 $(function () {
     var standards = null;
     var selectedStandard = null;
-
-    // Get the available standards and populate
-    $.getJSON("data/standards.json", function (data) {
-        standards = data;
-        selectedStandard = standards[0];
-        var comboboxStandards = $("#comboBoxStandard");
-        $.each(standards, function () {
-            comboboxStandards.append($("<option />")
-                .val(this.id).text(this.name));
-        });
-
-        comboboxStandards.change(function () {
-            var id = $(this).find("option:selected").attr("value");
-            var stds = $.grep(standards, function (e) { return e.id == id; });
-            if (stds.length) {
-                selectedStandard = stds[0];
-                alert(selectedStandard.name);
-            }
-            else {
-                // Custom standard
-            }
-        });
-    });
 
     function uploadImageToServer(file) {
         var formData = new FormData();
@@ -202,8 +179,8 @@ $(function () {
     function retrieveLandmarks(imgKey) {
         $.get({
             url: '/landmarks',
-            data: {"imgKey" : imgKey},
-            success: function(data) {
+            data: { "imgKey": imgKey },
+            success: function (data) {
                 landmarks = JSON.parse(data);
                 if (landmarks.errorMsg) {
                     console.log(landmarks.errorMsg);
@@ -218,7 +195,7 @@ $(function () {
     }
 
     function createTilePrint(imageKey) {
-        
+
     }
 
     var viz = (function () {
@@ -228,7 +205,7 @@ $(function () {
         var m_crownMarkElmt = $("#crownMark")[0];
         var m_chinMarkElmt = $("#chinMark")[0];
 
-        var m_markerHalfSize = m_crownMarkElmt.style.width/2; // Landmark size
+        var m_markerHalfSize = m_crownMarkElmt.style.width / 2; // Landmark size
         var m_imageWidth = 0, m_imageHeight = 0; // Width and height in image pixels
         var m_viewPortWidth = 0, m_viewPortHeight = 0; // Width and height of the container
 
@@ -251,17 +228,17 @@ $(function () {
             newImg.src = imgData;
         };
 
-        var pixelToScreen = function(elmt, pt) {
+        var pixelToScreen = function (elmt, pt) {
             return {
-                x: m_xleft + pt.x*m_ratio - elmt.clientWidth/2,
-                y: m_ytop + pt.y*m_ratio - elmt.clientHeight/2
+                x: m_xleft + pt.x * m_ratio - elmt.clientWidth / 2,
+                y: m_ytop + pt.y * m_ratio - elmt.clientHeight / 2
             };
         };
 
-        var screenToPixel = function(elmt) {
+        var screenToPixel = function (elmt) {
             return {
-                x: elmt.getAttribute('x') + elmt.clientWidth/2 - m_xleft,
-                y: elmt.getAttribute('y') + elmt.clientHeight/2 - m_ytop
+                x: elmt.getAttribute('x') + elmt.clientWidth / 2 - m_xleft,
+                y: elmt.getAttribute('y') + elmt.clientHeight / 2 - m_ytop
             };
         }
 
@@ -273,10 +250,10 @@ $(function () {
             }
         };
 
-        var setLandMarks = function(crownPoint, chinPoint) {
+        var setLandMarks = function (crownPoint, chinPoint) {
             // Testing data
-            crownPoint = crownPoint || {"x":1.136017e+003, "y":6.216124e+002};
-            chinPoint = chinPoint || {"x":1.136017e+003, "y":1.701095e+003};
+            crownPoint = crownPoint || { "x": 1.136017e+003, "y": 6.216124e+002 };
+            chinPoint = chinPoint || { "x": 1.136017e+003, "y": 1.701095e+003 };
 
             var p1 = pixelToScreen(m_crownMarkElmt, crownPoint);
             var p2 = pixelToScreen(m_chinMarkElmt, chinPoint);
@@ -293,11 +270,11 @@ $(function () {
         };
 
         var renderImage = function () {
-             var xw = m_imageWidth * m_ratio;
-             var yh = m_imageHeight * m_ratio;
-             m_imgElmt.style.width = '' + xw + 'px';
-             m_imgElmt.style.height = '' + yh + 'px';
-             translateElement(m_imgElmt, m_xleft, m_ytop);
+            var xw = m_imageWidth * m_ratio;
+            var yh = m_imageHeight * m_ratio;
+            m_imgElmt.style.width = '' + xw + 'px';
+            m_imgElmt.style.height = '' + yh + 'px';
+            translateElement(m_imgElmt, m_xleft, m_ytop);
         };
 
         return {
@@ -343,20 +320,8 @@ $(function () {
 
 });
 
-function to_mm(x, units) {
-    if (units == "mm") {
-        return x;
-    }
-    if (units == "cm") {
-        return x*10;
-    }
-    if (units == "inch") {
-        return x*25.4;
-    }
-    throw "Unknown units";
-}
-
-var CANVASCONFIGURATIONS = [{
+var CustomString = "Custom"
+var CanvasConfigList = [{
     name: '6" x 4"',
     width: 6,
     height: 4,
@@ -367,88 +332,129 @@ var CANVASCONFIGURATIONS = [{
     height: 5,
     units: 'inch'
 }, {
-    name: 'Custom'
+    name: CustomString
+}];
+var ResolutionsList = [300, 400, 600, 800, 1000, 1200];
+var UnitsList = ["mm", "cm", "inch"];
+var PassportStandardList = [{
+    name : 'Australian Passport [35 x 45mm]',
+    pictureHeight: 45,
+    pictureWidth: 35,
+    faceHeight: 34,
+    units: 'mm'
+}, {
+    name : 'American Passport [2" x 2"]',
+    pictureHeight: 2.0,
+    pictureWidth: 2.0,
+    faceHeight: 1.1875,
+    eyesHeight: 1.25,
+    units: 'inch'
 }];
 
 CanvasModel = Backbone.Model.extend({
-    defaults : {
-        width : 6,
-        height: 4,
-        units: "mm",
-        resolution : 300, //dpi
-        allunits : ["mm", "cm", "inch"],
-        allresolutions : [300, 400, 600, 800, 1200],
-        configurations : CANVASCONFIGURATIONS 
+    defaults: {
+        width: CanvasConfigList[0].width,
+        height: CanvasConfigList[0].height,
+        units: CanvasConfigList[0].units,
+        resolution: ResolutionsList[2]
     }
 });
 
 CanvasView = Backbone.View.extend({
 
-    _template : _.template($('#canvas-template').html()),
+    _template: _.template($('#canvas-template').html()),
 
-    render : function() {
-        this.$el.html(this._template(this.model.toJSON()));
-        return this;
-    },
-
-    events : {
-        "change input": "edit",
+    events: {
+        "change input": "editHeightWidth",
         "change #canvas-units": "unitsChanged",
         "change #canvas-resol": "resolChanged",
         "change #canvas-preconf": "preconfChanged"
     },
 
-    unitsChanged: function(e) {
-        
+    unitsChanged: function (e) {
+        $("#canvas-preconf").val(CustomString);
+        this.model.set({ units: $("#canvas-units").val() });
     },
 
-    resolChanged : function(e) {
+    resolChanged: function (e) {
+        $("#canvas-preconf").val(CustomString);
+        this.model.set({ resolution: $("#canvas-resol").val() });
+    },
+
+    preconfChanged: function (e) {
+        var name = $("#canvas-preconf").val();
+        conf = _.find(CanvasConfigList, function (c) {
+            return c.name === name;
+        });
+
+        if (conf.name !== CustomString) {
+            $("#canvas-width").val(conf.width);
+            $("#canvas-height").val(conf.height);
+            $("#canvas-units").val(conf.units);
+            this.updateModel();
+        }
+    },
+
+    editHeightWidth: function (e) {
+        var val = $(e.currentTarget).val();
+        if (val <= 0 || val > 1000) {
+            alert('You\'ve entererd an invalid number!');
+            this.render();
+            return;
+        }
+        $("#canvas-preconf").val(CustomString);
+        this.updateModel();
+    },
+
+    updateModel: function () {
         this.model.set({
+            width: $("#canvas-width").val(),
+            height: $("#canvas-height").val(),
+            units: $("#canvas-units").val(),
             resolution: $("#canvas-resol").val()
         });
     },
 
-    preconfChanged : function(e) {
-        var name = $("#canvas-preconf").val();
-        conf = _.find(CANVASCONFIGURATIONS, function(c) {
-            return c.name === name;
-        });
-        if (conf.name === 'Custom') {
-
-        } else {
-           //$("#canvas-width").val(conf.width);
-           //$("#canvas-height").val(conf.height);
-           //$("#canvas-units").val(conf.units);
-           this.model.set(conf)
-        }
+    render: function () {
+        this.$el.html(this._template(this.model.toJSON()));
+        return this;
     },
 
-    edit : function(e) {
-        var val = $(e.currentTarget).val();
-        if (val <= 0 || val > 1000) {
-            this.render();
-            return;
-        }
-        // Set the model now
-        this.model.set({
+    initialize: function () {
+        this.render();
+    }
+});
 
-        });
+var PassportStandard = Backbone.Model.extend({
+    defaults: PassportStandardList[0]
+});
+
+var PassportStandardView = Backbone.View.extend({
+
+    _template: _.template($('#passport-standard-template').html()),
+    
+    events: {
+
     },
 
+    render: function() {
+        this.$el.html(this._template(this.model.toJSON()));
+        return this;
+    },
 
-
-    initialize: function(){
-     _.bindAll(this, "render");
-    this.model.bind('change', this.render);
-    this.render();
-   }
-
+    initialize: function () {
+        this.render();
+    }
 });
 
 var canvas = new CanvasModel;
-var canvasView = new CanvasView ({model : canvas});
+var canvasView = new CanvasView({ model: canvas });
+var ps = new PassportStandard;
+var passportView = new PassportStandardView({ model: ps });
 
 $('#divcanvas').html(canvasView.el);
+$('#divpassport').html(passportView.el);
+
 ///////////////////////////////////////////////
 // Dragging the crown point and chin point
 ///////////////////////////////////////////////
@@ -467,13 +473,13 @@ interact('.landmark')
             var target = event.target;
             // keep the dragged position in the x/y attributes
             var x = (parseFloat(target.getAttribute('x')) || 0) + event.dx;
-            var y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;        
+            var y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;
             // translate the element
             translateElement(target, x, y);
         },
         // call this function on every dragend event
-        onend: function(event) {
-            var id = event.target.getAttribute('id');      
+        onend: function (event) {
+            var id = event.target.getAttribute('id');
         }
     });
 
