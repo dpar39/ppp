@@ -57,15 +57,24 @@ button {
 input[type=text] { max-width: 45px; }
 
 input[type=number] {
-     width: 45px; height:
-     16px; margin: 3px;
+     width: 45px; 
+     height: 16px;
+     margin: 3px;
      text-align: right;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0; 
 }
 
 select {
     height: 21px;
-     line-height: 16px;
-     margin: 3px;
+    line-height: 16px;
+    margin: 3px;
 }
 
 #divButtons {

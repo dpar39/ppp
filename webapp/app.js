@@ -77,7 +77,7 @@ app.post('/upload', function (req, res) {
 // -- Detect land marks
 app.get('/landmarks', function (req, res) {
 
-    imgKey = req.query.imgKey;
+    var imgKey = req.query.imgKey;
     console.log(imgKey);
 
     pppEngine.detectLandmarks(imgKey, function(err, landmarks) {
@@ -86,14 +86,82 @@ app.get('/landmarks', function (req, res) {
             res.end(JSON.stringify({'error': err}));
             return;
         }
-        lm = JSON.stringify(landmarks);
+        var lm = JSON.stringify(landmarks);
         res.end(lm);
     });
 });
 
+function parsePoint(pt){
+    var p = {
+        x: parseInt(pt.x),
+        y: parseInt(pt.y)
+    }
+    return p;
+}
+
+function validateUnits(units) {
+    if (["mm", "cm", "inch"].indexOf(units) < 0) {
+        throw `Unrecognized units: ${units}`
+    }
+    return units;
+}
+
+function parseCanvas(canvas) {
+    var obj = { 
+        height: parseFloat(canvas.height),
+        width: parseFloat(canvas.width),
+        resolution: parseInt(canvas.resolution),
+        units: validateUnits(canvas.units)
+    }
+    return obj;
+} 
+
+function parsePassportStandard(ps) {
+    var obj = {
+        pictureHeight: parseFloat(ps.pictureHeight),
+        pictureWidth: parseFloat(ps.pictureWidth),
+        faceHeight: parseFloat(ps.faceHeight),
+        units: validateUnits(ps.units)
+        
+    }
+    return obj;
+}
+function validatePrintRequest(printDef, imgKey){
+
+}
+
 // -- Create photo print
 app.get('/photoprint', function (req, res) {
 
+    var imgKey = req.query.imgKey;
+    var crownPoint = req.query.crownPoint;
+    var chinPoint = req.query.chinPoint;
+    var canvas = req.query.canvas;
+    var standard = req.query.standard;
+    var printDef = null;
+    
+    try {
+        var printDef = {
+            crownPoint : parsePoint(crownPoint),
+            chinPoint : parsePoint(chinPoint),
+            
+            canvas : parseCanvas(canvas),
+            standard : parsePassportStandard(standard)
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    console.log(imgKey);
+
+    pppEngine.createTilePrint(imgKey, printDef, function(err, bufferData) {
+         if (err) {
+            console.log('Error detecting landmarks for imgKey=' + imgKey + ':\n' + err);
+            res.end(JSON.stringify({'error': err}));
+            return;
+        }
+        res.end(bufferData);
+     });
 });
 
 // Create upload directory if it doesn't exist

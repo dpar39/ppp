@@ -8,9 +8,15 @@
 #include <libppp.h>
 #include <uv.h>
 
+#ifndef DEBUG
+#define DIAGNOSTIC(msg) std::cout << ((msg)) << std::endl;
+#else
+# define DIAGNOSTIC(msg) ;
+#endif
+
 namespace addon
 {
-    class PppWrapper : public node::ObjectWrap 
+    class PppWrapper : public node::ObjectWrap
     {
     private:
         std::shared_ptr<PublicPppEngine> m_enginePtr;
@@ -44,5 +50,7 @@ namespace addon
         static void CreateTilePrintWorkAsync(uv_work_t *req);
         static void CreateTilePrintWorkAsyncComplete(uv_work_t *req, int status);
     };
+
+
 
 }  // namespace demo
