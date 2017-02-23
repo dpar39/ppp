@@ -360,7 +360,7 @@ class Builder(object):
         parser = argparse.ArgumentParser(description='Builds my cool passport photo print generator application.')
         parser.add_argument('--arch_name', help='Target platform [x86 | x64]', default=default_arch_name)
         parser.add_argument('--build_config', help='Builds the code base in [debug | release] mode', default=default_build_cfg)
-        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_false")
+        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
         parser.add_argument('--skip_tests', help='Run existing unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Runs install commands', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects', action="store_true")
@@ -465,7 +465,8 @@ class Builder(object):
                 self.build_addon_with_nodegyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            self.run_cmd(['node', "./test.js"])
+            if self._run_tests:
+                self.run_cmd(['node', "./test.js"])
         os.chdir(self._root_dir)
 
     def deploy_addon(self):

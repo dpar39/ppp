@@ -177,8 +177,8 @@ function uploadImageToServer(file) {
 function retrieveLandmarks() {
     $.get({
         url: '/landmarks',
-        data: { 
-            "imgKey": imageKey 
+        data: {
+            "imgKey": imageKey
         },
         success: function (data) {
             landmarks = JSON.parse(data);
@@ -197,15 +197,23 @@ function retrieveLandmarks() {
 function createPhotoPrint() {
     $.get({
         url: '/photoprint',
-        data: { 
+        data: {
             imgKey: imageKey,
-            crownPoint : viz.crownPoint(),
-            chinPoint : viz.chinPoint(),
-            standard : ps.toJSON(),
+            crownPoint: viz.crownPoint(),
+            chinPoint: viz.chinPoint(),
+            standard: ps.toJSON(),
             canvas: canvas.toJSON()
         },
-        success: function (data) {
-            //
+        xhr: function () {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onreadystatechange = function (e) {
+                if (xhr.status == 200) {
+                    var blob = xhr.response;
+                    $("#printImage").attr('src', window.URL.createObjectURL(blob))
+                }
+            }
+            return xhr;
         }
     });
 }
@@ -291,15 +299,15 @@ var Viz = function () {
         m_imgElmt.style.height = '' + yh + 'px';
         translateElement(m_imgElmt, m_xleft, m_ytop);
     };
-    
+
     return {
         calculteViewPort: calculateViewPort,
         setImage: setImage,
         zoomFit: zoomFit,
         renderImage: renderImage,
         setLandMarks: setLandMarks,
-        crownPoint : function() {return m_crownPoint; },
-        chinPoint : function() {return m_chinPoint; }
+        crownPoint: function () { return m_crownPoint; },
+        chinPoint: function () { return m_chinPoint; }
     };
 
 };
@@ -339,7 +347,7 @@ $("#buttonLoadPicture").on("click", function () {
     return false;
 });
 
-$("#btnCreatePrint").on("click", function(){
+$("#btnCreatePrint").on("click", function () {
     createPhotoPrint();
 });
 
@@ -360,13 +368,13 @@ var CanvasConfigList = [{
 var ResolutionsList = [300, 400, 600, 800, 1000, 1200];
 var UnitsList = ["mm", "cm", "inch"];
 var PassportStandardList = [{
-    name : 'Australian Passport [35 x 45mm]',
+    name: 'Australian Passport [35 x 45mm]',
     pictureHeight: 45,
     pictureWidth: 35,
     faceHeight: 34,
     units: 'mm'
 }, {
-    name : 'American Passport [2" x 2"]',
+    name: 'American Passport [2" x 2"]',
     pictureHeight: 2.0,
     pictureWidth: 2.0,
     faceHeight: 1.1875,
@@ -457,7 +465,7 @@ var PassportStandard = Backbone.Model.extend({
 var PassportStandardView = Backbone.View.extend({
 
     _template: _.template($('#passport-standard-template').html()),
-    
+
     events: {
         "change #standard-confs": "standardConfChanged",
         "change input": "editCustom",
@@ -469,7 +477,7 @@ var PassportStandardView = Backbone.View.extend({
         this.model.set({ units: $("#photo-units").val() });
     },
 
-    standardConfChanged : function(e) {
+    standardConfChanged: function (e) {
         var name = $("#standard-confs").val();
         conf = _.find(PassportStandardList, function (c) {
             return c.name === name;
@@ -504,7 +512,7 @@ var PassportStandardView = Backbone.View.extend({
         });
     },
 
-    render: function() {
+    render: function () {
         this.$el.html(this._template(this.model.toJSON()));
         return this;
     },

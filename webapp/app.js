@@ -77,8 +77,8 @@ app.post('/upload', function (req, res) {
 // -- Detect land marks
 app.get('/landmarks', function (req, res) {
 
+    console.log(req.baseUrl);
     var imgKey = req.query.imgKey;
-    console.log(imgKey);
 
     pppEngine.detectLandmarks(imgKey, function(err, landmarks) {
         if (err) {
@@ -160,8 +160,9 @@ app.get('/photoprint', function (req, res) {
             res.end(JSON.stringify({'error': err}));
             return;
         }
+        res.writeHead(200, {'Content-Type': 'image/png'});
         res.end(bufferData);
-     });
+    });
 });
 
 // Create upload directory if it doesn't exist

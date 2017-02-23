@@ -5,6 +5,8 @@
 #include <node.h>
 #include <uv.h>
 
+#include <fstream>
+
 using namespace addon;
 
 using v8::Function;
@@ -26,35 +28,29 @@ std::string toStdString(v8::Local<v8::Value> arg)
 
 struct WorkItemBase
 {
+    uv_work_t  request;
+    Persistent<Function> callback;
+
     std::string error;
     std::string imageKey;
 };
 
 struct SetImageWorkItem : WorkItemBase
 {
-    uv_work_t  request;
-    Persistent<Function> callback;
-
     // User data
     char *imageDataPtr;
-    int imageDataLength;
+    size_t imageDataLength;
     std::shared_ptr<PublicPppEngine> pppEngine;
 };
 
 struct DetectLandMarksWorkItem : WorkItemBase
 {
-    uv_work_t  request;
-    Persistent<Function> callback;
-
     std::shared_ptr<PublicPppEngine> pppEngine;
     std::string landmarks;
 };
 
 struct CreateTilePrintWorkItem : WorkItemBase
 {
-    uv_work_t  request;
-    Persistent<Function> callback;
-
     std::shared_ptr<PublicPppEngine> pppEngine;
     std::string printOptions;
     std::vector<byte> printPhoto;
@@ -66,11 +62,6 @@ PppWrapper::PppWrapper()
     : m_enginePtr(std::make_shared<PublicPppEngine>())
 {
 }
-
-PppWrapper::~PppWrapper()
-{
-}
-
 
 void PppWrapper::Init(Local<Object> exports)
 {
@@ -194,11 +185,12 @@ std::string PppWrapper::toJson(v8::Local<v8::Object> object)
 
 void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    __DIAGNOSTIC__
     auto isolate = args.GetIsolate();
     if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsObject() || !args[2]->IsFunction())
     {
         v8::Exception::TypeError(String::NewFromUtf8(isolate,
-            "detectLandMarks() takes 2 parameter: an image key of type string and a callback function"));
+            "detectLandMarks() takes 3 parameter: an image key [string], the print definition [object] and a callback function"));
     }
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
     auto work = new CreateTilePrintWorkItem();
@@ -294,6 +286,7 @@ void PppWrapper::DetectLandMarksWorkAsyncComplete(uv_work_t* req, int status)
 
 void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
 {
+    __DIAGNOSTIC__
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
     try
     {
@@ -307,15 +300,17 @@ void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
 
 void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
 {
+    __DIAGNOSTIC__
     auto isolate = Isolate::GetCurrent();
     v8::HandleScope handleScope(isolate); // Required for Node 4.x
 
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
 
     // set up return arguments
-    auto printPhoto = node::Buffer::Copy(isolate, reinterpret_cast<char *>(&work->printPhoto[0]), work->printPhoto.size());
+    Local<Object> buf;
+    auto bufferData = node::Buffer::Copy(isolate, reinterpret_cast<char *>(&work->printPhoto[0]), work->printPhoto.size());
 
-    v8::Handle<Value> argv[] = { GetWorkItemError(work), printPhoto.ToLocalChecked()};
+    v8::Handle<Value> argv[] = { GetWorkItemError(work), bufferData.ToLocalChecked() };
 
     // execute the callback
     Local<Function>::New(isolate, work->callback)->
@@ -325,4 +320,20 @@ void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
     work->callback.Reset();
     delete work;
 }
+#pragma endregion
+
+#pragma region ScopeLogger
+
+int ScopeLogger::s_indent = 0;
+
+ScopeLogger::ScopeLogger(const std::string& msg): m_message(msg)
+{
+    std::cout << std::string(s_indent++, ' ') << "Enter: " << msg << std::endl;
+}
+
+ScopeLogger::~ScopeLogger()
+{
+    std::cout << std::string(--s_indent, ' ') << "Exit:  " << m_message << std::endl;
+}
+
 #pragma endregion

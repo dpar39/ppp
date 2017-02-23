@@ -8,11 +8,15 @@
 #include <libppp.h>
 #include <uv.h>
 
-#ifndef DEBUG
-#define DIAGNOSTIC(msg) std::cout << ((msg)) << std::endl;
+
+#ifdef LOGGER
+#define DIAGLOG(x) ScopeLogger l_##x##_scope(x);
+#define __DIAGNOSTIC__ DIAGLOG(__FUNCTION__)
 #else
-# define DIAGNOSTIC(msg) ;
+#define DIAGNOSTIC(msg) ;
+#define __DIAGNOSTIC__ ;
 #endif
+#include <iostream>
 
 namespace addon
 {
@@ -26,8 +30,6 @@ namespace addon
 
     private:
         explicit PppWrapper();
-        ~PppWrapper();
-
 
     private:
         static v8::Persistent<v8::Function> constructor;
@@ -51,6 +53,16 @@ namespace addon
         static void CreateTilePrintWorkAsyncComplete(uv_work_t *req, int status);
     };
 
+
+    class ScopeLogger {
+    public:
+        ScopeLogger(const std::string& msg);
+
+        ~ScopeLogger();
+    private:
+        std::string m_message;
+        static int s_indent;
+    };
 
 
 }  // namespace demo

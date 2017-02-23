@@ -27,9 +27,9 @@ void PublicPppEngine::configure(const std::string& jsonConfig)
     m_pPppEngine->configure(parser);
 }
 
-std::string PublicPppEngine::setImage(const char* bufferData, int bufferLength)
+std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength)
 {
-    cv::_InputArray inputArray(bufferData, bufferLength);
+    cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
     auto inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
     return m_pPppEngine->setInputImage(inputImage);
 }
