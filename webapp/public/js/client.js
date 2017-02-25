@@ -113,7 +113,6 @@
     window.addEventListener('load', startup, false);
 })();
 */
-
 function translateElement(elmt, x, y) {
     // Translate the element position
     elmt.style.transform =
@@ -122,7 +121,7 @@ function translateElement(elmt, x, y) {
     // Store it in attached properties
     elmt.setAttribute('x', x);
     elmt.setAttribute('y', y);
-}
+};
 
 
 function uploadImageToServer(file) {
@@ -212,8 +211,7 @@ function createPhotoPrint() {
                     var blob = xhr.response;
                     var binaryData = [];
                     binaryData.push(blob);
-                    var b = window.URL.createObjectURL(new Blob(binaryData, {type: "image/png"}));
-
+                    var b = window.URL.createObjectURL(new Blob(binaryData, { type: "image/png" }));
                     results.set('imageSrc', b);
                 }
             }
@@ -264,8 +262,8 @@ var Viz = function () {
 
     var screenToPixel = function (elmt) {
         return {
-            x: elmt.getAttribute('x') + elmt.clientWidth / 2 - m_xleft,
-            y: elmt.getAttribute('y') + elmt.clientHeight / 2 - m_ytop
+            x: (parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - m_xleft) / m_ratio,
+            y: (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - m_ytop) / m_ratio
         };
     }
 
@@ -279,13 +277,24 @@ var Viz = function () {
 
     var setLandMarks = function (crownPoint, chinPoint) {
         // Testing data
-        m_crownPoint = crownPoint || { "x": 1.136017e+003, "y": 6.216124e+002 };
-        m_chinPoint = chinPoint || { "x": 1.136017e+003, "y": 1.701095e+003 };
+        //m_crownPoint = crownPoint || { "x": 1.136017e+003, "y": 6.216124e+002 };
+        //m_chinPoint = chinPoint || { "x": 1.136017e+003, "y": 1.701095e+003 };
+        m_crownPoint = crownPoint || m_crownPoint;
+        m_chinPoint = chinPoint || m_chinPoint;
 
-        var p1 = pixelToScreen(m_crownMarkElmt, m_crownPoint);
-        var p2 = pixelToScreen(m_chinMarkElmt, m_chinPoint);
-        translateElement(m_crownMarkElmt, p1.x, p1.y);
-        translateElement(m_chinMarkElmt, p2.x, p2.y);
+        if (m_crownPoint && m_crownPoint.x && m_crownPoint.y
+            && m_chinPoint && m_chinPoint.x && m_chinPoint.y) {
+            var p1 = pixelToScreen(m_crownMarkElmt, m_crownPoint);
+            var p2 = pixelToScreen(m_chinMarkElmt, m_chinPoint);
+            translateElement(m_crownMarkElmt, p1.x, p1.y);
+            translateElement(m_chinMarkElmt, p2.x, p2.y);
+            $(".landmark").css("visibility", "visible");
+        }
+    };
+
+    var updateLandMarks = function () {
+        m_crownPoint = screenToPixel(m_crownMarkElmt);
+        m_chinPoint = screenToPixel(m_chinMarkElmt);
     };
 
     var zoomFit = function () {
@@ -310,10 +319,10 @@ var Viz = function () {
         zoomFit: zoomFit,
         renderImage: renderImage,
         setLandMarks: setLandMarks,
+        updateLandMarks: updateLandMarks,
         crownPoint: function () { return m_crownPoint; },
         chinPoint: function () { return m_chinPoint; }
     };
-
 };
 
 var imageKey = null;
@@ -333,6 +342,7 @@ $("#loadImage").change(function () {
             var imgdata = e.target.result;
             // Set the image to visualise
             viz.setImage(imgdata);
+            $("#btnCreatePrint").css("visibility", "visible");
         }
         reader.readAsDataURL(file);
     }
@@ -346,7 +356,7 @@ $(window).resize(function () {
 });
 
 // Hook the click button to choose picture to the file selection dialog
-$("#buttonLoadPicture").on("click", function () {
+$("#btnLoadPicture").on("click", function () {
     $("#loadImage").click();
     return false;
 });
@@ -470,7 +480,7 @@ var PassportStandard = Backbone.Model.extend({
 
 var PassportStandardView = Backbone.View.extend({
 
-    el : '#divpassport',
+    el: '#divpassport',
 
     _template: _.template($('#passport-standard-template').html()),
 
@@ -533,34 +543,26 @@ var PassportStandardView = Backbone.View.extend({
 });
 
 var ResultsModel = Backbone.Model.extend({
-    defaults : {
-        imageSrc : null
+    defaults: {
+        imageSrc: null
     }
 });
 
 var ResultsView = Backbone.View.extend({
 
-     el: '#divResults',
+    el: '#divResults',
 
-     _template: _.template($('#results-template').html()),
+    _template: _.template($('#results-template').html()),
 
-     render : function() {
+    render: function () {
         this.$el.html(this._template(this.model.toJSON()));
         return this;
     },
 
-    events: {
-        "click button" : "saveImage"
-    },
-    
-    saveImage : function() {
-        var img = $("#resultImage")[0];
-        window.location.href = img.src.replace('image/png', 'image/octet-stream');
-    },
-    initialize: function() {
+    initialize: function () {
         _.bindAll(this, "render");
         this.model.bind('change', this.render);
-    }    
+    }
 });
 
 var canvas = new CanvasModel;
@@ -568,7 +570,7 @@ var canvasView = new CanvasView({ model: canvas });
 var ps = new PassportStandard;
 var passportView = new PassportStandardView({ model: ps });
 var results = new ResultsModel;
-var resultsView = new ResultsView({model: results });
+var resultsView = new ResultsView({ model: results });
 
 ///////////////////////////////////////////////
 // Dragging the crown point and chin point
@@ -594,7 +596,7 @@ interact('.landmark')
         },
         // call this function on every dragend event
         onend: function (event) {
-            var id = event.target.getAttribute('id');
+            viz.updateLandMarks();
         }
     });
 

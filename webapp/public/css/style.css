@@ -4,10 +4,9 @@ body {
 }
 
 #container {
-    height: 500px;
-    width: 100%;
+    max-height: 50%;
+    height: 400px;
     border: 1px solid black;
-    overflow: hidden;
 }
 
 .landmark {
@@ -17,8 +16,8 @@ body {
     border-radius: 50%;
     background-color: transparent;
     float: left ;
-    /*clear: both;*/
     position: absolute;
+    visibility: hidden;
 }
 
 #photo {

@@ -76,10 +76,8 @@ app.post('/upload', function (req, res) {
 
 // -- Detect land marks
 app.get('/landmarks', function (req, res) {
-
-    console.log(req.baseUrl);
+    console.log(req.url);
     var imgKey = req.query.imgKey;
-
     pppEngine.detectLandmarks(imgKey, function(err, landmarks) {
         if (err) {
             console.log('Error detecting landmarks for imgKey=' + imgKey + ':\n' + err);
@@ -148,6 +146,7 @@ app.get('/photoprint', function (req, res) {
             canvas : parseCanvas(canvas),
             standard : parsePassportStandard(standard)
         }
+        console.log(printDef);
     } catch (e) {
         console.log(e);
     }

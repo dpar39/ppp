@@ -18,7 +18,7 @@
 
 <body>
   <h1>Free passport photo ready to print and use</h1>
-
+  <h4>Create your passport photo to the right size and ready to print</h4>
   <div id="container">
     <img id="photo" alt="">
     <div class="landmark" id="crownMark"></div>
@@ -26,9 +26,9 @@
   </div>
 
   <div id="divButtons">
-    <button id="buttonTakePicture" class="btn btn-success col-md-2">Take photo</button>
-    <button id="buttonLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
-    <button id="btnCreatePrint" class="btn btn-success col-md-2">Create Print</button>
+    <button id="btnTakePicture" class="btn btn-success col-md-2">Take photo</button>
+    <button id="btnLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
+    <button id="btnCreatePrint" class="btn btn-success col-md-2" style="visibility:hidden">Create Print</button>
     <form>
       <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
     </form>
@@ -60,7 +60,7 @@
       <% }); %>
     </select>
       <span> at </span>
-      <select id="canvas-resols">
+      <select id="canvas-resol">
       <% _.each(ResolutionsList, function(resol) { %>
        <option value="<%=resol%>" <%=(resol == resolution)?"selected":"" %> > <%=resol %> dpi </option>
       <% }); %>
@@ -94,7 +94,9 @@
 
   <script type="text/backbone" id="results-template">
     <% if (imageSrc) { %>
-        <img class="col-md-12" id="resultImage" src="<%=imageSrc%>">
+        <a href="<%=imageSrc%>" class="col-md-12" download="print.png">
+          <img class="row" style="width:100%" src="<%=imageSrc%>">
+        </a>
       <% } %>
   </script>
 
