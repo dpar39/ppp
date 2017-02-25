@@ -210,7 +210,11 @@ function createPhotoPrint() {
             xhr.onreadystatechange = function (e) {
                 if (xhr.status == 200) {
                     var blob = xhr.response;
-                    $("#printImage").attr('src', window.URL.createObjectURL(blob))
+                    var binaryData = [];
+                    binaryData.push(blob);
+                    var b = window.URL.createObjectURL(new Blob(binaryData, {type: "image/png"}));
+
+                    results.set('imageSrc', b);
                 }
             }
             return xhr;
@@ -395,6 +399,8 @@ CanvasModel = Backbone.Model.extend({
 
 CanvasView = Backbone.View.extend({
 
+    el: '#divcanvas',
+
     _template: _.template($('#canvas-template').html()),
 
     events: {
@@ -464,6 +470,8 @@ var PassportStandard = Backbone.Model.extend({
 
 var PassportStandardView = Backbone.View.extend({
 
+    el : '#divpassport',
+
     _template: _.template($('#passport-standard-template').html()),
 
     events: {
@@ -524,13 +532,43 @@ var PassportStandardView = Backbone.View.extend({
 
 });
 
+var ResultsModel = Backbone.Model.extend({
+    defaults : {
+        imageSrc : null
+    }
+});
+
+var ResultsView = Backbone.View.extend({
+
+     el: '#divResults',
+
+     _template: _.template($('#results-template').html()),
+
+     render : function() {
+        this.$el.html(this._template(this.model.toJSON()));
+        return this;
+    },
+
+    events: {
+        "click button" : "saveImage"
+    },
+    
+    saveImage : function() {
+        var img = $("#resultImage")[0];
+        window.location.href = img.src.replace('image/png', 'image/octet-stream');
+    },
+    initialize: function() {
+        _.bindAll(this, "render");
+        this.model.bind('change', this.render);
+    }    
+});
+
 var canvas = new CanvasModel;
 var canvasView = new CanvasView({ model: canvas });
 var ps = new PassportStandard;
 var passportView = new PassportStandardView({ model: ps });
-
-$('#divcanvas').html(canvasView.el);
-$('#divpassport').html(passportView.el);
+var results = new ResultsModel;
+var resultsView = new ResultsView({model: results });
 
 ///////////////////////////////////////////////
 // Dragging the crown point and chin point

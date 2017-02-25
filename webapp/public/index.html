@@ -7,7 +7,7 @@
   </title>
   <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap-theme.min.css" />
-  
+
   <link rel="stylesheet" href="css/style.css" />
   <!-- vendor scripts -->
   <script src="lib/jquery/dist/jquery.min.js"></script>
@@ -26,8 +26,9 @@
   </div>
 
   <div id="divButtons">
-    <button id="buttonTakePicture">Take photo</button>
-    <button id="buttonLoadPicture">Choose photo</button>
+    <button id="buttonTakePicture" class="btn btn-success col-md-2">Take photo</button>
+    <button id="buttonLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
+    <button id="btnCreatePrint" class="btn btn-success col-md-2">Create Print</button>
     <form>
       <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
     </form>
@@ -37,62 +38,65 @@
     <div id="divpassport"></div>
     <div id="divcanvas"></div>
   </div>
-  
-  <div>
-    <button id="btnCreatePrint">Create Print</button>
-  </div>
+
+  <div id="divResults" class="row" ></div>
 
   <script type="text/backbone" id="canvas-template">
-    <span>Print Size: </span>
-    <select id="canvas-preconf">
+    <div class="col-md-12">
+      <span>Print Size: </span>
+      <select id="canvas-preconf">
       <% _.each(CanvasConfigList, function(config) { %>
        <option value='<%=config.name %>' > <%=config.name %> </option>
       <% }); %>
     <br>
     </br>
     <span>Dimensions: </span>
-    <input id="canvas-width"  type="number" value=<%=width %> />
+    <input id="canvas-width"  type="number" value="<%=width %>" />
     <span> x </span>
-    <input id="canvas-height" type="number" value=<%=height %> /> 
+    <input id="canvas-height" type="number" value="<%=height %>" /> 
     <select id="canvas-units">
       <% _.each(UnitsList, function(u) { %>
-        <option value='<%=u%>' <%=(u === units)?'selected':''%> > <%=u %> </option> 
+        <option value="<%=u%>" <%=(u === units)?"selected":""%> > <%=u %> </option> 
       <% }); %>
     </select>
-    <span> at </span>
-    <select id="canvas-resols">
+      <span> at </span>
+      <select id="canvas-resols">
       <% _.each(ResolutionsList, function(resol) { %>
-       <option value='<%=resol%>' <%=(resol == resolution)?'selected':'' %> > <%=resol %> dpi </option>
+       <option value="<%=resol%>" <%=(resol == resolution)?"selected":"" %> > <%=resol %> dpi </option>
       <% }); %>
-    </select>
-  </script>
-
-  <script type="text/backbone" id="passport-standard-template">
-    <span>Standard: </span>
-    <select id="standard-confs">
-      <% _.each(PassportStandardList, function(c) { %>
-       <option value='<%=c.name %>' <%=(c.name === name)?'selected':''%> > <%=c.name %> </option>
-      <% }); %>
-    </select>
-    <div>
-      <span>Photo Size: </span>
-      <input id="photo-width" type="number" value=<%=pictureWidth %> />
-      <span> x </span>
-      <input id="photo-height" type="number" value=<%=pictureHeight %> />
-      <span> Face height: </span>
-      <input id="face-height" type="number" value=<%=faceHeight %> />
-
-      <select id="photo-units">
-        <% _.each(UnitsList, function(u) { %>
-          <option value='<%=u%>' <%=(u === units)?'selected':''%> > <%=u %> </option> 
-        <% }); %>
     </select>
     </div>
   </script>
 
-  <div id="divResult">
-      <img class="col-md-12" id="printImage" src="" alt="">
-  </div>
+  <script type="text/backbone" id="passport-standard-template">
+    <div class="col-md-12">
+      <span>Standard: </span>
+      <select id="standard-confs">
+      <% _.each(PassportStandardList, function(c) { %>
+       <option value="<%=c.name %>" <%=(c.name === name)?"selected":""%> > <%=c.name %> </option>
+      <% }); %>
+    </select>
+    <div>
+      <span>Photo Size: </span>
+      <input id="photo-width" type="number" value="<%=pictureWidth %>" />
+      <span> x </span>
+      <input id="photo-height" type="number" value="<%=pictureHeight %>" />
+      <span> Face height: </span>
+      <input id="face-height" type="number" value="<%=faceHeight %>" />
+
+      <select id="photo-units">
+      <% _.each(UnitsList, function(u) { %>
+        <option value="<%=u%>" <%=(u === units)?"selected":""%> > <%=u %> </option> 
+      <% }); %>
+      </select>
+    </div>
+  </script>
+
+  <script type="text/backbone" id="results-template">
+    <% if (imageSrc) { %>
+        <img class="col-md-12" id="resultImage" src="<%=imageSrc%>">
+      <% } %>
+  </script>
 
   <script src="js/client.js"></script>
 </body>
