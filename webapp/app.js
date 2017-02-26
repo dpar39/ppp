@@ -2,29 +2,40 @@
 ///////////////////////////////////////////////
 // Server app
 //////////////////////////////////////////////
+console.log('Running node ' + process.version);
+console.log('Initiating application ...');
 var express = require('express');
 var path = require('path');
 var formidable = require('formidable');
 var fs = require('fs');
+var http = require('http');
 
 /////////////////////////////////////////////
 // Addon load and configuration
 /////////////////////////////////////////////
-var addon = require("./addon");
+try {
+    var addon = require("./addon");
+} catch (err) {
+    console.log("Error importing addon :(");
+    console.log(err);
+}
+
 var pppEngine = new addon.PppWrapper();
+console.log('Addon instance created!');
 
 var engineConfigFile = 'share/config.json';
 // Read configuration json
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
 
 pppEngine.configure(jsonConfig);
-
+console.log('Addon instance configured!');
 
 // App setup
 var app = express();
 
 // Serve the files out of ./public as our main files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'node_modules')));
 
 var uploadImageDirectory = path.join(__dirname, '/uploads');
 
@@ -171,6 +182,10 @@ if (!fs.existsSync(uploadImageDirectory)) {
 
 // start server on the specified port and binding host
 var port = process.env.PORT || 3000;
-app.listen(port, function () {
-    console.log("Server listening on port " + port);
+// app.listen(port, function () {
+//     console.log("Server listening on port " + port);
+// });
+
+http.createServer(app).listen(port, function() {
+  console.log("Server listening on port " + port);
 });
