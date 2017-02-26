@@ -99,7 +99,7 @@ function parsePoint(pt){
 
 function validateUnits(units) {
     if (["mm", "cm", "inch"].indexOf(units) < 0) {
-        throw `Unrecognized units: ${units}`
+        throw "Unrecognized units: " + units;
     }
     return units;
 }
