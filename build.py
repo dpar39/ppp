@@ -490,16 +490,6 @@ class Builder(object):
             shutil.rmtree(webapp_share)
         shutil.copytree(share_dir, webapp_share)
 
-    def install_web_dependencies(self):
-        """
-        Installs nodejs and bower dependencies
-        """
-        webapp_dir = os.path.join(self._root_dir, 'webapp')
-        os.chdir(webapp_dir)
-        #self.run_cmd(['npm', 'install'])
-        #self.run_cmd(['bower', 'install'])
-        os.chdir(self._root_dir)
-
     def __init__(self):
         # Detect OS version
         self.parse_arguments()
