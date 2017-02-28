@@ -11,6 +11,7 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 # Third party dependencies
 #----------------------------
 # OpenCV Library
+set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
 file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
 
