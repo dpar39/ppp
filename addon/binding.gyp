@@ -41,7 +41,7 @@
           "OS=='linux'",
           {
             "libraries": [
-               "-Wl,-rpath,./", 
+               "-Wl,-rpath,'$ORIGIN'", 
               "-L../../install_release_x64",
               "-llibppp"
             ],
