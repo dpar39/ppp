@@ -248,13 +248,22 @@ class Builder(object):
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
             '-DBUILD_SHARED_LIBS=OFF', \
             '-DBUILD_PERF_TESTS=OFF', \
+            '-DBUILD_opencv_apps=OFF' \
             '-DBUILD_WITH_DEBUG_INFO=OFF', \
-            '-DBUILD_WITH_STATIC_CRT=OFF', \
+            '-DBUILD_WITH_STATIC_CRT=ON', \
             '-DBUILD_DOCS=OFF', \
             '-DBUILD_TESTS=OFF', \
             '-DWITH_FFMPEG=OFF', \
             '-DWITH_MSMF=OFF', \
-            '-DWITH_VFW=OFF']
+            '-DWITH_VFW=OFF', \
+            '-DWITH_OPENEXR=OFF', \
+            '-DWITH_WEBP=OFF', \
+            '-DBUILD_ZLIB=ON', \
+            '-DBUILD_JASPER=ON', \
+            '-DBUILD_JPEG=ON', \
+            '-DBUILD_PNG=ON', \
+            '-DBUILD_TIFF=ON', \
+            '-DINSTALL_CREATE_DISTRIB=ON']
         for ocv_module in ocv_all_modules:
             onoff = '=ON' if ocv_module in ocv_build_modules else '=OFF'
             cmake_def = '-DBUILD_opencv_' + ocv_module + onoff
