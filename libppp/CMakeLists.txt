@@ -12,6 +12,7 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # OpenCV Library
 find_package(OpenCV REQUIRED)
+file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
 
 # POCO Library
 add_definitions(-DPOCO_STATIC -DPOCO_NO_AUTOMATIC_LIBS)
@@ -30,9 +31,12 @@ set(MODULE_INC_DIRS
     ${Poco_INCLUDE_DIRS}
 )
 
+message(STATUS ${OpenCV_LIBS})
+
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
     ${Poco_LIBRARIES}
+    ${OPENCV_3RDPARTY_LIBS}
 )
 
 set(MODULE_LIB_DIRS
@@ -49,7 +53,6 @@ else()
 endif()
 add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 link_directories(${MODULE_LIB_DIRS})
-target_include_directories(${LIB_NAME} PUBLIC ${MODULE_INC_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
 # Install the library
@@ -61,6 +64,7 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_I
 #-----------------------------
 file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
+
 
 set(TEST_INC_DIRS
     "tests/include"
