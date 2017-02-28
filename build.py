@@ -479,10 +479,13 @@ class Builder(object):
         Deploys the addon to the webapp directory as well as the shared configuration
         """
         addon = os.path.join(self._install_dir, 'addon.node')
+        libppp = os.path.join(self._install_dir, 'liblibppp.so')
         webapp_dir = os.path.join(self._root_dir, 'webapp')
         share_dir = os.path.join(self._root_dir, 'share')
         webapp_share = os.path.join(webapp_dir, 'share')
         shutil.copy(addon, webapp_dir)
+        if not IS_WINDOWS:
+            shutil.copy(libppp, webapp_dir)
         if os.path.exists(webapp_share):
             shutil.rmtree(webapp_share)
         shutil.copytree(share_dir, webapp_share)
