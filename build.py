@@ -13,13 +13,13 @@ import tarfile
 import multiprocessing
 
 # Configuration
-gmock_src_url  = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-nodejs_src_url = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
-opencv_src_url = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
-poco_src_url   = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
+GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
+NODEJS_SRC_URL = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
+OPENCV_SRC_URL = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
+POCO_SRC_URL = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
 
-MinusJN ='-j%i' % min(multiprocessing.cpu_count(), 8)
-IsWindows = sys.platform == 'win32'
+MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
+IS_WINDOWS = sys.platform == 'win32'
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
 
@@ -70,7 +70,7 @@ class Builder(object):
         """
         env = os.environ.copy()
         cmd_all = []
-        if IsWindows:
+        if IS_WINDOWS:
             # Load visual studio environmental variables first
             if not hasattr(self, '_vcvarsbat'):
                 self.detect_vs_version()
@@ -111,8 +111,8 @@ class Builder(object):
         """
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
         sln_lines = []
-        with open(solution_file) as f:
-            sln_lines = f.read().splitlines()
+        with open(solution_file) as file_handle:
+            sln_lines = file_handle.read().splitlines()
         lnum = 0
         lin_prj_beg = 0
         lin_prj_end = 0
@@ -125,8 +125,8 @@ class Builder(object):
             lnum = lnum + 1
         prj_lines = sln_lines[:2] + sln_lines[lin_prj_beg:lin_prj_end+1] \
             + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end+1:]
-        with open(solution_file, "w") as f:
-            f.writelines(["%s\n" % item  for item in prj_lines])
+        with open(solution_file, "w") as file_handle:
+            file_handle.writelines(["%s\n" % item  for item in prj_lines])
         self.run_cmd(['call', 'devenv', solution_file])
 
     def build_nodejs(self):
@@ -134,7 +134,7 @@ class Builder(object):
         Downloads, extract and builds Node JS from source (Windows ONLY)
         """
         # Download Node JS if not done yet
-        node_src_pkg = self.download_third_party_lib(nodejs_src_url)
+        node_src_pkg = self.download_third_party_lib(NODEJS_SRC_URL)
         # Get the file prefix for node js
         node_extract_dir = self.get_third_party_lib_dir('node')
         if node_extract_dir is None:
@@ -161,8 +161,7 @@ class Builder(object):
         Downloads, extracts and builds POCO libraries from source, if not done yet
         """
         # Download POCO sources if not done yet
-        poco_src_pkg = self.download_third_party_lib(poco_src_url)
-        # Get the file prefix for POCO
+        poco_src_pkg = self.download_third_party_lib(POCO_SRC_URL)
         poco_extract_dir = self.get_third_party_lib_dir('poco')
         if poco_extract_dir is None:
             # Extract the source files
@@ -195,7 +194,7 @@ class Builder(object):
         Extract and build GMock/GTest libraries
         """
         # Download POCO sources if not done yet
-        gmock_src_pkg = self.download_third_party_lib(gmock_src_url)
+        gmock_src_pkg = self.download_third_party_lib(GMOCK_SRC_URL)
         # Get the file prefix for POCO
         gmock_extract_dir = self.get_third_party_lib_dir('gmock')
 
@@ -219,7 +218,7 @@ class Builder(object):
         Downloads and builds OpenCV from source
         """
         # Download OpenCV sources if not done yet
-        opencv_src_pkg = self.download_third_party_lib(opencv_src_url)
+        opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
         # Get the file prefix for OpenCV
         opencv_extract_dir = self.get_third_party_lib_dir('opencv')
 
@@ -237,7 +236,7 @@ class Builder(object):
             'objdetect', 'imgcodecs', 'ml', 'videoio']
 
         # Skip building OpenCV if done already
-        if IsWindows:
+        if IS_WINDOWS:
             if os.path.exists(os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')):
                 return
         else:
@@ -268,7 +267,7 @@ class Builder(object):
         if not os.path.exists(build_dir): # Create the build directory
             os.mkdir(build_dir)
         # Build
-        if not IsWindows:
+        if not IS_WINDOWS:
             self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, [], False)
         else: # Windows OS: only builds with msbuild.exe
             # Change directory to the build directory
@@ -333,14 +332,12 @@ class Builder(object):
             os.mkdir(build_dir)
 
         # Define CMake generator and make command
-        cmake_generator = ''
-        make_cmd = ''
-        if IsWindows:
+        if IS_WINDOWS:
             cmake_generator = 'NMake Makefiles'
             make_cmd = ['set', 'MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
         else:
             cmake_generator = 'Unix Makefiles'
-            make_cmd = ['make', MinusJN, 'install']
+            make_cmd = ['make', MINUS_JN, 'install']
         os.chdir(build_dir)
         cmake_cmd = ['cmake',  \
             '-DCMAKE_BUILD_TYPE=' + self._build_config,  \
@@ -359,16 +356,19 @@ class Builder(object):
         """
         default_arch_name = 'x64'
         default_build_cfg = 'release'
-        if IsWindows:
+        if IS_WINDOWS:
             default_arch_name = 'x86'
             default_build_cfg = 'debug'
+
         parser = argparse.ArgumentParser(description='Builds the passport photo application.')
-        parser.add_argument('--arch_name', help='Target platform [x86 | x64]', default=default_arch_name)
-        parser.add_argument('--build_config', help='Builds the code base in [debug | release] mode', default=default_build_cfg)
+        parser.add_argument('--arch_name', help='Platform [x86 | x64]', default=default_arch_name)
+        parser.add_argument('--build_config', help='Build configuration [debug | release]', \
+            default=default_build_cfg)
         parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
         parser.add_argument('--skip_tests', help='Run existing unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Runs install commands', action="store_true")
-        parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects', action="store_true")
+        parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects', \
+            action="store_true")
 
         args = parser.parse_args()
 
@@ -408,7 +408,7 @@ class Builder(object):
         """
         Extracts validation imageset with annotations from a password protected zip file
         These images were requested at http://www.scface.org/ and are copyrighted,
-        so please do not share them
+        so please do not share them without obatining written consent
         """
         print 'Extracting validation data ...'
         def extract(research_dir, zip_file):
@@ -442,9 +442,9 @@ class Builder(object):
             os.mkdir(self._build_dir)
 
         # Configure build system
-        make_cmd = ['make', MinusJN]
+        make_cmd = ['make', MINUS_JN]
         cmake_generator = 'Unix Makefiles'
-        if IsWindows:
+        if IS_WINDOWS:
             cmake_generator = 'NMake Makefiles'
             make_cmd = ['nmake']
 
@@ -465,13 +465,13 @@ class Builder(object):
                 self.run_cmd(make_cmd + ['install'])
             os.chdir(self._root_dir)
 
-            if not IsWindows:
+            if not IS_WINDOWS:
                 # Build the node addon with node-gyp
                 self.build_addon_with_nodegyp()
             # Run addon integration test
             os.chdir(self._install_dir)
             if self._run_tests:
-                self.run_cmd(['node', "./test.js"])
+                self.run_cmd(['node', './test.js'])
         os.chdir(self._root_dir)
 
     def deploy_addon(self):
@@ -500,7 +500,7 @@ class Builder(object):
     def __init__(self):
         # Detect OS version
         self.parse_arguments()
-        if IsWindows:
+        if IS_WINDOWS:
             self.detect_vs_version()
 
         # Create install directory if it doesn't exist
@@ -512,12 +512,13 @@ class Builder(object):
         self.build_poco_lib()
         self.build_opencv()
 
-        if IsWindows:
+        if IS_WINDOWS:
             # Build Node JS from source so the addon can be build reliably for Windows
             self.build_nodejs()
 
-        #Extract validatio data (imageset with annotations)
-        self.extract_validation_data()
+        #Extract validation data (imageset with annotations)
+        if self._run_tests:
+            self.extract_validation_data()
 
         # Build this project
         self.build_cpp_code()
