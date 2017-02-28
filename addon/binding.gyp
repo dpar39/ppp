@@ -41,9 +41,11 @@
           "OS=='linux'",
           {
             "libraries": [
-               "-Wl,-rpath,'$ORIGIN'", 
-              "-L../../install_release_x64",
+              "-L../../install_release_x64/",
               "-llibppp"
+            ],
+            "ldflags": [
+              "-Wl,-rpath,'$$ORIGIN'"
             ],
             "cflags_cc": [
               "-fexceptions",
