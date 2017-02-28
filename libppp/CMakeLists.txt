@@ -14,7 +14,6 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 find_package(OpenCV REQUIRED)
 file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
 
-
 # POCO Library
 add_definitions(-DPOCO_STATIC -DPOCO_NO_AUTOMATIC_LIBS)
 find_package(Poco REQUIRED COMPONENTS Foundation)
