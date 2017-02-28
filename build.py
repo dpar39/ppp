@@ -1,4 +1,8 @@
-﻿import os
+﻿"""
+build.py
+"""
+
+import os
 import sys
 import glob
 import shutil
