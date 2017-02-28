@@ -42,6 +42,7 @@ def which(program):
 
 class Builder(object):
     """
+    Class that holds the whole building process
     """
     def detect_vs_version(self):
         """
@@ -102,7 +103,7 @@ class Builder(object):
     def set_startup_vs_prj(self, project_name):
         """
         Rearranges the projects so that the specified project is the first
-        therefore is the startup project within Visual Studio 
+        therefore is the startup project within Visual Studio
         """
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
         sln_lines = []
@@ -200,7 +201,7 @@ class Builder(object):
 
     def get_third_party_lib_dir(self, prefix):
         """
-        Get the directory where a third party library with the specified prefix 
+        Get the directory where a third party library with the specified prefix
         name was extracted, if any
         """
         third_party_dirs = next(os.walk(self._third_party_dir))[1]
@@ -306,10 +307,10 @@ class Builder(object):
         """
         print 'Extracting third party library "' + lib_src_pkg + '" please wait ...'
         if 'zip' in lib_src_pkg:
-            zip = zipfile.ZipFile(lib_src_pkg)
-            for item in zip.namelist():
-                zip.extract(item, self._third_party_dir)
-            zip.close()
+            zip_handle = zipfile.ZipFile(lib_src_pkg)
+            for item in zip_handle.namelist():
+                zip_handle.extract(item, self._third_party_dir)
+            zip_handle.close()
         else: # Assume tar archive (tgz, tar.bz2, tar.gz)
             tar = tarfile.open(lib_src_pkg, 'r')
             for item in tar:
@@ -357,7 +358,7 @@ class Builder(object):
         if IsWindows:
             default_arch_name = 'x86'
             default_build_cfg = 'debug'
-        parser = argparse.ArgumentParser(description='Builds my cool passport photo print generator application.')
+        parser = argparse.ArgumentParser(description='Builds the passport photo application.')
         parser.add_argument('--arch_name', help='Target platform [x86 | x64]', default=default_arch_name)
         parser.add_argument('--build_config', help='Builds the code base in [debug | release] mode', default=default_build_cfg)
         parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
@@ -413,10 +414,10 @@ class Builder(object):
             zip_file = os.path.join(research_dir, zip_file)
             if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
                 return # Nothing to do, data already been extracted
-            zip = zipfile.ZipFile(zip_file)
-            for item in zip.namelist():
-                zip.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
-            zip.close()
+            zip_handle = zipfile.ZipFile(zip_file)
+            for item in zip_handle.namelist():
+                zip_handle.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
+            zip_handle.close()
 
         research_dir = os.path.join(self._root_dir, 'research')
         extract(research_dir, 'annotated_imageset0.zip')
