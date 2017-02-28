@@ -519,7 +519,4 @@ class Builder(object):
         # Copy built addon and configuration to webapp
         self.deploy_addon()
 
-        # Install nmp and bower dependencies
-        self.install_web_dependencies()
-
 BUILDER = Builder()
