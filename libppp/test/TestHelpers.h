@@ -33,9 +33,10 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
 inline std::string resolvePath(const std::string &relPath)
 {
     auto baseDir = Poco::Path(Poco::Path::current());
-    while(baseDir.depth() > 0)
+    while(baseDir.depth() > 1 )
     {
-        auto combinePath = Poco::File(baseDir.append(relPath));
+        auto currPath = baseDir;
+        auto combinePath = Poco::File(currPath.append(relPath));
         if (combinePath.exists())
         {
             return combinePath.path();

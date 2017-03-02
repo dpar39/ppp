@@ -177,7 +177,8 @@ class Builder(object):
             + glob.glob(self._third_party_install_dir + '/lib/libPoco*.a')
         if len(lib_files) < len(poco_build_modules) + 1 or override:
             # Build POCO libraries
-            cmake_definitions = ['-DPOCO_STATIC=ON', \
+            cmake_definitions = [
+                '-DPOCO_STATIC=ON', \
                 '-DPOCO_MT=ON', \
                 '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
                 '-DCMAKE_BUILD_TYPE=' + self._build_config]
@@ -246,6 +247,7 @@ class Builder(object):
 
         cmake_extra_defs = [ \
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
+            '-DBUILD_WITH_STATIC_CRT=ON', \
             '-DBUILD_SHARED_LIBS=OFF', \
             '-DBUILD_PERF_TESTS=OFF', \
             '-DBUILD_opencv_apps=OFF' \
@@ -357,11 +359,12 @@ class Builder(object):
         """
         Parses command line arguments
         """
-        default_arch_name = 'x64'
-        default_build_cfg = 'release'
         if IS_WINDOWS:
             default_arch_name = 'x86'
             default_build_cfg = 'debug'
+        else:
+            default_arch_name = 'x64'
+            default_build_cfg = 'release'
 
         parser = argparse.ArgumentParser(description='Builds the passport photo application.')
         parser.add_argument('--arch_name', help='Platform [x86 | x64]', default=default_arch_name)
