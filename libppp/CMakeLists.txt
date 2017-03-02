@@ -11,9 +11,7 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 # Third party dependencies
 #----------------------------
 # OpenCV Library
-#set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
-#file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
 
 # POCO Library
 add_definitions(-DPOCO_STATIC)
@@ -31,8 +29,6 @@ set(MODULE_INC_DIRS
     ${OpenCV_INCLUDE_DIRS}
     ${Poco_INCLUDE_DIRS}
 )
-
-message(STATUS ${OpenCV_LIBS})
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
@@ -63,6 +59,7 @@ add_custom_command(TARGET ${LIB_NAME} POST_BUILD
 # Install the library
 install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/share DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #-----------------------------
 # Build the module tests
@@ -91,4 +88,5 @@ target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 link_directories(${TEST_LIB_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
-add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
+#add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
+add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
