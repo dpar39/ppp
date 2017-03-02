@@ -34,5 +34,13 @@ private:
     const noncopyable& operator=(const noncopyable&) = delete;
 };
 
+namespace std 
+{
+    template<typename T, typename... Args>
+    std::unique_ptr<T> make_unique(Args&&... args)
+    {
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+}
 /*!@brief Calculates CRC value for a buffer of specified length !*/
 unsigned long update_crc(unsigned long crc, unsigned char *buf, size_t len);

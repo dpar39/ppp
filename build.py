@@ -77,7 +77,6 @@ class Builder(object):
             cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
             env['CXXFLAGS'] = '-fPIC'
-            env['LD_LIBRARY_PATH'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env)
@@ -179,6 +178,8 @@ class Builder(object):
         if len(lib_files) < len(poco_build_modules) + 1 or override:
             # Build POCO libraries
             cmake_definitions = ['-DPOCO_STATIC=ON', \
+                '-DPOCO_MT', \
+                '-DPOCO_NO_AUTOMATIC_LIBS', \
                 '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
                 '-DCMAKE_BUILD_TYPE=' + self._build_config]
 
@@ -250,20 +251,14 @@ class Builder(object):
             '-DBUILD_PERF_TESTS=OFF', \
             '-DBUILD_opencv_apps=OFF' \
             '-DBUILD_WITH_DEBUG_INFO=OFF', \
-            '-DBUILD_WITH_STATIC_CRT=ON', \
             '-DBUILD_DOCS=OFF', \
             '-DBUILD_TESTS=OFF', \
             '-DWITH_FFMPEG=OFF', \
             '-DWITH_MSMF=OFF', \
             '-DWITH_VFW=OFF', \
             '-DWITH_OPENEXR=OFF', \
-            '-DWITH_WEBP=OFF', \
-            '-DBUILD_ZLIB=ON', \
-            '-DBUILD_JASPER=ON', \
-            '-DBUILD_JPEG=ON', \
-            '-DBUILD_PNG=ON', \
-            '-DBUILD_TIFF=ON', \
-            '-DINSTALL_CREATE_DISTRIB=ON']
+            '-DWITH_WEBP=OFF']
+    
         for ocv_module in ocv_all_modules:
             onoff = '=ON' if ocv_module in ocv_build_modules else '=OFF'
             cmake_def = '-DBUILD_opencv_' + ocv_module + onoff
