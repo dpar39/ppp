@@ -50,7 +50,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     auto srcBeg = mouthRoiImage.begin<Vec3b>();
     auto srcEnd = mouthRoiImage.end<Vec3b>();
 
-    std::transform(srcBeg, srcEnd, dstBeg, [](const auto & pixel)
+    std::transform(srcBeg, srcEnd, dstBeg, [](const Vec3b & pixel)
                    {
                        auto rgbSum = static_cast<float>(pixel[0]) + pixel[1] + pixel[2];
                        auto r = pixel[2] / rgbSum;
@@ -117,11 +117,11 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         }
     }
 
-    auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](const auto &a, const auto &b)
+    auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
                                       {
                                           return a.y < b.y;
                                       });
-    auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](const auto &a, const auto &b)
+    auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
                                       {
                                           return a.y > b.y;
                                       });
