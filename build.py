@@ -178,7 +178,6 @@ class Builder(object):
         if len(lib_files) < len(poco_build_modules) + 1 or override:
             # Build POCO libraries
             cmake_definitions = ['-DPOCO_STATIC=ON', \
-                '-DPOCO_MT', \
                 '-DPOCO_NO_AUTOMATIC_LIBS', \
                 '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
                 '-DCMAKE_BUILD_TYPE=' + self._build_config]
