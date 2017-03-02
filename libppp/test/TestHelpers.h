@@ -29,6 +29,22 @@ inline void getImageFiles(const std::string &testImagesDir, std::vector<std::str
         ++itr;
     }
 }
+
+inline std::string resolvePath(const std::string &relPath)
+{
+    auto baseDir = Poco::Path(Poco::Path::current());
+    while(baseDir.depth() > 0)
+    {
+        auto combinePath = Poco::File(baseDir.append(relPath));
+        if (combinePath.exists())
+        {
+            return combinePath.path();
+        }
+        baseDir = baseDir.parent();
+    }
+    return std::string();
+}
+
 #else
 #include <filesystem>
 
@@ -99,3 +115,4 @@ inline bool importTextMatrix(const std::string&txtFileName, cv::Mat &output)
     textFile.close();
     return true;
 }
+

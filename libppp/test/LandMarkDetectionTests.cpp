@@ -17,7 +17,6 @@
 #include <LipsDetector.h>
 #include <rapidjson/document.h>
 
-#include "common.h"
 
 using namespace cv;
 
@@ -27,7 +26,7 @@ typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, LandMarks&, L
 #define LANDMARK_POINT(mat, row) cv::Point(ROUND_INT((mat).at<float>((row), 0)), ROUND_INT((mat).at<float>((row), 1)))
 #define IN_ROI(r, p) (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
 
-const std::string g_defaultConfigPath(resolvePath("share/config.json"));
+const std::string g_defaultConfigPath("share/config.json");
 
 void processDatabase(DetectionCallback callback, bool annotateResults = false)
 {

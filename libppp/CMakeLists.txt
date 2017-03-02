@@ -11,12 +11,12 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 # Third party dependencies
 #----------------------------
 # OpenCV Library
-set(OpenCV_STATIC ON)
+#set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
-file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
+#file(GLOB OPENCV_3RDPARTY_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/install_release_x64/share/OpenCV/3rdparty/lib/*.a")
 
 # POCO Library
-add_definitions(-DPOCO_STATIC -DPOCO_NO_AUTOMATIC_LIBS)
+add_definitions(-DPOCO_STATIC)
 find_package(Poco REQUIRED COMPONENTS Foundation)
 
 #-----------------------------
@@ -55,6 +55,10 @@ endif()
 add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
+
+add_custom_command(TARGET ${LIB_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_CURRENT_SOURCE_DIR}/config $<TARGET_FILE_DIR:${LIB_NAME}>)
 
 # Install the library
 install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})

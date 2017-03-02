@@ -10,17 +10,15 @@
 #include <filesystem>
 #endif
 
-#include <common.h>
-
 std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifier(const std::string& haarCascadeDir, const std::string& haarCascadeFile)
 {
     auto classifier = std::make_shared<cv::CascadeClassifier>();
 #ifdef POCO_STATIC
-    auto haarCascadeFilePathStr = resolvePath(Poco::Path(haarCascadeDir).append(haarCascadeFile).toString());
+    auto haarCascadeFilePathStr = Poco::Path(haarCascadeDir).append(haarCascadeFile).toString();
     if (!Poco::File(haarCascadeFilePathStr).exists())
 #else
     using namespace std::tr2::sys;
-    const path haarCascadeFilePath(resolvePath((path(haarCascadeDir) / path(haarCascadeFile)).string()));
+    const path haarCascadeFilePath((path(haarCascadeDir) / path(haarCascadeFile)).string());
     auto haarCascadeFilePathStr = haarCascadeFilePath.string();
     if (!exists(haarCascadeFilePath))
 #endif

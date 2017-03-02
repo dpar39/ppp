@@ -178,6 +178,7 @@ class Builder(object):
         if len(lib_files) < len(poco_build_modules) + 1 or override:
             # Build POCO libraries
             cmake_definitions = ['-DPOCO_STATIC=ON', \
+                '-DPOCO_MT=ON', \
                 '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
                 '-DCMAKE_BUILD_TYPE=' + self._build_config]
 
@@ -256,7 +257,7 @@ class Builder(object):
             '-DWITH_VFW=OFF', \
             '-DWITH_OPENEXR=OFF', \
             '-DWITH_WEBP=OFF']
-    
+
         for ocv_module in ocv_all_modules:
             onoff = '=ON' if ocv_module in ocv_build_modules else '=OFF'
             cmake_def = '-DBUILD_opencv_' + ocv_module + onoff
@@ -430,6 +431,7 @@ class Builder(object):
         extract(research_dir, 'annotated_imageset1.zip')
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
+        print 'Extracting validation data completed!'
 
     def build_cpp_code(self):
         """
@@ -519,6 +521,7 @@ class Builder(object):
         self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
-        self.deploy_addon()
+        if not self._gen_vs_sln:
+            self.deploy_addon()
 
 BUILDER = Builder()

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////
 //               Configuration                 //
 /////////////////////////////////////////////////
-var engineConfigFile = '../share/config.json';
+var engineConfigFile = 'share/config.json';
 var inImgName = '../research/sample_test_images/000.jpg';
 var outImgName = 'output.png';
 

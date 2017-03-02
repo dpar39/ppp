@@ -2,8 +2,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "common.h"
-
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
 #include "PhotoPrintMaker.h"
