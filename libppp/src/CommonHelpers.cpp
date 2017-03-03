@@ -10,7 +10,7 @@
 #include <filesystem>
 #endif
 
-static inline uint8_t fromChar(char ch)
+static uint8_t fromChar(char ch)
 {
     if (ch >= 'A' && ch <= 'Z')
     {
@@ -32,10 +32,10 @@ static inline uint8_t fromChar(char ch)
     {
         return 63;
     }
-    throw std::runtime_error("Invalid character in base64 string")
+    throw std::runtime_error("Invalid character in base64 string");
 }
 
-static inline bool is_base64(unsigned char c)
+static bool is_base64(unsigned char c)
 {
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
@@ -49,7 +49,7 @@ std::string base64_decode(const std::string &encoded_string)
     unsigned char char_array_4[4], char_array_3[3];
     std::string ret;
 
-    ret.resererve(static_cast<size_t>(in_len * 0.75 ));
+    ret.reserve(static_cast<size_t>(in_len * 0.75 ));
 
     while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
     {
@@ -64,7 +64,7 @@ std::string base64_decode(const std::string &encoded_string)
             char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
             char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
             char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-            ret.append(char_array_3, 3);
+            ret.append(reinterpret_cast<char *>(char_array_3), 3);
             i = 0;
         }
     }
@@ -85,27 +85,25 @@ std::string base64_decode(const std::string &encoded_string)
         char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
         char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-        ret.append(char_array_3, i-1);
+        ret.append(reinterpret_cast<char *>(char_array_3), i-1);
     }
 
     return ret;
 }
 
-std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifier(const std::string &haarCascadeBase64Data)
+std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
 {
     auto xmlHaarCascade = base64_decode(haarCascadeBase64Data);
     auto classifier = std::make_shared<cv::CascadeClassifier>();
 
-    FileStorage fs('.xml', FileStorage::MEMORY);
-    
+    cv::FileStorage fs(".xml", cv::FileStorage::MEMORY);
     fs << xmlHaarCascade;
-
-    classifier->load(fs);
+    classifier->load(fs.getFirstTopLevelNode());
 
     return classifier;
 }
-
-std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifier(const std::string &haarCascadeDir, const std::string &haarCascadeFile)
+#if 0
+std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile)
 {
     auto classifier = std::make_shared<cv::CascadeClassifier>();
 #ifdef POCO_STATIC
@@ -150,6 +148,7 @@ cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat &image, cv::Ca
     rect.y += dy;
     return rect;
 }
+#endif
 
 /* Table of CRCs of all 8-bit messages. */
 unsigned long crc_table[256];

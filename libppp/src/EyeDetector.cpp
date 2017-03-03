@@ -24,11 +24,15 @@ void EyeDetector::configure(rapidjson::Value& cfg)
     }
 
     auto loadCascade = [&](const string& eyeName)
-        {
-            auto haarCascadeDir = cfg["haarCascadeDir"].GetString();
-            auto haarCascadeFileName = edCfg[(string("haarCascade") + eyeName).c_str()].GetString();
-            return CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFileName);
-        };
+    {
+        auto haarCascadeDir = cfg["haarCascadeDir"].GetString();
+        auto & haarCascade = edCfg[(string("haarCascade") + eyeName).c_str()];
+
+        auto xmlBase64Data(haarCascade["data"].GetString());
+        return CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
+   
+        //return CommonHelpers::loadClassifierFromFile(haarCascadeDir, haarCascadeFileName);
+    };
 
     m_leftEyeCascadeClassifier = loadCascade("Left");
     m_rightEyeCascadeClassifier = loadCascade("Right");

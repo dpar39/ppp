@@ -57,5 +57,9 @@ void FaceDetector::configure(rapidjson::Value& cfg)
 {
     const string haarCascadeDir(cfg["haarCascadeDir"].GetString());
     const string haarCascadeFile(cfg["faceDetector"]["haarCascade"].GetString());
-    m_pFaceCascadeClassifier = CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFile);
+
+    auto xmlBase64Data(cfg["faceDetector"]["haarCascade"]["data"].GetString());
+    m_pFaceCascadeClassifier = CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
+
+    //m_pFaceCascadeClassifier = CommonHelpers::loadClassifierFromFile(haarCascadeDir, haarCascadeFile);
 }

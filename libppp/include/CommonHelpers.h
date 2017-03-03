@@ -16,18 +16,14 @@ public:
     *  @param[in] haarCascadeFile File name of the classifier XML file to load
     *  @returns The classifier loaded into memory
     !*/
-    static std::shared_ptr<cv::CascadeClassifier> loadClassifier(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
+    //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
     
-    std::shared_ptr<cv::CascadeClassifier> loadClassifier(const std::string &haarCascadeBase64Data);
+    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
 
     /*!@brief Detects an object in an image using the classifier passed as parameter
     *  The rectangle returned is shifted by the coordinates dx and dy
     !*/
     static cv::Rect detectObjectWithHaarCascade(const cv::Mat& image, cv::CascadeClassifier *cc, int dx = 0, int dy = 0);
-
-    /*!@brief Decodes a base64 string to raw bytes
-    !*/
-    static void base64decode(const std::string &base64Str);
 };
 
 class noncopyable

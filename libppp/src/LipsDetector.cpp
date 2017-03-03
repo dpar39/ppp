@@ -19,12 +19,14 @@ void LipsDetector::configure(rapidjson::Value& config)
         return;
     }
 
-    const string haarClassifierBase64(lipsDetectorCfg["haarCascade"]["data"]);
-    
-    const string haarCascadeDir(config["haarCascadeDir"].GetString());
+    const string haarClassifierBase64(lipsDetectorCfg["haarCascade"]["data"].GetString());
 
+    m_pMouthDetector = CommonHelpers::loadClassifierFromBase64(haarClassifierBase64);
+    
+    return;
+    const string haarCascadeDir(config["haarCascadeDir"].GetString());
     const string haarCascadeFile(lipsDetectorCfg["haarCascade"].GetString());
-    m_pMouthDetector = CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFile);
+    //m_pMouthDetector = CommonHelpers::loadClassifierFromFile(haarCascadeDir, haarCascadeFile);
 }
 
 bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMarks)
