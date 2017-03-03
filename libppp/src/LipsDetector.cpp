@@ -19,7 +19,10 @@ void LipsDetector::configure(rapidjson::Value& config)
         return;
     }
 
+    const string haarClassifierBase64(lipsDetectorCfg["haarCascade"]["data"]);
+    
     const string haarCascadeDir(config["haarCascadeDir"].GetString());
+
     const string haarCascadeFile(lipsDetectorCfg["haarCascade"].GetString());
     m_pMouthDetector = CommonHelpers::loadClassifier(haarCascadeDir, haarCascadeFile);
 }
