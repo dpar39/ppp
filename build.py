@@ -128,6 +128,12 @@ class Builder(object):
             file_handle.writelines(["%s\n" % item  for item in prj_lines])
         self.run_cmd(['call', 'devenv', solution_file])
 
+    def build_dir_name(self, prefix):
+        """
+        Returns a name for a build directory based on the build configuration
+        """
+        return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
+        
     def build_nodejs(self):
         """
         Downloads, extract and builds Node JS from source (Windows ONLY)
@@ -266,7 +272,7 @@ class Builder(object):
             cmake_extra_defs.append(cmake_def)
 
         # Clean and create the build directory
-        build_dir = os.path.join(opencv_extract_dir, 'build')
+        build_dir = self.build_dir_name(opencv_extract_dir)
         if os.path.exists(build_dir): # Remove the build directory
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir): # Create the build directory
@@ -329,7 +335,7 @@ class Builder(object):
         """
         Builds a library using cmake
         """
-        build_dir = os.path.join(cmakelists_path, 'build')
+        build_dir = self.build_dir_name(cmakelists_path)
         # Clean and create the build directory
         if clean_build and os.path.exists(build_dir): # Remove the build directory
             shutil.rmtree(build_dir)
