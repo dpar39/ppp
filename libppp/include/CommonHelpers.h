@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
-
-#include <opencv2/core/core.hpp>
+#include <string>
 
 namespace cv
 {
@@ -12,18 +11,15 @@ class CommonHelpers
 {
 public:
     /*!@brief Loads a cascade classifier from file
-    *  @param[in] haarCascadeDir Directory containing the classifier file to load
-    *  @param[in] haarCascadeFile File name of the classifier XML file to load
+    *  @param[in] haarCascadeBase64Data Haar cascade XML data encoded as a base64 string
     *  @returns The classifier loaded into memory
     !*/
     //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
     
     static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
 
-    /*!@brief Detects an object in an image using the classifier passed as parameter
-    *  The rectangle returned is shifted by the coordinates dx and dy
-    !*/
-    static cv::Rect detectObjectWithHaarCascade(const cv::Mat& image, cv::CascadeClassifier *cc, int dx = 0, int dy = 0);
+    /*!@brief Calculates CRC value for a buffer of specified length !*/
+    static uint32_t updateCrc(uint32_t crc, unsigned char *data, size_t len);
 };
 
 class noncopyable
@@ -44,5 +40,4 @@ namespace std
         return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
 }
-/*!@brief Calculates CRC value for a buffer of specified length !*/
-unsigned long update_crc(unsigned long crc, unsigned char *buf, size_t len);
+

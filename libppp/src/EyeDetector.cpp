@@ -18,24 +18,17 @@ void EyeDetector::configure(rapidjson::Value& cfg)
 
     m_useHaarCascades = edCfg["useHaarCascade"].GetBool();
 
-    if (!m_useHaarCascades)
+    if (m_useHaarCascades)
     {
-        return;
+        auto loadCascade = [&edCfg](const string& eyeName)
+        {
+            auto & haarCascade = edCfg[(string("haarCascade") + eyeName).c_str()];
+            auto xmlBase64Data(haarCascade["data"].GetString());
+            return CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
+        };
+        m_leftEyeCascadeClassifier = loadCascade("Left");
+        m_rightEyeCascadeClassifier = loadCascade("Right");
     }
-
-    auto loadCascade = [&](const string& eyeName)
-    {
-        auto haarCascadeDir = cfg["haarCascadeDir"].GetString();
-        auto & haarCascade = edCfg[(string("haarCascade") + eyeName).c_str()];
-
-        auto xmlBase64Data(haarCascade["data"].GetString());
-        return CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
-   
-        //return CommonHelpers::loadClassifierFromFile(haarCascadeDir, haarCascadeFileName);
-    };
-
-    m_leftEyeCascadeClassifier = loadCascade("Left");
-    m_rightEyeCascadeClassifier = loadCascade("Right");
 }
 
 bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks)

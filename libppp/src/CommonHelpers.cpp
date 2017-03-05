@@ -3,12 +3,17 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <fstream>
+#include <mutex>
+
 #ifdef POCO_STATIC
 #include <Poco/Path.h>
 #include <Poco/File.h>
 #else
 #include <filesystem>
 #endif
+
+std::mutex g_mutex;
 
 static uint8_t fromChar(char ch)
 {
@@ -35,71 +40,68 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-static bool is_base64(unsigned char c)
+std::string base64Decode(const std::string &base64Str)
 {
-    return (isalnum(c) || (c == '+') || (c == '/'));
-}
+    uint8_t charBlock4[4], byteBlock3[3];
+    std::string result;
+    result.reserve(base64Str.size() * 3 / 4);
 
-std::string base64_decode(const std::string &encoded_string)
-{
-    int in_len = encoded_string.size();
-    int i = 0;
-    int j = 0;
-    int in_ = 0;
-    unsigned char char_array_4[4], char_array_3[3];
-    std::string ret;
-
-    ret.reserve(static_cast<size_t>(in_len * 0.75 ));
-
-    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
+    auto i = 0;
+    for (auto ch64 : base64Str)
     {
-        char_array_4[i++] = encoded_string[in_];
-        in_++;
+        if (ch64 == '=')
+        {
+            break;
+        }
+        charBlock4[i++] = ch64;
         if (i == 4)
         {
             for (i = 0; i < 4; i++)
             {
-                 char_array_4[i] = fromChar(char_array_4[i]);
+                 charBlock4[i] = fromChar(charBlock4[i]);
             }
-            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-            ret.append(reinterpret_cast<char *>(char_array_3), 3);
+            byteBlock3[0] = (charBlock4[0] << 2) + ((charBlock4[1] & 0x30) >> 4);
+            byteBlock3[1] = ((charBlock4[1] & 0xf) << 4) + ((charBlock4[2] & 0x3c) >> 2);
+            byteBlock3[2] = ((charBlock4[2] & 0x3) << 6) + charBlock4[3];
+            result.append(reinterpret_cast<char *>(byteBlock3), 3);
             i = 0;
         }
     }
 
-    if (i)
+    if (i > 0)
     {
-        for (j = i; j < 4; j++)
-        {
-            char_array_4[j] = 0;
-        }    
+        std::fill(charBlock4 + i, charBlock4 + 4, '\0');
+        std::transform(charBlock4, charBlock4 + i, charBlock4, fromChar);
 
-        for (j = 0; j < 4; j++)
-        {
-            char_array_4[j] = fromChar(char_array_4[j]);
-        }
-
-        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-        ret.append(reinterpret_cast<char *>(char_array_3), i-1);
+        byteBlock3[0] = (charBlock4[0] << 2) + ((charBlock4[1] & 0x30) >> 4);
+        byteBlock3[1] = ((charBlock4[1] & 0xf) << 4) + ((charBlock4[2] & 0x3c) >> 2);
+        byteBlock3[2] = ((charBlock4[2] & 0x3) << 6) + charBlock4[3];
+        result.append(reinterpret_cast<char *>(byteBlock3), i - 1);
     }
 
-    return ret;
+    return result;
 }
 
 std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
 {
-    auto xmlHaarCascade = base64_decode(haarCascadeBase64Data);
+    auto xmlHaarCascade = base64Decode(haarCascadeBase64Data);
     auto classifier = std::make_shared<cv::CascadeClassifier>();
+    // Workaround until there I find a way to convert to the new 
+    // format that is accepted as an in-memory FileNode
+    // Implementation should look like this:
 
-    cv::FileStorage fs(".xml", cv::FileStorage::MEMORY);
-    fs << xmlHaarCascade;
-    classifier->load(fs.getFirstTopLevelNode());
+    //cv::FileStorage fs(xmlHaarCascade, cv::FileStorage::READ | cv::FileStorage::MEMORY);
+    //auto fnode = fs.getFirstTopLevelNode();
+    //classifier->read(fnode);
+    //return classifier;
 
+    std::lock_guard<std::mutex> lg(g_mutex);
+    std::string tmpFile = "cascade.xml";
+    {
+        std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
+        oss.write(xmlHaarCascade.c_str(), xmlHaarCascade.size());
+    }
+    classifier->load(tmpFile);
     return classifier;
 }
 #if 0
@@ -150,60 +152,41 @@ cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat &image, cv::Ca
 }
 #endif
 
-/* Table of CRCs of all 8-bit messages. */
-unsigned long crc_table[256];
-
-/* Flag: has the table been computed? Initially false. */
-int crc_table_computed = 0;
-
-/* Make the table for a fast CRC. */
-void make_crc_table(void)
-{
-    unsigned long c;
-    int n, k;
-
-    for (n = 0; n < 256; n++)
-    {
-        c = static_cast<unsigned long>(n);
-        for (k = 0; k < 8; k++)
-        {
-            if (c & 1)
-            {
-                c = 0xedb88320L ^ (c >> 1);
-            }
-            else
-            {
-                c = c >> 1;
-            }
-        }
-        crc_table[n] = c;
-    }
-    crc_table_computed = 1;
-}
 
 /* Update a running CRC with the bytes buf[0..len-1]--the CRC
 should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
 
-unsigned long update_crc(unsigned long crc, unsigned char *buf, size_t len)
+uint32_t CommonHelpers::updateCrc(uint32_t crc, unsigned char *buf, size_t len)
 {
-    auto c = crc;
-    int n;
-
-    if (!crc_table_computed)
+    /* Table of CRCs of all 8-bit messages. */
+    static uint32_t s_crcTable[256];
+    static std::once_flag s_crcComputeFlag;
+    std::call_once(s_crcComputeFlag, []()
     {
-        make_crc_table();
-    }
-    for (n = 0; n < len; n++)
+        unsigned long c;
+        int n, k;
+        for (n = 0; n < 256; n++)
+        {
+            c = static_cast<unsigned long>(n);
+            for (k = 0; k < 8; k++)
+            {
+                if (c & 1)
+                {
+                    c = 0xedb88320L ^ (c >> 1);
+                }
+                else
+                {
+                    c = c >> 1;
+                }
+            }
+            s_crcTable[n] = c;
+        }
+    });
+    for (auto n = 0; n < len; n++)
     {
-        c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+        crc = s_crcTable[(crc ^ buf[n]) & 0xff] ^ (crc >> 8);
     }
-    return c;
-}
-
-/* Return the CRC of the bytes buf[0..len-1]. */
-unsigned long crc(unsigned char *buf, int len)
-{
-    return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
+    return crc;
 }

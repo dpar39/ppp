@@ -20,28 +20,28 @@ PublicPppEngine::PublicPppEngine()
     m_pPppEngine = std::make_shared<PppEngine>();
 }
 
-void PublicPppEngine::configure(const std::string& jsonConfig)
+void PublicPppEngine::configure(const std::string& jsonConfig) const
 {
     Document parser;
     parser.Parse(jsonConfig.c_str());
     m_pPppEngine->configure(parser);
 }
 
-std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength)
+std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength) const
 {
     cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
     auto inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
     return m_pPppEngine->setInputImage(inputImage);
 }
 
-std::string PublicPppEngine::detectLandmarks(const std::string& imageId)
+std::string PublicPppEngine::detectLandmarks(const std::string& imageId) const
 {
     LandMarks landMarks;
     m_pPppEngine->detectLandMarks(imageId, landMarks);
     return landMarks.toJson();
 }
 
-void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request, std::vector<byte>& pictureData)
+void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request, std::vector<byte>& pictureData) const
 {
     rapidjson::Document d;
     d.Parse(request.c_str());
@@ -56,9 +56,7 @@ void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::st
     cv::imencode(".png", result, pictureData);
 
     // Add image resolution to output
-
     setPngResolutionDpi(pictureData, canvas->resolutionPixelsPerMM());
-
 }
 
 template <typename T>
@@ -92,7 +90,7 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
     pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
     pHYsChunk.push_back(1); // Unit is the meter
 
-    auto crcBytes = toBytes(update_crc(0, &pHYsChunk[4], pHYsChunk.size() - 4));
+    auto crcBytes = toBytes(CommonHelpers::updateCrc(0, &pHYsChunk[4], pHYsChunk.size() - 4));
     pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
 
     string idat = "IDAT";

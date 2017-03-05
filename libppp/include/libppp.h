@@ -28,15 +28,15 @@ public:
 
     PublicPppEngine();
 
-    void configure(const std::string &jsonConfig);
+    void configure(const std::string &jsonConfig) const;
 
     /*!@brief Stores the image for processing 
     *  param[in] bufferData Pointer to the image data
     *  returns Image Id that can be used to recognise the image
     !*/
-    std::string setImage(const char *bufferData, size_t bufferLength);
+    std::string setImage(const char *bufferData, size_t bufferLength) const;
     
-    std::string detectLandmarks(const std::string &imageId);
+    std::string detectLandmarks(const std::string &imageId) const;
  
     /*!@brief Creates a tiled print from input image, crown/chin points and passport/canvas definition
     *  Output definition is passed as a JSON string with the following format:
@@ -66,7 +66,7 @@ public:
     .    }
     .}
     !*/
-    void createTiledPrint(const std::string& imageId, const std::string &request, std::vector<byte> &pictureData);
+    void createTiledPrint(const std::string& imageId, const std::string &request, std::vector<byte> &pictureData) const;
 
 private:
     std::shared_ptr<PppEngine> m_pPppEngine;

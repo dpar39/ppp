@@ -2,8 +2,9 @@
 #include <vector>
 #include <functional>
 
-#include <opencv2/imgcodecs.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
 #include <opencv2/highgui/highgui.hpp>
 
 #include <PppEngine.h>
