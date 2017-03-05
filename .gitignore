@@ -1,11 +1,12 @@
 /.vs
+/.vscode
 /build_*
 /install_*
 /thirdparty
 /visualstudio
 /research/*.asv
-/webapp/node_modules
 /addon/build
-/.vscode
 /research/mugshot_frontal_original_all
-/webapp/uploads
+/webapp/addon.node
+/webapp/config.json
+/webapp/liblibppp.so
