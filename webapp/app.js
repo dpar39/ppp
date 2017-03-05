@@ -17,16 +17,16 @@ try {
     var addon = require("./addon");
 } catch (err) {
     console.log("Error importing addon :(");
-    console.log(err);
+    console.log(JSON.stringify(err));
+    throw err;
 }
 
 var pppEngine = new addon.PppWrapper();
 console.log('Addon instance created!');
 
-var engineConfigFile = 'share/config.json';
-// Read configuration json
+// Configure addon engine instance
+var engineConfigFile = 'config.json';
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
-
 pppEngine.configure(jsonConfig);
 console.log('Addon instance configured!');
 
@@ -43,7 +43,6 @@ var uploadImageDirectory = path.join(__dirname, '/uploads');
 app.get('/', function (req, res) {
     res.sendfile('public/index.html', { root: __dirname })
 });
-
 
 // -- Upload input image
 app.post('/upload', function (req, res) {
@@ -185,4 +184,3 @@ var port = process.env.PORT || 3000;
 app.listen(port, function () {
     console.log("Server listening on port " + port);
 });
-

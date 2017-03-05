@@ -1,3 +1,4 @@
-share/
+node_modules/
+config.json
 addon.node
 liblibppp.so
