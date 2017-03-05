@@ -2,3 +2,4 @@
 \uploads
 node_modules
 uploads
+*.log

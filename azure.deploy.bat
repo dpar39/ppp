@@ -8,6 +8,7 @@ if not exist azure (
 )
 xcopy %~dp0\webapp azure /y /s /exclude:%~dp0\webapp\.gitignore
 cd azure
-git commit -a -m "Deploy"
+git add .
+git commit -m "Deploy"
 git push origin master
 popd
