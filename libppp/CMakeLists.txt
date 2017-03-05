@@ -52,21 +52,16 @@ add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
-add_custom_command(TARGET ${LIB_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   ${CMAKE_CURRENT_SOURCE_DIR}/config $<TARGET_FILE_DIR:${LIB_NAME}>)
-
 # Install the library
 install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/share DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #-----------------------------
 # Build the module tests
 #-----------------------------
 file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
-
 
 set(TEST_INC_DIRS
     "tests/include"
@@ -79,14 +74,9 @@ set(TEST_LIB_DEPS
     ${MODULE_LIB_DEPS}
     gmock
 )
-set(TEST_LIB_DIRS
-    ${MODULE_INC_DIRS}
-)
 
 add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
-link_directories(${TEST_LIB_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
 add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
-#add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

@@ -422,25 +422,25 @@ class Builder(object):
         These images were requested at http://www.scface.org/ and are copyrighted,
         so please do not share them without obatining written consent
         """
-        print 'Extracting validation data ...'
         def extract(research_dir, zip_file):
             """
-            Extracts file
+            Extracts file from zip archive
             """
             zip_file = os.path.join(research_dir, zip_file)
             if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
                 return # Nothing to do, data already been extracted
+            print 'Extracting validation data ...'
             zip_handle = zipfile.ZipFile(zip_file)
             for item in zip_handle.namelist():
                 zip_handle.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
             zip_handle.close()
+            print 'Extracting validation data completed!'
 
         research_dir = os.path.join(self._root_dir, 'research')
         extract(research_dir, 'annotated_imageset0.zip')
         extract(research_dir, 'annotated_imageset1.zip')
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
-        print 'Extracting validation data completed!'
 
     def build_cpp_code(self):
         """
@@ -491,18 +491,12 @@ class Builder(object):
         """
         Deploys the addon to the webapp directory as well as the shared configuration
         """
-        addon = os.path.join(self._install_dir, 'addon.node')
-        share_dir = os.path.join(self._install_dir, 'share')
         webapp_dir = os.path.join(self._root_dir, 'webapp')
-        webapp_share = os.path.join(webapp_dir, 'share')
-        shutil.copy(addon, webapp_dir)
+        shutil.copy(os.path.join(self._install_dir, 'addon.node'), webapp_dir)
+        shutil.copy(os.path.join(self._install_dir, 'config.json'), webapp_dir)
         if not IS_WINDOWS:
             # Copy shared library to webapp directory
-            libppp = os.path.join(self._install_dir, 'liblibppp.so')
-            shutil.copy(libppp, webapp_dir)
-        if os.path.exists(webapp_share):
-            shutil.rmtree(webapp_share)
-        shutil.copytree(share_dir, webapp_share)
+            shutil.copy(os.path.join(self._install_dir, 'liblibppp.so'), webapp_dir)
 
     def __init__(self):
         # Detect OS version
