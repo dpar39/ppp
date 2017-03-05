@@ -1,3 +1,5 @@
-deploy.bat
-node_modules/
-uploads/
+\node_modules
+\uploads
+node_modules
+uploads
+*.log
