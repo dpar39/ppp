@@ -46,11 +46,18 @@ public:
 TEST_F(PppEngineTests, ConfigureWorks)
 {
     // Arange
-    rapidjson::Value config;
+    const int imageStoreSize = 42;
+    rapidjson::Document config;
+    config.SetObject();
+    auto& alloc = config.GetAllocator();
+    config.AddMember("imageStoreSize", imageStoreSize, alloc);
+
 
     EXPECT_CALL(*m_faceDetector, configure(Ref(config))).Times(1);
     EXPECT_CALL(*m_eyesDetector, configure(Ref(config))).Times(1);
     EXPECT_CALL(*m_lipsDetector, configure(Ref(config))).Times(1);
+
+    EXPECT_CALL(*m_imageStore, setStoreSize(imageStoreSize));
 
     // Act
     m_pppEngine->configure(config);
