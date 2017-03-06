@@ -20,16 +20,16 @@ script:
 notifications:
   email:
     on_failure: change
-deploy:
-  provider: releases
-  api_key:
-    secure: 32L8/h+aNVH4YEDheebMrHbA2PnpMaYFkJDuPf3KQF6ZwAqTEBH/Kj3poOgtjhQv0Cu3ppNp/yLGGZLrS0g9pWzMzB6GrqUGDd7lSgId3QBrcChQlE580Lpu4uMEdyTTqWRW5DrS3lchFQNSo6/H8jJbJRQumdkNlVHe76/ISeQEh1SChSi1FXeN2AU2aIUzR6xm5Boz4Mt/kcvH6+vrNatcolnt6IGt5AuzrZPT6lg2a9pNd7RwJgSJFzbP5IEA8bTASGw8EMV2yO1ZuCFfo+IZbY31tjiwCr8wt+Zl/0Np4NBrbnrGlI4uK38AHiB3FyDmDMMqYjTSXjq3diieMUAfNE6BCbICbBR6cv8eiRtr0/bh5LYpdNNwGOqBG6JjYaK9L1Edn2HMv5ranNRIXjcpEnyxFt7SzqQqXE/pPoLZXguuFcTBQPRCzvcvNgklS8XfpyoC4/FDy9FUeHVWI2x311FdkVJ4QhuTImmYAi3X/VIkLx8CH7xNkNcUZwtd8FETRBAe8Eb6s3KCVk/8IYZd0dVymKOgq3nBdWR8+9xy0X5Patbfx7o+dHCbni5YHWZRUkcb2A8Ne3WDSNZ67monBqQJcRBYZmBgccplcKwA7sGZyeyzhpcsejdVTN0v8wmaE9N3O/ZHPAOyYHr9v4vKHZZxkE3RAidgY0l4UqU=
-  file_glob: true
-  file: 
-  - webapp/addon.node
-  - webapp/liblibppp.so
-  - webapp/config.json
-  skip_cleanup: true
-  on:
-    repo: dpar39/ppp
-    branch: master
+# deploy:
+#   provider: releases
+#   api_key:
+#     secure: 32L8/h+aNVH4YEDheebMrHbA2PnpMaYFkJDuPf3KQF6ZwAqTEBH/Kj3poOgtjhQv0Cu3ppNp/yLGGZLrS0g9pWzMzB6GrqUGDd7lSgId3QBrcChQlE580Lpu4uMEdyTTqWRW5DrS3lchFQNSo6/H8jJbJRQumdkNlVHe76/ISeQEh1SChSi1FXeN2AU2aIUzR6xm5Boz4Mt/kcvH6+vrNatcolnt6IGt5AuzrZPT6lg2a9pNd7RwJgSJFzbP5IEA8bTASGw8EMV2yO1ZuCFfo+IZbY31tjiwCr8wt+Zl/0Np4NBrbnrGlI4uK38AHiB3FyDmDMMqYjTSXjq3diieMUAfNE6BCbICbBR6cv8eiRtr0/bh5LYpdNNwGOqBG6JjYaK9L1Edn2HMv5ranNRIXjcpEnyxFt7SzqQqXE/pPoLZXguuFcTBQPRCzvcvNgklS8XfpyoC4/FDy9FUeHVWI2x311FdkVJ4QhuTImmYAi3X/VIkLx8CH7xNkNcUZwtd8FETRBAe8Eb6s3KCVk/8IYZd0dVymKOgq3nBdWR8+9xy0X5Patbfx7o+dHCbni5YHWZRUkcb2A8Ne3WDSNZ67monBqQJcRBYZmBgccplcKwA7sGZyeyzhpcsejdVTN0v8wmaE9N3O/ZHPAOyYHr9v4vKHZZxkE3RAidgY0l4UqU=
+#   file_glob: true
+#   file: 
+#   - webapp/addon.node
+#   - webapp/liblibppp.so
+#   - webapp/config.json
+#   skip_cleanup: true
+#   on:
+#     repo: dpar39/ppp
+#     branch: master
