@@ -134,7 +134,7 @@ class Builder(object):
         Returns a name for a build directory based on the build configuration
         """
         return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
-        
+
     def build_nodejs(self):
         """
         Downloads, extract and builds Node JS from source (Windows ONLY)
