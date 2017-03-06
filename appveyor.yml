@@ -10,7 +10,7 @@ branches:
 max_jobs: 1
 
 install:
-  - echo Nothing to install
+  - npm install -g node-gyp
 
 platform:
   - x86

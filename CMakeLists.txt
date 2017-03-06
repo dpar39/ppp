@@ -33,20 +33,15 @@ endif()
 if (MSVC)
     # On windows, compile with CRT only in debug mode
     set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
-    # if (${BUILD_TYPE} MATCHES "debug")
-    #     set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE)
-    # else()
-        foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            if(${FLAG_VAR} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
-            endif()
-        endforeach()
-    # en 
+    foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        if(${FLAG_VAR} MATCHES "/MD")
+            string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+        endif()
+    endforeach()
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 # Add GMock/GTest as it is needed by all modules
-
 include_directories(${GMOCK_ROOT}/gtest/include)
 include_directories(${GMOCK_ROOT}/include)
 include_directories(${THIRD_PARTY_DIR})
@@ -59,5 +54,7 @@ include_directories(libppp/include)
 add_subdirectory(libppp)
 
 # Add the C++ wrapper for node.js
-include_directories(addon/include)
-add_subdirectory(addon)
+if (MSVC AND (${BUILD_TYPE} MATCHES "debug"))
+    include_directories(addon/include)
+    add_subdirectory(addon)
+endif()

@@ -7,35 +7,16 @@
         "source/pppwrapper.cpp"
       ],
       "include_dirs": [
-        "../install_release_x64",
+        "../install_release_x86",
         "include"
       ],
-      "configurations": {
-        "Debug": {
-          "msvs_settings": {
-            "VCCLCompilerTool": {
-              "AdditionalOptions": [
-                "/MDd"
-              ]
-            }
-          }
-        },
-        "Release": {
-          "msvs_settings": {
-            "VCCLCompilerTool": {
-              "AdditionalOptions": [
-                "/MD"
-              ]
-            }
-          }
-        }
-      },
+      
       "conditions": [
         [
           "OS=='win'",
           {
             "libraries": [
-              "..\\..\\install_release_x64\\libppp.lib"
+              "..\\..\\install_release_x86\\libppp.lib"
             ]
           },
           "OS=='linux'",

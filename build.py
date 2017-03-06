@@ -409,8 +409,7 @@ class Builder(object):
         """
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
-        self.run_cmd(['node-gyp', 'configure'])
-        self.run_cmd(['node-gyp', 'build'])
+        self.run_cmd(['node-gyp', 'clean', 'configure', 'build', '--arch=ia32'])
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
@@ -478,13 +477,10 @@ class Builder(object):
                 self.run_cmd(make_cmd + ['install'])
             os.chdir(self._root_dir)
 
-            if not IS_WINDOWS:
-                # Build the node addon with node-gyp
-                self.build_addon_with_nodegyp()
+            self.build_addon_with_nodegyp()
             # Run addon integration test
             os.chdir(self._install_dir)
-            if self._run_tests:
-                self.run_cmd(['node', './test.js'])
+            self.run_cmd(['node', './test.js'])
         os.chdir(self._root_dir)
 
     def deploy_addon(self):
@@ -494,9 +490,10 @@ class Builder(object):
         webapp_dir = os.path.join(self._root_dir, 'webapp')
         shutil.copy(os.path.join(self._install_dir, 'addon.node'), webapp_dir)
         shutil.copy(os.path.join(self._install_dir, 'config.json'), webapp_dir)
-        if not IS_WINDOWS:
-            # Copy shared library to webapp directory
-            shutil.copy(os.path.join(self._install_dir, 'liblibppp.so'), webapp_dir)
+        for shared_lib in ['liblibppp.so', 'libppp.dll']:
+            shared_lib_path = os.path.join(self._install_dir, shared_lib)
+            if os.path.exists(shared_lib_path):
+                shutil.copy(shared_lib_path, webapp_dir)
 
     def __init__(self):
         # Detect OS version
@@ -513,7 +510,7 @@ class Builder(object):
         self.build_poco_lib()
         self.build_opencv()
 
-        if IS_WINDOWS:
+        if self._gen_vs_sln:
             # Build Node JS from source so the addon can be build reliably for Windows
             self.build_nodejs()
 
