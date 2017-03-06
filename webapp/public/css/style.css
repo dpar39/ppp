@@ -1,20 +1,27 @@
 body {
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
     padding: 50px;
+    background: ghostwhite
 }
 
 #container {
     max-height: 50%;
     height: 400px;
     border: 1px solid black;
+    border-radius: 5px;
+}
+
+.results {
+    border-radius: 5px;
 }
 
 .landmark {
     width: 14px;
     height: 14px;
-    border: 1px solid orange;
+    border: 1px solid green;
     border-radius: 50%;
-    background-color: transparent;
+    background-color: greenyellow;
+    opacity: 0.5;
     float: left ;
     position: absolute;
     visibility: hidden;

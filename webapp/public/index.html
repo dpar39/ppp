@@ -20,18 +20,20 @@
     <h1>Passport photo app</h1>
     <h4>Create your passport photo to the right size and ready to print</h4>
     <span class="row">Take or load a picture of yourself</span>
-    <div id="container" class="col-lg-6 col-md-12">
-      <img id="photo" alt="">
-      <div class="landmark" id="crownMark"></div>
-      <div class="landmark" id="chinMark"></div>
-    </div>
-    <div id="divButtons">
-      <button id="btnTakePicture" class="btn btn-success col-md-2">Take photo</button>
-      <button id="btnLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
-      <button id="btnCreatePrint" class="btn btn-success col-md-2" style="visibility:hidden">Create Print</button>
-      <form>
-        <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
-      </form>
+    <div class="col-lg-6 col-md-6">
+      <div id="container" class='row'>
+        <img id="photo" alt="">
+        <div class="landmark" id="crownMark"></div>
+        <div class="landmark" id="chinMark"></div>
+      </div>
+      <div id="divButtons" class="row">
+        <button id="btnTakePicture" class="btn btn-success">Take photo</button>
+        <button id="btnLoadPicture" class="btn btn-success">Choose photo</button>
+        <button id="btnCreatePrint" class="btn btn-success" style="visibility:hidden">Create Print</button>
+        <form>
+          <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" >
+        </form>
+      </div>
     </div>
 
     <div id="divSettings" class="col-md-6">
@@ -39,7 +41,7 @@
       <div id="divcanvas"></div>
     </div>
 
-    <div id="divResults" class="row"></div>
+    <div id="divResults" class="col-md-12"></div>
   </div>
 
   <script type="text/backbone" id="canvas-template">
@@ -95,8 +97,8 @@
 
   <script type="text/backbone" id="results-template">
     <% if (imageSrc) { %>
-      <a href="<%=imageSrc%>" class="col-md-12" download="print.png">
-        <img class="row" style="width:100%" src="<%=imageSrc%>">
+      <a href="<%=imageSrc%>" download="print.png">
+        <img style="width:100%" class="results" src="<%=imageSrc%>">
       </a>
       <% } %>
   </script>

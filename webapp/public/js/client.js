@@ -289,9 +289,18 @@ var Viz = function () {
             var p2 = pixelToScreen(m_chinMarkElmt, m_chinPoint);
             translateElement(m_crownMarkElmt, p1.x, p1.y);
             translateElement(m_chinMarkElmt, p2.x, p2.y);
-            $(".landmark").css("visibility", "visible");
+            $(".landmark").css('visibility', 'visible');
+        } else {
+            $(".landmark").css('visibility', 'hidden');
         }
+
     };
+
+    var resetLandMarks = function()
+    {
+        m_chinPoint = m_chinPoint = null;
+        $(".landmark").css('visibility', 'hidden');
+    }
 
     var updateLandMarks = function () {
         m_crownPoint = screenToPixel(m_crownMarkElmt);
@@ -320,6 +329,7 @@ var Viz = function () {
         zoomFit: zoomFit,
         renderImage: renderImage,
         setLandMarks: setLandMarks,
+        resetLandMarks : resetLandMarks,
         updateLandMarks: updateLandMarks,
         crownPoint: function () { return m_crownPoint; },
         chinPoint: function () { return m_chinPoint; }
@@ -333,7 +343,7 @@ var viz = Viz();
 $("#loadImage").change(function () {
     var source = this;
     if (source.files && source.files[0]) {
-        $(".landmark").hide();
+        viz.resetLandMarks();
         // Get the file from the input
         var file = source.files[0];
         // Upload the file to the server to detect landmarks
