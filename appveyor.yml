@@ -19,4 +19,4 @@ build_script:
   - python build.py --build_config=release  --skip_tests
 
 test_script:
-  - cmd: cd install_release_%PLATFORM%; ppp-tests.exe --gtest_filter=-*TestEndToEndLandmarkDetection* --gtest_output=xml:tests.xml
+  - cmd: cd install_release_x86; ppp-tests.exe --gtest_filter=-*TestEndToEndLandmarkDetection* --gtest_output=xml:tests.xml
