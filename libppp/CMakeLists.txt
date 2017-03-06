@@ -14,8 +14,10 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 find_package(OpenCV REQUIRED)
 
 # POCO Library
-add_definitions(-DPOCO_STATIC)
-find_package(Poco REQUIRED COMPONENTS Foundation)
+if (UNIX)
+    add_definitions(-DPOCO_STATIC)
+    find_package(Poco REQUIRED COMPONENTS Foundation)
+endif()
 
 #-----------------------------
 # Build the module library

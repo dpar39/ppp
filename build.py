@@ -240,7 +240,7 @@ class Builder(object):
             'ts', 'features2d', 'calib3d', 'stitching', \
             'videostab', 'java']
         ocv_build_modules = ['highgui', 'core', 'imgproc',\
-            'objdetect', 'imgcodecs', 'ml', 'videoio']
+            'objdetect', 'imgcodecs']
 
         # Skip building OpenCV if done already
         if IS_WINDOWS:
@@ -409,7 +409,7 @@ class Builder(object):
         """
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
-        self.run_cmd(['node-gyp', 'clean', 'configure', 'build', '--arch=ia32'])
+        self.run_cmd(['node-gyp', 'clean', 'configure', 'build'])
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
@@ -507,7 +507,8 @@ class Builder(object):
 
         # Build Third party libs
         self.extract_gmock()
-        self.build_poco_lib()
+        if not IS_WINDOWS:
+            self.build_poco_lib()
         self.build_opencv()
 
         if self._gen_vs_sln:
