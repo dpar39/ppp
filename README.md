@@ -1,4 +1,4 @@
-[# Passport photo app](https://passport-photo.azurewebsites.net)
+# [Passport photo app](https://passport-photo.azurewebsites.net)
 [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) 
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
 
