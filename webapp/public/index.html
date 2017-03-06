@@ -16,29 +16,31 @@
 </head>
 
 <body>
-  <h1>Free passport photo ready to print and use v1.0</h1>
-  <h4>Create your passport photo to the right size and ready to print</h4>
-  <div id="container">
-    <img id="photo" alt="">
-    <div class="landmark" id="crownMark"></div>
-    <div class="landmark" id="chinMark"></div>
-  </div>
+  <div class="container">
+    <h1>Passport photo app</h1>
+    <h4>Create your passport photo to the right size and ready to print</h4>
+    <span class="row">Take or load a picture of yourself</span>
+    <div id="container" class="col-lg-6 col-md-12">
+      <img id="photo" alt="">
+      <div class="landmark" id="crownMark"></div>
+      <div class="landmark" id="chinMark"></div>
+    </div>
+    <div id="divButtons">
+      <button id="btnTakePicture" class="btn btn-success col-md-2">Take photo</button>
+      <button id="btnLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
+      <button id="btnCreatePrint" class="btn btn-success col-md-2" style="visibility:hidden">Create Print</button>
+      <form>
+        <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
+      </form>
+    </div>
 
-  <div id="divButtons">
-    <button id="btnTakePicture" class="btn btn-success col-md-2">Take photo</button>
-    <button id="btnLoadPicture" class="btn btn-success col-md-2">Choose photo</button>
-    <button id="btnCreatePrint" class="btn btn-success col-md-2" style="visibility:hidden">Create Print</button>
-    <form>
-      <input type="file" id="loadImage" name="uploads[]" accept="image/*" style="visibility: hidden;" />
-    </form>
-  </div>
+    <div id="divSettings" class="col-md-6">
+      <div id="divpassport"></div>
+      <div id="divcanvas"></div>
+    </div>
 
-  <div id="divSettings">
-    <div id="divpassport"></div>
-    <div id="divcanvas"></div>
+    <div id="divResults" class="row"></div>
   </div>
-
-  <div id="divResults" class="row" ></div>
 
   <script type="text/backbone" id="canvas-template">
     <div class="col-md-12">
@@ -75,20 +77,20 @@
        <option value="<%=c.name %>" <%=(c.name === name)?"selected":""%> > <%=c.name %> </option>
       <% }); %>
     </select>
-    <div>
-      <span>Photo Size: </span>
-      <input id="photo-width" type="number" value="<%=pictureWidth %>" />
-      <span> x </span>
-      <input id="photo-height" type="number" value="<%=pictureHeight %>" />
-      <span> Face height: </span>
-      <input id="face-height" type="number" value="<%=faceHeight %>" />
+      <div>
+        <span>Photo Size: </span>
+        <input id="photo-width" type="number" value="<%=pictureWidth %>" />
+        <span> x </span>
+        <input id="photo-height" type="number" value="<%=pictureHeight %>" />
+        <span> Face height: </span>
+        <input id="face-height" type="number" value="<%=faceHeight %>" />
 
-      <select id="photo-units">
+        <select id="photo-units">
       <% _.each(UnitsList, function(u) { %>
         <option value="<%=u%>" <%=(u === units)?"selected":""%> > <%=u %> </option> 
       <% }); %>
       </select>
-    </div>
+      </div>
   </script>
 
   <script type="text/backbone" id="results-template">
@@ -96,9 +98,10 @@
       <a href="<%=imageSrc%>" class="col-md-12" download="print.png">
         <img class="row" style="width:100%" src="<%=imageSrc%>">
       </a>
-    <% } %>
+      <% } %>
   </script>
 
   <script src="js/client.js"></script>
 </body>
+
 </html>

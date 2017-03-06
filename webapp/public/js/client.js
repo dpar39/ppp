@@ -194,6 +194,7 @@ function retrieveLandmarks() {
 }
 
 function createPhotoPrint() {
+    results.set('imageSrc', null);
     $.get({
         url: '/photoprint',
         data: {
@@ -332,6 +333,7 @@ var viz = Viz();
 $("#loadImage").change(function () {
     var source = this;
     if (source.files && source.files[0]) {
+        $(".landmark").hide();
         // Get the file from the input
         var file = source.files[0];
         // Upload the file to the server to detect landmarks
