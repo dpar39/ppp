@@ -518,8 +518,7 @@ class Builder(object):
             self.build_nodejs()
 
         #Extract validation data (imageset with annotations)
-        if self._run_tests:
-            self.extract_validation_data()
+        self.extract_validation_data()
 
         # Build this project
         self.build_cpp_code()
