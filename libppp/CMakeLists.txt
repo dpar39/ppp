@@ -81,4 +81,4 @@ add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES} ${LIB_SRC_FILES}
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
-add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} --gtest_output=xml:${TEST_NAME}.xml)
+install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
