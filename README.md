@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
-[https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?svg=true](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?svg=true)
+.. image:: https://ci.appveyor.com/api/projects/status/pc08owbun2y00kwk?svg=true
+   :target: https://ci.appveyor.com/project/dpar39/ppp
+   :alt: AppVeyor Build Status
 
 ---  
 
