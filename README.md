@@ -1,4 +1,4 @@
-# Passport photo app [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) [![Build Status](https://ci.appveyor.com/api/projects/status/oun48n5bfyilpg474d3j?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
+# Passport photo app [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
 
 ---  
 
