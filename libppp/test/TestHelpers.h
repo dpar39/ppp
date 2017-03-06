@@ -49,6 +49,23 @@ inline std::string resolvePath(const std::string &relPath)
 #else
 #include <filesystem>
 
+inline std::string resolvePath(const std::string &relPath)
+{
+    namespace fs = std::tr2::sys;
+    auto baseDir = fs::current_path();
+    while (baseDir.has_parent_path())
+    {
+        auto combinePath = baseDir / relPath;
+        if (fs::exists(combinePath))
+        {
+            return combinePath.string();
+        }
+        baseDir = baseDir.parent_path();
+    }
+    return std::string();
+}
+
+
 inline void getImageFiles(const std::string &testImagesDir, std::vector<std::string> &imageFilenames)
 {
     std::vector<std::string> supportedImageExtensions = { ".jpg", /*".png",*/ ".bmp" };
