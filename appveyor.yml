@@ -20,3 +20,6 @@ build_script:
 
 test_script:
   - cmd: install_release_%PLATFORM%\ppp_test.exe --gtest_filter=-*TestEndToEndLandmarkDetection* --gtest_output=xml:tests.xml
+
+on_finish:
+  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
