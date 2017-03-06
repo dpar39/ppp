@@ -16,7 +16,6 @@
 #define DIAGNOSTIC(msg) ;
 #define __DIAGNOSTIC__ ;
 #endif
-#include <iostream>
 
 namespace addon
 {

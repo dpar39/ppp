@@ -77,6 +77,7 @@ class Builder(object):
             cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
             env['CXXFLAGS'] = '-fPIC'
+        env['INSTALL_DIR'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env)
@@ -405,11 +406,12 @@ class Builder(object):
 
     def build_addon_with_nodegyp(self):
         """
-        Builds the Node JS addon using node-gyp (Linux only)
+        Builds the Node JS addon using node-gyp
         """
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
-        self.run_cmd(['node-gyp', 'clean', 'configure', 'build'])
+        arch = '--arch=%s' % ('x64' if self._arch_name == 'x64' else 'ia32')
+        self.run_cmd(['node-gyp', 'clean', 'configure', 'build', arch])
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)

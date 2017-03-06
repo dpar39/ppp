@@ -7,22 +7,21 @@
         "source/pppwrapper.cpp"
       ],
       "include_dirs": [
-        "../install_release_x86",
+        "$(INSTALL_DIR)",
         "include"
       ],
-      
       "conditions": [
         [
           "OS=='win'",
           {
             "libraries": [
-              "..\\..\\install_release_x86\\libppp.lib"
+              "$(INSTALL_DIR)/libppp.lib"
             ]
           },
           "OS=='linux'",
           {
             "libraries": [
-              "-L../../install_release_x64/",
+              "-L$(INSTALL_DIR)",
               "-llibppp"
             ],
             "ldflags": [

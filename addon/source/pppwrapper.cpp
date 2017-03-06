@@ -6,6 +6,7 @@
 #include <uv.h>
 
 #include <fstream>
+#include <iostream>
 
 using namespace addon;
 
@@ -105,6 +106,7 @@ void PppWrapper::New(const FunctionCallbackInfo<Value>& args)
 
 void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    //__DIAGNOSTIC__
     auto isolate = args.GetIsolate();
     if (args.Length() != 1 || !(args[0]->IsString() || args[0]->IsObject()))
     {
@@ -120,6 +122,7 @@ void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
 {
+    //__DIAGNOSTIC__
     auto isolate = args.GetIsolate();
     if(args.Length() != 2
         || !args[0]->IsArrayBuffer()
@@ -149,6 +152,7 @@ void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
 
 void PppWrapper::DetectLandMarks(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    //__DIAGNOSTIC__
     auto isolate = args.GetIsolate();
     if (args.Length() != 2 || !args[0]->IsString() || !args[1]->IsFunction())
     {
@@ -185,7 +189,7 @@ std::string PppWrapper::toJson(v8::Local<v8::Object> object)
 
 void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    __DIAGNOSTIC__
+    //__DIAGNOSTIC__
     auto isolate = args.GetIsolate();
     if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsObject() || !args[2]->IsFunction())
     {
@@ -219,6 +223,7 @@ v8::Local<v8::Primitive> GetWorkItemError(WorkItemBase * work)
 
 void PppWrapper::SetImageWorkAsync(uv_work_t* req)
 {
+    //__DIAGNOSTIC__
     auto work = static_cast<SetImageWorkItem *>(req->data);
     try
     {
@@ -232,6 +237,7 @@ void PppWrapper::SetImageWorkAsync(uv_work_t* req)
 
 void PppWrapper::SetImageWorkAsyncComplete(uv_work_t* req, int status)
 {
+    //__DIAGNOSTIC__
     auto isolate = Isolate::GetCurrent();
     v8::HandleScope handleScope(isolate); // Required for Node 4.x
 
@@ -251,6 +257,7 @@ void PppWrapper::SetImageWorkAsyncComplete(uv_work_t* req, int status)
 
 void PppWrapper::DetectLandMarksWorkAsync(uv_work_t* req)
 {
+    //__DIAGNOSTIC__
     auto work = static_cast<DetectLandMarksWorkItem *>(req->data);
     try
     {
@@ -264,6 +271,7 @@ void PppWrapper::DetectLandMarksWorkAsync(uv_work_t* req)
 
 void PppWrapper::DetectLandMarksWorkAsyncComplete(uv_work_t* req, int status)
 {
+    //__DIAGNOSTIC__
     auto isolate = Isolate::GetCurrent();
     v8::HandleScope handleScope(isolate); // Required for Node 4.x
 
@@ -286,7 +294,7 @@ void PppWrapper::DetectLandMarksWorkAsyncComplete(uv_work_t* req, int status)
 
 void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
 {
-    __DIAGNOSTIC__
+    //__DIAGNOSTIC__
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
     try
     {
@@ -300,7 +308,7 @@ void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
 
 void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
 {
-    __DIAGNOSTIC__
+    //__DIAGNOSTIC__
     auto isolate = Isolate::GetCurrent();
     v8::HandleScope handleScope(isolate); // Required for Node 4.x
 
