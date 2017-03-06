@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
+[![Build Status](https://ci.appveyor.com/api/projects/status/pc08owbun2y00kwk?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
+
 ---  
 
 Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
