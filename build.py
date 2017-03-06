@@ -240,7 +240,7 @@ class Builder(object):
             'ts', 'features2d', 'calib3d', 'stitching', \
             'videostab', 'java']
         ocv_build_modules = ['highgui', 'core', 'imgproc',\
-            'objdetect', 'imgcodecs']
+            'objdetect', 'imgcodecs', 'ml', 'videoio']
 
         # Skip building OpenCV if done already
         if IS_WINDOWS:
