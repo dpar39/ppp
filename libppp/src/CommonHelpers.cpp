@@ -13,8 +13,6 @@
 #include <filesystem>
 #endif
 
-std::mutex g_mutex;
-
 static uint8_t fromChar(char ch)
 {
     if (ch >= 'A' && ch <= 'Z')
@@ -94,7 +92,7 @@ std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(c
     //auto fnode = fs.getFirstTopLevelNode();
     //classifier->read(fnode);
     //return classifier;
-
+    static std::mutex g_mutex;
     std::lock_guard<std::mutex> lg(g_mutex);
     std::string tmpFile = "cascade.xml";
     {
@@ -104,11 +102,12 @@ std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(c
     classifier->load(tmpFile);
     return classifier;
 }
+
 #if 0
 std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile)
 {
     auto classifier = std::make_shared<cv::CascadeClassifier>();
-#ifdef POCO_STATIC
+#ifdef USE_POCO
     auto haarCascadeFilePathStr = Poco::Path(haarCascadeDir).append(haarCascadeFile).toString();
     if (!Poco::File(haarCascadeFilePathStr).exists())
 #else
@@ -157,7 +156,6 @@ cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat &image, cv::Ca
 should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
-
 uint32_t CommonHelpers::updateCrc(uint32_t crc, unsigned char *buf, size_t len)
 {
     /* Table of CRCs of all 8-bit messages. */
@@ -184,7 +182,7 @@ uint32_t CommonHelpers::updateCrc(uint32_t crc, unsigned char *buf, size_t len)
             s_crcTable[n] = c;
         }
     });
-    for (auto n = 0; n < len; n++)
+    for (size_t n = 0; n < len; n++)
     {
         crc = s_crcTable[(crc ^ buf[n]) & 0xff] ^ (crc >> 8);
     }
