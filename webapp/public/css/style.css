@@ -10,9 +10,21 @@ body {
     border: 1px solid black;
     border-radius: 5px;
 }
+.topmargin {
+    margin-top: 10px;  
+}
 
+.botmargin {
+    margin-bottom: 10px;  
+}
 .results {
+    margin: 0px;      
     border-radius: 5px;
+}
+
+button {
+    margin-right: 10px;
+    min-width: 115px;
 }
 
 .landmark {
@@ -21,7 +33,7 @@ body {
     border: 1px solid green;
     border-radius: 50%;
     background-color: greenyellow;
-    opacity: 0.5;
+    opacity: 0.6;
     float: left ;
     position: absolute;
     visibility: hidden;
@@ -44,11 +56,6 @@ body {
 .output {
     display: inline-block;
     width: 340px;
-}
-
-button {
-    margin: 10px;
-    padding: 10px;
 }
 
 input[type=text] { max-width: 45px; }
