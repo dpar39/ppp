@@ -208,7 +208,7 @@ function createPhotoPrint() {
             var xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
             xhr.onreadystatechange = function (e) {
-                if (xhr.status == 200) {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                     var blob = xhr.response;
                     var binaryData = [];
                     binaryData.push(blob);
