@@ -49,7 +49,6 @@ include_directories(${THIRD_PARTY_DIR})
 add_subdirectory(${GMOCK_ROOT})
 
 # Add the ppp library
-enable_testing ()
 include_directories(libppp/include)
 add_subdirectory(libppp)
 

@@ -10,6 +10,15 @@
         "$(INSTALL_DIR)",
         "include"
       ],
+      "configurations": {
+        "Release": {
+          "msvs_settings": {
+            "VCCLCompilerTool": {
+              "ExceptionHandling": 1
+            }
+          }
+        }
+      },
       "conditions": [
         [
           "OS=='win'",

@@ -473,8 +473,6 @@ class Builder(object):
             # Building the project code from the command line
             self.run_cmake(cmake_generator, '..')
             self.run_cmd(make_cmd)
-            if self._run_tests:
-                self.run_cmd(make_cmd + ['test'])
             if self._run_install:
                 self.run_cmd(make_cmd + ['install'])
             os.chdir(self._root_dir)
