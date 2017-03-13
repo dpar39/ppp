@@ -48,7 +48,7 @@ inline std::string resolvePath(const std::string &relPath)
 
 inline std::string pathCombine(const std::string &prefix, const std::string &suffix)
 {
-    return (Poco::Path(prefix).append(suffix)).path();
+    return Poco::Path(prefix, suffix);
 }
 
 #else
