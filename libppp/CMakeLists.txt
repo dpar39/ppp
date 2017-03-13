@@ -66,7 +66,6 @@ file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
 
 set(TEST_INC_DIRS
-    "tests/include"
     ${GMOCK_ROOT}/gtest/include
     ${GMOCK_ROOT}/include
     ${MODULE_INC_DIRS}
@@ -77,7 +76,7 @@ set(TEST_LIB_DEPS
     gmock
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES} ${LIB_SRC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 

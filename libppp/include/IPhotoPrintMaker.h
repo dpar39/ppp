@@ -9,9 +9,9 @@ class PhotoStandard;
 class IPhotoPrintMaker : noncopyable
 {
 public:
-    virtual ~IPhotoPrintMaker()
-    {
-    }
+    virtual ~IPhotoPrintMaker() = default;
+
+    virtual void configure(rapidjson::Value& cfg) = 0;
 
     virtual cv::Mat cropPicture(const cv::Mat& originalImage,
                                 const cv::Point& crownPoint,

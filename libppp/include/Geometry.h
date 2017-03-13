@@ -1,13 +1,16 @@
 #pragma once
 
+#include <cmath>
+#include <utility>
+#include <opencv2/core/core.hpp>
+
 #define ROUND_INT(x) (static_cast<int>((x)+0.5))
+
+#define CEIL_INT(x) (static_cast<int>(ceil(x)))
 
 #define POINT2D(p) (cv::Point2d((p).x, (p).y))
 
 #define CENTER_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
-
-#include <opencv2/core/core.hpp>
-#include <utility>
 
 inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::Point2d p1, cv::Point2d p2, double d)
 {
@@ -16,7 +19,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    cv::Point2d p0 = CENTER_POINT(p1, p2);
+    auto p0 = CENTER_POINT(p1, p2);
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
@@ -45,8 +48,8 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
 
 /*!@brief Calculates the coordinate of a point in the line defined by two points
 *  and that is at the specified distance of the first point towards the second point
-*  @param[in] First point of reference
-*  @param[in] Second point that define the line
+*  @param[in] p0 First point of reference
+*  @param[in] p1 Second point that define the line
 *  @returns Calculated point
 !*/
 inline cv::Point2d pointInLineAtDistance(cv::Point2d p0, cv::Point2d p1, double dist)

@@ -38,9 +38,12 @@ public:
         m_imageStore = std::make_shared<MockImageStore>();
         m_photoPrintMaker = std::make_shared<MockPhotoPrintMaker>();
 
-        m_pppEngine = std::make_shared<PppEngine>(m_faceDetector, m_eyesDetector, m_lipsDetector, m_photoPrintMaker, m_imageStore);
+        m_pppEngine = std::make_shared<PppEngine>(m_faceDetector,
+                                                  m_eyesDetector,
+                                                  m_lipsDetector,
+                                                  m_photoPrintMaker,
+                                                  m_imageStore);
     }
-
 };
 
 TEST_F(PppEngineTests, ConfigureWorks)
@@ -61,7 +64,6 @@ TEST_F(PppEngineTests, ConfigureWorks)
 
     // Act
     m_pppEngine->configure(config);
-
 }
 
 TEST_F(PppEngineTests, CanSetInputImage)

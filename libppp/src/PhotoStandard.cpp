@@ -1,5 +1,6 @@
 #include "PhotoStandard.h"
 #include <memory>
+#include "CommonHelpers.h"
 
 
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfig)
@@ -17,24 +18,8 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
 
     auto units = psConfig["units"].GetString();
 
-    double unitsRatio_mm;
-    if (!strcmp(units, "inch"))
-    {
-        unitsRatio_mm = 25.4;
-    }
-    else if (!strcmp(units, "cm"))
-    {
-        unitsRatio_mm = 10.0;
-    }
-    else if (!strcmp(units, "mm"))
-    {
-        unitsRatio_mm = 1.0;
-    }
-    else
-    {
-        throw std::runtime_error("Unknown input units when creating the photo standard definition");
-    }
-
-    return std::make_shared<PhotoStandard>(picWidth * unitsRatio_mm, picHeight * unitsRatio_mm,
-        faceLength * unitsRatio_mm, eyesHeight * unitsRatio_mm);
+    return std::make_shared<PhotoStandard>(CommonHelpers::toMM(picWidth, units),
+                                           CommonHelpers::toMM(picHeight, units),
+                                           CommonHelpers::toMM(faceLength, units),
+                                           CommonHelpers::toMM(eyesHeight, units));
 }

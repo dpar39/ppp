@@ -8,6 +8,13 @@
 
 using namespace cv;
 
+void PhotoPrintMaker::configure(rapidjson::Value& cfg)
+{
+    auto &ppmConfig = cfg["photoPrintMaker"];
+    auto rgbArr = ppmConfig["background"].GetArray();
+    m_backgroundColor = Scalar(rgbArr[0].GetInt(), rgbArr[1].GetInt(), rgbArr[2].GetInt());
+}
+
 cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
                                      const cv::Point& crownPoint,
                                      const cv::Point& chinPoint,
@@ -40,8 +47,8 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
 
 cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const PhotoStandard& ps, const cv::Mat& croppedImage)
 {
-    auto canvasWidthPixels = ROUND_INT(canvas.resolutionPixelsPerMM()*canvas.width());
-    auto canvasHeightPixels = ROUND_INT(canvas.resolutionPixelsPerMM()*canvas.height());
+    auto canvasWidthPixels = CEIL_INT(canvas.resolutionPixelsPerMM()*canvas.width());
+    auto canvasHeightPixels = CEIL_INT(canvas.resolutionPixelsPerMM()*canvas.height());
 
     auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
     auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
@@ -52,21 +59,22 @@ cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const 
     cv::Mat tileInCanvas;
     cv::resize(croppedImage, tileInCanvas, tileSizePixels);
 
-    cv::Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type());
+    cv::Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
 
+    auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border())*canvas.resolutionPixelsPerMM());
+    auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border())*canvas.resolutionPixelsPerMM());
     for (size_t row = 0; row < numPhotoRows; ++row)
     {
         for (size_t col = 0; col < numPhotoCols; ++col)
         {
-            cv::Point topLeft(ROUND_INT(col*(ps.photoWidthMM() + canvas.border())*canvas.resolutionPixelsPerMM()),
-                ROUND_INT(row*(ps.photoHeightMM() + canvas.border())*canvas.resolutionPixelsPerMM()));
+            cv::Point topLeft(col*dx, row*dy);
             tileInCanvas.copyTo(printPhoto(cv::Rect(topLeft, tileSizePixels)));
         }
     }
     return printPhoto;
 }
 
-cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const cv::Point& crownPoint, const cv::Point& chinPoint)
+cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const cv::Point& crownPoint, const cv::Point& chinPoint) const
 {
     if (ps.eyesHeightMM() <= 0)
     {

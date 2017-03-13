@@ -46,6 +46,11 @@ inline std::string resolvePath(const std::string &relPath)
     return std::string();
 }
 
+inline std::string pathCombine(const std::string &prefix, const std::string &suffix)
+{
+    return (Poco::Path(prefix).append(suffix)).path();
+}
+
 #else
 #include <filesystem>
 
@@ -65,6 +70,11 @@ inline std::string resolvePath(const std::string &relPath)
     return std::string();
 }
 
+inline std::string pathCombine(const std::string &prefix, const std::string &suffix)
+{
+    namespace fs = std::tr2::sys;
+    return (fs::path(prefix) / fs::path(suffix)).string();
+}
 
 inline void getImageFiles(const std::string &testImagesDir, std::vector<std::string> &imageFilenames)
 {

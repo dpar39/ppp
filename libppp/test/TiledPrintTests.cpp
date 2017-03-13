@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <opencv2/imgproc.hpp>
+
 #include <opencv2/imgcodecs.hpp>
 
 #include "PhotoStandard.h"
@@ -10,30 +10,47 @@
 
 using namespace std;
 
+#define MANUAL_CHECK 0
+
+void verifyEqualImage(const std::string &expectedImageFilePath, const cv::Mat &actualImage)
+{
+    auto expectedImage = cv::imread(expectedImageFilePath);
+    auto numDisctintPixels = cv::countNonZero(cv::sum(cv::abs(expectedImage - actualImage)));
+    EXPECT_EQ(numDisctintPixels, 0) << "Actual image differs to image in file " << expectedImageFilePath;
+}
+
+
 TEST(TiledPrintTest, TestCroppingWorks)
 {
     PhotoStandard passportStandard(35.0, 45.0, 34.0);
-
     CanvasDefinition canvasDefinition(6, 4, 300, "inch");
 
-    auto imageDir = resolvePath("research/mugshot_frontal_original_all");
-    vector<string> imageFileNames;
-    getImageFiles(imageDir, imageFileNames);
+    const auto& imageFileName = resolvePath("research/sample_test_images/000.jpg");
+    cv::Point2d crownPos(941, 999);
+    cv::Point2d chinPos(927, 1675);
 
-    for (const auto& imageFileName : imageFileNames)
-    {
-        auto landMarkFiles = imageFileName.substr(0, imageFileName.find_last_of('.')) + ".pos";
-        cv::Mat landMarks;
-        ASSERT_TRUE(importTextMatrix(landMarkFiles, landMarks));
+    auto image = cv::imread(imageFileName);
 
-        cv::Point2d crownPos(landMarks.at<float>(0, 0), landMarks.at<float>(0, 1));
-        cv::Point2d chinPos(landMarks.at<float>(16, 0), landMarks.at<float>(16, 1));
-        auto image = cv::imread(imageFileName);
+    PhotoPrintMaker maker;
+    // Crop the photo to the right dimensions
+    auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
+    
+    auto expectedCropPath = pathCombine(resolvePath("libppp/test/data"), "000-cropped.png");
+#if MANUAL_CHECK  // Set to 1 for manual check
+    cv::imwrite(expectedCropPath, croppedImage);
+#else
+    verifyEqualImage(expectedCropPath, croppedImage);
+#endif
 
-        PhotoPrintMaker maker;
-        // Crop the picture
-        auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
-        // Draw tiles into the printing canvas
-        auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
-    }
+    // Draw tiles into the printing canvas
+    auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
+
+
+    auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "000-print.png");
+#if MANUAL_CHECK  // Set to 1 for manual check
+    cv::imwrite(expectedPrintPath, printPhoto);
+#else
+    verifyEqualImage(expectedPrintPath, printPhoto);
+#endif
+
 }

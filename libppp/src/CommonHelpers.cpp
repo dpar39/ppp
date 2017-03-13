@@ -188,3 +188,20 @@ uint32_t CommonHelpers::updateCrc(uint32_t crc, unsigned char *buf, size_t len)
     }
     return crc;
 }
+
+double CommonHelpers::toMM(double v, const std::string& units)
+{
+    if (units == "mm")
+    {
+        return v;
+    }
+    if (units == "inch")
+    {
+        return v*25.4;
+    }    
+    if (units == "cm")
+    {
+        return v*10.0;
+    }
+    throw std::runtime_error("Unknown input units when creating the photo standard definition");
+}

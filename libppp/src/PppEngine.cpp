@@ -41,6 +41,8 @@ void PppEngine::configure(rapidjson::Value& config)
 
     size_t imageStoreSize = config["imageStoreSize"].GetInt();
     m_pImageStore->setStoreSize(imageStoreSize);
+
+    m_pPhotoPrintMaker->configure(config);
 }
 
 void PppEngine::verifyImageExists(const std::string& imageKey) const
