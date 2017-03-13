@@ -76,7 +76,7 @@ set(TEST_LIB_DEPS
     gmock
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES} ${LIB_SRC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
