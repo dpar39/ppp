@@ -15,34 +15,34 @@ using namespace testing;
 class PppEngineTests : public Test
 {
 protected:
-    std::shared_ptr<MockDetector> m_faceDetector;
+    std::shared_ptr<MockDetector> m_pFaceDetector;
 
-    std::shared_ptr<MockDetector> m_eyesDetector;
+    std::shared_ptr<MockDetector> m_pEyesDetector;
 
-    std::shared_ptr<MockDetector> m_lipsDetector;
+    std::shared_ptr<MockDetector> m_pLipsDetector;
 
-    std::shared_ptr<MockImageStore> m_imageStore;
+    std::shared_ptr<MockImageStore> m_pImageStore;
 
-    std::shared_ptr<MockPhotoPrintMaker> m_photoPrintMaker;
+    std::shared_ptr<MockPhotoPrintMaker> m_pPhotoPrintMaker;
 
     std::shared_ptr<PppEngine> m_pppEngine;
 
 public:
     void SetUp() override
     {
-        m_faceDetector = std::make_shared<MockDetector>();
-        m_eyesDetector = std::make_shared<MockDetector>();
-        m_lipsDetector = std::make_shared<MockDetector>();
+        m_pFaceDetector = std::make_shared<MockDetector>();
+        m_pEyesDetector = std::make_shared<MockDetector>();
+        m_pLipsDetector = std::make_shared<MockDetector>();
 
 
-        m_imageStore = std::make_shared<MockImageStore>();
-        m_photoPrintMaker = std::make_shared<MockPhotoPrintMaker>();
+        m_pImageStore = std::make_shared<MockImageStore>();
+        m_pPhotoPrintMaker = std::make_shared<MockPhotoPrintMaker>();
 
-        m_pppEngine = std::make_shared<PppEngine>(m_faceDetector,
-                                                  m_eyesDetector,
-                                                  m_lipsDetector,
-                                                  m_photoPrintMaker,
-                                                  m_imageStore);
+        m_pppEngine = std::make_shared<PppEngine>(m_pFaceDetector,
+                                                  m_pEyesDetector,
+                                                  m_pLipsDetector,
+                                                  m_pPhotoPrintMaker,
+                                                  m_pImageStore);
     }
 };
 
@@ -56,11 +56,13 @@ TEST_F(PppEngineTests, ConfigureWorks)
     config.AddMember("imageStoreSize", imageStoreSize, alloc);
 
 
-    EXPECT_CALL(*m_faceDetector, configure(Ref(config))).Times(1);
-    EXPECT_CALL(*m_eyesDetector, configure(Ref(config))).Times(1);
-    EXPECT_CALL(*m_lipsDetector, configure(Ref(config))).Times(1);
+    EXPECT_CALL(*m_pFaceDetector, configure(Ref(config))).Times(1);
+    EXPECT_CALL(*m_pEyesDetector, configure(Ref(config))).Times(1);
+    EXPECT_CALL(*m_pLipsDetector, configure(Ref(config))).Times(1);
 
-    EXPECT_CALL(*m_imageStore, setStoreSize(imageStoreSize));
+    EXPECT_CALL(*m_pImageStore, setStoreSize(imageStoreSize));
+
+    EXPECT_CALL(*m_pPhotoPrintMaker, configure(Ref(config))).Times(1);
 
     // Act
     m_pppEngine->configure(config);
@@ -72,7 +74,7 @@ TEST_F(PppEngineTests, CanSetInputImage)
 
     const auto crc1e = "1a7a52b3";
 
-    EXPECT_CALL(*m_imageStore, setImage(Ref(dummyImage1))).WillOnce(Return(crc1e));
+    EXPECT_CALL(*m_pImageStore, setImage(Ref(dummyImage1))).WillOnce(Return(crc1e));
 
     auto crc1 = m_pppEngine->setInputImage(dummyImage1);
 

@@ -14,8 +14,8 @@ std::string ImageStore::setImage(const cv::Mat &inputImage)
 
     {
         std::lock_guard<std::mutex> lg(m_mutex);
-        m_imageCollection[imageKey] = inputImage;
-        m_imageKeynOrder.push(imageKey);
+        auto it = m_imageKeyOrder.insert(m_imageKeyOrder.end(), imageKey);
+        m_imageCollection[imageKey] = ImageOrderPair(inputImage, it);
     }
 
     handleStoreSize();
@@ -23,23 +23,25 @@ std::string ImageStore::setImage(const cv::Mat &inputImage)
     return imageKey;;
 }
 
-bool ImageStore::containsImage(const std::string &imageKey) const
+bool ImageStore::containsImage(const std::string &imageKey) 
 {
     std::lock_guard<std::mutex> lg(m_mutex);
+    boostImageToTopCache(imageKey);
     return m_imageCollection.find(imageKey) != m_imageCollection.end();
 }
 
 cv::Mat ImageStore::getImage(const std::string &imageKey)
 {
     std::lock_guard<std::mutex> lg(m_mutex);
-    return m_imageCollection[imageKey];
+    boostImageToTopCache(imageKey);
+    return m_imageCollection[imageKey].first;
 }
 
 void ImageStore::setStoreSize(size_t storeSize)
 {
     if (storeSize < 1)
     {
-        throw std::logic_error("Invalid store size, should be greater than zero");
+        throw std::runtime_error("Invalid store size, should be greater than zero");
     }
     m_storeSize = storeSize;
     handleStoreSize();
@@ -48,10 +50,22 @@ void ImageStore::setStoreSize(size_t storeSize)
 void ImageStore::handleStoreSize()
 {
     std::lock_guard<std::mutex> lg(m_mutex);
-    while(m_imageKeynOrder.size() > m_storeSize)
+    while(m_imageKeyOrder.size() > m_storeSize)
     {
-        const auto &imageKey = m_imageKeynOrder.front();
+        const auto &imageKey = m_imageKeyOrder.front();
         m_imageCollection.erase(imageKey);
-        m_imageKeynOrder.pop();
+        m_imageKeyOrder.pop_front();
+    }
+}
+
+void ImageStore::boostImageToTopCache(const std::string &imageKey)
+{
+    // Move image to top of the cached list
+    auto it = m_imageCollection.find(imageKey);
+    if (it != m_imageCollection.end())
+    {
+        m_imageKeyOrder.erase(it->second.second);
+        auto newOrderIt = m_imageKeyOrder.insert(m_imageKeyOrder.end(), imageKey);
+        it->second.second = newOrderIt;
     }
 }

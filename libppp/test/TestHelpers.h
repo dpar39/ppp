@@ -144,3 +144,8 @@ inline bool importTextMatrix(const std::string&txtFileName, cv::Mat &output)
     return true;
 }
 
+inline void verifyEqualImages(const cv::Mat &expected, const cv::Mat &actual)
+{
+    ASSERT_EQ(expected.size, actual.size) << "Images have different sizes";
+    ASSERT_EQ(0, cv::countNonZero(cv::abs(expected - actual))) << "Images are not the same pixel by pixel";
+}

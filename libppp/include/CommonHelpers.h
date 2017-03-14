@@ -2,6 +2,25 @@
 #include <memory>
 #include <string>
 
+#define DECLARE(classname) \
+    class classname; \
+    typedef std::shared_ptr<classname> classname##SPtr;
+
+#define DECLARE_VECTOR(classname) \
+    typedef std::vector<classname> classname##Vector; \
+    typedef std::vector<std::shared_ptr<classname>> classname##SPtrVec; \
+    typedef std::shared_ptr<std::vector<std::shared_ptr<classname>>> classname##SPtrVecSPtr;
+
+#define DECLARE_LIST(classname) \
+    typedef std::list<classname> classname##List; \
+    typedef std::list<std::shared_ptr<classname>> classname##SPtrList; \
+    typedef std::shared_ptr<std::list<std::shared_ptr<classname>>> classname##SPtrListcSPtr;
+
+#define DECLARE_DEQUE(classname) \
+    typedef std::deque<classname> classname##Deque; \
+    typedef std::deque<std::shared_ptr<classname>> classname##SPtrDeque; \
+    typedef std::shared_ptr<std::deque<std::shared_ptr<classname>>> classname##SPtrDequeSPtr;
+
 namespace cv
 {
     class CascadeClassifier;

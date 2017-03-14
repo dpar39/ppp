@@ -1,8 +1,10 @@
 #pragma once
 
-#include <string>
+
 #include <opencv2/core/core.hpp>
 #include "CommonHelpers.h"
+
+DECLARE(IImageStore)
 
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
@@ -16,7 +18,7 @@ public:
     virtual cv::Mat getImage(const std::string &imageKey) = 0;
 
     /*!@brief Returns wheter an image with the specified key is in the store !*/
-    virtual bool containsImage(const std::string &imageKey) const = 0;
+    virtual bool containsImage(const std::string &imageKey) = 0;
 
     /*!@brief Sets the maximum number of images to be stored. 
      * If the number set is less than the current store size,

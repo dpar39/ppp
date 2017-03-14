@@ -13,6 +13,8 @@
 #include <filesystem>
 #endif
 
+
+
 static uint8_t fromChar(char ch)
 {
     if (ch >= 'A' && ch <= 'Z')
