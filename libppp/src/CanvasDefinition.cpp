@@ -7,7 +7,7 @@ CanvasDefinition::CanvasDefinition(double canvasWidth, double canvasHeight, doub
 {
     m_canvasWidth_mm = CommonHelpers::toMM(canvasWidth, units);
     m_canvasHeight_mm = CommonHelpers::toMM(canvasHeight, units);
-    m_resolution_ppmm = CommonHelpers::toMM(resolution, units); 
+    m_resolution_ppmm = resolution / CommonHelpers::toMM(1, units);
     m_border_mm = 0.0;
 }
 
