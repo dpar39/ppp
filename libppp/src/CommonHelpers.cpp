@@ -131,7 +131,7 @@ uint32_t CommonHelpers::crc32(uint32_t crc, const uint8_t* begin, const uint8_t*
     });
 
     auto it = begin;
-    while(begin != end)
+    while(it != end)
     {
         crc = s_crcTable[(crc ^ *it++) & 0xff] ^ (crc >> 8);
     }
