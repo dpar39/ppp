@@ -6,6 +6,8 @@
 class CanvasDefinition;
 class PhotoStandard;
 
+DECLARE(IPhotoPrintMaker)
+
 class IPhotoPrintMaker : noncopyable
 {
 public:

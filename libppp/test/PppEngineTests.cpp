@@ -68,6 +68,8 @@ TEST_F(PppEngineTests, ConfigureWorks)
     m_pppEngine->configure(config);
 }
 
+
+
 TEST_F(PppEngineTests, CanSetInputImage)
 {
     cv::Mat dummyImage1(3, 3, CV_8UC3, cv::Scalar(0, 0, 0));

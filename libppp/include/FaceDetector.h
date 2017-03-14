@@ -10,6 +10,8 @@ namespace cv
 
 struct LandMarks;
 
+DECLARE(FaceDetector)
+
 class FaceDetector : public IDetector
 {
 public:

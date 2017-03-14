@@ -15,6 +15,7 @@ class IPhotoPrintMaker;
 class CanvasDefinition;
 class PhotoStandard;
 
+DECLARE(PppEngine)
 
 class PppEngine : noncopyable
 {

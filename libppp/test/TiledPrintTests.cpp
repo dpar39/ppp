@@ -12,6 +12,12 @@ using namespace std;
 
 #define MANUAL_CHECK 0
 
+class PhotoPrintMakerTests : public ::testing::Test
+{
+protected:
+    PhotoPrintMakerSPtr m_pPhotoPrintMaker = make_shared<PhotoPrintMaker>();
+};
+
 void verifyEqualImage(const std::string &expectedImageFilePath, const cv::Mat &actualImage)
 {
     auto expectedImage = cv::imread(expectedImageFilePath);
@@ -20,7 +26,7 @@ void verifyEqualImage(const std::string &expectedImageFilePath, const cv::Mat &a
 }
 
 
-TEST(TiledPrintTest, TestCroppingWorks)
+TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 {
     PhotoStandard passportStandard(35.0, 45.0, 34.0);
     CanvasDefinition canvasDefinition(6, 4, 300, "inch");
@@ -31,9 +37,8 @@ TEST(TiledPrintTest, TestCroppingWorks)
 
     auto image = cv::imread(imageFileName);
 
-    PhotoPrintMaker maker;
     // Crop the photo to the right dimensions
-    auto croppedImage = maker.cropPicture(image, crownPos, chinPos, passportStandard);
+    auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
     
     auto expectedCropPath = pathCombine(resolvePath("libppp/test/data"), "000-cropped.png");
 #if MANUAL_CHECK  // Set to 1 for manual check
@@ -43,8 +48,7 @@ TEST(TiledPrintTest, TestCroppingWorks)
 #endif
 
     // Draw tiles into the printing canvas
-    auto printPhoto = maker.tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
-
+    auto printPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
 
     auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "000-print.png");
 #if MANUAL_CHECK  // Set to 1 for manual check

@@ -10,6 +10,8 @@ namespace cv
     class CascadeClassifier;
 }
 
+DECLARE(EyeDetector)
+
 class EyeDetector : public IDetector
 {
 public:

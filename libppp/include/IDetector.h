@@ -10,6 +10,7 @@ namespace cv
 }
 struct LandMarks;
 
+DECLARE(IDetector)
 
 class IDetector : noncopyable
 {

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "CommonHelpers.h"
 #include "IPhotoPrintMaker.h"
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
+
+DECLARE(PhotoPrintMaker)
 
 class PhotoPrintMaker : public IPhotoPrintMaker
 {
