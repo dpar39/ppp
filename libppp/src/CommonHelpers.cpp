@@ -103,6 +103,41 @@ std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(c
     return classifier;
 }
 
+uint32_t CommonHelpers::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end)
+{
+    /* Table of CRCs of all 8-bit messages. */
+    static uint32_t s_crcTable[256];
+    static std::once_flag s_crcComputeFlag;
+    std::call_once(s_crcComputeFlag, []()
+    {
+        unsigned long c;
+        int n, k;
+        for (n = 0; n < 256; n++)
+        {
+            c = static_cast<unsigned long>(n);
+            for (k = 0; k < 8; k++)
+            {
+                if (c & 1)
+                {
+                    c = 0xedb88320L ^ (c >> 1);
+                }
+                else
+                {
+                    c = c >> 1;
+                }
+            }
+            s_crcTable[n] = c;
+        }
+    });
+
+    auto it = begin;
+    while(begin != end)
+    {
+        crc = s_crcTable[(crc ^ *it++) & 0xff] ^ (crc >> 8);
+    }
+    return crc;
+}
+
 #if 0
 std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile)
 {
@@ -156,7 +191,7 @@ cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat &image, cv::Ca
 should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
-uint32_t CommonHelpers::updateCrc(uint32_t crc, unsigned char *buf, size_t len)
+uint32_t updateCrc(uint32_t crc, unsigned char *buf, size_t len)
 {
     /* Table of CRCs of all 8-bit messages. */
     static uint32_t s_crcTable[256];

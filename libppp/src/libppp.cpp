@@ -90,7 +90,7 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
     pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
     pHYsChunk.push_back(1); // Unit is the meter
 
-    auto crcBytes = toBytes(CommonHelpers::updateCrc(0, &pHYsChunk[4], pHYsChunk.size() - 4));
+    auto crcBytes = toBytes(CommonHelpers::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
     pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
 
     string idat = "IDAT";

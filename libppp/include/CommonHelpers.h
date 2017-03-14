@@ -19,7 +19,8 @@ public:
     static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/
-    static uint32_t updateCrc(uint32_t crc, unsigned char *data, size_t len);
+    static uint32_t crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end);
+
 
     /*!@brief Convert a distance to millimeters
      * @param[in] v Value to convert
