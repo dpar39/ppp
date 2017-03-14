@@ -14,7 +14,7 @@ import multiprocessing
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-NODEJS_SRC_URL = 'https://nodejs.org/dist/v4.4.7/node-v4.4.7.tar.gz'
+NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.0/node-v6.10.0.tar.gz'
 OPENCV_SRC_URL = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
 POCO_SRC_URL = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
 
