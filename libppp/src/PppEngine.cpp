@@ -15,9 +15,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iomanip>
 
-
 using namespace std;
-uint32_t  crc32(uint32_t crc, const uchar *buf, const uchar *bufferEnd);
 
 PppEngine::PppEngine(std::shared_ptr<IDetector> pFaceDetector /*= nullptr*/
                      , std::shared_ptr<IDetector> pEyesDetector /*= nullptr*/
