@@ -13,7 +13,6 @@
 #include "Geometry.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <iomanip>
 
 using namespace std;
 
