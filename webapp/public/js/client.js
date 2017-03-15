@@ -394,13 +394,13 @@ var CanvasConfigList = [{
 var ResolutionsList = [300, 400, 600, 800, 1000, 1200];
 var UnitsList = ["mm", "cm", "inch"];
 var PassportStandardList = [{
-    name: 'Australian Passport [35 x 45mm]',
+    name: 'Australian Passport [35 x 45 mm]',
     pictureHeight: 45,
     pictureWidth: 35,
     faceHeight: 34,
     units: 'mm'
 }, {
-    name: 'American Passport [2" x 2"]',
+    name: 'American Passport [2 x 2 inch]',
     pictureHeight: 2.0,
     pictureWidth: 2.0,
     faceHeight: 1.1875,
