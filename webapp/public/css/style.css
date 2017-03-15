@@ -10,6 +10,12 @@ body {
     border: 1px solid black;
     border-radius: 5px;
 }
+
+.region {
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
 .topmargin {
     margin-top: 10px;  
 }
