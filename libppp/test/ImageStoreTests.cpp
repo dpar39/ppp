@@ -47,7 +47,7 @@ TEST_F(ImageStoreTests, ImagesArePrioritizedByAccess)
     EXPECT_FALSE(m_pImageStore->containsImage(key1));
     EXPECT_TRUE(m_pImageStore->containsImage(key2));
     EXPECT_TRUE(m_pImageStore->containsImage(key3));
-    
+
     // Now touch image 2 and push image 1
     m_pImageStore->containsImage(key2);
     key1 = m_pImageStore->setImage(m_mat1);
