@@ -130,11 +130,10 @@ function parsePassportStandard(ps) {
         pictureWidth: parseFloat(ps.pictureWidth),
         faceHeight: parseFloat(ps.faceHeight),
         units: validateUnits(ps.units)
-        
     }
     return obj;
 }
-function validatePrintRequest(printDef, imgKey){
+function validatePrintRequest(printDef, imgKey) {
 
 }
 
