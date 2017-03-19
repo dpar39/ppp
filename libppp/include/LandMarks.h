@@ -32,6 +32,8 @@ struct LandMarks
     cv::Rect  vjFaceRect;
     cv::Point crownPoint;
     cv::Point chinPoint;
+    std::vector<cv::Point> lipContour1st;
+    std::vector<cv::Point> lipContour2nd;
 
     std::string toString() const;
 

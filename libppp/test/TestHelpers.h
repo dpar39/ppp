@@ -194,7 +194,13 @@ typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, LandMarks&, L
 #define IN_ROI(r, p) (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
 
 
-inline void processDatabase(DetectionCallback callback, std::vector<std::string> ignoredImages, bool annotateResults = false)
+inline void processDatabase(DetectionCallback callback, std::vector<std::string> ignoredImages, 
+#ifdef _DEBUG
+    bool annotateResults = true
+#else
+    bool annotateResults = false
+#endif
+)
 {
     using namespace std;
     auto imageDir = resolvePath("research/sample_test_images");
@@ -202,8 +208,9 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
     vector<string> imageFileNames;
     getImageFiles(imageDir, imageFileNames);
 
-    for (const auto& imageFileName : imageFileNames)
+    for (auto imageFileName : imageFileNames)
     {
+        //imageFileName = "W:\\GITHUB\\ppp\\research\\mugshot_frontal_original_all\\087_frontal.jpg";
         if (find_if(ignoredImages.begin(), ignoredImages.end(), [&imageFileName](const std::string &ignoreImageFile)
         {
             return imageFileName.find(ignoreImageFile) != std::string::npos;
@@ -253,6 +260,8 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
             rectangle(inputImage, results.vjFaceRect, cv::Scalar(0, 128, 0), 2);
             rectangle(inputImage, results.vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
             rectangle(inputImage, results.vjRightEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
+
+            cv::polylines(inputImage, std::vector<std::vector<cv::Point>> {results.lipContour1st, results.lipContour2nd}, true, detectionColor);
             //rectangle(inputImage, results.vjMouth, Scalar(0xA0, 0x52, 0x2D), 3);
 
             circle(inputImage, results.eyeLeftPupil, 5, detectionColor, 2);

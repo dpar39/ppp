@@ -100,7 +100,9 @@ void PppWrapper::New(const FunctionCallbackInfo<Value>& args)
         const auto argc = 1;
         Local<Value> argv[argc] = { args[0] };
         auto cons = Local<Function>::New(isolate, constructor);
-        args.GetReturnValue().Set(cons->NewInstance(argc, argv));
+        auto context = isolate->GetCurrentContext();
+        auto result = cons->NewInstance(context, argc, argv).ToLocalChecked();
+        args.GetReturnValue().Set(result);
     }
 }
 
@@ -278,8 +280,8 @@ void PppWrapper::DetectLandMarksWorkAsyncComplete(uv_work_t* req, int status)
     auto work = static_cast<DetectLandMarksWorkItem *>(req->data);
 
     // set up return arguments
-    auto landmarksStr = v8::String::NewFromUtf8(isolate, work->landmarks.data());
-    auto landmarks = v8::JSON::Parse(landmarksStr);
+    v8::Local<v8::String> landmarksStr = v8::String::NewFromUtf8(isolate, work->landmarks.data());
+    auto landmarks = v8::JSON::Parse(isolate, landmarksStr).ToLocalChecked();
 
     v8::Handle<Value> argv[] = { GetWorkItemError(work), landmarks};
 

@@ -56,6 +56,13 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
                        return v * v * 255;
                    });
 
+    if (m_useHaarCascades)
+    {
+       /* std::vector<cv::Rect> mouthRects;
+        m_pMouthDetector->detectMultiScale(colorTformImage, mouthRects, )*/
+    }
+
+
     Mat u, v, binaryImg;
     colorTformImage.convertTo(u, CV_8UC1);
 
@@ -68,6 +75,12 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
 
     double maxArea1st = 0, maxArea2nd = 0;
     std::vector<std::vector<Point>>::iterator c1st, c2nd;
+
+    if (contours.size() < 1)
+    {
+        // No contours were found
+        return false;
+    }
 
     // Select the two biggest regions (assuming they are the lips)
     for (auto c = contours.begin(); c != contours.end(); ++c)
@@ -82,6 +95,12 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         }
     }
 
+    landMarks.lipContour1st = *c1st;
+    if (maxArea2nd > 0)
+    {
+        landMarks.lipContour2nd = *c2nd;
+    }
+    
     auto candidates = contourLineIntersection(*c1st, eyeCentrePoint, mouthCenterPoint);
 
     auto leftCorner = Point(INT_MAX, 0), rightCorner = Point(INT_MIN, 0);
@@ -114,17 +133,17 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         }
     }
 
-    auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
-                                      {
-                                          return a.y < b.y;
-                                      });
-    auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
-                                      {
-                                          return a.y > b.y;
-                                      });
+    //auto upperLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
+    //                                  {
+    //                                      return a.y < b.y;
+    //                                  });
+    //auto lowerLip = *std::max_element(candidates.begin(), candidates.end(), [](const Point2d &a, const Point2d &b)
+    //                                  {
+    //                                      return a.y > b.y;
+    //                                  });
 
-    landMarks.lipUpperCenter = upperLip;
-    landMarks.lipLowerCenter = lowerLip;
+    //landMarks.lipUpperCenter = upperLip;
+    //landMarks.lipLowerCenter = lowerLip;
     landMarks.lipLeftCorner = leftCorner;
     landMarks.lipRightCorner = rightCorner;
     return true;

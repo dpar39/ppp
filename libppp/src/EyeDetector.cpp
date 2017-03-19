@@ -76,6 +76,7 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
         landMarks.vjRightEyeRect.x += faceRect.x + rightEyeRegion.x;
         landMarks.vjRightEyeRect.y += faceRect.y + rightEyeRegion.y;
 
+
         if (leftEyeHaarRect.width > 0 && leftEyeHaarRect.height > 0)
         {
             // Reduce the search area for the pupils
@@ -162,7 +163,7 @@ void EyeDetector::validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize,
         throw std::logic_error("Detected eye position is outside the specifiied eye ROI");
     }
 
-    const auto epsilon = 2.0;
+    const auto epsilon = std::min(eyeRoiSize.width, eyeRoiSize.height) * 0.05;
     
     if (eyeRoiSize.width- eyeCenter.x < epsilon || eyeCenter.x < epsilon 
         || eyeRoiSize.height - eyeCenter.y < epsilon || eyeCenter.y < epsilon)
