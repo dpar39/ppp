@@ -427,21 +427,22 @@ class Builder(object):
             """
             Extracts file from zip archive
             """
-            zip_file = os.path.join(research_dir, zip_file)
-            if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
-                return # Nothing to do, data already been extracted
-            print 'Extracting validation data ...'
+            zip_file = os.path.join(research_dir, zip_file)            
             zip_handle = zipfile.ZipFile(zip_file)
             for item in zip_handle.namelist():
                 zip_handle.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
             zip_handle.close()
-            print 'Extracting validation data completed!'
 
         research_dir = os.path.join(self._root_dir, 'research')
+        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
+            return # Nothing to do, data already been extracted
+       
+        print 'Extracting validation data ...'
         extract(research_dir, 'annotated_imageset0.zip')
         extract(research_dir, 'annotated_imageset1.zip')
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
+        print 'Extracting validation data completed!'
 
     def build_cpp_code(self):
         """
