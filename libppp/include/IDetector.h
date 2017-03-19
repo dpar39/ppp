@@ -10,7 +10,7 @@ namespace cv
 }
 struct LandMarks;
 
-DECLARE(IDetector)
+FWD_DECL(IDetector)
 
 class IDetector : noncopyable
 {

@@ -10,7 +10,7 @@
 
 typedef std::pair<cv::Mat, std::list<std::string>::iterator> ImageOrderPair;
 
-DECLARE(ImageStore)
+FWD_DECL(ImageStore)
 
 class ImageStore : public IImageStore
 {

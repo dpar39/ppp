@@ -6,7 +6,7 @@
 class CanvasDefinition;
 class PhotoStandard;
 
-DECLARE(IPhotoPrintMaker)
+FWD_DECL(IPhotoPrintMaker)
 
 class IPhotoPrintMaker : noncopyable
 {

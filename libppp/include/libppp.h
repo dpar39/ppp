@@ -28,6 +28,8 @@ public:
 
     PublicPppEngine();
 
+    ~PublicPppEngine();
+
     void configure(const std::string &jsonConfig) const;
 
     /*!@brief Stores the image for processing 
@@ -69,7 +71,7 @@ public:
     void createTiledPrint(const std::string& imageId, const std::string &request, std::vector<byte> &pictureData) const;
 
 private:
-    std::shared_ptr<PppEngine> m_pPppEngine;
+    PppEngine* m_pPppEngine;
 
 private:
     static void setPngResolutionDpi(std::vector<byte>& imageStream, double resolution_ppmm);

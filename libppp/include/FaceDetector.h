@@ -10,7 +10,7 @@ namespace cv
 
 struct LandMarks;
 
-DECLARE(FaceDetector)
+FWD_DECL(FaceDetector)
 
 class FaceDetector : public IDetector
 {

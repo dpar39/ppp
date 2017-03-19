@@ -5,7 +5,7 @@
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
 
-DECLARE(PhotoPrintMaker)
+FWD_DECL(PhotoPrintMaker)
 
 class PhotoPrintMaker : public IPhotoPrintMaker
 {

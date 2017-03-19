@@ -4,7 +4,7 @@
 #include <opencv2/core/core.hpp>
 #include "CommonHelpers.h"
 
-DECLARE(IImageStore)
+FWD_DECL(IImageStore)
 
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */

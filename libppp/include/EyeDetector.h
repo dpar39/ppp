@@ -10,7 +10,7 @@ namespace cv
     class CascadeClassifier;
 }
 
-DECLARE(EyeDetector)
+FWD_DECL(EyeDetector)
 
 class EyeDetector : public IDetector
 {

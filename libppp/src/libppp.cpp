@@ -15,9 +15,13 @@ cv::Point fromJson(Value& v)
     return cv::Point(v["x"].GetInt(), v["y"].GetInt());
 }
 
-PublicPppEngine::PublicPppEngine()
+PublicPppEngine::PublicPppEngine() : m_pPppEngine(new PppEngine)
 {
-    m_pPppEngine = std::make_shared<PppEngine>();
+}
+
+PublicPppEngine::~PublicPppEngine()
+{
+    delete m_pPppEngine;
 }
 
 void PublicPppEngine::configure(const std::string& jsonConfig) const
