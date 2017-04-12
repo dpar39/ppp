@@ -8,7 +8,7 @@ if(WIN32)
     project(${MODULE_NAME} CXX)
     message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 
-    set(NODE_ROOT "${THIRD_PARTY_DIR}/node-v6.10.0")
+    set(NODE_ROOT "${THIRD_PARTY_DIR}/node-v6.10.2")
     if(${CMAKE_BUILD_TYPE} MATCHES debug)
         set(NODE_LIB_DIR "${NODE_ROOT}/Debug")
     else()
