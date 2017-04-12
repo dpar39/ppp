@@ -14,8 +14,8 @@ import multiprocessing
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.0/node-v6.10.0.tar.gz'
-OPENCV_SRC_URL = 'https://github.com/Itseez/opencv/archive/3.1.0.zip'
+NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.2.0.zip'
 POCO_SRC_URL = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
@@ -57,7 +57,6 @@ class Builder(object):
             vcvarsbat = "C:\\Program Files (x86)\\Microsoft Visual Studio %s.0\\VC\\vcvarsall.bat" \
                 % vc_version
             if os.path.exists(vcvarsbat):
-                self._vc_version = vc_version
                 self._vcvarsbat = vcvarsbat
                 self._vc_cmake_gen = 'Visual Studio ' + vc_version + ' ' + vc_release
                 if "64" in self._arch_name:
