@@ -3,11 +3,15 @@
 #include <memory>
 #include <rapidjson/document.h>
 
+#include "CommonHelpers.h"
+
 class PhotoStandard;
 namespace cv
 {
     class Mat;
 }
+
+FWD_DECL(CanvasDefinition)
 
 class CanvasDefinition
 {
@@ -32,6 +36,6 @@ public:
     //     units: "inch"
     // }
     /*!@brief Construct a CanvasDefinition from JSON data !*/
-    static std::shared_ptr<CanvasDefinition> fromJson(rapidjson::Value& canvas);
+    static CanvasDefinitionSPtr fromJson(rapidjson::Value& canvas);
 };
 

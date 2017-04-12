@@ -3,6 +3,7 @@
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 #include <memory>
+#include "CommonHelpers.h"
 
 
 /*!\class PhotoStandard
@@ -10,6 +11,8 @@ Defines a passport photo dimensions specified by a country.
 For example, Australia passport photos must be of at least 45mm x 35mm and the
 face height must be 34mm with +/- 2mm of tolerance
  */
+FWD_DECL(PhotoStandard)
+
 class PhotoStandard
 {
 private:
@@ -32,5 +35,5 @@ public:
     double faceHeightMM() const { return m_faceHeight_mm; }
     double eyesHeightMM() const { return m_eyesHeight_mm; }
 
-    static std::shared_ptr<PhotoStandard> fromJson(rapidjson::Value& var);
+    static PhotoStandardSPtr fromJson(rapidjson::Value& var);
 };

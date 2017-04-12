@@ -39,7 +39,7 @@ public:
     cv::Mat createTiledPrint(const std::string& imageKey, PhotoStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark);
 
 private:
-
+	
     IDetectorSPtr m_pFaceDetector;
     IDetectorSPtr m_pEyesDetector;
     IDetectorSPtr m_pLipsDetector;

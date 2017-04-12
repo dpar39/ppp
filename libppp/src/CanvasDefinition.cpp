@@ -11,7 +11,7 @@ CanvasDefinition::CanvasDefinition(double canvasWidth, double canvasHeight, doub
     m_border_mm = 0.0;
 }
 
-std::shared_ptr<CanvasDefinition> CanvasDefinition::fromJson(rapidjson::Value& canvas)
+CanvasDefinitionSPtr CanvasDefinition::fromJson(rapidjson::Value& canvas)
 {
     auto width = canvas["width"].GetFloat();
     auto height = canvas["height"].GetFloat();

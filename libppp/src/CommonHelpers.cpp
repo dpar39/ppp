@@ -1,5 +1,10 @@
 #include "CommonHelpers.h"
 
+namespace cv 
+{
+	FWD_DECL(CascadeClassifier)
+}
+
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -12,8 +17,6 @@
 #else
 #include <filesystem>
 #endif
-
-
 
 static uint8_t fromChar(char ch)
 {
@@ -82,7 +85,7 @@ std::string base64Decode(const std::string &base64Str)
     return result;
 }
 
-std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
+cv::CascadeClassifierSPtr CommonHelpers::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
 {
     auto xmlHaarCascade = base64Decode(haarCascadeBase64Data);
     auto classifier = std::make_shared<cv::CascadeClassifier>();

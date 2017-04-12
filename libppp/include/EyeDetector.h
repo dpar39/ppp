@@ -5,11 +5,6 @@
 #include <memory>
 #include <type_traits>
 
-namespace cv
-{
-    class CascadeClassifier;
-}
-
 FWD_DECL(EyeDetector)
 
 class EyeDetector : public IDetector
@@ -29,8 +24,8 @@ private:
 private:  // Configuration
 
     bool m_useHaarCascades = false;
-    std::shared_ptr<cv::CascadeClassifier> m_leftEyeCascadeClassifier;
-    std::shared_ptr<cv::CascadeClassifier> m_rightEyeCascadeClassifier;
+    cv::CascadeClassifierSPtr m_leftEyeCascadeClassifier;
+    cv::CascadeClassifierSPtr m_rightEyeCascadeClassifier;
 
     // Definition of the search areas to locate pupils expressed as the ratios of the face rectangle
     const double m_topFaceRatio = 0.28;  ///<- Distance from the top of the face 

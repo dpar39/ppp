@@ -6,8 +6,9 @@
 
 namespace cv
 {
-    class CascadeClassifier;
+    FWD_DECL(CascadeClassifier)
 }
+
 struct LandMarks;
 
 FWD_DECL(IDetector)
