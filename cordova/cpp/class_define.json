@@ -1,5 +1,19 @@
 {
-    "header_files": [],
-    "source_files": [],
-    "classes": {}
+    "header_files": ["TestCpp.h"],
+    "source_files": ["TestCpp.cpp"],
+ 
+    "classes": {
+        "TestCpp": {
+            "methods": {
+                "testMethod": {
+                    "params": ["int", "string", "double", "boolean"],
+                    "return": "int"
+                },
+                "staticTestMethod": {
+                    "is_static": true,
+                    "return": "string"
+                }
+            }
+        }
+    }
 }
