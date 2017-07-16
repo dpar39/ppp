@@ -8,7 +8,7 @@ This app allows users to create passport photo prints with automatic picture siz
 
 The main motivation for this app is how expensive passport photo services can be in many countries. For instance, OfficeWorks in Australia currently charges [$14.95](http://www.officeworks.com.au/print/print-and-copy/print-services/passport-and-id-photo) for four passport photos. Walgreens near my home charged me [$13.99](https://photo.walgreens.com/walgreens/pdpsdpitems/type=passport_photos) for only two a few weeks ago. Obviously, not all photos taken at home with a smartphone camera will have the quality to meet the standards, but if you are on the budget and/or have the time to ensure you capture a picture of yourself with good resolution, proper focus and low noise, then this app will do the maths to prepare an output tiled photo ready to be printed for less than a dollar at your closest photo center.
 
-<div style="text-align:center"><img src ="model/operation-principle.png"/></div>
+<div style="text-align:center"><img src ="research/model/operation-principle.png"/></div>
 
 # Installation
 The software can be built and run in either Windows or Unix based operating systems.
@@ -39,4 +39,4 @@ In order to crop and scale the face of the person to a particular passport requi
 To develop and validate the proposed approach, facial landmarks from the [SCFace database](http://www.scface.org/) were used. The SCFace database contains images for 130 different subjects and frontal images of each individual were carefully annotated by the [Biometric Recognition Group - ATVS at Escuela Politecnica Superior of the Universidad Autonoma de Madrid [ATVS]](https://atvs.ii.uam.es/scfacedb_landmarks.html). 
 The procedure to estimate *P’* and *Q’* from *A*, *B*, *C* and *D* is as follow: Firstly, points *M* and *N* are found as the center of segments *AB* and *CD* respectively. *P’* and *Q’* are expected to fall in the line that passes through *M* and *N*. Then using a normalization distance *KK = |AB| + |MN|* and scale constants *α* and *β*, we estimate *P’Q’* = *αKK* and *M’Q’* = *βKK*. From the dataset *α* and *β* were adjusted to minimise the estimation error of *P'* and *Q'*.
 
-<div style="text-align:center"><img src ="model/key-facial-landmarks.png"/></div>
+<div style="text-align:center"><img src ="research/model/key-facial-landmarks.png"/></div>
