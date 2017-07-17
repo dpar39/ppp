@@ -1,7 +1,6 @@
 {
     "header_files": ["TestCpp.h"],
     "source_files": ["TestCpp.cpp"],
- 
     "classes": {
         "TestCpp": {
             "methods": {

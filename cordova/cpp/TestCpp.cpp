@@ -7,5 +7,5 @@ int TestCpp::testMethod(int p1, const char *p2, double p3, bool p4) {
 }
 
 const char* TestCpp::staticTestMethod() {
-    return "staticTestMethod called, yeah!";
+    return "Olivia Rocks!";
 }
