@@ -1,6 +1,6 @@
 #include "CommonHelpers.h"
 
-namespace cv 
+namespace cv
 {
 	FWD_DECL(CascadeClassifier)
 }
@@ -10,13 +10,6 @@ namespace cv
 
 #include <fstream>
 #include <mutex>
-
-#ifdef POCO_STATIC
-#include <Poco/Path.h>
-#include <Poco/File.h>
-#else
-#include <filesystem>
-#endif
 
 static uint8_t fromChar(char ch)
 {
@@ -89,7 +82,7 @@ cv::CascadeClassifierSPtr CommonHelpers::loadClassifierFromBase64(const std::str
 {
     auto xmlHaarCascade = base64Decode(haarCascadeBase64Data);
     auto classifier = std::make_shared<cv::CascadeClassifier>();
-    // Workaround until there I find a way to convert to the new 
+    // Workaround until there I find a way to convert to the new
     // format that is accepted as an in-memory FileNode
     // Implementation should look like this:
 
@@ -238,7 +231,7 @@ double CommonHelpers::toMM(double v, const std::string& units)
     if (units == "inch")
     {
         return v*25.4;
-    }    
+    }
     if (units == "cm")
     {
         return v*10.0;

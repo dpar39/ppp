@@ -35,7 +35,7 @@ public:
     *  @returns The classifier loaded into memory
     !*/
     //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
-    
+
     static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/
@@ -60,7 +60,7 @@ private:
 };
 
 #if __cplusplus < 201300
-namespace std 
+namespace std
 {
     template<typename T, typename... Args>
     std::unique_ptr<T> make_unique(Args&&... args)

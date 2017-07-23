@@ -15,8 +15,14 @@ export class HomePage implements AfterViewInit {
 
   ngAfterViewInit() {
     this.cppProp = "xxxxxxx";
-    cpp.TestCpp.staticTestMethod(ret => {
-      this.cppProp = ret;
-    });
+    try{
+      if (cpp) {
+        cpp.TestCpp.staticTestMethod(ret => {
+          this.cppProp = ret;
+        });
+      }
+    }
+    catch (Exception) {
+    }
   }
 }
