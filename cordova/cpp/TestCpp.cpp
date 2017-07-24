@@ -16,7 +16,5 @@ int TestCpp::testMethod(int p1, const char *p2, double p3, bool p4)
 }
 
 const char* TestCpp::staticTestMethod() {
-
-
-    return "Olivia Rocks!";
+    return "Testing static method!";
 }
