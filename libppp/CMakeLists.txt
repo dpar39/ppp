@@ -19,6 +19,17 @@ if (UNIX)
     find_package(Poco REQUIRED COMPONENTS Foundation)
 endif()
 
+if (WIN32 AND (${BUILD_TYPE} MATCHES "debug"))
+    # Build a static library for Windows when debugging
+    set(LIB_MODE STATIC)
+else()
+    # Build a shared version of the library
+    # Avoid node-gyp mechanism to resolve third party libraries
+    set(LIB_MODE SHARED)
+    add_definitions(-DDLLEXPORT)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 #-----------------------------
 # Build the module library
 #-----------------------------
@@ -37,21 +48,7 @@ set(MODULE_LIB_DEPS
     ${OPENCV_3RDPARTY_LIBS}
 )
 
-set(MODULE_LIB_DIRS
-    ${OpenCV_LIB_DIR}
-)
-
-if (WIN32 AND (${BUILD_TYPE} MATCHES "debug"))
-    # Build a static library for Windows when debugging
-    set(LIB_MODE STATIC)
-else()
-    # Build a shared version of the library
-    # Avoid node-gyp mechanism to resolve third party libraries
-    set(LIB_MODE SHARED)
-    add_definitions(-DDLLEXPORT)
-endif()
 add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
-link_directories(${MODULE_LIB_DIRS})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
 # Install the library
@@ -76,7 +73,7 @@ set(TEST_LIB_DEPS
     gmock
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES} ${LIB_SRC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
