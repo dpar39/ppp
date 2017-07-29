@@ -1,5 +1,5 @@
 :: ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Commits new changes on the website and deploys to azure
+:: Commits new changes on the website and deploys to azure ::
 :: ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @echo off
 pushd %~dp0\..
