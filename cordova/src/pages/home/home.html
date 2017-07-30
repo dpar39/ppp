@@ -1,19 +1,38 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar secondary>
     <ion-title>Passport Photo App</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <h2>Create your own passport photos</h2>
+  <h2>Create your own passport photos yeah!</h2>
   <p>
-    This starter project comes with simple tabs-based layout for apps
-    that are going to primarily use a Tabbed UI.
+    This starter project comes with simple tabs-based layout for apps that are going to primarily use a Tabbed UI.
   </p>
   <p>
-    Take a look at the <code>src/pages/</code> directory to add or change tabs,
-    update any existing page or create new pages.
+    Take a look at the <code>src/pages/</code> directory to add or change tabs, update any existing page or create new pages.
   </p>
   <h2 [innerText]="cppProp">{{cppProp}}</h2>
+
+
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <button ion-button round block color="danger">
+          <ion-icon name="camera"></ion-icon>
+          <span padding>Take photo</span>
+        </button>
+      </ion-col>
+      <ion-col>
+        <button ion-button round block color="greenish">
+        <ion-icon name="folder"></ion-icon>
+        <span padding>Select Photo</span>
+      </button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+
 
 </ion-content>

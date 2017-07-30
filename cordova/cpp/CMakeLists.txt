@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.4.1)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
 
 set(THIRDPARTY_DIR ${CMAKE_SOURCE_DIR}/../../../../thirdparty)
-set(OpenCV_DIR ${THIRDPARTY_DIR}/opencv-3.2.0-android-sdk/OpenCV-android-sdk/sdk/native/jni)
+#set(OpenCV_DIR ${THIRDPARTY_DIR}/opencv-3.2.0-android-sdk/OpenCV-android-sdk/sdk/native/jni)
+set(OpenCV_DIR  $ENV{OpenCV_DIR}) 
 message("Set OpenCV_DIR to " ${OpenCV_DIR})
 find_package(OpenCV REQUIRED)
 

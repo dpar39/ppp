@@ -17,7 +17,7 @@ export class HomePage implements AfterViewInit {
     this.cppProp = "xxxxxxx";
     try{
       if (cpp) {
-        cpp.TestCpp.staticTestMethod(ret => {
+        cpp.NativeWrapper.detectLandMarks("imgKey", ret => {
           this.cppProp = ret;
         });
       }

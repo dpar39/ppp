@@ -1,15 +1,27 @@
 {
-    "header_files": ["TestCpp.h"],
-    "source_files": ["TestCpp.cpp"],
+    "header_files": ["NativeWrapper.h"],
+    "source_files": ["NativeWrapper.cpp"],
     "classes": {
-        "TestCpp": {
+        "NativeWrapper": {
             "methods": {
-                "testMethod": {
-                    "params": ["int", "string", "double", "boolean"],
-                    "return": "int"
-                },
-                "staticTestMethod": {
+                "configure": {
                     "is_static": true,
+                    "params": [ "string"],
+                    "return": "void"
+                },
+                "setImage": {
+                    "is_static": true,
+                    "params": [ "string"],
+                    "return": "string"
+                },
+                "detectLandMarks": {
+                    "is_static": true,
+                    "params": [ "string"],
+                    "return": "string"
+                },
+                "createTiledPrint": {
+                    "is_static": true,
+                    "params": [ "string", "string"],
                     "return": "string"
                 }
             }
