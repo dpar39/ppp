@@ -25,4 +25,9 @@ export class HomePage implements AfterViewInit {
     catch (Exception) {
     }
   }
+
+  takePicture()  {
+    console.log("take clicked!");
+    this.cppProp = "Aha!!!!"
+  }
 }
