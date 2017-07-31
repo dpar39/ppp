@@ -18,15 +18,15 @@
   <ion-grid>
     <ion-row>
       <ion-col>
-        <button ion-button round block color="danger" (click)='takePicture();'>
+        <button ion-button round block icon-start color="danger" (click)='takePicture();'>
           <ion-icon name="camera"></ion-icon>        
-           <span>&nbsp;&nbsp;&nbsp;Take Photo</span> 
+          Take Photo
         </button>
       </ion-col>
       <ion-col>
-        <button ion-button round color="greenish" block>
+        <button ion-button round block icon-start color="greenish" (click)='loadPicture();'>
           <ion-icon name="folder"></ion-icon>   
-           <span>&nbsp;&nbsp;&nbsp;Select Photo</span>
+          Select Photo
       </button>
       </ion-col>
     </ion-row>
