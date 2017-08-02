@@ -3,10 +3,11 @@
     <name>MyApp</name>
     <description>An awesome Ionic/Cordova app.</description>
     <author email="dpar39@gmail.com" href="http://github.com/dpar39">Darien Pardinas</author>
-    <content src="index.html" />
+    <content original-src="index.html" src="http://10.20.12.195:8100" />
     <access origin="*" />
     <allow-navigation href="http://ionic.local/*" />
     <allow-navigation href="http://192.168.0.24:8100" />
+    <allow-navigation href="http://10.20.12.195:8100" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />
@@ -80,6 +81,8 @@
     </platform>
     <hook src="hooks/before_prepare.js" type="before_prepare" />
     <engine name="android" spec="^6.2.3" />
+    <engine name="browser" spec="^4.1.0" />
+    <plugin name="cordova-plugin-camera" spec="^2.4.1" />
     <plugin name="cordova-plugin-console" spec="^1.0.5" />
     <plugin name="cordova-plugin-cpp-bridge" spec="0.0.7" />
     <plugin name="cordova-plugin-device" spec="^1.1.4" />
@@ -87,5 +90,4 @@
     <plugin name="cordova-plugin-statusbar" spec="^2.2.2" />
     <plugin name="cordova-plugin-whitelist" spec="^1.3.1" />
     <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
-    <engine name="browser" spec="~4.1.0" />
 </widget>

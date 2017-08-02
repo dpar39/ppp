@@ -14,18 +14,20 @@
   </p>
   <h2 [innerText]="cppProp">{{cppProp}}</h2>
 
+  <input-photo [photo]="srcImg">
+  </input-photo>
 
   <ion-grid>
     <ion-row>
       <ion-col>
-        <button ion-button round block icon-start color="danger" (click)='takePicture();'>
-          <ion-icon name="camera"></ion-icon>        
+        <button ion-button round block icon-start color="danger" (click)='takePicture()'>
+          <ion-icon name="camera"></ion-icon>
           Take Photo
         </button>
       </ion-col>
       <ion-col>
         <button ion-button round block icon-start color="greenish" (click)='loadPicture();'>
-          <ion-icon name="folder"></ion-icon>   
+          <ion-icon name="folder"></ion-icon>
           Select Photo
       </button>
       </ion-col>
