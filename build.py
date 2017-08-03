@@ -426,7 +426,7 @@ class Builder(object):
             """
             Extracts file from zip archive
             """
-            zip_file = os.path.join(research_dir, zip_file)            
+            zip_file = os.path.join(research_dir, zip_file)
             zip_handle = zipfile.ZipFile(zip_file)
             for item in zip_handle.namelist():
                 zip_handle.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
@@ -435,7 +435,7 @@ class Builder(object):
         research_dir = os.path.join(self._root_dir, 'research')
         if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
             return # Nothing to do, data already been extracted
-       
+
         print 'Extracting validation data ...'
         extract(research_dir, 'annotated_imageset0.zip')
         extract(research_dir, 'annotated_imageset1.zip')
@@ -473,10 +473,15 @@ class Builder(object):
             # Building the project code from the command line
             self.run_cmake(cmake_generator, '..')
             self.run_cmd(make_cmd)
+            # Copy binaries to the local install directory
             if self._run_install:
                 self.run_cmd(make_cmd + ['install'])
+            # Run unit tests for C++ code
+            if self._run_tests:
+                os.chdir(self._install_dir)
+                self.run_cmd(['ppp_test', '--gtest_output=xml:tests.xml'])
             os.chdir(self._root_dir)
-
+            # Create Node.js addon with node-gyp
             self.build_addon_with_nodegyp()
             # Run addon integration test
             os.chdir(self._install_dir)

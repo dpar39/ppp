@@ -23,7 +23,6 @@ rapidjson::Value rectangleToJson(const cv::Rect& r, rapidjson::Document::Allocat
     return obj;
 }
 
-
 std::string LandMarks::toString() const
 {
     std::stringstream ss;
@@ -49,6 +48,7 @@ std::string LandMarks::toJson() const
     d.AddMember("lipLowerCenter", pointToJson(lipLowerCenter, alloc), alloc);
     d.AddMember("lipLeftCorner", pointToJson(lipLeftCorner, alloc), alloc);
     d.AddMember("lipRightCorner", pointToJson(lipRightCorner, alloc), alloc);
+    d.AddMember("vjMouthRect", rectangleToJson(vjRightEyeRect, alloc), alloc);
 
     d.AddMember("crownPoint", pointToJson(crownPoint, alloc), alloc);
     d.AddMember("chinPoint", pointToJson(chinPoint, alloc), alloc);

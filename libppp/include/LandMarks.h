@@ -28,6 +28,7 @@ struct LandMarks
     cv::Point lipLowerCenter;
     cv::Point lipLeftCorner;
     cv::Point lipRightCorner;
+    cv::Rect vjMouthRect;
 
     cv::Rect  vjFaceRect;
     cv::Point crownPoint;

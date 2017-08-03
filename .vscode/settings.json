@@ -4,5 +4,6 @@
     "files.autoSaveDelay": 1000,
     "files.associations": {
         "cmakeccompilerid.c": "cpp"
-    }
+    },
+    "files.trimTrailingWhitespace": true
 }

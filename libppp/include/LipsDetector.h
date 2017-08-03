@@ -12,7 +12,8 @@ public:
     bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
 
 private:
-    cv::CascadeClassifierSPtr m_pMouthDetector;
+    cv::CascadeClassifierSPtr m_pMouthCascadeClassifier;
     
     bool m_useHaarCascades = true;
+    bool m_useColorSegmentationAlgorithm;
 };

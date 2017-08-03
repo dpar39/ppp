@@ -74,14 +74,13 @@ inline std::vector<cv::Point2d> contourLineIntersection(const std::vector<cv::Po
     auto A2 = pline2.y - pline1.y;
     auto B2 = pline1.x - pline2.x;
     auto C2 = A2 * pline1.x + B2 * pline1.y;
-    cv::Point2d pSeg1, pSeg2;
 
     auto numVertex = contour.size();
     auto numSegments = contour.front() == contour.back() ? numVertex - 1 : numVertex;
     for (size_t i = 0; i < numSegments; i++)
     {
-        pSeg1 = contour[i];
-        pSeg2 = contour[(i + 1) % numVertex];
+        cv::Point2d pSeg1 = contour[i];
+        cv::Point2d pSeg2 = contour[(i + 1) % numVertex];
         auto A1 = pSeg2.y - pSeg1.y;
         auto B1 = pSeg1.x - pSeg2.x;
         auto C1 = A1 * pSeg1.x + B1 * pSeg1.y;
@@ -106,7 +105,6 @@ inline int kittlerOptimumThreshold(std::vector<double> P, float mu)
 {
     int t, i, first = 0, last = 0, opt_threshold = 0, set = 0;
     double  q1[255], q2[255], mu1[255], mu2[255], var1[255], var2[255], H[255];
-    double min;
     printf("------------------------------\n");
     printf("\nPerforming the Optimization Operation\n");
     printf("TEST : %f \n", P[134]);
@@ -142,7 +140,7 @@ inline int kittlerOptimumThreshold(std::vector<double> P, float mu)
     {
         q1[t] = q1[t - 1] + P[t];
         q2[t] = 1 - q1[t];
-        mu1[t] = (q1[t - 1] * mu1[t - 1] + (double)t*P[t]) / q1[t];
+        mu1[t] = (q1[t - 1] * mu1[t - 1] + static_cast<double>(t)*P[t]) / q1[t];
         mu2[t] = (mu - q1[t] * mu1[t]) / q2[t];
 
         /* ENERGY FUNCTION */
@@ -157,7 +155,7 @@ inline int kittlerOptimumThreshold(std::vector<double> P, float mu)
     printf(" Done with Iterative Procedure for Kittler's Algorithm\n\n");
 
     /* FIND OPTIMUM THRESHOLD (GLOBAL MINIMA)*/
-    min = 9999.999;
+    auto min = 9999.999;
     for (i = first + 1; i < last - 1; i++)
     {
         if (H[i] < min)

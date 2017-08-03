@@ -129,20 +129,22 @@ inline bool importTextMatrix(const std::string& txtFileName, cv::Mat& output)
 {
     std::ifstream textFile(txtFileName);
     std::string str;
-    int numRows = 0;
-    int numCols = 0;
+    auto numRows = 0;
+    auto numCols = 0;
     std::vector<float> data;
 
     while (getline(textFile, str))
     {
         std::stringstream stream(str);
-        int numValuesInRow = 0;
-        while (1)
+        auto numValuesInRow = 0;
+        while (true)
         {
             float value;
             stream >> value;
             if (!stream)
+            {
                 break;
+            }
             data.push_back(value);
             numValuesInRow++;
         }
@@ -261,8 +263,8 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
             rectangle(inputImage, results.vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
             rectangle(inputImage, results.vjRightEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
 
-            cv::polylines(inputImage, std::vector<std::vector<cv::Point>> {results.lipContour1st, results.lipContour2nd}, true, detectionColor);
-            //rectangle(inputImage, results.vjMouth, Scalar(0xA0, 0x52, 0x2D), 3);
+            polylines(inputImage, std::vector<std::vector<cv::Point>> {results.lipContour1st, results.lipContour2nd}, true, detectionColor);
+            rectangle(inputImage, results.vjMouthRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
 
             circle(inputImage, results.eyeLeftPupil, 5, detectionColor, 2);
             circle(inputImage, results.eyeRightPupil, 5, detectionColor, 2);
