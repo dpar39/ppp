@@ -100,7 +100,19 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         // Select the two biggest regions (assuming they are the lips)
         for (auto c = contours.begin(); c != contours.end(); ++c)
         {
-            auto area = contourArea(*c);
+            // Ignore contour if it touches the border of the rectangle at the bottom
+            if (std::any_of(c->begin(), c->end(), [mouthRoiWidth, mouthRoiHeight, &mouthRoiLeftTop](const cv::Point &p)
+            {
+                // return p.x == mouthRoiLeftTop.x || p.x >= mouthRoiLeftTop.x + mouthRoiWidth - 1
+                //        p.y == mouthRoiLeftTop.y || p.y >= mouthRoiLeftTop.y + mouthRoiHeight - 1;
+                return p.y >= mouthRoiLeftTop.y + mouthRoiHeight - 1;
+            }))
+            {
+                continue;
+            }
+            // auto area = contourArea(*c);
+            auto area = boundingRect(*c).width;
+
             if (area > maxArea1st)
             {
                 maxArea2nd = maxArea1st;

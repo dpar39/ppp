@@ -26,8 +26,8 @@ bool CrownChinEstimator::estimateCrownChin(LandMarks& landMarks)
     }
     if (landMarks.vjMouthRect.area() > 0)
     {
-        mouthCenterPoint += cv::Point2d(landMarks.vjMouthRect.br() + landMarks.vjMouthRect.tl()) * 0.5;
-        ++mouthAve;
+        //mouthCenterPoint += cv::Point2d(landMarks.vjMouthRect.br() + landMarks.vjMouthRect.tl()) * 0.5;
+        //++mouthAve;
     }
     if (mouthAve > 0)
     {

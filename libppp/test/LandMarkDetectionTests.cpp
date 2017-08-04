@@ -10,9 +10,6 @@
 
 #include <FaceDetector.h>
 #include <EyeDetector.h>
-#include <LipsDetector.h>
-
-
 
 using namespace cv;
 
@@ -41,10 +38,10 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         {
             auto imgKey = m_pPppEngine->setInputImage(rgbImage);
 
-            EXPECT_TRUE(m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks))
-                << "Error detecting landmarks in " << imagePrefix;
+            auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+            EXPECT_TRUE(success) << "Error detecting landmarks in " << imagePrefix;
 
-            auto success = IN_ROI(detectedLandMarks.vjLeftEyeRect, annotations.eyeLeftPupil) &&
+            success = IN_ROI(detectedLandMarks.vjLeftEyeRect, annotations.eyeLeftPupil) &&
                 IN_ROI(detectedLandMarks.vjRightEyeRect, annotations.eyeRightPupil);
 
             EXPECT_TRUE(success) << "Failed " << imagePrefix << std::endl;
@@ -106,7 +103,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         88, // Glasses, eyes mostly closed
         //92, // Right eye fail <<<<<<<<<
         //115, // Old guy, eyes very closed
-        121
+        //121
     };
 
     std::vector<std::string> ignoreImageList;

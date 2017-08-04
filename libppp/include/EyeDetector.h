@@ -34,8 +34,8 @@ private:  // Configuration
     const double m_heightRatio = 0.25;   ///<- ROI height ratio with respect to head size
 
     // Preprocessing
-    const bool kSmoothFaceImage = false;
-    const float kSmoothFaceFactor = 0.005f;
+    const bool m_smoothFaceImage = false;
+    const float m_smoothFaceFactor = 0.005f;
 
     // Algorithm Parameters
     const int kFastEyeWidth = 50;
@@ -45,35 +45,25 @@ private:  // Configuration
     const double kGradientThreshold = 50.0;
 
     // Post-processing
-    const bool kEnablePostProcess = true;
-    const float kPostProcessThreshold = 0.97f;
-
-    // Eye Corner detection
-    const bool kEnableEyeCorner = false;
-    
+    const bool m_enablePostProcess = true;
+    const float m_postProcessThreshold = 0.97f;
 
 private:
     static void validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize, cv::Point &eyeCenter);
 
     static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat &img, cv::CascadeClassifier *cc);
 
-    cv::Point findEyeCenter(const cv::Mat& image);
+    cv::Point findEyeCenter(const cv::Mat& image) const;
 
     void createCornerKernels();
 
-    cv::Mat eyeCornerMap(const cv::Mat& region, bool left, bool left2) const;
+    void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out) const;
 
-    void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out);
+    cv::Mat floodKillEdges(cv::Mat& mat) const;
 
-    cv::Mat floodKillEdges(cv::Mat& mat);
-
-    cv::Mat matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY);
+    cv::Mat matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY) const;
 
     double computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor) const;
-
-    cv::Point2f findEyeCorner(cv::Mat region, bool left, bool left2) const;
-
-    static cv::Point2f findSubpixelEyeCorner(cv::Mat region, cv::Point maxP);
 
     cv::Point unscalePoint(cv::Point p, cv::Rect origSize) const;
 

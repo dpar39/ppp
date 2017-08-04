@@ -212,7 +212,7 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
 
     for (auto imageFileName : imageFileNames)
     {
-        //imageFileName = "W:\\GITHUB\\ppp\\research\\mugshot_frontal_original_all\\087_frontal.jpg";
+        // imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/071_frontal.jpg";
         if (find_if(ignoredImages.begin(), ignoredImages.end(), [&imageFileName](const std::string &ignoreImageFile)
         {
             return imageFileName.find(ignoreImageFile) != std::string::npos;
@@ -241,11 +241,6 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
         auto imageName = getFileName(imageFileName);
 
         auto success = callback(imageName, inputImage, grayImage, annotations, results);
-        if (!success)
-        {
-            success = false;
-        }
-        EXPECT_TRUE(success);
 
         if (annotateResults)
         {
@@ -254,8 +249,8 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
 
             circle(inputImage, annotations.eyeLeftPupil, 5, annnotationColor, 2);
             circle(inputImage, annotations.eyeRightPupil, 5, annnotationColor, 2);
-            circle(inputImage, annotations.eyeLeftPupil, 5, annnotationColor, 2);
-            circle(inputImage, annotations.eyeRightPupil, 5, annnotationColor, 2);
+            circle(inputImage, annotations.lipLeftCorner, 5, annnotationColor, 2);
+            circle(inputImage, annotations.lipRightCorner, 5, annnotationColor, 2);
             circle(inputImage, annotations.crownPoint, 5, annnotationColor, 2);
             circle(inputImage, annotations.chinPoint, 5, annnotationColor, 2);
 
@@ -275,5 +270,6 @@ inline void processDatabase(DetectionCallback callback, std::vector<std::string>
             circle(inputImage, results.crownPoint, 5, detectionColor, 2);
             circle(inputImage, results.chinPoint, 5, detectionColor, 2);
         }
+        EXPECT_TRUE(success);
     }
 }
