@@ -103,7 +103,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         88, // Glasses, eyes mostly closed
         //92, // Right eye fail <<<<<<<<<
         //115, // Old guy, eyes very closed
-        //121
+        121
     };
 
     std::vector<std::string> ignoreImageList;
