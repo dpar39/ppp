@@ -3,6 +3,7 @@
 /build_*
 /install_*
 /thirdparty
+/node_modules
 /visualstudio
 /research/*.asv
 /addon/build

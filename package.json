@@ -1,0 +1,19 @@
+{
+  "name": "ppp",
+  "version": "1.0.0",
+  "description": "Higher level tools needed (e.g. node-gyp)",
+  "main": "index.js",
+  "dependencies": {
+    "node-gyp": "^3.6.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://darienpardinas.visualstudio.com/DefaultCollection/_git/PassportPhotoApp"
+  },
+  "author": "Darien Pardinas",
+  "license": "MIT"
+}

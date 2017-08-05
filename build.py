@@ -501,6 +501,9 @@ class Builder(object):
                 shutil.copy(shared_lib_path, webapp_dir)
 
     def __init__(self):
+        # Install NPM tools
+        self.run_cmd(['npm', 'install'])
+
         # Detect OS version
         self.parse_arguments()
         if IS_WINDOWS:
