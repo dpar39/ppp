@@ -18,7 +18,7 @@ protected:
 TEST_F(FaceDetectorTests, CanDetectFaces)
 {
     auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
-        LandMarks& manualAnnotations, LandMarks& detectedLandMarks) -> bool
+        const LandMarks& manualAnnotations, LandMarks& detectedLandMarks) -> bool
     {
         EXPECT_TRUE(m_pFaceDetector->detectLandMarks(grayImage, detectedLandMarks))
             << "Error detecting face in " << imagePrefix;
@@ -34,5 +34,5 @@ TEST_F(FaceDetectorTests, CanDetectFaces)
         return true;
     };
 
-    processDatabase(process, std::vector<std::string>());
+    processDatabase(process, std::vector<std::string>(), "research/mugshot_frontal_original_all/via_region_data_dpd.csv");
 }

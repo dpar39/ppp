@@ -34,7 +34,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     std::vector<double> relativeErrors;
 
     auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
-            LandMarks& annotations, LandMarks& detectedLandMarks) -> bool
+            const LandMarks& annotations, LandMarks& detectedLandMarks) -> bool
         {
             auto imgKey = m_pPppEngine->setInputImage(rgbImage);
 
@@ -115,5 +115,5 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         return ss.str() + "_frontal.jpg";
     });
 
-    processDatabase(process, ignoreImageList);
+    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv");
 }
