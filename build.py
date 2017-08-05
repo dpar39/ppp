@@ -467,7 +467,7 @@ class Builder(object):
         self.parse_arguments()
 
         # Install NPM tools
-        self.run_cmd(['npm', 'install'])
+        self.run_cmd(['npm', 'install', 'node-gyp', '-g'])
 
         if IS_WINDOWS:
             self.detect_vs_version()
