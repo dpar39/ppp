@@ -1,7 +1,6 @@
 ﻿"""
 build.py
 """
-
 import os
 import sys
 import glob
@@ -16,7 +15,6 @@ import multiprocessing
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.2.0.zip'
-POCO_SRC_URL = 'http://pocoproject.org/releases/poco-1.7.4/poco-1.7.4-all.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
@@ -161,41 +159,6 @@ class Builder(object):
         if self._run_install:
             shutil.copy(node_exe_path, self._install_dir)
 
-    def build_poco_lib(self, override=False):
-        """
-        Downloads, extracts and builds POCO libraries from source, if not done yet
-        """
-        # Download POCO sources if not done yet
-        poco_src_pkg = self.download_third_party_lib(POCO_SRC_URL)
-        poco_extract_dir = self.get_third_party_lib_dir('poco')
-        if poco_extract_dir is None:
-            # Extract the source files
-            self.extract_third_party_lib(poco_src_pkg)
-            poco_extract_dir = self.get_third_party_lib_dir('poco')
-
-        poco_all_modules = ['XML', 'JSON', 'MONGODB', 'UTIL', \
-           'NET', 'NETSSL', 'NETSSL_WIN', 'CRYPTO', \
-           'DATA', 'DATA_SQLITE', 'DATA_MYSQL', 'DATA_ODBC', 'ZIP', \
-           'PAGECOMPILER', 'PAGECOMPILER_FILE2PAGE']
-        poco_build_modules = [] # Foundation always gets built - that's all we need for now
-
-        lib_files = glob.glob(self._third_party_install_dir + '/lib/Poco*.lib') \
-            + glob.glob(self._third_party_install_dir + '/lib/libPoco*.a')
-        if len(lib_files) < len(poco_build_modules) + 1 or override:
-            # Build POCO libraries
-            cmake_definitions = [
-                '-DPOCO_STATIC=ON', \
-                '-DPOCO_MT=ON', \
-                '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
-                '-DCMAKE_BUILD_TYPE=' + self._build_config]
-
-            for module in poco_all_modules:
-                on_off = '=ON' if module in poco_build_modules else '=OFF'
-                cmake_def = '-DENABLE_' + module + on_off
-                cmake_definitions.append(cmake_def)
-
-            self.build_cmake_lib(poco_extract_dir, cmake_definitions, ['install'])
-
     def extract_gmock(self):
         """
         Extract and build GMock/GTest libraries
@@ -224,16 +187,6 @@ class Builder(object):
         """
         Downloads and builds OpenCV from source
         """
-        # Download OpenCV sources if not done yet
-        opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
-        # Get the file prefix for OpenCV
-        opencv_extract_dir = self.get_third_party_lib_dir('opencv')
-
-        if opencv_extract_dir is None:
-            # Extract the source files
-            self.extract_third_party_lib(opencv_src_pkg)
-            opencv_extract_dir = self.get_third_party_lib_dir('opencv')
-
         ocv_all_modules = ['core', 'flann', 'imgproc', \
             'ml', 'photo', 'video', 'imgcodecs', 'shape', \
             'videoio', 'highgui', 'objdetect', 'superres', \
@@ -250,6 +203,15 @@ class Builder(object):
             lib_files = glob.glob(self._third_party_install_dir + '/lib/libopencv_*.a')
             if len(lib_files) == len(ocv_build_modules):
                 return
+        # Download OpenCV sources if not done yet
+        opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
+        # Get the file prefix for OpenCV
+        opencv_extract_dir = self.get_third_party_lib_dir('opencv')
+
+        if opencv_extract_dir is None:
+            # Extract the source files
+            self.extract_third_party_lib(opencv_src_pkg)
+            opencv_extract_dir = self.get_third_party_lib_dir('opencv')
 
         cmake_extra_defs = [ \
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
@@ -516,17 +478,11 @@ class Builder(object):
 
         # Build Third party libs
         self.extract_gmock()
-        if not IS_WINDOWS:
-            self.build_poco_lib()
         self.build_opencv()
 
         if self._gen_vs_sln:
             # Build Node JS from source so the addon can be build reliably for Windows
             self.build_nodejs()
-
-        #Extract validation data (imageset with annotations)
-        self.extract_validation_data()
-
 
         # Build this project
         self.build_cpp_code()
