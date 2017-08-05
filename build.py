@@ -506,9 +506,6 @@ class Builder(object):
         if IS_WINDOWS:
             self.detect_vs_version()
 
-        #Install node-gyp
-        self.run_cmd(['nmp', 'install', 'node-gyp', '-g'])
-
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
