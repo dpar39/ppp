@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+
 #define FWD_DECL(classname) \
     class classname; \
     typedef std::shared_ptr<classname> classname##SPtr; \
@@ -30,30 +31,6 @@ namespace cv
 
 typedef unsigned char byte;
 
-class CommonHelpers
-{
-public:
-    /*!@brief Loads a cascade classifier from file
-    *  @param[in] haarCascadeBase64Data Haar cascade XML data encoded as a base64 string
-    *  @returns The classifier loaded into memory
-    !*/
-    //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
-    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
-
-    /*!@brief Calculates CRC value for a buffer of specified length !*/
-    static uint32_t crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end);
-
-    static std::vector<byte> base64Decode(const std::string& base64Str);
-
-    static std::string base64Encode(const std::vector<byte>& rawStr);
-
-
-    /*!@brief Convert a distance to millimeters
-     * @param[in] v Value to convert
-     * @param[in] units Units (accepted values are "inch", "mm" and "cm"
-    !*/
-    static double toMM(double v, const std::string &units);
-};
 
 class noncopyable
 {

@@ -2,11 +2,12 @@
 
 #include <gtest/gtest.h>
 #include <utility>
+#include "CommonHelpers.h"
 
 using namespace std;
 using namespace cv;
 
-TEST(GeometryTests, TestCalculatePointAtDistance)
+TEST(UtilitiesTests, TestCalculatePointAtDistance)
 {
     vector<tuple<Point2d, Point2d, double, Point2d, Point2d> > data =
     {
@@ -23,8 +24,26 @@ TEST(GeometryTests, TestCalculatePointAtDistance)
 
     for (auto &t : data)
     {
-        auto result = pointsAtDistanceNormalToCentreOf(get<0>(t), get<1>(t), get<2>(t));
+        auto result = Utilities::pointsAtDistanceNormalToCentreOf(get<0>(t), get<1>(t), get<2>(t));
         EXPECT_EQ(get<3>(t), result.first);
         EXPECT_EQ(get<4>(t), result.second);
+    }
+}
+
+TEST(UtilitiesTests, TestBase64EncodeDecode)
+{
+    auto testCases = {
+        vector<uint8_t> {0},
+        vector<uint8_t> {255},
+        vector<uint8_t> {0, 1, 3, 43, 98, 34},
+        vector<uint8_t> {128, 129, 254, 200},
+        vector<uint8_t> {128, 129, 254, 200, 3, 0, 0, 89}
+    };
+
+    for (const auto &tc : testCases)
+    {
+        auto base64 = Utilities::base64Encode(tc);
+        auto decode = Utilities::base64Decode(base64);
+        EXPECT_TRUE(std::equal(tc.begin(), tc.end(), decode.begin()));
     }
 }

@@ -71,7 +71,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const 
 
     if (asBase64Encode)
     {
-        return CommonHelpers::base64Encode(pictureData);
+        return Utilities::base64Encode(pictureData);
     }
     return std::string(pictureData.begin(), pictureData.end());
 }
@@ -107,7 +107,7 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
     pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
     pHYsChunk.push_back(1); // Unit is the meter
 
-    auto crcBytes = toBytes(CommonHelpers::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
+    auto crcBytes = toBytes(Utilities::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
     pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
 
     string idat = "IDAT";

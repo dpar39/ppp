@@ -1,12 +1,10 @@
 #include "LandMarks.h"
 #include "EyeDetector.h"
-#include "Utilities.h"
-#include "CommonHelpers.h"
-
 #include <queue>
-
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+#include "Utilities.h"
 
 using namespace std;
 
@@ -24,7 +22,7 @@ void EyeDetector::configure(rapidjson::Value& cfg)
         {
             auto & haarCascade = edCfg[(string("haarCascade") + eyeName).c_str()];
             auto xmlBase64Data(haarCascade["data"].GetString());
-            return CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
+            return Utilities::loadClassifierFromBase64(xmlBase64Data);
         };
         m_leftEyeCascadeClassifier = loadCascade("Left");
         m_rightEyeCascadeClassifier = loadCascade("Right");

@@ -5,10 +5,10 @@ import os
 import sys
 import glob
 import shutil
-import argparse
-import subprocess
 import zipfile
 import tarfile
+import argparse
+import subprocess
 import multiprocessing
 
 # Configuration
@@ -124,6 +124,13 @@ class Builder(object):
             + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end+1:]
         with open(solution_file, "w") as file_handle:
             file_handle.writelines(["%s\n" % item  for item in prj_lines])
+
+        sdf_file = os.path.join(self._build_dir, 'PassportPhoto.sdf')
+        if os.path.exists(sdf_file):
+            try:
+                os.rename(sdf_file, sdf_file) #can't rename an open file so an error will be thrown
+            except:
+                return # Do not launch visual studio as it is already opened
         self.run_cmd(['call', 'devenv', solution_file])
 
     def build_dir_name(self, prefix):

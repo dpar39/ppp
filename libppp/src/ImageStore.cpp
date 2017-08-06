@@ -2,12 +2,12 @@
 #include <iomanip>
 
 #include "ImageStore.h"
-#include "CommonHelpers.h"
+#include "Utilities.h"
 
 
 std::string ImageStore::setImage(const cv::Mat &inputImage)
 {
-    auto crc32val = CommonHelpers::crc32(0, inputImage.datastart, inputImage.dataend);
+    auto crc32val = Utilities::crc32(0, inputImage.datastart, inputImage.dataend);
     std::stringstream s;
     s << std::setfill('0') << std::setw(8) << std::hex << crc32val;
     const auto && imageKey = s.str();

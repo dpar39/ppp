@@ -20,7 +20,7 @@ void LipsDetector::configure(rapidjson::Value& config)
     if (m_useHaarCascades)
     {
         const string haarClassifierBase64(lipsDetectorCfg["haarCascade"]["data"].GetString());
-        m_pMouthCascadeClassifier = CommonHelpers::loadClassifierFromBase64(haarClassifierBase64);
+        m_pMouthCascadeClassifier = Utilities::loadClassifierFromBase64(haarClassifierBase64);
     }
 }
 
@@ -36,7 +36,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
 
     auto eyeCentrePoint = (leftEyePos + rightEyePos) / 2.0;
     // Estimate center of the chin and crop a rectangle around it
-    auto tmp = pointsAtDistanceNormalToCentreOf(leftEyePos, rightEyePos, distEyeLineToMouthCenter);
+    auto tmp = Utilities::pointsAtDistanceNormalToCentreOf(leftEyePos, rightEyePos, distEyeLineToMouthCenter);
 
     auto mouthCenterPoint = tmp.first.y > tmp.second.y ? static_cast<Point2d>(tmp.first) : static_cast<Point2d>(tmp.second);
     Point mouthRoiLeftTop(ROUND_INT(mouthCenterPoint.x - mouthRoiWidth / 2), ROUND_INT( mouthCenterPoint.y - mouthRoiHeight / 2));
@@ -128,7 +128,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
             landMarks.lipContour2nd = *c2nd;
         }
 
-        auto candidates = contourLineIntersection(*c1st, eyeCentrePoint, mouthCenterPoint);
+        auto candidates = Utilities::contourLineIntersection(*c1st, eyeCentrePoint, mouthCenterPoint);
         auto leftCorner = Point(INT_MAX, 0), rightCorner = Point(INT_MIN, 0);
         for (const auto& p : *c1st)
         {
@@ -144,7 +144,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
 
         if (maxArea2nd > 0.5 * maxArea1st)
         {
-            auto candidates2 = contourLineIntersection(*c2nd, eyeCentrePoint, mouthCenterPoint);
+            auto candidates2 = Utilities::contourLineIntersection(*c2nd, eyeCentrePoint, mouthCenterPoint);
             candidates.insert(candidates.end(), candidates2.begin(), candidates2.end());
             for (auto& p : *c2nd)
             {

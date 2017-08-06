@@ -92,5 +92,5 @@ cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const
 
     auto crownToCenterPix = mmToPixRatio*crownToCenterMM;
 
-    return pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
+    return Utilities::pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }

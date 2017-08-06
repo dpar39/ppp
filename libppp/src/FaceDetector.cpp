@@ -1,6 +1,7 @@
 #include "CommonHelpers.h"
 #include "FaceDetector.h"
 #include "LandMarks.h"
+#include "Utilities.h"
 
 #include <vector>
 
@@ -56,5 +57,5 @@ void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFa
 void FaceDetector::configure(rapidjson::Value& cfg)
 {
     auto xmlBase64Data(cfg["faceDetector"]["haarCascade"]["data"].GetString());
-    m_pFaceCascadeClassifier = CommonHelpers::loadClassifierFromBase64(xmlBase64Data);
+    m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
 }

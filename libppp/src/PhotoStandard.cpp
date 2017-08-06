@@ -1,6 +1,5 @@
 #include "PhotoStandard.h"
-#include <memory>
-#include "CommonHelpers.h"
+#include "Utilities.h"
 
 
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfig)
@@ -18,8 +17,8 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
 
     auto units = psConfig["units"].GetString();
 
-    return std::make_shared<PhotoStandard>(CommonHelpers::toMM(picWidth, units),
-                                           CommonHelpers::toMM(picHeight, units),
-                                           CommonHelpers::toMM(faceLength, units),
-                                           CommonHelpers::toMM(eyesHeight, units));
+    return std::make_shared<PhotoStandard>(Utilities::toMM(picWidth, units),
+                                           Utilities::toMM(picHeight, units),
+                                           Utilities::toMM(faceLength, units),
+                                           Utilities::toMM(eyesHeight, units));
 }

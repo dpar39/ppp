@@ -1,15 +1,13 @@
-#include "CommonHelpers.h"
+#include <fstream>
+#include <mutex>
+#include "Utilities.h"
+#include <opencv2/objdetect/objdetect.hpp>
 
 namespace cv
 {
-	FWD_DECL(CascadeClassifier)
+    FWD_DECL(CascadeClassifier)
 }
 
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <fstream>
-#include <mutex>
 
 static uint8_t fromChar(char ch)
 {
@@ -36,7 +34,7 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::vector<byte> CommonHelpers::base64Decode(const std::string &base64Str)
+std::vector<byte> Utilities::base64Decode(const std::string &base64Str)
 {
     uint8_t charBlock4[4], byteBlock3[3];
     std::vector<byte> result;
@@ -54,12 +52,12 @@ std::vector<byte> CommonHelpers::base64Decode(const std::string &base64Str)
         {
             for (i = 0; i < 4; i++)
             {
-                 charBlock4[i] = fromChar(charBlock4[i]);
+                charBlock4[i] = fromChar(charBlock4[i]);
             }
             byteBlock3[0] = (charBlock4[0] << 2) + ((charBlock4[1] & 0x30) >> 4);
             byteBlock3[1] = ((charBlock4[1] & 0xf) << 4) + ((charBlock4[2] & 0x3c) >> 2);
             byteBlock3[2] = ((charBlock4[2] & 0x3) << 6) + charBlock4[3];
-            result.insert(result.end(), byteBlock3, byteBlock3+3);
+            result.insert(result.end(), byteBlock3, byteBlock3 + 3);
             i = 0;
         }
     }
@@ -77,9 +75,9 @@ std::vector<byte> CommonHelpers::base64Decode(const std::string &base64Str)
     return result;
 }
 
-std::string CommonHelpers::base64Encode(const std::vector<byte>& rawStr)
+std::string Utilities::base64Encode(const std::vector<byte>& rawStr)
 {
-    static const std::string Base64CharSet = 
+    static const std::string Base64CharSet =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz"
         "0123456789+/";
@@ -92,10 +90,10 @@ std::string CommonHelpers::base64Encode(const std::vector<byte>& rawStr)
     uint8_t charArray3[3];
     uint8_t charArray4[4];
 
-    while (bufferSize--) 
+    while (bufferSize--)
     {
         charArray3[i++] = *byteIter++;
-        if (i == 3) 
+        if (i == 3)
         {
             charArray4[0] = (charArray3[0] & 0xfc) >> 2;
             charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
@@ -132,7 +130,7 @@ std::string CommonHelpers::base64Encode(const std::vector<byte>& rawStr)
     return result;
 }
 
-cv::CascadeClassifierSPtr CommonHelpers::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
 {
     auto xmlHaarCascade = base64Decode(haarCascadeBase64Data);
     auto classifier = std::make_shared<cv::CascadeClassifier>();
@@ -155,7 +153,7 @@ cv::CascadeClassifierSPtr CommonHelpers::loadClassifierFromBase64(const std::str
     return classifier;
 }
 
-uint32_t CommonHelpers::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end)
+uint32_t Utilities::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end)
 {
     /* Table of CRCs of all 8-bit messages. */
     static uint32_t s_crcTable[256];
@@ -183,7 +181,7 @@ uint32_t CommonHelpers::crc32(uint32_t crc, const uint8_t* begin, const uint8_t*
     });
 
     auto it = begin;
-    while(it != end)
+    while (it != end)
     {
         crc = s_crcTable[(crc ^ *it++) & 0xff] ^ (crc >> 8);
     }
@@ -228,7 +226,7 @@ uint32_t updateCrc(uint32_t crc, unsigned char *buf, size_t len)
     return crc;
 }
 
-double CommonHelpers::toMM(double v, const std::string& units)
+double Utilities::toMM(double v, const std::string& units)
 {
     if (units == "mm")
     {
@@ -243,4 +241,150 @@ double CommonHelpers::toMM(double v, const std::string& units)
         return v*10.0;
     }
     throw std::runtime_error("Unknown input units when creating the photo standard definition");
+}
+
+std::pair<cv::Point2d, cv::Point2d> Utilities::pointsAtDistanceNormalToCentreOf(cv::Point2d p1, cv::Point2d p2, double d)
+{
+    if (p1 == p2)
+    {
+        throw std::runtime_error("Input points cannot be equal");
+    }
+
+    auto p0 = (p1 + p2) / 2.0;
+    cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
+    if (p1.x == p2.x)
+    {
+        pa = pb = p0;
+        pa.x -= d;
+        pb.x += d;
+    }
+    else if (p1.y == p2.y)
+    {
+        pa = pb = p0;
+        pa.y -= d;
+        pb.y += d;
+    }
+    else
+    {
+        auto m = (p1.x - p2.x) / (p2.y - p1.y); // m' = -1/m
+        auto dx = d / sqrt(1 + m * m);
+        if (m < 0) dx = -dx;
+        pa.x = p0.x + dx;
+        pb.x = p0.x - dx;
+        pa.y = m * (pa.x - p0.x) + p0.y;
+        pb.y = m * (pb.x - p0.x) + p0.y;
+    }
+    return std::pair<cv::Point2d, cv::Point2d>(pa, pb);
+}
+
+cv::Point2d Utilities::pointInLineAtDistance(cv::Point2d p0, cv::Point2d p1, double dist)
+{
+    if (p1 == p0)
+    {
+        throw std::runtime_error("Input points cannot be equal");
+    }
+    auto ratio = dist / cv::norm(p1 - p0);
+    return p0 + (p1 - p0) * ratio;
+}
+
+std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> contour, cv::Point2d pline1, cv::Point2d pline2)
+{
+    std::vector<cv::Point2d> result;
+    auto A2 = pline2.y - pline1.y;
+    auto B2 = pline1.x - pline2.x;
+    auto C2 = A2 * pline1.x + B2 * pline1.y;
+
+    auto numVertex = contour.size();
+    auto numSegments = contour.front() == contour.back() ? numVertex - 1 : numVertex;
+    for (size_t i = 0; i < numSegments; i++)
+    {
+        cv::Point2d pSeg1 = contour[i];
+        cv::Point2d pSeg2 = contour[(i + 1) % numVertex];
+        auto A1 = pSeg2.y - pSeg1.y;
+        auto B1 = pSeg1.x - pSeg2.x;
+        auto C1 = A1 * pSeg1.x + B1 * pSeg1.y;
+        auto det = A1 * B2 - A2 * B1;
+        if (det != 0)
+        {
+            auto x = (B2 * C1 - B1 * C2) / det;
+            auto y = (A1 * C2 - A2 * C1) / det;
+            // Test if the intersection is in the segment
+            auto x1 = pSeg1.x < pSeg2.x ? pSeg1.x : pSeg2.x;
+            auto x2 = pSeg1.x > pSeg2.x ? pSeg1.x : pSeg2.x;
+            auto y1 = pSeg1.y < pSeg2.y ? pSeg1.y : pSeg2.y;
+            auto y2 = pSeg1.y > pSeg2.y ? pSeg1.y : pSeg2.y;
+            if (x >= x1 && x <= x2 && y >= y1 && y <= y2)
+                result.push_back(cv::Point2d(x, y));
+        }
+    }
+    return result;
+}
+
+int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
+{
+    int t, i, first = 0, last = 0, opt_threshold = 0, set = 0;
+    double q1[255], q2[255], mu1[255], mu2[255], var1[255], var2[255], H[255];
+    printf("------------------------------\n");
+    printf("\nPerforming the Optimization Operation\n");
+    printf("TEST : %f \n", P[134]);
+
+
+    printf(" --------------------------------------------------\n");
+    printf("Done with Initialization of Gaussian mixture parameters\n");
+
+    /* FINDING THE FIRST AND LAST OCCUPIED BINS */
+    for (t = 1; t < 255; t++)
+    {
+        if (P[t] != 0 && P[t + 1] != 0 && first > t)
+            first = t;
+        if (P[t] != 0 && P[t + 1] != 0)
+            last = t;
+    }
+    printf("FIRST %d LAST %d\n", first, last);
+
+    /* INITIALIZATION OF PARAMETERS OF THE TWO GAUSSIAN MIXTURES */
+    q1[first] = P[first];
+    q2[first] = 1 - q1[first];
+    mu1[first] = first;
+    mu2[first] = (mu - mu1[first] * q1[first]) / q2[first];
+    var1[first] = (first - mu1[first]) * (first - mu1[first]) * P[first] / q1[first];
+    var2[first] = 0;
+    for (i = first; i < last; i++)
+    {
+        var2[first] += (i - mu2[first]) * (i - mu2[first]) * P[i] / q2[first];
+    }
+
+    /* RUN THROUGH THE THRESHOLDS FOR OPTIMA */
+    for (t = first + 1; t < last; t++)
+    {
+        q1[t] = q1[t - 1] + P[t];
+        q2[t] = 1 - q1[t];
+        mu1[t] = (q1[t - 1] * mu1[t - 1] + static_cast<double>(t) * P[t]) / q1[t];
+        mu2[t] = (mu - q1[t] * mu1[t]) / q2[t];
+
+        /* ENERGY FUNCTION */
+        var1[t] = (q1[t - 1] * (var1[t - 1] + (mu1[t - 1] - mu1[t]) * (mu1[t - 1] - mu1[t])) + P[t] * (t - mu1[t]) * (t - mu1[t])) / q1[t];
+        var2[t] = (q2[t - 1] * (var2[t - 1] + (mu2[t - 1] - mu2[t]) * (mu2[t - 1] - mu2[t])) - P[t] * (t - mu2[t]) * (t - mu2[t])) / q2[t];
+
+        H[t] = (q1[t] * log(var1[t]) + q2[t] * log(var2[t])) / 2 - q1[t] * log(q1[t]) - q2[t] * log(q2[t]);
+        printf("Energy %d: %lf\n", t, H[t]);
+    }
+
+    printf("\n\n------------------------------------------------------\n");
+    printf(" Done with Iterative Procedure for Kittler's Algorithm\n\n");
+
+    /* FIND OPTIMUM THRESHOLD (GLOBAL MINIMA)*/
+    auto min = 9999.999;
+    for (i = first + 1; i < last - 1; i++)
+    {
+        if (H[i] < min)
+        {
+            min = H[i];
+            opt_threshold = i;
+        }
+    }
+    printf(" \n\nThe minimum energy function is %lf and the threshold value is %d\n\n", min, opt_threshold);
+
+
+    return opt_threshold;
 }
