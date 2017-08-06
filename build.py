@@ -84,7 +84,7 @@ class Builder(object):
             os.chdir(self._root_dir)
             sys.exit(process.returncode)
 
-    def run_cmake(self, cmake_generator, cmakelists_path='.', extra_definitions=[]):
+    def run_cmake(self, cmake_generator, cmakelists_path='.'):
         """
         Runs CMake with the specified generator in the specified path with
         possibly some extra definitions
@@ -94,9 +94,6 @@ class Builder(object):
         '-DCMAKE_PREFIX_PATH=' + self._install_dir,  \
         '-DCMAKE_BUILD_TYPE=' + self._build_config,  \
         '-G', cmake_generator]
-
-        for elmt in extra_definitions:
-            cmake_args.append(elmt)
 
         cmake_args.append(cmakelists_path)
         self.run_cmd(cmake_args)
