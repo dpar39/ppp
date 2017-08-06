@@ -217,7 +217,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
                 }) != ignoredImages.end())
         {
             continue; // Skip processing this image
-        };
+        }
 
         auto inputImage = cv::imread(imageFileName);
         cv::Mat grayImage;

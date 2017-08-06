@@ -1,2 +1,2 @@
-python build.py --gen_vs_sln --clean
+python build.py --gen_vs_sln
 pause
