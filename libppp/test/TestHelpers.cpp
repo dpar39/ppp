@@ -209,8 +209,8 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
         auto annotations = annotatedImage.second;
 
         LandMarks results;
-        imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/081_frontal.jpg";
-        annotations = landMarksSet[imageFileName];
+        //imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/081_frontal.jpg";
+        //annotations = landMarksSet[imageFileName];
         if (find_if(ignoredImages.begin(), ignoredImages.end(), [&imageFileName](const std::string& ignoreImageFile)
                 {
                     return imageFileName.find(ignoreImageFile) != std::string::npos;
