@@ -191,24 +191,26 @@ rapidjson::Document readConfigFromFile(const std::string& configFile)
     return d;
 }
 
-void processDatabase(DetectionCallback callback, std::vector<std::string> ignoredImages, const std::string &landmarksPath)
+void processDatabase(DetectionCallback callback, const std::vector<std::string>& ignoredImages, const std::string &landmarksPath, ResultsData &rd)
 {
 #ifdef _DEBUG
-    bool annotateResults = true;
+    auto annotateResults = true;
 #else
-    bool annotateResults = false;
+    auto annotateResults = false;
 #endif
+    ResultsData dr;
 
     auto annotationFile = resolvePath(landmarksPath);
     std::map<std::string, LandMarks> landMarksSet;
     importLandMarks(annotationFile, landMarksSet);
     for (auto annotatedImage : landMarksSet)
     {
-        const auto imageFileName = annotatedImage.first;
-        const auto &annotations = annotatedImage.second;
+        auto imageFileName = annotatedImage.first;
+        auto annotations = annotatedImage.second;
 
         LandMarks results;
-        // imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/071_frontal.jpg";
+        imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/081_frontal.jpg";
+        annotations = landMarksSet[imageFileName];
         if (find_if(ignoredImages.begin(), ignoredImages.end(), [&imageFileName](const std::string& ignoreImageFile)
                 {
                     return imageFileName.find(ignoreImageFile) != std::string::npos;
@@ -224,12 +226,13 @@ void processDatabase(DetectionCallback callback, std::vector<std::string> ignore
         auto imagePrefix = imageFileName.substr(0, imageFileName.find_last_of('.'));
         auto annotatedLandMarkFiles = imagePrefix + ".pos";
         cv::Mat landMarksAnn;
-        ASSERT_TRUE(importSCFaceLandMarks(annotatedLandMarkFiles, landMarksAnn));
-
 
         auto imageName = getFileName(imageFileName);
 
         auto success = callback(imageName, inputImage, grayImage, annotations, results);
+
+        dr.annotatedLandMarks.push_back(annotations);
+        dr.detectedLandMarks.push_back(results);
 
         if (annotateResults)
         {
@@ -261,4 +264,45 @@ void processDatabase(DetectionCallback callback, std::vector<std::string> ignore
         }
         EXPECT_TRUE(success);
     }
+}
+
+void adjustCrownChinCoeffs(const std::vector<LandMarks>& groundTruthAnnotations)
+{
+    //c1 = mean(chin_crown./iiss);
+    //c2 = mean(chin_frown. / iiss);
+
+    double c1 = 0, c2 = 0;
+    for (const auto &lm : groundTruthAnnotations)
+    {
+        auto frown = (lm.eyeLeftPupil + lm.eyeRightPupil) / 2.0;
+        auto mouthCenter = (lm.lipLeftCorner + lm.lipRightCorner) / 2.0;
+
+        auto refDist = cv::norm(lm.eyeLeftPupil - lm.eyeRightPupil) + cv::norm(frown - mouthCenter);
+
+        auto chinCrown = cv::norm(lm.crownPoint - lm.chinPoint);
+        auto chinFrown = cv::norm(frown - lm.chinPoint);
+
+        c1 += chinCrown / refDist;
+        c2 += chinFrown / refDist;
+    }
+    c1 /= groundTruthAnnotations.size();
+    c2 /= groundTruthAnnotations.size();
+
+    std::cout << "Chin-crown normalization: " << c1 << std::endl;
+    std::cout << "Chin-frown normalization: " << c2 << std::endl;
+
+}
+
+TEST(Research, ModelCoefficientsCalculation)
+{
+    auto annCsvFile = resolvePath("research/mugshot_frontal_original_all/via_region_data_dpd.csv");
+    std::map<std::string, LandMarks> landMarksMap;
+    importLandMarks(annCsvFile, landMarksMap);
+
+    std::vector<LandMarks> annotations;
+    std::transform(landMarksMap.begin(), landMarksMap.end(), std::back_inserter(annotations), [](const auto &kv)
+    {
+        return kv.second;
+    });
+    adjustCrownChinCoeffs(annotations);
 }

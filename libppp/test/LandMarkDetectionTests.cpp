@@ -99,11 +99,12 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         //1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
         //56, // Glasses with some reflexion
         74, // Eyes totally closed
+        81, // red bear problem
         //76, // Glasses with some reflexion
-        88, // Glasses, eyes mostly closed
+        //88, // Glasses, eyes mostly closed
         //92, // Right eye fail <<<<<<<<<
         //115, // Old guy, eyes very closed
-        121
+        //121
     };
 
     std::vector<std::string> ignoreImageList;
@@ -115,5 +116,6 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         return ss.str() + "_frontal.jpg";
     });
 
-    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv");
+    ResultsData rd;
+    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
 }

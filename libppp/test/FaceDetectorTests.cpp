@@ -34,5 +34,6 @@ TEST_F(FaceDetectorTests, CanDetectFaces)
         return true;
     };
 
-    processDatabase(process, std::vector<std::string>(), "research/mugshot_frontal_original_all/via_region_data_dpd.csv");
+    ResultsData rd;
+    processDatabase(process, std::vector<std::string>(), "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
 }
