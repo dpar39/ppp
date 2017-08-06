@@ -2,7 +2,7 @@
 #include "CanvasDefinition.h"
 #include "PhotoPrintMaker.h"
 
-#include "Geometry.h"
+#include "Utilities.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -24,14 +24,14 @@ cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
     auto centerCrop = centerCropEstimation(ps, crownPoint, chinPoint);
 
 
-    auto chinCrownVec = POINT2D(crownPoint - chinPoint);
+    auto chinCrownVec = crownPoint - chinPoint;
 
     auto faceHeightPix = cv::norm(chinCrownVec);
 
     auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;
     auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
 
-    auto centerTop = centerCrop + POINT2D(chinCrownVec*(cropHeightPix / faceHeightPix/ 2.0));
+    auto centerTop = centerCrop + cv::Point2d(chinCrownVec*(cropHeightPix / faceHeightPix/ 2.0));
 
     auto chinCrown90degRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
     auto centerLeft = centerCrop + chinCrown90degRotated*(cropWidthPix / faceHeightPix / 2.0);
@@ -67,7 +67,7 @@ cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const 
     {
         for (size_t col = 0; col < numPhotoCols; ++col)
         {
-            cv::Point topLeft(col*dx, row*dy);
+            cv::Point topLeft(static_cast<int>(col)*dx, static_cast<int>(row)*dy);
             tileInCanvas.copyTo(printPhoto(cv::Rect(topLeft, tileSizePixels)));
         }
     }
@@ -79,7 +79,7 @@ cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const
     if (ps.eyesHeightMM() <= 0)
     {
         // Estimate the center of the picture to be the median point between the crown point and the chin point
-        return CENTER_POINT(crownPoint, chinPoint);
+        return (crownPoint + chinPoint) / 2.0;
     }
 
     const auto eyeCrownToFaceHeightRatio = 0.5;

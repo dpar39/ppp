@@ -3,14 +3,14 @@
 #include "LandMarks.h"
 #include "PhotoStandard.h"
 #include "CanvasDefinition.h"
-#include "Geometry.h"
+#include "Utilities.h"
 
 #include <opencv2/imgcodecs.hpp>
 
-using namespace rapidjson;
+
 using namespace std;
 
-cv::Point fromJson(Value& v)
+cv::Point fromJson(rapidjson::Value& v)
 {
     return cv::Point(v["x"].GetInt(), v["y"].GetInt());
 }
@@ -26,7 +26,7 @@ PublicPppEngine::~PublicPppEngine()
 
 void PublicPppEngine::configure(const std::string& jsonConfig) const
 {
-    Document parser;
+    rapidjson::Document parser;
     parser.Parse(jsonConfig.c_str());
     m_pPppEngine->configure(parser);
 }
@@ -45,7 +45,7 @@ std::string PublicPppEngine::detectLandmarks(const std::string& imageId) const
     return landMarks.toJson();
 }
 
-void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request, std::vector<byte>& pictureData) const
+std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request) const
 {
     rapidjson::Document d;
     d.Parse(request.c_str());
@@ -54,13 +54,26 @@ void PublicPppEngine::createTiledPrint(const std::string& imageId, const std::st
     auto canvas = CanvasDefinition::fromJson(d["canvas"]);
     auto cronwPoint = fromJson(d["crownPoint"]);
     auto chinPoint = fromJson(d["chinPoint"]);
+    auto asBase64Encode = false;
+
+    if (d.HasMember("asBase64"))
+    {
+        asBase64Encode = d["asBase64"].GetBool();
+    }
 
     auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
+    std::vector<byte> pictureData;
     cv::imencode(".png", result, pictureData);
 
     // Add image resolution to output
     setPngResolutionDpi(pictureData, canvas->resolutionPixelsPerMM());
+
+    if (asBase64Encode)
+    {
+        return CommonHelpers::base64Encode(pictureData);
+    }
+    return std::string(pictureData.begin(), pictureData.end());
 }
 
 template <typename T>

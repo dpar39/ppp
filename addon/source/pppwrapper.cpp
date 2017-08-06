@@ -54,7 +54,7 @@ struct CreateTilePrintWorkItem : WorkItemBase
 {
     std::shared_ptr<PublicPppEngine> pppEngine;
     std::string printOptions;
-    std::vector<byte> printPhoto;
+    std::string printPhoto;
 };
 
 Persistent<Function> PppWrapper::constructor;
@@ -300,7 +300,7 @@ void PppWrapper::CreateTilePrintWorkAsync(uv_work_t* req)
     auto work = static_cast<CreateTilePrintWorkItem *>(req->data);
     try
     {
-        work->pppEngine->createTiledPrint(work->imageKey, work->printOptions, work->printPhoto);
+        work->printPhoto = work->pppEngine->createTiledPrint(work->imageKey, work->printOptions);
     }
     catch (const std::exception& ex)
     {
@@ -318,7 +318,7 @@ void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
 
     // set up return arguments
     Local<Object> buf;
-    auto bufferData = node::Buffer::Copy(isolate, reinterpret_cast<char *>(&work->printPhoto[0]), work->printPhoto.size());
+    auto bufferData = node::Buffer::Copy(isolate, work->printPhoto.c_str(), work->printPhoto.size());
 
     v8::Handle<Value> argv[] = { GetWorkItemError(work), bufferData.ToLocalChecked() };
 

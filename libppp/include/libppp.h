@@ -11,9 +11,6 @@
 #define DECLSPEC
 #endif
 
-#include <memory>
-#include <string>
-#include <ios>
 #include <vector>
 
 typedef unsigned char byte;
@@ -65,10 +62,11 @@ public:
     .    "chinPoint":{
     .       "x": 500,
     .       "y": 600
-    .    }
+    .    },
+    .    "asBase64": true|falseS
     .}
     !*/
-    void createTiledPrint(const std::string& imageId, const std::string &request, std::vector<byte> &pictureData) const;
+    std::string createTiledPrint(const std::string& imageId, const std::string &request) const;
 
 private:
     PppEngine* m_pPppEngine;

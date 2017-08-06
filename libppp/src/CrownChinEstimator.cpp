@@ -1,5 +1,5 @@
 ﻿#include "CrownChinEstimator.h"
-#include "Geometry.h"
+#include "Utilities.h"
 #include "LandMarks.h"
 
 void CrownChinEstimator::configure(rapidjson::Value& config)

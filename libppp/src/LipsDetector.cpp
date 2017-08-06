@@ -1,6 +1,6 @@
 #include "LipsDetector.h"
 #include "LandMarks.h"
-#include "Geometry.h"
+#include "Utilities.h"
 
 #include <algorithm>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -34,7 +34,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     auto mouthRoiWidth = ROUND_INT(0.45*faceRectHeight);
     auto mouthRoiHeight = ROUND_INT(0.35*faceRectHeight);
 
-    auto eyeCentrePoint = CENTER_POINT(leftEyePos, rightEyePos);
+    auto eyeCentrePoint = (leftEyePos + rightEyePos) / 2.0;
     // Estimate center of the chin and crop a rectangle around it
     auto tmp = pointsAtDistanceNormalToCentreOf(leftEyePos, rightEyePos, distEyeLineToMouthCenter);
 

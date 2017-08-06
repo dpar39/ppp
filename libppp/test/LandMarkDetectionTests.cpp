@@ -4,7 +4,7 @@
 
 #include <PppEngine.h>
 #include <LandMarks.h>
-#include <Geometry.h>
+#include <Utilities.h>
 
 #include "TestHelpers.h"
 

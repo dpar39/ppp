@@ -4,13 +4,15 @@
 #include <utility>
 #include <opencv2/core/core.hpp>
 
-#define ROUND_INT(x) (static_cast<int>((x)+0.5))
+template <typename TNumber> int ROUND_INT(TNumber x)
+{
+    return static_cast<int>((x)+0.5);
+}
 
-#define CEIL_INT(x) (static_cast<int>(ceil(x)))
-
-#define POINT2D(p) (cv::Point2d((p).x, (p).y))
-
-#define CENTER_POINT(p1, p2) (cv::Point2d((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0))
+template <typename TNumber> int CEIL_INT(TNumber x)
+{
+    return static_cast<int>(ceil(x));
+}
 
 inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::Point2d p1, cv::Point2d p2, double d)
 {
@@ -19,7 +21,7 @@ inline std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    auto p0 = CENTER_POINT(p1, p2);
+    auto p0 = (p1 + p2) / 2.0;
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {

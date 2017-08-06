@@ -36,10 +36,10 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::string base64Decode(const std::string &base64Str)
+std::vector<byte> CommonHelpers::base64Decode(const std::string &base64Str)
 {
     uint8_t charBlock4[4], byteBlock3[3];
-    std::string result;
+    std::vector<byte> result;
     result.reserve(base64Str.size() * 3 / 4);
 
     auto i = 0;
@@ -59,7 +59,7 @@ std::string base64Decode(const std::string &base64Str)
             byteBlock3[0] = (charBlock4[0] << 2) + ((charBlock4[1] & 0x30) >> 4);
             byteBlock3[1] = ((charBlock4[1] & 0xf) << 4) + ((charBlock4[2] & 0x3c) >> 2);
             byteBlock3[2] = ((charBlock4[2] & 0x3) << 6) + charBlock4[3];
-            result.append(reinterpret_cast<char *>(byteBlock3), 3);
+            result.insert(result.end(), byteBlock3, byteBlock3+3);
             i = 0;
         }
     }
@@ -72,9 +72,63 @@ std::string base64Decode(const std::string &base64Str)
         byteBlock3[0] = (charBlock4[0] << 2) + ((charBlock4[1] & 0x30) >> 4);
         byteBlock3[1] = ((charBlock4[1] & 0xf) << 4) + ((charBlock4[2] & 0x3c) >> 2);
         byteBlock3[2] = ((charBlock4[2] & 0x3) << 6) + charBlock4[3];
-        result.append(reinterpret_cast<char *>(byteBlock3), i - 1);
+        result.insert(result.end(), byteBlock3, byteBlock3 + i - 1);
+    }
+    return result;
+}
+
+std::string CommonHelpers::base64Encode(const std::vector<byte>& rawStr)
+{
+    static const std::string Base64CharSet = 
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789+/";
+
+    auto byteIter = rawStr.data();
+    auto bufferSize = rawStr.size();
+    std::string result;
+    auto i = 0;
+    int j;
+    uint8_t charArray3[3];
+    uint8_t charArray4[4];
+
+    while (bufferSize--) 
+    {
+        charArray3[i++] = *byteIter++;
+        if (i == 3) 
+        {
+            charArray4[0] = (charArray3[0] & 0xfc) >> 2;
+            charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
+            charArray4[2] = ((charArray3[1] & 0x0f) << 2) + ((charArray3[2] & 0xc0) >> 6);
+            charArray4[3] = charArray3[2] & 0x3f;
+            for (i = 0; i < 4; i++)
+            {
+                result += Base64CharSet[charArray4[i]];
+            }
+            i = 0;
+        }
     }
 
+    if (i > 0)
+    {
+        for (j = i; j < 3; j++)
+        {
+            charArray3[j] = '\0';
+        }
+        charArray4[0] = (charArray3[0] & 0xfc) >> 2;
+        charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
+        charArray4[2] = ((charArray3[1] & 0x0f) << 2) + ((charArray3[2] & 0xc0) >> 6);
+        charArray4[3] = charArray3[2] & 0x3f;
+        for (j = 0; j < i + 1; j++)
+        {
+            result += Base64CharSet[charArray4[j]];
+        }
+
+        while (i++ < 3)
+        {
+            result += '=';
+        }
+    }
     return result;
 }
 
@@ -95,7 +149,7 @@ cv::CascadeClassifierSPtr CommonHelpers::loadClassifierFromBase64(const std::str
     std::string tmpFile = "cascade.xml";
     {
         std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
-        oss.write(xmlHaarCascade.c_str(), xmlHaarCascade.size());
+        oss.write(reinterpret_cast<char *>(xmlHaarCascade.data()), xmlHaarCascade.size());
     }
     classifier->load(tmpFile);
     return classifier;
@@ -135,54 +189,6 @@ uint32_t CommonHelpers::crc32(uint32_t crc, const uint8_t* begin, const uint8_t*
     }
     return crc;
 }
-
-#if 0
-std::shared_ptr<cv::CascadeClassifier> CommonHelpers::loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile)
-{
-    auto classifier = std::make_shared<cv::CascadeClassifier>();
-#ifdef USE_POCO
-    auto haarCascadeFilePathStr = Poco::Path(haarCascadeDir).append(haarCascadeFile).toString();
-    if (!Poco::File(haarCascadeFilePathStr).exists())
-#else
-    using namespace std::tr2::sys;
-    const path haarCascadeFilePath((path(haarCascadeDir) / path(haarCascadeFile)).string());
-    auto haarCascadeFilePathStr = haarCascadeFilePath.string();
-    if (!exists(haarCascadeFilePath))
-#endif
-    {
-        throw std::runtime_error("Classifier file does not exist: " + haarCascadeFilePathStr);
-    }
-    if (!classifier->load(haarCascadeFilePathStr))
-    {
-        throw std::runtime_error("Unable to load classifier from file: " + haarCascadeFilePathStr);
-    }
-    return classifier;
-}
-
-cv::Rect CommonHelpers::detectObjectWithHaarCascade(const cv::Mat &image, cv::CascadeClassifier *cc, int dx /*= 0*/, int dy /*= 0*/)
-{
-    // Convert to gray scale if not done
-    cv::Mat grayImage;
-    if (image.channels() != 1)
-    {
-        cv::cvtColor(image, grayImage, CV_BGR2GRAY);
-    }
-    else
-    {
-        grayImage = image;
-    }
-    std::vector<cv::Rect> results;
-    // Detect biggest object in the image
-    cc->detectMultiScale(grayImage, results, 1.05, 3,
-                         CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT);
-    if (results.empty() || results.size() > 1)
-        return cv::Rect();
-    auto rect(results.front());
-    rect.x += dx;
-    rect.y += dy;
-    return rect;
-}
-#endif
 
 
 /* Update a running CRC with the bytes buf[0..len-1]--the CRC

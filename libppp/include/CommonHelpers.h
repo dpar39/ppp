@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <vector>
 
 #define FWD_DECL(classname) \
     class classname; \
@@ -27,6 +28,8 @@ namespace cv
     class CascadeClassifier;
 }
 
+typedef unsigned char byte;
+
 class CommonHelpers
 {
 public:
@@ -35,11 +38,14 @@ public:
     *  @returns The classifier loaded into memory
     !*/
     //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
-
     static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/
     static uint32_t crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end);
+
+    static std::vector<byte> base64Decode(const std::string& base64Str);
+
+    static std::string base64Encode(const std::vector<byte>& rawStr);
 
 
     /*!@brief Convert a distance to millimeters
