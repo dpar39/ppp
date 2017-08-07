@@ -93,7 +93,7 @@ void importLandMarks(const std::string &csvFilePath, std::map<std::string, LandM
 
     for (auto it = std::sregex_iterator(csv_content.begin(), csv_content.end(), e); it != std::sregex_iterator(); ++it)
     {
-        std::smatch m = *it;
+        const auto &m = *it;
         for (auto x : m)
         {
             std::string imageName = m[1];
@@ -191,14 +191,13 @@ rapidjson::Document readConfigFromFile(const std::string& configFile)
     return d;
 }
 
-void processDatabase(DetectionCallback callback, const std::vector<std::string>& ignoredImages, const std::string &landmarksPath, ResultsData &rd)
+void processDatabase(DetectionCallback callback, const std::vector<std::string>& ignoredImages, const std::string &landmarksPath, std::vector<ResultData> &rd)
 {
 #ifdef _DEBUG
     auto annotateResults = true;
 #else
     auto annotateResults = false;
 #endif
-    ResultsData dr;
 
     auto annotationFile = resolvePath(landmarksPath);
     std::map<std::string, LandMarks> landMarksSet;
@@ -229,10 +228,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
 
         auto imageName = getFileName(imageFileName);
 
-        auto success = callback(imageName, inputImage, grayImage, annotations, results);
-
-        dr.annotatedLandMarks.push_back(annotations);
-        dr.detectedLandMarks.push_back(results);
+        auto isSuccess = callback(imageName, inputImage, grayImage, annotations, results);
 
         if (annotateResults)
         {
@@ -262,7 +258,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
             circle(inputImage, results.crownPoint, 5, detectionColor, 2);
             circle(inputImage, results.chinPoint, 5, detectionColor, 2);
         }
-        EXPECT_TRUE(success);
+        rd.push_back(ResultData(imageFileName, annotations, results, isSuccess));
     }
 }
 

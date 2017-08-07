@@ -7,10 +7,20 @@
 // image name prefix, rgb image, gray image, annotated landmarks, detected landmarks
 typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, const LandMarks&, LandMarks&)> DetectionCallback;
 
-struct ResultsData
+struct ResultData
 {
-    std::vector<LandMarks> annotatedLandMarks;
-    std::vector<LandMarks> detectedLandMarks;
+    ResultData(const std::string &imgName, const LandMarks& annotated, const LandMarks &detected, bool isSuccess)
+        : imageName(imgName)
+        , annotation(annotated)
+        , detection(detected)
+        , isSuccess(isSuccess)
+    {
+    }
+
+    std::string imageName;
+    LandMarks annotation;
+    LandMarks detection;
+    bool isSuccess;
 };
 
 #define IN_ROI(r, p) (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
@@ -29,7 +39,6 @@ void verifyEqualImages(const cv::Mat& expected, const cv::Mat& actual);
 
 rapidjson::Document readConfigFromFile(const std::string& configFile = "");
 
-void processDatabase(DetectionCallback callback, const std::vector<std::string> &ignoredImages, const std::string &landmarksPath, ResultsData &dr);
-
+void processDatabase(DetectionCallback callback, const std::vector<std::string> &ignoredImages, const std::string &landmarksPath, std::vector<ResultData> &dr);
 
 void adjustCrownChinCoeffs(const std::vector<LandMarks>& groundTruthAnnotations);

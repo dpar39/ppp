@@ -13,10 +13,9 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 # OpenCV Library
 find_package(OpenCV REQUIRED)
 
-# POCO Library
+# Boost library for non C++17 compiler
 if (UNIX)
-    add_definitions(-DPOCO_STATIC)
-    find_package(Poco REQUIRED COMPONENTS Foundation)
+    find_package(Boost REQUIRED COMPONENTS Filesystem)
 endif()
 
 if (WIN32 AND (${BUILD_TYPE} MATCHES "debug"))
@@ -39,12 +38,12 @@ file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${Poco_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
 )
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
-    ${Poco_LIBRARIES}
+    ${Boost_LIBRARIES}
     ${OPENCV_3RDPARTY_LIBS}
 )
 

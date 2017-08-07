@@ -24,6 +24,32 @@ protected:
         EXPECT_NO_THROW(config = readConfigFromFile());
         EXPECT_NO_THROW(m_pPppEngine->configure(config));
     }
+
+    void processResults(const std::vector<ResultData> &resultsData) const
+    {
+        std::vector<double> crownChinEstimationErrors, scalingErrors;
+        crownChinEstimationErrors.reserve(resultsData.size());
+        scalingErrors.reserve(resultsData.size());
+        for (const auto &r : resultsData)
+        {
+            EXPECT_TRUE(r.isSuccess);
+
+            if (!r.isSuccess)
+            {
+                continue;
+            }
+
+            auto errCrown = cv::norm(r.annotation.crownPoint - r.detection.crownPoint);
+            auto errChin = cv::norm(r.annotation.chinPoint - r.detection.chinPoint);
+            auto crownChinActualDist = cv::norm(r.annotation.chinPoint - r.annotation.crownPoint);
+            auto crownChinEstimatedDist = cv::norm(r.detection.chinPoint - r.detection.crownPoint);
+
+            crownChinEstimationErrors.push_back((errCrown + errChin) / crownChinActualDist);
+            scalingErrors.push_back(abs(crownChinEstimatedDist - crownChinActualDist) / crownChinActualDist);
+        }
+
+
+    }
 };
 
 
@@ -116,6 +142,8 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         return ss.str() + "_frontal.jpg";
     });
 
-    ResultsData rd;
+    std::vector<ResultData> rd;
     processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
+
+    processResults(rd);
 }
