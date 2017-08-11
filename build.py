@@ -14,7 +14,7 @@ import multiprocessing
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.2.0.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
