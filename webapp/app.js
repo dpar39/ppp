@@ -34,14 +34,15 @@ console.log('Addon instance configured!');
 var app = express();
 
 // Serve the files out of ./public as our main files
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'node_modules')));
 
 var uploadImageDirectory = path.join(__dirname, '/uploads');
 
 // App entry point
 app.get('/', function (req, res) {
-    res.sendfile('public/index.html', { root: __dirname })
+    res.sendfile('dist/index.html', { root: __dirname })
 });
 
 // -- Upload input image
@@ -115,14 +116,14 @@ function validateUnits(units) {
 }
 
 function parseCanvas(canvas) {
-    var obj = { 
+    var obj = {
         height: parseFloat(canvas.height),
         width: parseFloat(canvas.width),
         resolution: parseInt(canvas.resolution),
         units: validateUnits(canvas.units)
     }
     return obj;
-} 
+}
 
 function parsePassportStandard(ps) {
     var obj = {
@@ -146,12 +147,12 @@ app.get('/photoprint', function (req, res) {
     var canvas = req.query.canvas;
     var standard = req.query.standard;
     var printDef = null;
-    
+
     try {
         var printDef = {
             crownPoint : parsePoint(crownPoint),
             chinPoint : parsePoint(chinPoint),
-            
+
             canvas : parseCanvas(canvas),
             standard : parsePassportStandard(standard)
         }

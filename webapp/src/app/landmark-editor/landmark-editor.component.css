@@ -1,0 +1,11 @@
+.landmark {
+    width: 14px;
+    height: 14px;
+    border: 1px solid green;
+    border-radius: 50%;
+    background-color: greenyellow;
+    opacity: 0.6;
+    float: left ;
+    position: absolute;
+    visibility: hidden;
+}

@@ -264,10 +264,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
 
 void adjustCrownChinCoeffs(const std::vector<LandMarks>& groundTruthAnnotations)
 {
-    //c1 = mean(chin_crown./iiss);
-    //c2 = mean(chin_frown. / iiss);
-
-    double c1 = 0, c2 = 0;
+    std::vector<double> c1, c2;
     for (const auto &lm : groundTruthAnnotations)
     {
         auto frown = (lm.eyeLeftPupil + lm.eyeRightPupil) / 2.0;
@@ -278,14 +275,12 @@ void adjustCrownChinCoeffs(const std::vector<LandMarks>& groundTruthAnnotations)
         auto chinCrown = cv::norm(lm.crownPoint - lm.chinPoint);
         auto chinFrown = cv::norm(frown - lm.chinPoint);
 
-        c1 += chinCrown / refDist;
-        c2 += chinFrown / refDist;
+        c1.push_back(chinCrown / refDist);
+        c2.push_back(chinFrown / refDist);
     }
-    c1 /= groundTruthAnnotations.size();
-    c2 /= groundTruthAnnotations.size();
 
-    std::cout << "Chin-crown normalization: " << c1 << std::endl;
-    std::cout << "Chin-frown normalization: " << c2 << std::endl;
+    std::cout << "Chin-crown normalization: " << median(c1) << std::endl;
+    std::cout << "Chin-frown normalization: " << median(c2) << std::endl;
 
 }
 

@@ -1,1 +1,1 @@
-python build.py --build_config=release --arch_name=x64
+python build.py --build_config=release --arch_name=x64 %1
