@@ -9,3 +9,14 @@
     position: absolute;
     visibility: hidden;
 }
+
+#photo {
+    position: absolute;
+}
+
+#container {
+    max-height: 50%;
+    height: 400px;
+    border: 1px solid black;
+    border-radius: 5px;
+}

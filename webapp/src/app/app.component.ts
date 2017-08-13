@@ -10,7 +10,7 @@ import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.compo
 export class AppComponent {
   title = 'app';
 
-  imageSrc: string;
+  imageSrc: string = "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=";
   constructor(private el: ElementRef) {
   }
 
