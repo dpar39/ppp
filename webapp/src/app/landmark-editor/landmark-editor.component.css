@@ -1,6 +1,6 @@
 .landmark {
-    width: 14px;
-    height: 14px;
+    width: 1em;
+    height: 1em;
     border: 1px solid green;
     border-radius: 50%;
     background-color: greenyellow;
@@ -16,7 +16,9 @@
 
 #container {
     max-height: 50%;
-    height: 400px;
-    border: 1px solid black;
+    height: 300px;
+    border: 1px solid #363434;
     border-radius: 5px;
+    margin: 1em;
+    background-color: #313232
 }

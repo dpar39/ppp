@@ -1,5 +1,5 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
+<div class="container text-center">
   <h1>
     Welcome to {{title}}!
   </h1>
@@ -8,10 +8,10 @@
 <app-landmark-editor [inputPhoto]='imageSrc'>
 </app-landmark-editor>
 
-<div id='divButtons' class='row topmargin botmargin'>
+<div class='text-center'>
   <button (click)='el.nativeElement.querySelector("#selectImage").click();' class='btn btn-success'>Choose photo</button>
-  <button (click)='createPrint()' class='btn btn-success' style="visibility:hidden">Create Print</button>
+  <button (click)='createPrint()' class='btn btn-success' style="visibility:visible">Create Print</button>
   <form>
-    <input id='selectImage' type="file"  name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
+    <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
   </form>
 </div>

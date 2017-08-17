@@ -1,10 +1,8 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import * as $ from 'jquery'
-
+import { Component, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { Input, Output } from '@angular/core'
 
+import * as $ from 'jquery'
 import * as interact from 'interactjs';
-
 import { Point } from '../model/datatypes'
 
 @Component({
@@ -44,10 +42,12 @@ export class LandmarkEditorComponent implements OnInit {
       that._imageWidth = newImg.width;
       that._imageHeight = newImg.height;
       that._inputPhoto = value;
-      that.calculateViewPort();
-      that.zoomFit();
-      that.renderImage();
-      that.setLandMarks();
+      if (that._imageWidth > 100 && that._imageHeight > 100) {
+        that.calculateViewPort();
+        that.zoomFit();
+        that.renderImage();
+        that.setLandMarks();
+      }
     };
     newImg.src = value;
   }
@@ -56,6 +56,8 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   constructor(private el: ElementRef) {
+    this.crownPoint = new Point(0, 0);
+    this.chinPoint = new Point(0, 0);
   }
 
   ngOnInit() {
@@ -89,7 +91,7 @@ export class LandmarkEditorComponent implements OnInit {
           //that.updateLandMarks();
         }
       });
-
+    this.el.nativeElement.addEventListener
   }
   zoomFit(): void {
     let xratio = this._viewPortWidth / this._imageWidth;
@@ -103,11 +105,18 @@ export class LandmarkEditorComponent implements OnInit {
     this._viewPortHeight = this._containerElmt.clientHeight;
   };
 
-  renderImage(): void {
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
 
+    this.calculateViewPort();
+    this.zoomFit()
+    this.renderImage();
+    this.setLandMarks();
+  }
+
+  renderImage(): void {
     let xw = this._imageWidth * this._ratio;
     let yh = this._imageHeight * this._ratio;
-
     this._imgElmt.width = xw;
     this._imgElmt.height = yh;
     this.translateElement(this._imgElmt, new Point(this._xleft, this._ytop));
@@ -115,8 +124,7 @@ export class LandmarkEditorComponent implements OnInit {
 
   translateElement(elmt: any, pt: Point) {
     // Translate the element position
-    elmt.style.transform =
-      elmt.style.webkitTransform = `translate(${pt.x}px, ${pt.y}px)`;
+    elmt.style.transform = elmt.style.webkitTransform = `translate(${pt.x}px, ${pt.y}px)`;
     // Store it in attached properties
     elmt.setAttribute('x', pt.x);
     elmt.setAttribute('y', pt.y);
@@ -131,7 +139,8 @@ export class LandmarkEditorComponent implements OnInit {
     //this.m_chinPoint = chinPoint || this.m_chinPoint;
 
     if (this.crownPoint && this.crownPoint.x && this.crownPoint.y
-        && this.chinPoint && this.chinPoint.x && this.chinPoint.y) {
+        && this.chinPoint && this.chinPoint.x && this.chinPoint.y
+        && this._imageWidth > 100 && this._imageHeight > 100) {
       let p1 = this.pixelToScreen(this._crownMarkElmt, this.crownPoint);
       let p2 = this.pixelToScreen(this._chinMarkElmt, this.chinPoint);
       this.translateElement(this._crownMarkElmt, p1);
