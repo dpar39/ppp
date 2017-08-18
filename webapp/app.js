@@ -180,7 +180,7 @@ if (!fs.existsSync(uploadImageDirectory)) {
 }
 
 // start server on the specified port and binding host
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 4000;
 app.listen(port, function () {
     console.log("Server listening on port " + port);
 });

@@ -7,3 +7,17 @@ export class Point {
         this.y = y;
     }
 }
+
+export enum UnitType {
+    mm,
+    cm,
+    inch
+}
+
+export class PassportStandard {
+
+    pictureWidth: number;
+    pictureHeight: number;
+    faceHeight: number;
+    unit: UnitType
+}
