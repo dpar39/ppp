@@ -1,9 +1,9 @@
 import { Component, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
-import { Input, Output } from '@angular/core'
+import { Input, Output, EventEmitter } from '@angular/core'
 
 import * as $ from 'jquery'
 import * as interact from 'interactjs';
-import { Point } from '../model/datatypes'
+import { Point, CrownChinPointPair } from '../model/datatypes'
 
 @Component({
   selector: 'app-landmark-editor',
@@ -11,11 +11,6 @@ import { Point } from '../model/datatypes'
   styleUrls: ['./landmark-editor.component.css']
 })
 export class LandmarkEditorComponent implements OnInit {
-
-  private _inputPhoto: string = "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=";
-
-  public crownPoint: Point;
-  public chinPoint: Point;
 
   private _imageWidth: number;
   private _imageHeight: number;
@@ -27,13 +22,15 @@ export class LandmarkEditorComponent implements OnInit {
   private _zoom: number;
   private _ratio: number;   // Ratio between image pixels and screen pixels
 
-  landMarksVisible: boolean = false;
-
   private _imgElmt: any;
   private _containerElmt: any;
   private _crownMarkElmt: any;
   private _chinMarkElmt: any;
 
+  chinPoint: Point;
+  crownPoint: Point;
+
+  private _inputPhoto: string = "#";
   @Input()
   set inputPhoto(value: string) {
     var newImg = new Image();
@@ -54,6 +51,20 @@ export class LandmarkEditorComponent implements OnInit {
   get inputPhoto(): string {
     return this._inputPhoto;
   }
+
+  landMarksVisible: boolean = false;
+
+  @Input()
+  set crownChinPointPair(value: CrownChinPointPair) {
+    if (value) {
+      this.crownPoint = value.crownPoint;
+      this.chinPoint = value.chinPoint;
+    }
+    this.renderLandMarks();
+  }
+
+  @Output()
+  edited: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private el: ElementRef) {
     this.crownPoint = new Point(0, 0);
@@ -88,11 +99,12 @@ export class LandmarkEditorComponent implements OnInit {
         },
         // call this function on every dragend event
         onend: function (event) {
-          //that.updateLandMarks();
+          that.updateLandMarks();
         }
       });
     this.el.nativeElement.addEventListener
   }
+
   zoomFit(): void {
     let xratio = this._viewPortWidth / this._imageWidth;
     let yratio = this._viewPortHeight / this._imageHeight;
@@ -108,7 +120,6 @@ export class LandmarkEditorComponent implements OnInit {
   @HostListener('window:resize', ['$event'])
 
   onResize(event) {
-
     this.calculateViewPort();
     this.zoomFit()
     this.renderImage();
@@ -129,7 +140,6 @@ export class LandmarkEditorComponent implements OnInit {
     // Store it in attached properties
     elmt.setAttribute('x', pt.x);
     elmt.setAttribute('y', pt.y);
-    console.log(elmt)
   };
 
   setLandMarks(crownPoint: Point, chinPoint: Point): void {
@@ -139,10 +149,6 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   renderLandMarks() : void {
-    // Testing data
-    //this.crownPoint = new Point(1.136017e+003, 6.216124e+002);
-    //this.chinPoint = new Point(1.136017e+003, 1.701095e+003);
-
     if (this.crownPoint && this.crownPoint.x && this.crownPoint.y
         && this.chinPoint && this.chinPoint.x && this.chinPoint.y
         && this._imageWidth > 100 && this._imageHeight > 100) {
@@ -171,5 +177,9 @@ export class LandmarkEditorComponent implements OnInit {
   updateLandMarks() {
     this.crownPoint = this.screenToPixel(this._crownMarkElmt);
     this.chinPoint = this.screenToPixel(this._chinMarkElmt);
+    this.edited.emit({
+      crownPoint: this.crownPoint,
+      chinPoint: this.chinPoint
+    });
   };
 }

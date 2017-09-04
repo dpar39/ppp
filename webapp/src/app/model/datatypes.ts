@@ -28,3 +28,8 @@ export class LandMarks {
     chinPoint: Point;
     errorMsg: string;
 }
+
+export class CrownChinPointPair {
+    crownPoint: Point;
+    chinPoint: Point;
+}

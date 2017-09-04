@@ -5,7 +5,7 @@ import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.compo
 import { HttpRequest, HttpEventType, HttpParams } from '@angular/common/http';
 import { Http, Response, Headers, RequestOptions, URLSearchParams } from '@angular/http';
 
-import { Point, LandMarks } from './model/datatypes'
+import { Point, LandMarks, CrownChinPointPair } from './model/datatypes'
 
 
 @Component({
@@ -16,10 +16,10 @@ import { Point, LandMarks } from './model/datatypes'
 export class AppComponent {
 
   title = 'app';
-
   imageKey: string;
-
   imageSrc: string = "#";
+
+  crownChinPointPair: CrownChinPointPair;
 
   constructor(private el: ElementRef, private http: Http) {
   }
@@ -28,6 +28,9 @@ export class AppComponent {
     let fileList: FileList = event.target.files;
     if (fileList && fileList[0]) {
       let file = fileList[0];
+
+      this.crownChinPointPair = null;
+      
       // Upload the file to the server to detect landmarks
       this.uploadImageToServer(file);
       // Read the image and display it
@@ -86,23 +89,26 @@ export class AppComponent {
   }
 
   retrieveLandmarks() {
-
     let params: URLSearchParams = new URLSearchParams();
     params.set('imgKey', this.imageKey);
 
-    this.http.get('/api/landmarks',{ search: params }).subscribe(data => {
+    this.http.get('/api/landmarks', { search: params }).subscribe(data => {
       let landmarks : LandMarks = data.json();
       if (landmarks.errorMsg) {
         console.log(landmarks.errorMsg);
       } else {
 
         if (landmarks.crownPoint && landmarks.chinPoint) {
-          console.log(landmarks);
-          el.
+          console.log('Landmarks calculated.')
+          this.crownChinPointPair = landmarks;
         }
       }
     }, err => {
       console.log(err);
     });
+  }
+
+  onLandmarksEdited(data) {
+
   }
 }

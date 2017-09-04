@@ -5,7 +5,9 @@
   </h1>
 </div>
 
-<app-landmark-editor [inputPhoto]='imageSrc'>
+<app-landmark-editor [inputPhoto]='imageSrc'
+  [crownChinPointPair]='crownChinPointPair'
+  (edited)='onLandmarksEdited'>
 </app-landmark-editor>
 
 <div class='text-center'>
@@ -17,5 +19,4 @@
 </div>
 
 <app-passport-standard-selector class='row'>
-
 </app-passport-standard-selector>
