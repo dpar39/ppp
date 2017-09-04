@@ -33,6 +33,8 @@ console.log('Addon instance configured!');
 // App setup
 var app = express();
 
+let api_prefix = '/api'
+
 // Serve the files out of ./public as our main files
 //app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -46,7 +48,7 @@ app.get('/', function (req, res) {
 });
 
 // -- Upload input image
-app.post('/upload', function (req, res) {
+app.post(api_prefix + '/upload', function (req, res) {
 
     var form = new formidable.IncomingForm();
     // Every time a file has been uploaded successfully, rename it to it's orignal name
@@ -86,9 +88,10 @@ app.post('/upload', function (req, res) {
 });
 
 // -- Detect land marks
-app.get('/landmarks', function (req, res) {
+app.get(api_prefix + '/landmarks', function (req, res) {
     console.log(req.url);
     var imgKey = req.query.imgKey;
+    // TODO: validate imgKey
     pppEngine.detectLandmarks(imgKey, function(err, landmarks) {
         if (err) {
             console.log('Error detecting landmarks for imgKey=' + imgKey + ':\n' + err);
@@ -139,7 +142,7 @@ function validatePrintRequest(printDef, imgKey) {
 }
 
 // -- Create photo print
-app.get('/photoprint', function (req, res) {
+app.get(api_prefix + '/photoprint', function (req, res) {
 
     var imgKey = req.query.imgKey;
     var crownPoint = req.query.crownPoint;

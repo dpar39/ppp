@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Server",
-            "program": "${workspaceRoot}\\app.js"
+            "program": "${workspaceRoot}\\server.js"
         },
         {
             "name": "Launch Client",

@@ -46,7 +46,7 @@ export class LandmarkEditorComponent implements OnInit {
         that.calculateViewPort();
         that.zoomFit();
         that.renderImage();
-        that.setLandMarks();
+        that.renderLandMarks();
       }
     };
     newImg.src = value;
@@ -106,12 +106,13 @@ export class LandmarkEditorComponent implements OnInit {
   };
 
   @HostListener('window:resize', ['$event'])
+
   onResize(event) {
 
     this.calculateViewPort();
     this.zoomFit()
     this.renderImage();
-    this.setLandMarks();
+    this.renderLandMarks();
   }
 
   renderImage(): void {
@@ -131,12 +132,16 @@ export class LandmarkEditorComponent implements OnInit {
     console.log(elmt)
   };
 
-  setLandMarks(): void {
+  setLandMarks(crownPoint: Point, chinPoint: Point): void {
+    this.crownPoint = crownPoint;
+    this.chinPoint = chinPoint;
+    this.renderLandMarks();
+  }
+
+  renderLandMarks() : void {
     // Testing data
-    this.crownPoint = new Point(1.136017e+003, 6.216124e+002);
-    this.chinPoint = new Point(1.136017e+003, 1.701095e+003);
-    //this.m_crownPoint = crownPoint || this.m_crownPoint;
-    //this.m_chinPoint = chinPoint || this.m_chinPoint;
+    //this.crownPoint = new Point(1.136017e+003, 6.216124e+002);
+    //this.chinPoint = new Point(1.136017e+003, 1.701095e+003);
 
     if (this.crownPoint && this.crownPoint.x && this.crownPoint.y
         && this.chinPoint && this.chinPoint.x && this.chinPoint.y

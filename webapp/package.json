@@ -9,7 +9,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "start": "node app.js"
+    "start": "node server.js",
+    "serve": "ng serve --proxy-config proxy.conf.json --livereload"
   },
   "author": "Darien Pardinas",
   "license": "MIT",

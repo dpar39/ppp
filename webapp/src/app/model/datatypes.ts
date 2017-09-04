@@ -21,3 +21,10 @@ export class PassportStandard {
     faceHeight: number;
     unit: UnitType
 }
+
+export class LandMarks {
+
+    crownPoint: Point;
+    chinPoint: Point;
+    errorMsg: string;
+}
