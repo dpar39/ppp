@@ -19,7 +19,7 @@ template <typename TNumber> int CEIL_INT(TNumber x)
 class Utilities
 {
 public:
-    
+
     /*!@brief Loads a cascade classifier from file
     *  @param[in] haarCascadeBase64Data Haar cascade XML data encoded as a base64 string
     *  @returns The classifier loaded into memory
@@ -59,13 +59,15 @@ public:
     !*/
     static std::vector<cv::Point2d> contourLineIntersection(const std::vector<cv::Point> contour, cv::Point2d pline1, cv::Point2d pline2);
 
-    
+
     /**
      * \brief Not being used so far
-     * \param P 
-     * \param mu 
-     * \return 
+     * \param P
+     * \param mu
+     * \return
      */
     static int kittlerOptimumThreshold(std::vector<double> P, float mu);
+
+    static cv::Mat selfCoefficientImage(const cv::Mat &inputImage, int kernelSize);
 };
 
