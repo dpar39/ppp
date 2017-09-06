@@ -8,10 +8,10 @@ FWD_DECL(ISelfCoeffientCalculator)
 /**
  * \brief Calculates the self-coefficient of  an image
  */
-class ISelfCoefficientCalculator : noncopyable
+class ISelfCoefficientImage : noncopyable
 {
 public:
-    virtual ~ISelfCoefficientCalculator() = default;
+    virtual ~ISelfCoefficientImage() = default;
 
-    virtual void compute(const cv::Mat &inputImg, cv::Mat outputImg) = 0;
+    virtual void compute(const cv::Mat &inputImg, cv::Mat &outputImg, int maskSize) = 0;
 };
