@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <utility>
 #include "CommonHelpers.h"
+#include "TestHelpers.h"
+#include <opencv2/imgcodecs.hpp>
 
 using namespace std;
 using namespace cv;
@@ -46,4 +48,16 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
         auto decode = Utilities::base64Decode(base64);
         EXPECT_TRUE(std::equal(tc.begin(), tc.end(), decode.begin()));
     }
+}
+
+
+TEST(UtilitiesTests, SelfCoefficientImageTests1)
+{
+
+    auto imageBear = resolvePath("research/mugshot_frontal_original_all/");
+
+    auto inputImage = cv::imread(imageBear, cv::IMREAD_GRAYSCALE);
+
+    cv::Mat outputImage = Utilities::selfCoefficientImage(inputImage, 7);
+
 }

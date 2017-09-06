@@ -392,6 +392,11 @@ int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
 
 cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
 {
+    if ( kernelSize < 3 || kernelSize % 2 == 0)
+    {
+        throw std::logic_error("Kernel size should be a positive odd number greater or equal to 3");
+    }
+
     auto halfsize = static_cast<int>(ceil(kernelSize / 2));
 
     auto sigma = kernelSize / 5.0;
