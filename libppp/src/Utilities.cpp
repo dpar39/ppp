@@ -1,8 +1,12 @@
+#include "Utilities.h"
+
 #include <fstream>
 #include <mutex>
-#include "Utilities.h"
+#include <numeric>
+
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <gmock/gmock-matchers.h>
 
 namespace cv
 {
@@ -401,7 +405,17 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
 
     auto sigma = kernelSize / 5.0;
 
-    auto kernel = cv::getGaussianKernel(kernelSize, sigma, CV_64F);
+    std::vector<double> kernel;
+
+    for (auto i = 0; i < kernelSize; i++)
+    {
+        for (auto j = 0; j < kernelSize; j++)
+        {
+            auto x_value = -halfsize + i;
+            auto y_value = -halfsize + j;
+            kernel.push_back(exp(-(static_cast<double>(x_value * x_value + y_value * y_value) / sigma)));
+        }
+    }
 
     auto outputImg = cv::Mat(inputImg.size(), inputImg.type(), cv::Scalar::all(0));
 
@@ -413,57 +427,75 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
     auto height = inputImg.size().height;
     auto width = inputImg.size().width;
 
-    double windowSizeSqr = kernelSize*kernelSize;
+    auto windowSizeSqr = kernelSize*kernelSize;
 
-    std::vector<double> windowData(windowSizeSqr);
-    std::vector<double> kernel1;
+    std::vector<double> windowPixelData(windowSizeSqr);
+    std::vector<double> wKernel(windowSizeSqr);
 
     for (auto r = 0; r < height; ++r)
     {
         for (auto c = 0; c < width; ++c)
         {
-            auto meanWindow = 0.0;
+            auto regionMean = 0.0;
             auto idx = 0;
 
             // FIRST LOOP: compute region_mean
-            for (auto kprime = -halfsize; kprime <= halfsize; kprime++)
+            for (auto y = -halfsize; y <= halfsize; y++)
             {
-                auto index_k = r - kprime;
-                if (index_k < 0)
+                auto row = r - y;
+                if (row < 0)
                 {
-                    index_k = abs(index_k) - 1;
+                    row = abs(row) - 1;
                 }
-                if (index_k >= height)
+                if (row >= height)
                 {
-                    index_k = (2 * height) - index_k - 1;
+                    row = (2 * height) - row - 1;
                 }
-                for (auto lprime = -halfsize; lprime <= halfsize; lprime++)
+                for (auto x = -halfsize; x <= halfsize; x++)
                 {
-                    auto index_l = c - lprime;
-                    if (index_l < 0)
+                    auto col = c - x;
+                    if (col < 0)
                     {
-                        index_l = abs(index_l) - 1;
+                        col = abs(col) - 1;
                     }
-                    if (index_l >= width)
+                    if (col >= width)
                     {
-                        index_l = (2 * width) - index_l - 1;
+                        col = (2 * width) - col - 1;
                     }
-                    auto v = inputImg.at<uchar>(kprime, lprime);
-                    windowData[idx++] = v;
-                    meanWindow += v;
+                    auto v = inputImg.at<uchar>(row, col);
+                    windowPixelData[idx++] = v;
+                    regionMean += v;
                 }
             }
-            meanWindow /= windowSizeSqr;
+
+            regionMean /= windowSizeSqr;
 
             // SECOND LOOP: count number of pixels bigger/smaller than the mean
-            auto overMeanCnt = std::count_if(windowData.begin(), windowData.end(), [meanWindow](double v) {return v > meanWindow; });
+            auto overMeanCnt = std::count_if(windowPixelData.begin(), windowPixelData.end(), [regionMean](double v) {return v > regionMean; });
             auto underMeanCnt = windowSizeSqr - overMeanCnt;
             auto above = overMeanCnt > underMeanCnt;
 
             // THIRD LOOP : update filter weights
+            auto weightedKernelSum = 0.0;
+            std::transform( windowPixelData.begin(), windowPixelData.end(), kernel.begin(), wKernel.begin(), [regionMean, above, &weightedKernelSum](double v, double kernelValue)
+            {
+                if ((v > regionMean && above == false) || (v < regionMean && above == true))
+                {
+                    return 0.0;
+                }
+                else
+                {
+                    weightedKernelSum += kernelValue;
+                    return kernelValue;
+                }
+            });
+            // normalize s.t. sum(filter coeff) = 1
+            std::transform(wKernel.begin(), wKernel.end(), wKernel.begin(), [weightedKernelSum](double v) {return v / weightedKernelSum; });
 
-            std::copy(kernel.datastart, kernel.dataend, kernel1.begin());
+            // FOURTH LOOP : convolve
+            auto pixelValue = std::inner_product(windowPixelData.begin(), windowPixelData.end(), wKernel.begin(), 0.0);
 
+            outputImg.at<uchar>(r, c) = pixelValue;
         }
     }
 

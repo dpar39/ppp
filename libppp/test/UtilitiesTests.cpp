@@ -54,7 +54,7 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
 TEST(UtilitiesTests, SelfCoefficientImageTests1)
 {
 
-    auto imageBear = resolvePath("research/mugshot_frontal_original_all/");
+    auto imageBear = resolvePath("research/mugshot_frontal_original_all/071_frontal.jpg");
 
     auto inputImage = cv::imread(imageBear, cv::IMREAD_GRAYSCALE);
 
