@@ -258,6 +258,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
             circle(inputImage, results.crownPoint, 5, detectionColor, 2);
             circle(inputImage, results.chinPoint, 5, detectionColor, 2);
         }
+
         rd.push_back(ResultData(imageFileName, annotations, results, isSuccess));
     }
 }

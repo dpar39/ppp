@@ -10,8 +10,53 @@
 
 #include <FaceDetector.h>
 #include <EyeDetector.h>
+#include <numeric>
 
 using namespace cv;
+
+class Stats
+{
+private:
+	double m_median;
+	double m_mean;
+	double m_stddev;
+	double m_min;
+	double m_max;
+
+public:
+	explicit Stats(const std::vector<double> &values)
+		: m_median(0)
+		, m_mean(0)
+		, m_stddev(0)
+		, m_min(0)
+		, m_max(0)
+	{
+		if (values.empty())
+		{
+			return;
+		}
+		
+		auto n = values.size();
+
+		auto itpair = std::minmax_element(values.begin(), values.end());
+		m_min = *itpair.first;
+		m_max = *itpair.second;
+		m_median = median(values);
+		m_mean = std::accumulate(values.begin(), values.end(), 0.0) / (n + std::numeric_limits<double>::epsilon());	
+		m_stddev = sqrt(std::accumulate(values.begin(), values.end(), 0.0, [this](double init, double v) { return init + (v - m_mean)*(v - m_mean); }) / n);
+	}
+
+	std::string toString() const
+	{
+		std::stringstream ss;
+		ss << std::setprecision(5) << "{mean: " << m_min << ", stddev: " << m_stddev << ", median: " << m_median << ", min: " << m_min << ", max: " << m_max << "}";
+		return ss.str();
+	}
+
+private:
+	
+
+};
 
 class PppEngineIntegrationTests : public ::testing::Test
 {
@@ -48,8 +93,11 @@ protected:
             scalingErrors.push_back(abs(crownChinEstimatedDist - crownChinActualDist) / crownChinActualDist);
         }
 
-
+		Stats s(scalingErrors);
+		std::cout << s.toString();
     }
+
+	
 };
 
 
@@ -143,7 +191,8 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     });
 
     std::vector<ResultData> rd;
-    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
+   
+	processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
 
     processResults(rd);
 }
