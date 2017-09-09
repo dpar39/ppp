@@ -15,6 +15,7 @@ import multiprocessing
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
+DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
@@ -41,7 +42,7 @@ def which(program):
             if is_exe(exe_file):
                 return exe_file
     return None
-
+#
 class Builder(object):
     """
     Class that holds the whole building process
@@ -60,7 +61,7 @@ class Builder(object):
                 if "64" in self._arch_name:
                     self._vc_cmake_gen += ' Win64'
                 break
-
+#
     def run_cmd(self, cmd_args):
         """
         Runs a shell command
@@ -83,7 +84,7 @@ class Builder(object):
             print 'Command "%s" exited with code %d' % (' '.join(cmd_args), process.returncode)
             os.chdir(self._root_dir)
             sys.exit(process.returncode)
-
+#
     def run_cmake(self, cmake_generator, cmakelists_path='.'):
         """
         Runs CMake with the specified generator in the specified path with
@@ -97,7 +98,7 @@ class Builder(object):
 
         cmake_args.append(cmakelists_path)
         self.run_cmd(cmake_args)
-
+#
     def set_startup_vs_prj(self, project_name):
         """
         Rearranges the projects so that the specified project is the first
@@ -129,13 +130,13 @@ class Builder(object):
             except:
                 return # Do not launch visual studio as it is already opened
         self.run_cmd(['call', 'devenv', solution_file])
-
+#
     def build_dir_name(self, prefix):
         """
         Returns a name for a build directory based on the build configuration
         """
         return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
-
+#
     def build_nodejs(self):
         """
         Downloads, extract and builds Node JS from source (Windows ONLY)
@@ -162,7 +163,7 @@ class Builder(object):
         # Install built node executable into the install dir
         if self._run_install:
             shutil.copy(node_exe_path, self._install_dir)
-
+#
     def extract_gmock(self):
         """
         Extract and build GMock/GTest libraries
@@ -175,7 +176,7 @@ class Builder(object):
         if gmock_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
-
+#
     def get_third_party_lib_dir(self, prefix):
         """
         Get the directory where a third party library with the specified prefix
@@ -186,7 +187,7 @@ class Builder(object):
             if prefix in lib_dir:
                 return os.path.join(self._third_party_dir, lib_dir)
         return None
-
+#
     def build_opencv(self):
         """
         Downloads and builds OpenCV from source
@@ -218,18 +219,18 @@ class Builder(object):
             opencv_extract_dir = self.get_third_party_lib_dir('opencv')
 
         cmake_extra_defs = [ \
-            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir, \
-            '-DBUILD_WITH_STATIC_CRT=ON', \
-            '-DBUILD_SHARED_LIBS=OFF', \
-            '-DBUILD_PERF_TESTS=OFF', \
-            '-DBUILD_opencv_apps=OFF' \
-            '-DBUILD_WITH_DEBUG_INFO=OFF', \
-            '-DBUILD_DOCS=OFF', \
-            '-DBUILD_TESTS=OFF', \
-            '-DWITH_FFMPEG=OFF', \
-            '-DWITH_MSMF=OFF', \
-            '-DWITH_VFW=OFF', \
-            '-DWITH_OPENEXR=OFF', \
+            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
+            '-DBUILD_WITH_STATIC_CRT=ON',
+            '-DBUILD_SHARED_LIBS=OFF',
+            '-DBUILD_PERF_TESTS=OFF',
+            '-DBUILD_opencv_apps=OFF',
+            '-DBUILD_WITH_DEBUG_INFO=OFF',
+            '-DBUILD_DOCS=OFF',
+            '-DBUILD_TESTS=OFF',
+            '-DWITH_FFMPEG=OFF',
+            '-DWITH_MSMF=OFF',
+            '-DWITH_VFW=OFF',
+            '-DWITH_OPENEXR=OFF',
             '-DWITH_WEBP=OFF']
 
         for ocv_module in ocv_all_modules:
@@ -259,7 +260,42 @@ class Builder(object):
             self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj', \
                 '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
+#
+    def build_dlib(self):
+        """
+        Downloads and builds dlib library
+        """
+        if os.path.exists(os.path.join(self._third_party_install_dir, 'lib/cmake/dlib/dlibConfig.cmake')):
+            return
 
+        # Download OpenCV sources if not done yet
+        dlib_src_pkg = self.download_third_party_lib(DLIB_SRC_URL)
+        # Get the file prefix for OpenCV
+        dlib_extract_dir = self.get_third_party_lib_dir('dlib')
+
+        if dlib_extract_dir is None:
+            # Extract the source files
+            self.extract_third_party_lib(dlib_src_pkg)
+            dlib_extract_dir = self.get_third_party_lib_dir('dlib')
+
+        cmake_extra_defs = [ \
+            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
+            '-DJPEG_INCLUDE_DIR=' + '../dlib/external/libjpeg',
+            '-DJPEG_LIBRARY=../dlib/external/libjpeg',
+            '-DPNG_PNG_INCLUDE_DIR=../dlib/external/libpng',
+            '-DPNG_LIBRARY_RELEASE=../dlib/external/libpng',
+            '-DZLIB_INCLUDE_DIR=../dlib/external/zlib',
+            '-DZLIB_LIBRARY_RELEASE=../dlib/external/zlib']
+
+        build_dir = self.build_dir_name(dlib_extract_dir)
+        if os.path.exists(build_dir): # Remove the build directory
+            shutil.rmtree(build_dir)
+        if not os.path.exists(build_dir): # Create the build directory
+            os.mkdir(build_dir)
+
+        # Build
+        self.build_cmake_lib(dlib_extract_dir, cmake_extra_defs, ['install'], False)
+#
     def get_filename_from_url(self, url):
         """
         Extracts the file name from a given URL
@@ -280,7 +316,7 @@ class Builder(object):
             with open(lib_filepath, 'wb') as output:
                 output.write(lib_file.read())
         return lib_filepath
-
+#
     def extract_third_party_lib(self, lib_src_pkg):
         """
         Extracts a third party lib package source file into a directory
@@ -296,8 +332,8 @@ class Builder(object):
             for item in tar:
                 tar.extract(item, self._third_party_dir)
             tar.close()
-
-    def build_cmake_lib(self, cmakelists_path, extra_definitions=[], targets=[], clean_build=False):
+#
+    def build_cmake_lib(self, cmakelists_path, extra_definitions, targets, clean_build=False):
         """
         Builds a library using cmake
         """
@@ -326,22 +362,16 @@ class Builder(object):
         for target in targets:
             self.run_cmd(make_cmd + [target])
         os.chdir(self._root_dir)
-
+#
     def parse_arguments(self):
         """
         Parses command line arguments
         """
-        if IS_WINDOWS:
-            default_arch_name = 'x86'
-            default_build_cfg = 'debug'
-        else:
-            default_arch_name = 'x64'
-            default_build_cfg = 'release'
 
         parser = argparse.ArgumentParser(description='Builds the passport photo application.')
-        parser.add_argument('--arch_name', help='Platform [x86 | x64]', default=default_arch_name)
+        parser.add_argument('--arch_name', help='Platform [x86 | x64]', default='x64')
         parser.add_argument('--build_config', help='Build configuration [debug | release]', \
-            default=default_build_cfg)
+            default='release')
         parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
         parser.add_argument('--skip_tests', help='Run existing unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Runs install commands', action="store_true")
@@ -368,7 +398,7 @@ class Builder(object):
             + self._build_config + '_' + self._arch_name)
         if self._gen_vs_sln:
             self._build_dir = os.path.join(self._root_dir, 'visualstudio')
-
+#
     def build_addon_with_nodegyp(self):
         """
         Builds the Node JS addon using node-gyp
@@ -381,7 +411,7 @@ class Builder(object):
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
         shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
-
+#
     def extract_validation_data(self):
         """
         Extracts validation imageset with annotations from a password protected zip file
@@ -408,7 +438,7 @@ class Builder(object):
         extract(research_dir, 'annotated_imageset2.zip')
         extract(research_dir, 'annotated_imageset3.zip')
         print 'Extracting validation data completed!'
-
+#
     def build_cpp_code(self):
         """
         Builds the project from sources
@@ -484,6 +514,7 @@ class Builder(object):
         # Build Third party libs
         self.extract_gmock()
         self.build_opencv()
+        self.build_dlib()
 
         if self._gen_vs_sln:
             # Build Node JS from source so the addon can be build reliably for Windows

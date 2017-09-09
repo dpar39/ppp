@@ -2,10 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Python Build Script",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "program": "${file}",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        },
+        {
+            "name": "Start node.js server",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/webapp/app.js",
+            "program": "${workspaceRoot}/webapp/server.js",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}/webapp",
@@ -17,30 +29,7 @@
             "env": {
                 "NODE_ENV": "development"
             },
-            "externalConsole": false,
-            "sourceMaps": false,
-            "outDir": null
-        },
-        {
-            "name": "Attach",
-            "type": "node",
-            "request": "attach",
-            "port": 5858,
-            "address": "localhost",
-            "restart": false,
-            "sourceMaps": false,
-            "outDir": null,
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": null
-        },
-        {
-            "name": "Attach to Process",
-            "type": "node",
-            "request": "attach",
-            "processId": "${command.PickProcess}",
-            "port": 5858,
-            "sourceMaps": false,
-            "outDir": null
+            "sourceMaps": false
         }
     ]
 }

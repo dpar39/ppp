@@ -80,8 +80,10 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         });
 
 
-        Mat u, v, binaryImg;
+        Mat u, u2, v, binaryImg;
         colorTformImage.convertTo(u, CV_8UC1);
+        blur(u, u2, cv::Size(9, 3));
+
         threshold(u, v, 0, 255, THRESH_OTSU);
         morphologyEx(v, binaryImg, MORPH_CLOSE, getStructuringElement(MORPH_ELLIPSE, Size(7, 7)));
 
@@ -173,5 +175,11 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         landMarks.lipLeftCorner = leftCorner;
         landMarks.lipRightCorner = rightCorner;
     }
+    return true;
+}
+
+bool LipsDetector::getBeardMask(cv::Mat& mouthAreaImage) const
+{
+    //mouthAreaImage
     return true;
 }

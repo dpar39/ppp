@@ -32,21 +32,21 @@ public:
     // Native interface
     void configure(rapidjson::Value &config);
 
-    std::string setInputImage(cv::Mat& inputImage);
+    std::string setInputImage(const cv::Mat& inputImage) const;
 
-    bool detectLandMarks(const std::string& imageKey, LandMarks& landMarks);
+    bool detectLandMarks(const std::string& imageKey, LandMarks& landMarks) const;
 
     cv::Mat createTiledPrint(const std::string& imageKey, PhotoStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark);
 
 private:
-	
+
     IDetectorSPtr m_pFaceDetector;
     IDetectorSPtr m_pEyesDetector;
     IDetectorSPtr m_pLipsDetector;
     ICrownChinEstimatorSPtr m_pCrownChinEstimator;
 
     IPhotoPrintMakerSPtr m_pPhotoPrintMaker;
-    IImageStoreSPtr m_pImageStore;    
+    IImageStoreSPtr m_pImageStore;
 
     void verifyImageExists(const std::string& imageKey) const;
 };

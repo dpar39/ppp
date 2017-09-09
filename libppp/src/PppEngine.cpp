@@ -23,83 +23,83 @@ PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
                      , ICrownChinEstimatorSPtr pCrownChinEstimator /* = nullptr*/
                      , IPhotoPrintMakerSPtr pPhotoPrintMaker /*= nullptr*/
                      , IImageStoreSPtr pImageStore /*= nullptr*/)
-	: m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
-	  , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
-	  , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
-	  , m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
-	  , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
-	  , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
+    : m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
+      , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
+      , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
+      , m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
+      , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
+      , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
 {
 }
 
 void PppEngine::configure(rapidjson::Value& config)
 {
-	m_pFaceDetector->configure(config);
-	m_pEyesDetector->configure(config);
-	m_pLipsDetector->configure(config);
-	m_pCrownChinEstimator->configure(config);
+    m_pFaceDetector->configure(config);
+    m_pEyesDetector->configure(config);
+    m_pLipsDetector->configure(config);
+    m_pCrownChinEstimator->configure(config);
 
-	size_t imageStoreSize = config["imageStoreSize"].GetInt();
-	m_pImageStore->setStoreSize(imageStoreSize);
+    size_t imageStoreSize = config["imageStoreSize"].GetInt();
+    m_pImageStore->setStoreSize(imageStoreSize);
 
-	m_pPhotoPrintMaker->configure(config);
+    m_pPhotoPrintMaker->configure(config);
 }
 
 void PppEngine::verifyImageExists(const string& imageKey) const
 {
-	if (!m_pImageStore->containsImage(imageKey))
-	{
-		throw runtime_error("Image with key='" + imageKey + "' not found!");
-	}
+    if (!m_pImageStore->containsImage(imageKey))
+    {
+        throw runtime_error("Image with key='" + imageKey + "' not found!");
+    }
 }
 
-string PppEngine::setInputImage(cv::Mat& inputImage)
+string PppEngine::setInputImage(const cv::Mat& inputImage) const
 {
-	return m_pImageStore->setImage(inputImage);
+    return m_pImageStore->setImage(inputImage);
 }
 
 
-bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks)
+bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) const
 {
-	verifyImageExists(imageKey);
-	// Convert the image to gray scale as needed by some algorithms
+    verifyImageExists(imageKey);
+    // Convert the image to gray scale as needed by some algorithms
 
-	const auto& inputImage = m_pImageStore->getImage(imageKey);
-	cv::Mat grayImage;
-	cvtColor(inputImage, grayImage, CV_BGR2GRAY);
+    const auto& inputImage = m_pImageStore->getImage(imageKey);
+    cv::Mat grayImage;
+    cvtColor(inputImage, grayImage, CV_BGR2GRAY);
 
-	// Detect the face
-	if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
-	{
-		return false;
-	}
+    // Detect the face
+    if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
+    {
+        return false;
+    }
 
-	// Detect the eye pupils
-	if (!m_pEyesDetector->detectLandMarks(grayImage, landMarks))
-	{
-		return false;
-	}
+    // Detect the eye pupils
+    if (!m_pEyesDetector->detectLandMarks(grayImage, landMarks))
+    {
+        return false;
+    }
 
-	// Detect mouth landmarks
-	if (!m_pLipsDetector->detectLandMarks(inputImage, landMarks))
-	{
-		return false;
-	}
+    // Detect mouth landmarks
+    if (!m_pLipsDetector->detectLandMarks(inputImage, landMarks))
+    {
+        return false;
+    }
 
-	// Estimate chin and crown point (maths from existing landmarks)
-	return m_pCrownChinEstimator->estimateCrownChin(landMarks);
+    // Estimate chin and crown point (maths from existing landmarks)
+    return m_pCrownChinEstimator->estimateCrownChin(landMarks);
 }
 
 cv::Mat PppEngine::createTiledPrint(const string& imageKey, PhotoStandard& ps, CanvasDefinition& canvas,
                                     cv::Point& crownMark, cv::Point& chinMark)
 {
-	verifyImageExists(imageKey);
+    verifyImageExists(imageKey);
 
-	const auto& inputImage = m_pImageStore->getImage(imageKey);
+    const auto& inputImage = m_pImageStore->getImage(imageKey);
 
-	auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
+    auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
 
-	auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
+    auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
 
-	return tiledPrintPhoto;
+    return tiledPrintPhoto;
 }

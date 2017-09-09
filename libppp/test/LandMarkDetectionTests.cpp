@@ -9,53 +9,53 @@
 #include "TestHelpers.h"
 
 #include <FaceDetector.h>
-#include <EyeDetector.h>
 #include <numeric>
+#include <opencv2/imgcodecs.hpp>
 
 using namespace cv;
 
 class Stats
 {
-private:
-	double m_median;
-	double m_mean;
-	double m_stddev;
-	double m_min;
-	double m_max;
-
 public:
-	explicit Stats(const std::vector<double> &values)
-		: m_median(0)
-		, m_mean(0)
-		, m_stddev(0)
-		, m_min(0)
-		, m_max(0)
-	{
-		if (values.empty())
-		{
-			return;
-		}
-		
-		auto n = values.size();
+    double medianValue;
+    double meanValue;
+    double stdDevValue;
+    double minValue;
+    double maxValue;
+    size_t minIndex;
+    size_t maxIndex;
 
-		auto itpair = std::minmax_element(values.begin(), values.end());
-		m_min = *itpair.first;
-		m_max = *itpair.second;
-		m_median = median(values);
-		m_mean = std::accumulate(values.begin(), values.end(), 0.0) / (n + std::numeric_limits<double>::epsilon());	
-		m_stddev = sqrt(std::accumulate(values.begin(), values.end(), 0.0, [this](double init, double v) { return init + (v - m_mean)*(v - m_mean); }) / n);
-	}
+    explicit Stats(const std::vector<double> &values)
+        : medianValue(0)
+        , meanValue(0)
+        , stdDevValue(0)
+        , minValue(0)
+        , maxValue(0)
+    {
+        if (values.empty())
+        {
+            return;
+        }
 
-	std::string toString() const
-	{
-		std::stringstream ss;
-		ss << std::setprecision(5) << "{mean: " << m_min << ", stddev: " << m_stddev << ", median: " << m_median << ", min: " << m_min << ", max: " << m_max << "}";
-		return ss.str();
-	}
+        auto n = values.size();
 
-private:
-	
+        auto itpair = std::minmax_element(values.begin(), values.end());
+        minValue = *itpair.first;
+        maxValue = *itpair.second;
+        minIndex = std::distance(values.begin(), itpair.first);
+        maxIndex = std::distance(values.begin(), itpair.second);
 
+        medianValue = median(values);
+        meanValue = std::accumulate(values.begin(), values.end(), 0.0) / (n + std::numeric_limits<double>::epsilon());
+        stdDevValue = sqrt(std::accumulate(values.begin(), values.end(), 0.0, [this](double init, double v) { return init + (v - meanValue)*(v - meanValue); }) / n);
+    }
+
+    friend std::ostream & operator<<(std::ostream &os, const Stats &s)
+    {
+        os << std::setprecision(5) << "{mean: " << s.minValue << ", stddev: " << s.stdDevValue << ", median: " << s.medianValue
+            << ", min: " << s.minValue << " (@" << s.minIndex << "), max: " << s.maxValue << " (@" << s.maxIndex << ")}";
+        return os;
+    }
 };
 
 class PppEngineIntegrationTests : public ::testing::Test
@@ -93,11 +93,17 @@ protected:
             scalingErrors.push_back(abs(crownChinEstimatedDist - crownChinActualDist) / crownChinActualDist);
         }
 
-		Stats s(scalingErrors);
-		std::cout << s.toString();
+        Stats s(scalingErrors); Stats crownChinStats(crownChinEstimationErrors);
+        std::cout << "Scale errors" << s << std::endl;
+        std::cout << "Crown-Chin estimation relative error: " << crownChinStats << std::endl;
     }
 
-	
+    bool runLandMarkDetection(const cv::Mat &rgbImage, LandMarks& detectedLandMarks) const
+    {
+        auto imgKey = m_pPppEngine->setInputImage(rgbImage);
+        return m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+    }
+
 };
 
 
@@ -112,7 +118,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         {
             auto imgKey = m_pPppEngine->setInputImage(rgbImage);
 
-            auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+            auto success = runLandMarkDetection(rgbImage, detectedLandMarks);
             EXPECT_TRUE(success) << "Error detecting landmarks in " << imagePrefix;
 
             success = IN_ROI(detectedLandMarks.vjLeftEyeRect, annotations.eyeLeftPupil) &&
@@ -191,8 +197,21 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     });
 
     std::vector<ResultData> rd;
-   
-	processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
+
+    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
 
     processResults(rd);
+}
+
+
+TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
+{
+    auto imageFileName = resolvePath("research/mugshot_frontal_original_all/071_frontal.jpg");
+    auto inputImage = cv::imread(imageFileName);
+
+    LandMarks detectedLandMarks;
+    auto success = runLandMarkDetection(inputImage, detectedLandMarks);
+
+    EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
+
 }
