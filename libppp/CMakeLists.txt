@@ -12,6 +12,7 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # OpenCV Library
 find_package(OpenCV REQUIRED)
+find_package(Dlib REQUIRED)
 
 # Boost library for non C++17 compiler
 if (UNIX)
@@ -38,11 +39,13 @@ file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
+    ${DLib_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
+    ${Dlib_LiBS}
     ${Boost_LIBRARIES}
     ${OPENCV_3RDPARTY_LIBS}
 )
