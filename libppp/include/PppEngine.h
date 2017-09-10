@@ -55,7 +55,6 @@ private:
     IImageStoreSPtr m_pImageStore;
 
     std::shared_ptr<dlib::shape_predictor> m_shapePredictor;
-    std::shared_ptr<dlib::frontal_face_detector> m_frontalFaceDetector;
     bool m_useDlibLandmarkDetection;
 
     void verifyImageExists(const std::string& imageKey) const;

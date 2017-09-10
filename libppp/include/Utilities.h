@@ -5,6 +5,7 @@
 #include <opencv2/core/core.hpp>
 
 #include "CommonHelpers.h"
+#include <dlib/geometry/rectangle.h>
 
 template <typename TNumber> int ROUND_INT(TNumber x)
 {
@@ -69,5 +70,11 @@ public:
     static int kittlerOptimumThreshold(std::vector<double> P, float mu);
 
     static cv::Mat selfCoefficientImage(const cv::Mat &inputImage, int kernelSize);
+
+    static cv::Point convert(const dlib::point& pt);
+
+    static cv::Rect2d convert(const dlib::rectangle& r);
+
+    static dlib::rectangle convert(const cv::Rect2d& r);
 };
 

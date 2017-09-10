@@ -501,3 +501,18 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
 
     return outputImg;
 }
+
+cv::Point Utilities::convert(const dlib::point& pt)
+{
+    return cv::Point2d(pt.x(), pt.y());
+}
+
+cv::Rect2d Utilities::convert(const dlib::rectangle& r)
+{
+    return cv::Rect2d(r.left(), r.top(), r.width(), r.height());
+}
+
+dlib::rectangle Utilities::convert(const cv::Rect2d& r)
+{
+    return dlib::rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
+}
