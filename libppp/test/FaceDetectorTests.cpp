@@ -15,7 +15,7 @@ protected:
     }
 };
 
-TEST_F(FaceDetectorTests, CanDetectFaces)
+TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
     auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
         const LandMarks& manualAnnotations, LandMarks& detectedLandMarks) -> bool

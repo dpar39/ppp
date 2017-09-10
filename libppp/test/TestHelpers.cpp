@@ -12,7 +12,7 @@
 #if _MSC_VER >= 1900
 #include <filesystem>
 namespace fs = std::tr2::sys;
-#else 
+#else
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 #endif
@@ -86,7 +86,7 @@ void importLandMarks(const std::string &csvFilePath, std::map<std::string, LandM
 {
     const std::string pattern = "(.*\\.(jpg|JPG|png|PNG)),\\d+,\"\\{\\}\",6,(\\d),\".*\"\"cx\"\":(\\d+),\"\"cy\"\":(\\d+)\\}\",\"\\{\\}\"";
     std::regex e(pattern);
- 
+
     std::ifstream t(csvFilePath);
     std::string csv_content((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     const auto imageDir = getDirectory(csvFilePath);
@@ -202,18 +202,21 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
     auto annotationFile = resolvePath(landmarksPath);
     std::map<std::string, LandMarks> landMarksSet;
     importLandMarks(annotationFile, landMarksSet);
-    for (auto annotatedImage : landMarksSet)
+    for (auto & annotatedImage : landMarksSet)
     {
-        auto imageFileName = annotatedImage.first;
-        auto annotations = annotatedImage.second;
+        auto &imageFileName = annotatedImage.first;
+        auto &annotations = annotatedImage.second;
+
+        if (imageFileName.find("049_frontal") == std::string::npos)
+        {
+        //    continue;
+        }
 
         LandMarks results;
-        //imageFileName = "G:/VSOnline/PassportPhotoApp/research/mugshot_frontal_original_all/081_frontal.jpg";
-        //annotations = landMarksSet[imageFileName];
         if (find_if(ignoredImages.begin(), ignoredImages.end(), [&imageFileName](const std::string& ignoreImageFile)
-                {
-                    return imageFileName.find(ignoreImageFile) != std::string::npos;
-                }) != ignoredImages.end())
+        {
+            return imageFileName.find(ignoreImageFile) != std::string::npos;
+        }) != ignoredImages.end())
         {
             continue; // Skip processing this image
         }

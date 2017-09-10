@@ -12,7 +12,9 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # OpenCV Library
 find_package(OpenCV REQUIRED)
-find_package(Dlib REQUIRED)
+find_package(dlib REQUIRED)
+
+message(STATUS "Using dlib-${dlib_VERSION}")
 
 # Boost library for non C++17 compiler
 if (UNIX)
@@ -39,13 +41,13 @@ file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${DLib_INCLUDE_DIRS}
+    ${dlib_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
-    ${Dlib_LiBS}
+    ${dlib_LIBS}
     ${Boost_LIBRARIES}
     ${OPENCV_3RDPARTY_LIBS}
 )
@@ -57,6 +59,7 @@ target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/shape_predictor_68_face_landmarks.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #-----------------------------
 # Build the module tests

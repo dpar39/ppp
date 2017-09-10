@@ -51,9 +51,9 @@ public:
     }
 };
 
-TEST_F(PppEngineTests, ConfigureWorks)
+TEST_F(PppEngineTests, DISABLED_ConfigureWorks)
 {
-    // Arange
+    // Arrange
     const int imageStoreSize = 42;
     rapidjson::Document config;
     config.SetObject();

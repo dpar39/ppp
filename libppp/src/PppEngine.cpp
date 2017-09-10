@@ -14,8 +14,21 @@
 #include "CanvasDefinition.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
+#include <dlib/image_processing/render_face_detections.h>
+#include <dlib/image_processing.h>
+#include <dlib/opencv/cv_image.h>
+
 
 using namespace std;
+
+cv::Point convert(const dlib::point &pt)
+{
+    return cv::Point2d(pt.x(), pt.y());
+}
+cv::Rect2d convert(const dlib::rectangle &r)
+{
+    return cv::Rect2d(r.left(), r.top(), r.width(), r.height());
+}
 
 PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
                      , IDetectorSPtr pEyesDetector /*= nullptr*/
@@ -29,6 +42,7 @@ PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
       , m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
       , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
       , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
+      , m_useDlibLandmarkDetection(false)
 {
 }
 
@@ -42,7 +56,18 @@ void PppEngine::configure(rapidjson::Value& config)
     size_t imageStoreSize = config["imageStoreSize"].GetInt();
     m_pImageStore->setStoreSize(imageStoreSize);
 
+    auto shapePredictorFile = config["shapePredictorFile"].GetString();
+
+    m_useDlibLandmarkDetection = config["useDlibLandmarkDetection"].GetBool();
+
     m_pPhotoPrintMaker->configure(config);
+
+    if (ifstream(shapePredictorFile).good())
+    {
+        m_shapePredictor = std::make_shared<dlib::shape_predictor>();
+        dlib::deserialize(shapePredictorFile) >> *m_shapePredictor;
+        m_frontalFaceDetector = std::make_shared<dlib::frontal_face_detector>(dlib::get_frontal_face_detector());
+    }
 }
 
 void PppEngine::verifyImageExists(const string& imageKey) const
@@ -68,22 +93,63 @@ bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) co
     cv::Mat grayImage;
     cvtColor(inputImage, grayImage, CV_BGR2GRAY);
 
-    // Detect the face
-    if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
+    if (!m_useDlibLandmarkDetection)
     {
-        return false;
-    }
+        // Detect the face
+        if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
+        {
+            return false;
+        }
 
-    // Detect the eye pupils
-    if (!m_pEyesDetector->detectLandMarks(grayImage, landMarks))
-    {
-        return false;
-    }
+        // Detect the eye pupils
+        if (!m_pEyesDetector->detectLandMarks(grayImage, landMarks))
+        {
+            return false;
+        }
 
-    // Detect mouth landmarks
-    if (!m_pLipsDetector->detectLandMarks(inputImage, landMarks))
+        // Detect mouth landmarks
+        if (!m_pLipsDetector->detectLandMarks(inputImage, landMarks))
+        {
+            return false;
+        }
+    }
+    else
     {
-        return false;
+        using namespace dlib;
+
+        array2d<bgr_pixel> dlibImage;
+        assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
+
+        auto dets = (*m_frontalFaceDetector)(dlibImage);
+
+        if (dets.empty())
+        {
+            return false; // No face was found
+        }
+
+        auto &faceRect = dets.front();
+        if (dets.size() > 1)
+        {
+            auto biggestFacePtr = std::max_element(dets.begin(), dets.end(), [](const rectangle &r1, const rectangle &r2)
+            {
+                return r1.area() < r2.area();
+            });
+            faceRect = *biggestFacePtr;
+        }
+
+        auto shape = (*m_shapePredictor)(dlibImage, faceRect);
+
+        landMarks.lipLeftCorner = convert(shape.part(49 - 1));
+        landMarks.lipRightCorner = convert(shape.part(55 - 1));
+        landMarks.eyeLeftPupil = (convert(shape.part(38 - 1)) + convert(shape.part(39 - 1)) + convert(shape.part(41 - 1)) + convert(shape.part(42 - 1))) / 4;
+        landMarks.eyeRightPupil = (convert(shape.part(44 - 1)) + convert(shape.part(45 - 1)) + convert(shape.part(48 - 1)) + convert(shape.part(47 - 1))) / 4;
+        landMarks.vjFaceRect = convert(faceRect);
+        landMarks.chinPoint = convert(shape.part(9 - 1));
+
+        for (size_t i = 0; i < shape.num_parts(); ++i)
+        {
+            landMarks.allLandmarks.push_back(convert(shape.part(i)));
+        }
     }
 
     // Estimate chin and crown point (maths from existing landmarks)
@@ -91,7 +157,7 @@ bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) co
 }
 
 cv::Mat PppEngine::createTiledPrint(const string& imageKey, PhotoStandard& ps, CanvasDefinition& canvas,
-                                    cv::Point& crownMark, cv::Point& chinMark)
+                                    cv::Point& crownMark, cv::Point& chinMark) const
 {
     verifyImageExists(imageKey);
 

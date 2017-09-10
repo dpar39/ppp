@@ -3,9 +3,10 @@
 #include <memory>
 #include <rapidjson/document.h>
 #include <opencv2/core/core.hpp>
-#include <unordered_map>
 
 #include "CommonHelpers.h"
+
+#include <dlib/image_processing/frontal_face_detector.h>
 
 
 struct LandMarks;
@@ -16,6 +17,11 @@ FWD_DECL(IPhotoPrintMaker)
 
 class CanvasDefinition;
 class PhotoStandard;
+
+namespace dlib
+{
+    class shape_predictor;
+}
 
 FWD_DECL(PppEngine)
 
@@ -36,7 +42,7 @@ public:
 
     bool detectLandMarks(const std::string& imageKey, LandMarks& landMarks) const;
 
-    cv::Mat createTiledPrint(const std::string& imageKey, PhotoStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark);
+    cv::Mat createTiledPrint(const std::string& imageKey, PhotoStandard &ps, CanvasDefinition &canvas, cv::Point &crownMark, cv::Point &chinMark) const;
 
 private:
 
@@ -47,6 +53,10 @@ private:
 
     IPhotoPrintMakerSPtr m_pPhotoPrintMaker;
     IImageStoreSPtr m_pImageStore;
+
+    std::shared_ptr<dlib::shape_predictor> m_shapePredictor;
+    std::shared_ptr<dlib::frontal_face_detector> m_frontalFaceDetector;
+    bool m_useDlibLandmarkDetection;
 
     void verifyImageExists(const std::string& imageKey) const;
 };

@@ -2,6 +2,7 @@
 build.py
 """
 import os
+import re
 import sys
 import glob
 import shutil
@@ -260,6 +261,36 @@ class Builder(object):
             self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj', \
                 '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
+
+
+    def insert_static_crt(self, cmake_file):
+        """
+        Insert static CRT build on CMAKE
+        """
+        static_crt = """
+if (MSVC)
+    # On windows, compile with CRT only in debug mode
+    set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
+    foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        if(${FLAG_VAR} MATCHES "/MD")
+            string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+        endif()
+    endforeach()
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+endif()
+"""
+
+        with open(cmake_file, 'r') as fp:
+            cmake_content = fp.readlines()
+
+        re_prj = re.compile(r'project\s*\(\s*dlib\s*\)', re.IGNORECASE)
+        mod_content = []
+        for line in cmake_content:
+            mod_content.append(line)
+            if re_prj.search(line):
+                mod_content.append(static_crt)
+        with open(cmake_file, 'w') as fp:
+            fp.writelines(mod_content)
 #
     def build_dlib(self):
         """
@@ -277,15 +308,24 @@ class Builder(object):
             # Extract the source files
             self.extract_third_party_lib(dlib_src_pkg)
             dlib_extract_dir = self.get_third_party_lib_dir('dlib')
+            self.insert_static_crt(os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt', ))
 
-        cmake_extra_defs = [ \
+        cmake_extra_defs = [
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
-            '-DJPEG_INCLUDE_DIR=' + '../dlib/external/libjpeg',
-            '-DJPEG_LIBRARY=../dlib/external/libjpeg',
-            '-DPNG_PNG_INCLUDE_DIR=../dlib/external/libpng',
-            '-DPNG_LIBRARY_RELEASE=../dlib/external/libpng',
-            '-DZLIB_INCLUDE_DIR=../dlib/external/zlib',
-            '-DZLIB_LIBRARY_RELEASE=../dlib/external/zlib']
+            '-DDLIB_JPEG_SUPPORT=OFF',
+            '-DDLIB_USE_BLAS=OFF',
+            '-DDLIB_USE_LAPACK=OFF',
+            '-DDLIB_USE_CUDA=OFF',
+            '-DDLIB_PNG_SUPPORT=OFF',
+            '-DDLIB_GIF_SUPPORT=OFF',
+            '-DLIB_USE_MKL_FFT=OFF',
+         #   '-DJPEG_INCLUDE_DIR=' + '../dlib/external/libjpeg',
+         #   '-DJPEG_LIBRARY=../dlib/external/libjpeg',
+         #   '-DPNG_PNG_INCLUDE_DIR=../dlib/external/libpng',
+         #   '-DPNG_LIBRARY_RELEASE=../dlib/external/libpng',
+         #   '-DZLIB_INCLUDE_DIR=../dlib/external/zlib',
+         #  '-DZLIB_LIBRARY_RELEASE=../dlib/external/zlib'
+        ]
 
         build_dir = self.build_dir_name(dlib_extract_dir)
         if os.path.exists(build_dir): # Remove the build directory

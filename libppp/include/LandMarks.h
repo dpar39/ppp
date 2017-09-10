@@ -36,6 +36,8 @@ struct LandMarks
     std::vector<cv::Point> lipContour1st;
     std::vector<cv::Point> lipContour2nd;
 
+    std::vector<cv::Point> allLandmarks;
+
     std::string toString() const;
 
     std::string toJson() const;

@@ -40,8 +40,10 @@ bool CrownChinEstimator::estimateCrownChin(LandMarks& landMarks)
     auto chinFrownDistancePix = m_chinFrownCoeff * normalisedDistancePixels;
     auto chinCrownDistancePix = m_chinCrownCoeff * normalisedDistancePixels;
 
-    landMarks.chinPoint = Utilities::pointInLineAtDistance(frownPointPix, mouthCenterPoint, chinFrownDistancePix);
+    if (landMarks.chinPoint == cv::Point())
+    {
+        landMarks.chinPoint = Utilities::pointInLineAtDistance(frownPointPix, mouthCenterPoint, chinFrownDistancePix);
+    }
     landMarks.crownPoint = Utilities::pointInLineAtDistance(landMarks.chinPoint, frownPointPix, chinCrownDistancePix);
-
     return true;
 }
