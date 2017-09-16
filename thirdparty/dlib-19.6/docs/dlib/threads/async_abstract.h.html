@@ -1,0 +1,70 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - async_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_AsYNC_ABSTRACT_Hh_
+<font color='#0000FF'>#ifdef</font> DLIB_AsYNC_ABSTRACT_Hh_ 
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='thread_pool_extension_abstract.h.html'>thread_pool_extension_abstract.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>future<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>functional<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    thread_pool<font color='#5555FF'>&amp;</font> <b><a name='default_thread_pool'></a>default_thread_pool</b><font face='Lucida Console'>(</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - returns a reference to a global thread_pool.  If the DLIB_NUM_THREADS
+              environment variable is set to an integer then the thread pool will contain
+              DLIB_NUM_THREADS threads, otherwise it will contain
+              std::thread::hardware_concurrency() threads.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> 
+        <font color='#0000FF'>typename</font> Function, 
+        <font color='#0000FF'>typename</font> ...Args
+        <font color='#5555FF'>&gt;</font>
+    std::future<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><b><a name='Function'></a>Function</b><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font> <b><a name='async'></a>async</b><font face='Lucida Console'>(</font>
+        thread_pool<font color='#5555FF'>&amp;</font> tp, 
+        Function<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> f, 
+        Args<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>... args 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - f must be a function and f(args...) must be a valid expression.
+        ensures
+            - This function behaves just like std::async(std::launch::async, f, args)
+              except that instead of spawning a new thread to process each task it submits
+              the task to the provided dlib::thread_pool.  Therefore, dlib::async() is
+              guaranteed to use a bounded number of threads unlike std::async().  This also
+              means that calls to dlib::async() will block if there aren't any free threads
+              in the thread pool.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> 
+        <font color='#0000FF'>typename</font> Function, 
+        <font color='#0000FF'>typename</font> ...Args
+        <font color='#5555FF'>&gt;</font>
+    std::future<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><b><a name='Function'></a>Function</b><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font> <b><a name='async'></a>async</b><font face='Lucida Console'>(</font>
+        Function<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> f, 
+        Args<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>... args 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - Calling this function is equivalent to directly calling async(default_thread_pool(), f, args...)
+    !*/</font>
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_AsYNC_ABSTRACT_Hh_
+</font>
+
+</pre></body></html>

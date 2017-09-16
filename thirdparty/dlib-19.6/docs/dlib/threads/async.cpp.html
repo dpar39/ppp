@@ -1,0 +1,51 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - async.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_AsYNC_CPP_
+<font color='#0000FF'>#define</font> DLIB_AsYNC_CPP_ 
+
+<font color='#009900'>// C++11 things don't work in old versions of visual studio 
+</font><font color='#0000FF'>#if</font> <font color='#5555FF'>!</font>defined<font face='Lucida Console'>(</font> _MSC_VER<font face='Lucida Console'>)</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font>  _MSC_VER <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>1900</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='async.h.html'>async.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>stdlib.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../string.h.html'>../string.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>thread<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>namespace</font> impl
+    <b>{</b>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='default_num_threads'></a>default_num_threads</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>try</font>
+            <b>{</b>
+                <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> nt <font color='#5555FF'>=</font> <font color='#BB00BB'>getenv</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>DLIB_NUM_THREADS</font>"<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>nt<font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font> string_cast<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>nt<font face='Lucida Console'>)</font>;
+            <b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>string_cast_error<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+            <font color='#0000FF'>return</font> std::thread::<font color='#BB00BB'>hardware_concurrency</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    thread_pool<font color='#5555FF'>&amp;</font> <b><a name='default_thread_pool'></a>default_thread_pool</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>static</font> thread_pool <font color='#BB00BB'>tp</font><font face='Lucida Console'>(</font>impl::<font color='#BB00BB'>default_num_threads</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>return</font> tp;
+    <b>}</b>
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_AsYNC_CPP_
+</font>
+
+
+</pre></body></html>

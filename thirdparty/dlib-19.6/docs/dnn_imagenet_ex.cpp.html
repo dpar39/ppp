@@ -1,0 +1,174 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn_imagenet_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This example shows how to classify an image into one of the 1000 imagenet
+    categories using the deep learning tools from the dlib C++ Library.  We will
+    use the pretrained ResNet34 model available on the dlib website.
+
+    The ResNet34 architecture is from the paper Deep Residual Learning for Image
+    Recognition by He, Zhang, Ren, and Sun.  The model file that comes with dlib
+    was trained using the <a href="dnn_imagenet_train_ex.cpp.html">dnn_imagenet_train_ex.cpp</a> program on a Titan X for
+    about 2 weeks.  This pretrained model has a top5 error of 7.572% on the 2012
+    imagenet validation dataset.
+
+    For an introduction to dlib's DNN module read the <a href="dnn_introduction_ex.cpp.html">dnn_introduction_ex.cpp</a> and
+    <a href="dnn_introduction2_ex.cpp.html">dnn_introduction2_ex.cpp</a> example programs.
+
+    
+    Finally, these tools will use CUDA and cuDNN to drastically accelerate
+    network training and testing.  CMake should automatically find them if they
+    are installed and configure things appropriately.  If not, the program will
+    still run but will be much slower to execute.
+*/</font>
+
+
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>dnn.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>data_io.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>gui_widgets.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_transforms.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+ 
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#009900'>// This block of statements defines the resnet-34 network
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, <font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual <font color='#5555FF'>=</font> add_prev1<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>1</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, <font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual_down <font color='#5555FF'>=</font> add_prev2<font color='#5555FF'>&lt;</font>avg_pool<font color='#5555FF'>&lt;</font><font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,skip1<font color='#5555FF'>&lt;</font>tag2<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>2</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'><u>int</u></font> stride, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> 
+<font color='#0000FF'>using</font> block  <font color='#5555FF'>=</font> BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,relu<font color='#5555FF'>&lt;</font>BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,stride,stride,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares      <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual<font color='#5555FF'>&lt;</font>block,N,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares_down <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual_down<font color='#5555FF'>&lt;</font>block,N,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> level1 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>512</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>512</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>512</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> level2 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> level3 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> level4 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>using</font> anet_type <font color='#5555FF'>=</font> loss_multiclass_log<font color='#5555FF'>&lt;</font>fc<font color='#5555FF'>&lt;</font><font color='#979000'>1000</font>,avg_pool_everything<font color='#5555FF'>&lt;</font>
+                            level1<font color='#5555FF'>&lt;</font>
+                            level2<font color='#5555FF'>&lt;</font>
+                            level3<font color='#5555FF'>&lt;</font>
+                            level4<font color='#5555FF'>&lt;</font>
+                            max_pool<font color='#5555FF'>&lt;</font><font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,<font color='#979000'>7</font>,<font color='#979000'>7</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,
+                            input_rgb_image_sized<font color='#5555FF'>&lt;</font><font color='#979000'>227</font><font color='#5555FF'>&gt;</font>
+                            <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+rectangle <b><a name='make_random_cropping_rect_resnet'></a>make_random_cropping_rect_resnet</b><font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> img,
+    dlib::rand<font color='#5555FF'>&amp;</font> rnd
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#009900'>// figure out what rectangle we want to crop from the image
+</font>    <font color='#0000FF'><u>double</u></font> mins <font color='#5555FF'>=</font> <font color='#979000'>0.466666666</font>, maxs <font color='#5555FF'>=</font> <font color='#979000'>0.875</font>;
+    <font color='#0000FF'>auto</font> scale <font color='#5555FF'>=</font> mins <font color='#5555FF'>+</font> rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font><font face='Lucida Console'>(</font>maxs<font color='#5555FF'>-</font>mins<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>auto</font> size <font color='#5555FF'>=</font> scale<font color='#5555FF'>*</font>std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    rectangle <font color='#BB00BB'>rect</font><font face='Lucida Console'>(</font>size, size<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// randomly shift the box around
+</font>    point <font color='#BB00BB'>offset</font><font face='Lucida Console'>(</font>rnd.<font color='#BB00BB'>get_random_32bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+                 rnd.<font color='#BB00BB'>get_random_32bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>rect.<font color='#BB00BB'>height</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>return</font> <font color='#BB00BB'>move_rect</font><font face='Lucida Console'>(</font>rect, offset<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='randomly_crop_images'></a>randomly_crop_images</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> img,
+    dlib::array<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> crops,
+    dlib::rand<font color='#5555FF'>&amp;</font> rnd,
+    <font color='#0000FF'><u>long</u></font> num_crops
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    std::vector<font color='#5555FF'>&lt;</font>chip_details<font color='#5555FF'>&gt;</font> dets;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> num_crops; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>auto</font> rect <font color='#5555FF'>=</font> <font color='#BB00BB'>make_random_cropping_rect_resnet</font><font face='Lucida Console'>(</font>img, rnd<font face='Lucida Console'>)</font>;
+        dets.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>chip_details</font><font face='Lucida Console'>(</font>rect, <font color='#BB00BB'>chip_dims</font><font face='Lucida Console'>(</font><font color='#979000'>227</font>,<font color='#979000'>227</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#BB00BB'>extract_image_chips</font><font face='Lucida Console'>(</font>img, dets, crops<font face='Lucida Console'>)</font>;
+
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> img : crops<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// Also randomly flip the image
+</font>        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0.5</font><font face='Lucida Console'>)</font>
+            img <font color='#5555FF'>=</font> <font color='#BB00BB'>fliplr</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// And then randomly adjust the colors.
+</font>        <font color='#BB00BB'>apply_random_color_offset</font><font face='Lucida Console'>(</font>img, rnd<font face='Lucida Console'>)</font>;
+    <b>}</b>
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> argc, <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font color='#5555FF'>*</font> argv<font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>argc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Give this program image files as command line arguments.\n</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>You will also need a copy of the file resnet34_1000_imagenet_classifier.dnn </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>available at http://dlib.net/files/resnet34_1000_imagenet_classifier.dnn.bz2</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+    <b>}</b>
+
+    std::vector<font color='#5555FF'>&lt;</font>string<font color='#5555FF'>&gt;</font> labels;
+    anet_type net;
+    <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>resnet34_1000_imagenet_classifier.dnn</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> net <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> labels;
+
+    <font color='#009900'>// Make a network with softmax as the final layer.  We don't have to do this
+</font>    <font color='#009900'>// if we just want to output the single best prediction, since the anet_type
+</font>    <font color='#009900'>// already does this.  But if we instead want to get the probability of each
+</font>    <font color='#009900'>// class as output we need to replace the last layer of the network with a
+</font>    <font color='#009900'>// softmax layer, which we do as follows:
+</font>    softmax<font color='#5555FF'>&lt;</font>anet_type::subnet_type<font color='#5555FF'>&gt;</font> snet; 
+    snet.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+    dlib::array<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> images;
+    matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> img, crop;
+
+    dlib::rand rnd;
+    image_window win;
+
+    <font color='#009900'>// Read images from the command prompt and print the top 5 best labels for each.
+</font>    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> argc; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>load_image</font><font face='Lucida Console'>(</font>img, argv[i]<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> num_crops <font color='#5555FF'>=</font> <font color='#979000'>16</font>;
+        <font color='#009900'>// Grab 16 random crops from the image.  We will run all of them through the
+</font>        <font color='#009900'>// network and average the results.
+</font>        <font color='#BB00BB'>randomly_crop_images</font><font face='Lucida Console'>(</font>img, images, rnd, num_crops<font face='Lucida Console'>)</font>;
+        <font color='#009900'>// p(i) == the probability the image contains object of class i.
+</font>        matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font>,<font color='#979000'>1</font>,<font color='#979000'>1000</font><font color='#5555FF'>&gt;</font> p <font color='#5555FF'>=</font> <font color='#BB00BB'>sum_rows</font><font face='Lucida Console'>(</font><font color='#BB00BB'>mat</font><font face='Lucida Console'>(</font><font color='#BB00BB'>snet</font><font face='Lucida Console'>(</font>images.<font color='#BB00BB'>begin</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, images.<font color='#BB00BB'>end</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>num_crops;
+
+        win.<font color='#BB00BB'>set_image</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+        <font color='#009900'>// Print the 5 most probable labels
+</font>        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>0</font>; k <font color='#5555FF'>&lt;</font> <font color='#979000'>5</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>k<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> predicted_label <font color='#5555FF'>=</font> <font color='#BB00BB'>index_of_max</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>;
+            cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>p</font><font face='Lucida Console'>(</font>predicted_label<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> labels[predicted_label] <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+            <font color='#BB00BB'>p</font><font face='Lucida Console'>(</font>predicted_label<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <b>}</b>
+
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Hit enter to process the next image</font>";
+        cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+
+</pre></body></html>

@@ -14,15 +14,12 @@
 #include "CanvasDefinition.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <dlib/image_processing/render_face_detections.h>
-#include <dlib/image_processing.h>
+#include <dlib/image_processing/shape_predictor.h>
 #include <dlib/opencv/cv_image.h>
+
 #include "Utilities.h"
 
-
 using namespace std;
-
-
 
 PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
                      , IDetectorSPtr pEyesDetector /*= nullptr*/

@@ -3,7 +3,8 @@
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 1000,
     "files.associations": {
-        "cmakeccompilerid.c": "cpp"
+        "cmakeccompilerid.c": "cpp",
+        "exception": "cpp"
     },
     "files.trimTrailingWhitespace": true
 }

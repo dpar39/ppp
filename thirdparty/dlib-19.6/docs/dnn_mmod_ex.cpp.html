@@ -1,0 +1,231 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn_mmod_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This example shows how to train a CNN based object detector using dlib's 
+    loss_mmod loss layer.  This loss layer implements the Max-Margin Object
+    Detection loss as described in the paper:
+        Max-Margin Object Detection by Davis E. King (http://arxiv.org/abs/1502.00046).
+    This is the same loss used by the popular SVM+HOG object detector in dlib
+    (see <a href="fhog_object_detector_ex.cpp.html">fhog_object_detector_ex.cpp</a>) except here we replace the HOG features
+    with a CNN and train the entire detector end-to-end.  This allows us to make
+    much more powerful detectors.
+
+    It would be a good idea to become familiar with dlib's DNN tooling before
+    reading this example.  So you should read <a href="dnn_introduction_ex.cpp.html">dnn_introduction_ex.cpp</a> and
+    <a href="dnn_introduction2_ex.cpp.html">dnn_introduction2_ex.cpp</a> before reading this example program.
+    
+    Just like in the <a href="fhog_object_detector_ex.cpp.html">fhog_object_detector_ex.cpp</a> example, we are going to train
+    a simple face detector based on the very small training dataset in the
+    examples/faces folder.  As we will see, even with this small dataset the
+    MMOD method is able to make a working face detector.  However, for real
+    applications you should train with more data for an even better result.
+*/</font>
+
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>dnn.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>data_io.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>gui_widgets.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+
+<font color='#009900'>// The first thing we do is define our CNN.  The CNN is going to be evaluated
+</font><font color='#009900'>// convolutionally over an entire image pyramid.  Think of it like a normal
+</font><font color='#009900'>// sliding window classifier.  This means you need to define a CNN that can look
+</font><font color='#009900'>// at some part of an image and decide if it is an object of interest.  In this
+</font><font color='#009900'>// example I've defined a CNN with a receptive field of a little over 50x50
+</font><font color='#009900'>// pixels.  This is reasonable for face detection since you can clearly tell if
+</font><font color='#009900'>// a 50x50 image contains a face.  Other applications may benefit from CNNs with
+</font><font color='#009900'>// different architectures.  
+</font><font color='#009900'>// 
+</font><font color='#009900'>// In this example our CNN begins with 3 downsampling layers.  These layers will
+</font><font color='#009900'>// reduce the size of the image by 8x and output a feature map with
+</font><font color='#009900'>// 32 dimensions.  Then we will pass that through 4 more convolutional layers to
+</font><font color='#009900'>// get the final output of the network.  The last layer has only 1 channel and
+</font><font color='#009900'>// the values in that last channel are large when the network thinks it has
+</font><font color='#009900'>// found an object at a particular location.
+</font>
+
+<font color='#009900'>// Let's begin the network definition by creating some network blocks.
+</font>
+<font color='#009900'>// A 5x5 conv layer that does 2x downsampling
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>long</u></font> num_filters, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> con5d <font color='#5555FF'>=</font> con<font color='#5555FF'>&lt;</font>num_filters,<font color='#979000'>5</font>,<font color='#979000'>5</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,SUBNET<font color='#5555FF'>&gt;</font>;
+<font color='#009900'>// A 3x3 conv layer that doesn't do any downsampling
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>long</u></font> num_filters, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> con3  <font color='#5555FF'>=</font> con<font color='#5555FF'>&lt;</font>num_filters,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// Now we can define the 8x downsampling block in terms of conv5d blocks.  We
+</font><font color='#009900'>// also use relu and batch normalization in the standard way.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> downsampler  <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>, relu<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>, relu<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// The rest of the network will be 3x3 conv layers with batch normalization and
+</font><font color='#009900'>// relu.  So we define the 3x3 block we will use here.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> rcon3  <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con3<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// Finally, we define the entire network.   The special input_rgb_image_pyramid
+</font><font color='#009900'>// layer causes the network to operate over a spatial pyramid, making the detector
+</font><font color='#009900'>// scale invariant.  
+</font><font color='#0000FF'>using</font> net_type  <font color='#5555FF'>=</font> loss_mmod<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>1</font>,<font color='#979000'>6</font>,<font color='#979000'>6</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,rcon3<font color='#5555FF'>&lt;</font>rcon3<font color='#5555FF'>&lt;</font>rcon3<font color='#5555FF'>&lt;</font>downsampler<font color='#5555FF'>&lt;</font>input_rgb_image_pyramid<font color='#5555FF'>&lt;</font>pyramid_down<font color='#5555FF'>&lt;</font><font color='#979000'>6</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> argc, <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font color='#5555FF'>*</font> argv<font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    <font color='#009900'>// In this example we are going to train a face detector based on the
+</font>    <font color='#009900'>// small faces dataset in the examples/faces directory.  So the first
+</font>    <font color='#009900'>// thing we do is load that dataset.  This means you need to supply the
+</font>    <font color='#009900'>// path to this faces folder as a command line argument so we will know
+</font>    <font color='#009900'>// where it is.
+</font>    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>argc <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Give the path to the examples/faces directory as the argument to this</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>program.  For example, if you are in the examples folder then execute </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>this program by running: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>   ./dnn_mmod_ex faces</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+    <b>}</b>
+    <font color='#0000FF'>const</font> std::string faces_directory <font color='#5555FF'>=</font> argv[<font color='#979000'>1</font>];
+    <font color='#009900'>// The faces directory contains a training dataset and a separate
+</font>    <font color='#009900'>// testing dataset.  The training data consists of 4 images, each
+</font>    <font color='#009900'>// annotated with rectangles that bound each human face.  The idea is 
+</font>    <font color='#009900'>// to use this training data to learn to identify human faces in new
+</font>    <font color='#009900'>// images.  
+</font>    <font color='#009900'>// 
+</font>    <font color='#009900'>// Once you have trained an object detector it is always important to
+</font>    <font color='#009900'>// test it on data it wasn't trained on.  Therefore, we will also load
+</font>    <font color='#009900'>// a separate testing set of 5 images.  Once we have a face detector
+</font>    <font color='#009900'>// created from the training data we will see how well it works by
+</font>    <font color='#009900'>// running it on the testing images. 
+</font>    <font color='#009900'>// 
+</font>    <font color='#009900'>// So here we create the variables that will hold our dataset.
+</font>    <font color='#009900'>// images_train will hold the 4 training images and face_boxes_train
+</font>    <font color='#009900'>// holds the locations of the faces in the training images.  So for
+</font>    <font color='#009900'>// example, the image images_train[0] has the faces given by the
+</font>    <font color='#009900'>// rectangles in face_boxes_train[0].
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> images_train, images_test;
+    std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> face_boxes_train, face_boxes_test;
+
+    <font color='#009900'>// Now we load the data.  These XML files list the images in each dataset
+</font>    <font color='#009900'>// and also contain the positions of the face boxes.  Obviously you can use
+</font>    <font color='#009900'>// any kind of input format you like so long as you store the data into
+</font>    <font color='#009900'>// images_train and face_boxes_train.  But for convenience dlib comes with
+</font>    <font color='#009900'>// tools for creating and loading XML image datasets.  Here you see how to
+</font>    <font color='#009900'>// load the data.  To create the XML files you can use the imglab tool which
+</font>    <font color='#009900'>// can be found in the tools/imglab folder.  It is a simple graphical tool
+</font>    <font color='#009900'>// for labeling objects in images with boxes.  To see how to use it read the
+</font>    <font color='#009900'>// tools/imglab/README.txt file.
+</font>    <font color='#BB00BB'>load_image_dataset</font><font face='Lucida Console'>(</font>images_train, face_boxes_train, faces_directory<font color='#5555FF'>+</font>"<font color='#CC0000'>/training.xml</font>"<font face='Lucida Console'>)</font>;
+    <font color='#BB00BB'>load_image_dataset</font><font face='Lucida Console'>(</font>images_test, face_boxes_test, faces_directory<font color='#5555FF'>+</font>"<font color='#CC0000'>/testing.xml</font>"<font face='Lucida Console'>)</font>;
+
+
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>num training images: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> images_train.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>num testing images:  </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> images_test.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+
+    <font color='#009900'>// The MMOD algorithm has some options you can set to control its behavior.  However,
+</font>    <font color='#009900'>// you can also call the constructor with your training annotations and a "target
+</font>    <font color='#009900'>// object size" and it will automatically configure itself in a reasonable way for your
+</font>    <font color='#009900'>// problem.  Here we are saying that faces are still recognizably faces when they are
+</font>    <font color='#009900'>// 40x40 pixels in size.  You should generally pick the smallest size where this is
+</font>    <font color='#009900'>// true.  Based on this information the mmod_options constructor will automatically
+</font>    <font color='#009900'>// pick a good sliding window width and height.  It will also automatically set the
+</font>    <font color='#009900'>// non-max-suppression parameters to something reasonable.  For further details see the
+</font>    <font color='#009900'>// mmod_options documentation.
+</font>    mmod_options <font color='#BB00BB'>options</font><font face='Lucida Console'>(</font>face_boxes_train, <font color='#979000'>40</font>,<font color='#979000'>40</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// The detector will automatically decide to use multiple sliding windows if needed.
+</font>    <font color='#009900'>// For the face data, only one is needed however.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>num detector windows: </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> options.detector_windows.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> w : options.detector_windows<font face='Lucida Console'>)</font>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>detector window width by height: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> w.width <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> x </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> w.height <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>overlap NMS IOU thresh:             </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> options.overlaps_nms.<font color='#BB00BB'>get_iou_thresh</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>overlap NMS percent covered thresh: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> options.overlaps_nms.<font color='#BB00BB'>get_percent_covered_thresh</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    <font color='#009900'>// Now we are ready to create our network and trainer.  
+</font>    net_type <font color='#BB00BB'>net</font><font face='Lucida Console'>(</font>options<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// The MMOD loss requires that the number of filters in the final network layer equal
+</font>    <font color='#009900'>// options.detector_windows.size().  So we set that here as well.
+</font>    net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>layer_details</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>set_num_filters</font><font face='Lucida Console'>(</font>options.detector_windows.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    dnn_trainer<font color='#5555FF'>&lt;</font>net_type<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>trainer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>set_learning_rate</font><font face='Lucida Console'>(</font><font color='#979000'>0.1</font><font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>be_verbose</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>set_synchronization_file</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mmod_sync</font>", std::chrono::<font color='#BB00BB'>minutes</font><font face='Lucida Console'>(</font><font color='#979000'>5</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>set_iterations_without_progress_threshold</font><font face='Lucida Console'>(</font><font color='#979000'>300</font><font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Now let's train the network.  We are going to use mini-batches of 150
+</font>    <font color='#009900'>// images.   The images are random crops from our training set (see
+</font>    <font color='#009900'>// <a href="random_cropper_ex.cpp.html">random_cropper_ex.cpp</a> for a discussion of the random_cropper). 
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> mini_batch_samples;
+    std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> mini_batch_labels; 
+    random_cropper cropper;
+    cropper.<font color='#BB00BB'>set_chip_dims</font><font face='Lucida Console'>(</font><font color='#979000'>200</font>, <font color='#979000'>200</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_min_object_size</font><font face='Lucida Console'>(</font><font color='#979000'>0.2</font><font face='Lucida Console'>)</font>;
+    dlib::rand rnd;
+    <font color='#009900'>// Run the trainer until the learning rate gets small.  This will probably take several
+</font>    <font color='#009900'>// hours.
+</font>    <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>trainer.<font color='#BB00BB'>get_learning_rate</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>1e</font><font color='#5555FF'>-</font><font color='#979000'>4</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>cropper</font><font face='Lucida Console'>(</font><font color='#979000'>150</font>, images_train, face_boxes_train, mini_batch_samples, mini_batch_labels<font face='Lucida Console'>)</font>;
+        <font color='#009900'>// We can also randomly jitter the colors and that often helps a detector
+</font>        <font color='#009900'>// generalize better to new images.
+</font>        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> img : mini_batch_samples<font face='Lucida Console'>)</font>
+            <font color='#BB00BB'>disturb_colors</font><font face='Lucida Console'>(</font>img, rnd<font face='Lucida Console'>)</font>;
+
+        trainer.<font color='#BB00BB'>train_one_step</font><font face='Lucida Console'>(</font>mini_batch_samples, mini_batch_labels<font face='Lucida Console'>)</font>;
+    <b>}</b>
+    <font color='#009900'>// wait for training threads to stop
+</font>    trainer.<font color='#BB00BB'>get_net</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>done training</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    <font color='#009900'>// Save the network to disk
+</font>    net.<font color='#BB00BB'>clean</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mmod_network.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> net;
+
+
+    <font color='#009900'>// Now that we have a face detector we can test it.  The first statement tests it
+</font>    <font color='#009900'>// on the training data.  It will print the precision, recall, and then average precision.
+</font>    <font color='#009900'>// This statement should indicate that the network works perfectly on the
+</font>    <font color='#009900'>// training data.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>training results: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>test_object_detection_function</font><font face='Lucida Console'>(</font>net, images_train, face_boxes_train<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <font color='#009900'>// However, to get an idea if it really worked without overfitting we need to run
+</font>    <font color='#009900'>// it on images it wasn't trained on.  The next line does this.   Happily,
+</font>    <font color='#009900'>// this statement indicates that the detector finds most of the faces in the
+</font>    <font color='#009900'>// testing data.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>testing results:  </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>test_object_detection_function</font><font face='Lucida Console'>(</font>net, images_test, face_boxes_test<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+
+    <font color='#009900'>// If you are running many experiments, it's also useful to log the settings used
+</font>    <font color='#009900'>// during the training experiment.  This statement will print the settings we used to
+</font>    <font color='#009900'>// the screen.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> trainer <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> cropper <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    <font color='#009900'>// Now lets run the detector on the testing images and look at the outputs.  
+</font>    image_window win;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> img : images_test<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>pyramid_up</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>auto</font> dets <font color='#5555FF'>=</font> <font color='#BB00BB'>net</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+        win.<font color='#BB00BB'>clear_overlay</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        win.<font color='#BB00BB'>set_image</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> d : dets<font face='Lucida Console'>)</font>
+            win.<font color='#BB00BB'>add_overlay</font><font face='Lucida Console'>(</font>d<font face='Lucida Console'>)</font>;
+        cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+    <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+
+    <font color='#009900'>// Now that you finished this example, you should read <a href="dnn_mmod_train_find_cars_ex.cpp.html">dnn_mmod_train_find_cars_ex.cpp</a>,
+</font>    <font color='#009900'>// which is a more advanced example.  It discusses many issues surrounding properly
+</font>    <font color='#009900'>// setting the MMOD parameters and creating a good training dataset.
+</font>
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+
+
+
+
+</pre></body></html>

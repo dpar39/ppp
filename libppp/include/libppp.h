@@ -1,17 +1,18 @@
 #pragma once
 
-// DLL export 
+// DLL export
 #ifdef WIN32
 #ifdef DLLEXPORT
 #define DECLSPEC __declspec(dllexport)
 #else
-#define DECLSPEC 
+#define DECLSPEC
 #endif
 #else
 #define DECLSPEC
 #endif
 
 #include <vector>
+#include <string>
 
 typedef unsigned char byte;
 class PppEngine;
@@ -29,14 +30,14 @@ public:
 
     void configure(const std::string &jsonConfig) const;
 
-    /*!@brief Stores the image for processing 
+    /*!@brief Stores the image for processing
     *  param[in] bufferData Pointer to the image data
     *  returns Image Id that can be used to recognise the image
     !*/
     std::string setImage(const char *bufferData, size_t bufferLength) const;
-    
+
     std::string detectLandmarks(const std::string &imageId) const;
- 
+
     /*!@brief Creates a tiled print from input image, crown/chin points and passport/canvas definition
     *  Output definition is passed as a JSON string with the following format:
     .{

@@ -1,0 +1,712 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - tensor_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_DNn_TENSOR_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_DNn_TENSOR_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../any/any_abstract.h.html'>../any/any_abstract.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='tensor'></a>tensor</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object represents a 4D array of float values, all stored contiguously
+                in memory.  Importantly, it keeps two copies of the floats, one on the host
+                CPU side and another on the GPU device side. It automatically performs the
+                necessary host/device transfers to keep these two copies of the data in
+                sync.
+
+                All transfers to the device happen asynchronously with respect to the
+                default CUDA stream so that CUDA kernel computations can overlap with data
+                transfers.  However, any transfers from the device to the host happen
+                synchronously in the default CUDA stream.  Therefore, you should perform
+                all your CUDA kernel launches on the default stream so that transfers back
+                to the host do not happen before the relevant computations have completed.
+
+                If DLIB_USE_CUDA is not #defined then this object will not use CUDA at all.
+                Instead, it will simply store one host side memory block of floats.  
+
+                Finally, the convention in dlib code is to interpret the tensor as a set of
+                num_samples() 3D arrays, each of dimension k() by nr() by nc().  Also,
+                while this class does not specify a memory layout, the convention is to
+                assume that indexing into an element at coordinates (sample,k,r,c) can be
+                accomplished via:
+                    host()[((sample*t.k() + k)*t.nr() + r)*t.nc() + c]
+
+            THREAD SAFETY
+                Instances of this object are not thread-safe.  So don't touch one from
+                multiple threads at the same time.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>virtual</font> ~<b><a name='tensor'></a>tensor</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='num_samples'></a>num_samples</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of 3D arrays of dimension k() by nr() by nc() there
+                  are in this object.  
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='k'></a>k</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the k dimension of this tensor.  Generally, we think of a tensor
+                  as containing num_samples() images of nr() by nc() rows and columns, each
+                  with k() channels.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in this tensor.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of columns in this tensor.
+        !*/</font>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns num_samples()*k()*nr()*nc()
+                  (i.e. the total number of floats in this tensor)
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='async_copy_to_device'></a>async_copy_to_device</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This function does not block.
+                - if (the host version of the data is newer than the device's copy) then
+                    - Begins asynchronously copying host data to the device.
+                    - A call to device() that happens before the transfer completes will
+                      block until the transfer is complete.  That is, it is safe to call
+                      async_copy_to_device() and then immediately call device().
+        !*/</font>
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> iterator;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> const_iterator;
+        iterator       <b><a name='begin'></a>begin</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>       <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+        const_iterator <b><a name='begin'></a>begin</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+        iterator       <b><a name='end'></a>end</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>         <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font><font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+        const_iterator <b><a name='end'></a>end</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>   <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font><font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            ensures
+                - makes a tensor iterable just like the STL containers.   
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host'></a>host</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns a pointer to the host memory block of size() contiguous float
+                  values or nullptr if size()==0.
+                - if (the host's copy of the data is out of date) then
+                    - copies the data from the device to the host, while this is happening
+                      the call to host() blocks. 
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host'></a>host</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns a pointer to the host memory block of size() contiguous float
+                  values or nullptr if size()==0.
+                - if (the host's copy of the data is out of date) then
+                    - copies the data from the device to the host, while this is happening
+                      the call to host() blocks. 
+                - Marks the device side data as out of date so that the next call to
+                  device() will perform a host to device transfer.  If you want to begin
+                  the transfer immediately then you can call async_copy_to_device() after
+                  calling host().
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host_write_only'></a>host_write_only</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This function returns the same pointer as host(), except that it never
+                  performs a device to host memory copy.  Instead, it immediately marks the
+                  device side data as out of date, effectively discarding it.  Therefore,
+                  the values in the data pointed to by host_write_only() are undefined and
+                  you should only call host_write_only() if you are going to assign to
+                  every memory location in the returned memory block.  
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device'></a>device</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            requires
+                - DLIB_USE_CUDA is #defined
+            ensures
+                - returns a pointer to the device memory block of size() contiguous float
+                  values or nullptr if size()==0.
+                - if (the device's copy of the data is out of date) then
+                    - copies the data from the host to the device, while this is happening
+                      the call to device() blocks. 
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device'></a>device</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            requires
+                - DLIB_USE_CUDA is #defined
+            ensures
+                - returns a pointer to the device memory block of size() contiguous float
+                  values or nullptr if size()==0.
+                - if (the device's copy of the data is out of date) then
+                    - copies the data from the host to the device, while this is happening
+                      the call to device() blocks. 
+                - Marks the host side data as out of date so that the next call to
+                  host() will perform a device to host transfer.
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device_write_only'></a>device_write_only</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            requires
+                - DLIB_USE_CUDA is #defined
+            ensures
+                - This function returns the same pointer as device(), except that it never
+                  performs a host to device memory copy.  Instead, it immediately marks the
+                  host side data as out of date, effectively discarding it.  Therefore, the
+                  values in the data pointed to by device_write_only() are undefined and
+                  you should only call device_write_only() if you are going to assign to
+                  every memory location in the returned memory block.  
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> <font color='#0000FF'>const</font> any<font color='#5555FF'>&amp;</font> <b><a name='annotation'></a>annotation</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns a const reference to the any object in this tensor.  The any
+                  object can be used to store any additional annotation you like in a
+                  tensor.  However, it should be noted that the annotation() is ignored by
+                  serialize() and therefore not saved when a tensor is serialized.
+        !*/</font>
+
+        <font color='#0000FF'>virtual</font> any<font color='#5555FF'>&amp;</font> <b><a name='annotation'></a>annotation</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns a non-const reference to the any object in this tensor.  The any
+                  object can be used to store any additional annotation you like in a
+                  tensor.  However, it should be noted that the annotation() is ignored by
+                  serialize() and therefore not saved when a tensor is serialized.
+        !*/</font>
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='device_id'></a>device_id</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the ID of the CUDA device that allocated this memory. I.e. the
+                  number returned by cudaGetDevice() when the memory was allocated.
+                - If CUDA is not being used then this function always returns 0.
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - sets all elements of this tensor equal to val.
+                - returns *this
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>*</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - pointwise multiplies all elements of *this tensor with val.
+                - returns *this
+        !*/</font>
+        
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>/</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - pointwise divides all elements of *this tensor with val.
+                - returns *this
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - num_samples() == item.nr()
+                - k()*nr()*nc() == item.nc()
+                - item contains float values
+            ensures
+                - Assigns item to *this tensor by performing:
+                  set_ptrm(host(), num_samples(), k()*nr()*nc()) = item;
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - num_samples() == item.nr()
+                - k()*nr()*nc() == item.nc()
+                - item contains float values
+            ensures
+                - Adds item to *this tensor by performing:
+                  set_ptrm(host(), num_samples(), k()*nr()*nc()) += item;
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>-</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - num_samples() == item.nr()
+                - k()*nr()*nc() == item.nc()
+                - item contains float values
+            ensures
+                - Subtracts item from *this tensor by performing:
+                  set_ptrm(host(), num_samples(), k()*nr()*nc()) -= item;
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_sample'></a>set_sample</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> idx,
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - idx &lt; num_samples()
+                - k()*nr()*nc() == item.size()
+                - item contains float values
+            ensures
+                - Assigns item to the idx'th sample in *this by performing:
+                  set_ptrm(host()+idx*item.size(), item.nr(), item.nc()) = item;
+        !*/</font>
+
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='add_to_sample'></a>add_to_sample</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> idx,
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - idx &lt; num_samples()
+                - k()*nr()*nc() == item.size()
+                - item contains float values
+            ensures
+                - Adds item to the idx'th sample in *this by performing:
+                  set_ptrm(host()+idx*item.size(), item.nr(), item.nc()) += item;
+        !*/</font>
+
+    <font color='#0000FF'>protected</font>:
+
+        <font color='#009900'>// You can't move or copy another tensor into *this since that might modify the
+</font>        <font color='#009900'>// tensor's dimensions.  If you want to do that sort of thing then use a
+</font>        <font color='#009900'>// resizable_tensor.
+</font>        <b><a name='tensor'></a>tensor</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;  
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>; 
+        <b><a name='tensor'></a>tensor</b><font face='Lucida Console'>(</font>tensor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font>tensor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>; 
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size() == src.size()
+        ensures
+            - Copies the data in src to dest.  If the device data is current on both src
+              and dest then the copy will happen entirely on the device side.
+            - It doesn't matter what GPU device is selected by cudaSetDevice().  You can
+              always copy tensor objects to and from each other regardless.
+            - This function blocks until the copy has completed.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>bool</u></font> <b><a name='is_vector'></a>is_vector</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> t
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - returns true if and only if one of the following is true:
+                - t.size() == t.num_samples() 
+                - t.size() == t.k() 
+                - t.size() == t.nr() 
+                - t.size() == t.nc()
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>const</font> matrix_exp <b><a name='mat'></a>mat</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> t,
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - nr &gt;= 0
+            - nc &gt;= 0
+            - nr*nc == t.size()
+        ensures
+            - returns a matrix M such that:
+                - M.nr() == nr
+                - m.nc() == nc 
+                - for all valid r and c:
+                  M(r,c) == t.host()[r*nc + c]
+                  (i.e. the tensor is interpreted as a matrix laid out in memory
+                  in row major order)
+    !*/</font>
+
+    <font color='#0000FF'>const</font> matrix_exp <b><a name='mat'></a>mat</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> t
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - if (t.size() != 0) then
+                - returns mat(t, t.num_samples(), t.size()/t.num_samples())
+            - else
+                - returns an empty matrix.
+    !*/</font>
+
+    <font color='#0000FF'>const</font> matrix_exp <b><a name='image_plane'></a>image_plane</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> t,
+        <font color='#0000FF'><u>long</u></font> sample <font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+        <font color='#0000FF'><u>long</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>0</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - t.size() != 0
+            - 0 &lt;= sample &lt; t.num_samples()
+            - 0 &lt;= k &lt; t.k()
+        ensures
+            - returns the k-th image plane from the sample-th image in t.  That is,
+              returns a matrix M such that:
+                - M contains float valued elements.
+                - M.nr() == t.nr()
+                - M.nc() == t.nc()
+                - for all valid r and c:
+                    - M(r,c) == t.host()[((sample*t.k() + k)*t.nr() + r)*t.nc() + c]
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>bool</u></font> <b><a name='have_same_dimensions'></a>have_same_dimensions</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> a,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> b
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - returns true if and only if all of the fallowing are satisfied:
+                - a.num_samples() == b.num_samples() 
+                - a.k()  == b.k() 
+                - a.nr() == b.nr() 
+                - a.nc() == b.nc()
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='resizable_tensor'></a>resizable_tensor</b> : <font color='#0000FF'>public</font> tensor
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object is just a tensor with the additional ability to be resized.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='resizable_tensor'></a>resizable_tensor</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #size() == 0
+                - #num_samples() == 0
+                - #k() == 0
+                - #nr() == 0
+                - #nc() == 0
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        <b><a name='resizable_tensor'></a>resizable_tensor</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - item contains float values
+            ensures
+                - #num_samples() == item.nr()
+                - #k() == item.nc()
+                - #nr() == 1
+                - #nc() == 1
+                - Assigns item to *this tensor by performing:
+                  set_ptrm(host(), num_samples(), k()*nr()*nc()) = item;
+        !*/</font>
+
+        <font color='#0000FF'>explicit</font> <b><a name='resizable_tensor'></a>resizable_tensor</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>long</u></font> n_, <font color='#0000FF'><u>long</u></font> k_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nr_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nc_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - n_ &gt;= 0
+                - k_ &gt;= 0
+                - nr_ &gt;= 0
+                - nc_ &gt;= 0
+            ensures
+                - #size() == n_*k_*nr_*nc_
+                - #num_samples() == n_
+                - #k() == k_
+                - #nr() == nr_
+                - #nc() == nc_
+        !*/</font>
+
+        <font color='#009900'>// This object is copyable and movable
+</font>        <b><a name='resizable_tensor'></a>resizable_tensor</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> resizable_tensor<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <b><a name='resizable_tensor'></a>resizable_tensor</b><font face='Lucida Console'>(</font>resizable_tensor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        resizable_tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> resizable_tensor<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        resizable_tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>resizable_tensor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='clear'></a>clear</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #size() == 0
+                - #num_samples() == 0
+                - #k() == 0
+                - #nr() == 0
+                - #nc() == 0
+                - #annotation().is_empty() == true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_size'></a>copy_size</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - resizes *this so that: have_same_dimensions(#*this, item)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_size'></a>set_size</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>long</u></font> n_, <font color='#0000FF'><u>long</u></font> k_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nr_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nc_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - n_ &gt;= 0
+                - k_ &gt;= 0
+                - nr_ &gt;= 0
+                - nc_ &gt;= 0
+            ensures
+                - #size() == n_*k_*nr_*nc_
+                - #num_samples() == n_
+                - #k() == k_
+                - #nr() == nr_
+                - #nc() == nc_
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> EXP<font color='#5555FF'>&gt;</font>
+        resizable_tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - item contains float values
+            ensures
+                - if (num_samples() == item.nr() &amp;&amp; k()*nr()*nc() == item.nc()) then
+                    - the dimensions of this tensor are not changed
+                - else
+                    - #num_samples() == item.nr()
+                    - #k() == item.nc()
+                    - #nr() == 1
+                    - #nc() == 1
+                - Assigns item to *this tensor by performing:
+                  set_ptrm(host(), num_samples(), k()*nr()*nc()) = item;
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>resizable_tensor<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support for tensor and resizable_tensor.  Note that you can
+        serialize to/from any combination of tenor and resizable_tensor objects.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>double</u></font> <b><a name='dot'></a>dot</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> a,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> b
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - a.size() == b.size()
+        ensures
+            - returns the dot product between a and b when they are both treated as
+              a.size() dimensional vectors.  That is, this function pointwise multiplies
+              the vectors together, then sums the result and returns it.
+
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='alias_tensor_instance'></a>alias_tensor_instance</b> : <font color='#0000FF'>public</font> tensor
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object is a tensor that aliases another tensor.  That is, it doesn't
+                have its own block of memory but instead simply holds pointers to the
+                memory of another tensor object.  It therefore allows you to efficiently
+                break a tensor into pieces and pass those pieces into functions.
+
+                An alias_tensor_instance doesn't own the resources it points to in any sense.
+                So it is important to make sure that the underlying owning tensor doesn't get
+                destructed before any alias tensors which point to it are destructed.
+        !*/</font>
+
+        <font color='#009900'>// You can't default initialize this object.  You can only get instances of it from
+</font>        <font color='#009900'>// alias_tensor::operator().
+</font>        <b><a name='alias_tensor_instance'></a>alias_tensor_instance</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+    <b>}</b>;
+
+    <font color='#0000FF'>class</font> <b><a name='alias_tensor_const_instance'></a>alias_tensor_const_instance</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is essentially a const version of alias_tensor_instance and therefore
+                represents a tensor.  However, due to the mechanics of C++, this object
+                can't inherit from tensor.  So instead it provides a get() and an implicit
+                conversion to const tensor.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#009900'>// non-const alias tensors are convertible to const ones.
+</font>        <b><a name='alias_tensor_const_instance'></a>alias_tensor_const_instance</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> alias_tensor_instance<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>; 
+
+        <font color='#009900'>// Methods that cast the alias to a tensor.
+</font>        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get'></a>get</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <b><a name='operator'></a>operator</b> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+
+    <font color='#0000FF'>private</font>:
+        <font color='#009900'>// You can't default initialize this object.  You can only get instances of it from
+</font>        <font color='#009900'>// alias_tensor::operator().
+</font>        <b><a name='alias_tensor_const_instance'></a>alias_tensor_const_instance</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>;
+
+    <font color='#0000FF'>class</font> <b><a name='alias_tensor'></a>alias_tensor</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a tool for creating tensor objects that alias other tensor objects.
+                That is, it allows you to make a tensor that references the memory space of
+                another tensor object rather than owning its own memory.  This allows you
+                to do things like interpret a single tensor in different ways or even as a
+                group of multiple tensors.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='alias_tensor'></a>alias_tensor</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #size() == 0 
+                - #num_samples() == 0
+                - #k() == 0
+                - #nr() == 0
+                - #nc() == 0
+        !*/</font>
+
+        <b><a name='alias_tensor'></a>alias_tensor</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>long</u></font> n_, <font color='#0000FF'><u>long</u></font> k_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nr_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>, <font color='#0000FF'><u>long</u></font> nc_ <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - n_ &gt;= 0
+                - k_ &gt;= 0
+                - nr_ &gt;= 0
+                - nc_ &gt;= 0
+            ensures
+                - #size() == n_*k_*nr_*nc_
+                - #num_samples() == n_
+                - #k() == k_
+                - #nr() == nr_
+                - #nc() == nc_
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='num_samples'></a>num_samples</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'><u>long</u></font> <b><a name='k'></a>k</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+
+        alias_tensor_instance <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> t,
+            <font color='#0000FF'><u>size_t</u></font> offset
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - offset+size() &lt;= t.size()
+            ensures
+                - Returns a tensor that simply aliases the elements of t beginning with t's
+                  offset'th element.  Specifically, this function returns an aliasing
+                  tensor T such that:
+                    - T.size()   == size()
+                    - T.num_samples() == num_samples()
+                    - T.k()      == k()
+                    - T.nr()     == nr()
+                    - T.nc()     == nc()
+                    - T.host()   == t.host()+offset
+                    - T.device() == t.device()+offset
+                    - &amp;T.annotation() == &amp;t.annotation()
+        !*/</font>
+
+        alias_tensor_const_instance <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> t,
+            <font color='#0000FF'><u>size_t</u></font> offset
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - offset+size() &lt;= t.size()
+            ensures
+                - This function is identical to the above version of operator() except that 
+                  it takes and returns const tensors instead of non-const tensors.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> alias_tensor<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>alias_tensor<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support for alias_tensor.  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_TENSOR_ABSTRACT_H_
+</font>
+
+
+</pre></body></html>

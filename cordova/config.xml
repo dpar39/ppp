@@ -3,7 +3,7 @@
     <name>MyApp</name>
     <description>An awesome Ionic/Cordova app.</description>
     <author email="dpar39@gmail.com" href="http://github.com/dpar39">Darien Pardinas</author>
-    <content original-src="index.html" src="http://192.168.0.15:8100" />
+    <content src="index.html" />
     <access origin="*" />
     <allow-navigation href="http://ionic.local/*" />
     <allow-navigation href="http://192.168.0.24:8100" />

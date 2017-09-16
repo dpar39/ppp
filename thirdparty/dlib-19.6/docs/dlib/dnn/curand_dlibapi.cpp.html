@@ -1,0 +1,116 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - curand_dlibapi.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuRAND_CPP_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuRAND_CPP_
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='curand_dlibapi.h.html'>curand_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>curand.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../string.h.html'>../string.h</a>"
+
+<font color='#0000FF'>static</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> <b><a name='curand_get_error_string'></a>curand_get_error_string</b><font face='Lucida Console'>(</font>curandStatus_t s<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#0000FF'>switch</font><font face='Lucida Console'>(</font>s<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>case</font> CURAND_STATUS_NOT_INITIALIZED: 
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>CUDA Runtime API initialization failed.</font>";
+        <font color='#0000FF'>case</font> CURAND_STATUS_LENGTH_NOT_MULTIPLE:
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>The requested length must be a multiple of two.</font>";
+        <font color='#0000FF'>default</font>:
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>A call to cuRAND failed</font>";
+    <b>}</b>
+<b>}</b>
+
+<font color='#009900'>// Check the return value of a call to the cuDNN runtime for an error condition.
+</font><font color='#0000FF'>#define</font> CHECK_CURAND<font face='Lucida Console'>(</font>call<font face='Lucida Console'>)</font>                                                      \
+<font color='#0000FF'>do</font><b>{</b>                                                                              \
+    <font color='#0000FF'>const</font> curandStatus_t error <font color='#5555FF'>=</font> call;                                         \
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>error <font color='#5555FF'>!</font><font color='#5555FF'>=</font> CURAND_STATUS_SUCCESS<font face='Lucida Console'>)</font>                                        \
+    <b>{</b>                                                                          \
+        std::ostringstream sout;                                               \
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Error while calling </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> #call <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> in file </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __FILE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>:</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __LINE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>. </font>";\
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>code: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> error <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>curand_get_error_string</font><font face='Lucida Console'>(</font>error<font face='Lucida Console'>)</font>;\
+        <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>curand_error</font><font face='Lucida Console'>(</font>sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;                            \
+    <b>}</b>                                                                          \
+<b>}</b><font color='#0000FF'>while</font><font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda 
+    <b>{</b>
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        curand_generator::
+        <b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <font color='#0000FF'><u>long</u></font> seed
+        <font face='Lucida Console'>)</font> : handle<font face='Lucida Console'>(</font>nullptr<font face='Lucida Console'>)</font>
+        <b>{</b>
+            curandGenerator_t gen;
+            <font color='#BB00BB'>CHECK_CURAND</font><font face='Lucida Console'>(</font><font color='#BB00BB'>curandCreateGenerator</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>gen, CURAND_RNG_PSEUDO_DEFAULT<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            handle <font color='#5555FF'>=</font> gen;
+
+            <font color='#BB00BB'>CHECK_CURAND</font><font face='Lucida Console'>(</font><font color='#BB00BB'>curandSetPseudoRandomGeneratorSeed</font><font face='Lucida Console'>(</font>gen, seed<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        curand_generator::
+        ~<b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>handle<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>curandDestroyGenerator</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>curandGenerator_t<font face='Lucida Console'>)</font>handle<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> curand_generator::
+        <b><a name='fill_gaussian'></a>fill_gaussian</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>float</u></font> mean,
+            <font color='#0000FF'><u>float</u></font> stddev
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+
+            <font color='#BB00BB'>CHECK_CURAND</font><font face='Lucida Console'>(</font><font color='#BB00BB'>curandGenerateNormal</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>curandGenerator_t<font face='Lucida Console'>)</font>handle, 
+                                        data.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,
+                                        data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,
+                                        mean,
+                                        stddev<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> curand_generator::
+        <b><a name='fill_uniform'></a>fill_uniform</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+
+            <font color='#BB00BB'>CHECK_CURAND</font><font face='Lucida Console'>(</font><font color='#BB00BB'>curandGenerateUniform</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>curandGenerator_t<font face='Lucida Console'>)</font>handle, data.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> curand_generator::
+        <b><a name='fill'></a>fill</b> <font face='Lucida Console'>(</font>
+            cuda_data_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+
+            <font color='#BB00BB'>CHECK_CURAND</font><font face='Lucida Console'>(</font><font color='#BB00BB'>curandGenerate</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>curandGenerator_t<font face='Lucida Console'>)</font>handle, data, data.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+    <b>}</b>  
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuRAND_CPP_
+</font>
+
+</pre></body></html>

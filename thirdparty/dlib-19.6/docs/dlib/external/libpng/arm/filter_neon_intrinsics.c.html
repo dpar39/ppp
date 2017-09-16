@@ -1,0 +1,375 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - filter_neon_intrinsics.c</title></head><body bgcolor='white'><pre>
+
+<font color='#009900'>/* filter_neon_intrinsics.c - NEON optimised filter functions
+ *
+ * Copyright (c) 2013 Glenn Randers-Pehrson
+ * Written by James Yu &lt;james.yu at linaro.org&gt;, October 2013.
+ * Based on filter_neon.S, written by Mans Rullgard, 2011.
+ *
+ * Last changed in libpng 1.6.7 [November 14, 2013]
+ *
+ * This code is released under the libpng license.
+ * For conditions of distribution and use, see the disclaimer
+ * and license in png.h
+ */</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pngpriv.h.html'>../pngpriv.h</a>"
+
+<font color='#009900'>/* This code requires -mfpu=neon on the command line: */</font>
+<font color='#0000FF'>#if</font> PNG_ARM_NEON_IMPLEMENTATION <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font> <font color='#009900'>/* intrinsics code */</font>
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>arm_neon.h<font color='#5555FF'>&gt;</font>
+
+<font color='#009900'>/* libpng row pointers are not necessarily aligned to any particular boundary,
+ * however this code will only work with appropriate alignment.  arm/arm_init.c
+ * checks for this (and will not compile unless it is done), this code uses
+ * variants of png_aligncast to avoid compiler warnings.
+ */</font>
+<font color='#0000FF'>#define</font> png_ptr<font face='Lucida Console'>(</font>type,pointer<font face='Lucida Console'>)</font> png_aligncast<font face='Lucida Console'>(</font>type <font color='#5555FF'>*</font>,pointer<font face='Lucida Console'>)</font>
+<font color='#0000FF'>#define</font> png_ptrc<font face='Lucida Console'>(</font>type,pointer<font face='Lucida Console'>)</font> png_aligncastconst<font face='Lucida Console'>(</font><font color='#0000FF'>const</font> type <font color='#5555FF'>*</font>,pointer<font face='Lucida Console'>)</font>
+
+<font color='#009900'>/* The following relies on a variable 'temp_pointer' being declared with type
+ * 'type'.  This is written this way just to hide the GCC strict aliasing
+ * warning; note that the code is safe because there never is an alias between
+ * the input and output pointers.
+ */</font>
+<font color='#0000FF'>#define</font> png_ldr<font face='Lucida Console'>(</font>type,pointer<font face='Lucida Console'>)</font>\
+   <font face='Lucida Console'>(</font>temp_pointer <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>type,pointer<font face='Lucida Console'>)</font>, <font color='#5555FF'>*</font>temp_pointer<font face='Lucida Console'>)</font>
+
+<font color='#0000FF'>#ifdef</font> PNG_READ_SUPPORTED
+<font color='#0000FF'>#if</font> PNG_ARM_NEON_OPT <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_up_neon'></a>png_read_filter_row_up_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+   png_const_bytep pp <font color='#5555FF'>=</font> prev_row;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font>, pp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint8x16_t qrp, qpp;
+
+      qrp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp<font face='Lucida Console'>)</font>;
+      qpp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>pp<font face='Lucida Console'>)</font>;
+      qrp <font color='#5555FF'>=</font> <font color='#BB00BB'>vaddq_u8</font><font face='Lucida Console'>(</font>qrp, qpp<font face='Lucida Console'>)</font>;
+      <font color='#BB00BB'>vst1q_u8</font><font face='Lucida Console'>(</font>rp, qrp<font face='Lucida Console'>)</font>;
+   <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_sub3_neon'></a>png_read_filter_row_sub3_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+
+   uint8x16_t vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp<font face='Lucida Console'>)</font>;
+   uint8x8x2_t <font color='#5555FF'>*</font>vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t, <font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+   uint8x8x2_t vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop;<font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint8x8_t vtmp1, vtmp2;
+      uint32x2_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>6</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vtmp2<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp <font color='#5555FF'>+</font> <font color='#979000'>12</font><font face='Lucida Console'>)</font>;
+      vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t, <font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+   <b>}</b>
+
+   <font color='#BB00BB'>PNG_UNUSED</font><font face='Lucida Console'>(</font>prev_row<font face='Lucida Console'>)</font>
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_sub4_neon'></a>png_read_filter_row_sub4_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint32x2x4_t vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld4_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+      uint8x8x4_t <font color='#5555FF'>*</font>vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x4_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      uint8x8x4_t vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+      uint32x2x4_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vrp.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>;
+      <font color='#BB00BB'>vst4_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2x4_t,<font color='#5555FF'>&amp;</font>vdest<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+   <b>}</b>
+
+   <font color='#BB00BB'>PNG_UNUSED</font><font face='Lucida Console'>(</font>prev_row<font face='Lucida Console'>)</font>
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_avg3_neon'></a>png_read_filter_row_avg3_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_const_bytep pp <font color='#5555FF'>=</font> prev_row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+
+   uint8x16_t vtmp;
+   uint8x8x2_t <font color='#5555FF'>*</font>vrpt;
+   uint8x8x2_t vrp;
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp<font face='Lucida Console'>)</font>;
+   vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+   vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; pp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>12</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint8x8_t vtmp1, vtmp2, vtmp3;
+
+      uint8x8x2_t <font color='#5555FF'>*</font>vppt;
+      uint8x8x2_t vpp;
+
+      uint32x2_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>pp<font face='Lucida Console'>)</font>;
+      vppt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vpp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vppt;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vpp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+      vtmp3 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>6</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vtmp2<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>6</font><font face='Lucida Console'>)</font>;
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp <font color='#5555FF'>+</font> <font color='#979000'>12</font><font face='Lucida Console'>)</font>;
+      vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vtmp2<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vtmp3<font face='Lucida Console'>)</font>;
+
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>1</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vtmp2<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+   <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_avg4_neon'></a>png_read_filter_row_avg4_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+   png_const_bytep pp <font color='#5555FF'>=</font> prev_row;
+
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font>, pp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint32x2x4_t vtmp;
+      uint8x8x4_t <font color='#5555FF'>*</font>vrpt, <font color='#5555FF'>*</font>vppt;
+      uint8x8x4_t vrp, vpp;
+      uint32x2x4_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld4_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+      vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x4_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld4_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptrc</font><font face='Lucida Console'>(</font>uint32_t,pp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+      vppt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x4_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vpp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vppt;
+
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vpp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vpp.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vrp.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vhadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vpp.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vrp.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>;
+
+      <font color='#BB00BB'>vst4_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2x4_t,<font color='#5555FF'>&amp;</font>vdest<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+   <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'>static</font> uint8x8_t
+<b><a name='paeth'></a>paeth</b><font face='Lucida Console'>(</font>uint8x8_t a, uint8x8_t b, uint8x8_t c<font face='Lucida Console'>)</font>
+<b>{</b>
+   uint8x8_t d, e;
+   uint16x8_t p1, pa, pb, pc;
+
+   p1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vaddl_u8</font><font face='Lucida Console'>(</font>a, b<font face='Lucida Console'>)</font>; <font color='#009900'>/* a + b */</font>
+   pc <font color='#5555FF'>=</font> <font color='#BB00BB'>vaddl_u8</font><font face='Lucida Console'>(</font>c, c<font face='Lucida Console'>)</font>; <font color='#009900'>/* c * 2 */</font>
+   pa <font color='#5555FF'>=</font> <font color='#BB00BB'>vabdl_u8</font><font face='Lucida Console'>(</font>b, c<font face='Lucida Console'>)</font>; <font color='#009900'>/* pa */</font>
+   pb <font color='#5555FF'>=</font> <font color='#BB00BB'>vabdl_u8</font><font face='Lucida Console'>(</font>a, c<font face='Lucida Console'>)</font>; <font color='#009900'>/* pb */</font>
+   pc <font color='#5555FF'>=</font> <font color='#BB00BB'>vabdq_u16</font><font face='Lucida Console'>(</font>p1, pc<font face='Lucida Console'>)</font>; <font color='#009900'>/* pc */</font>
+
+   p1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vcleq_u16</font><font face='Lucida Console'>(</font>pa, pb<font face='Lucida Console'>)</font>; <font color='#009900'>/* pa &lt;= pb */</font>
+   pa <font color='#5555FF'>=</font> <font color='#BB00BB'>vcleq_u16</font><font face='Lucida Console'>(</font>pa, pc<font face='Lucida Console'>)</font>; <font color='#009900'>/* pa &lt;= pc */</font>
+   pb <font color='#5555FF'>=</font> <font color='#BB00BB'>vcleq_u16</font><font face='Lucida Console'>(</font>pb, pc<font face='Lucida Console'>)</font>; <font color='#009900'>/* pb &lt;= pc */</font>
+
+   p1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vandq_u16</font><font face='Lucida Console'>(</font>p1, pa<font face='Lucida Console'>)</font>; <font color='#009900'>/* pa &lt;= pb &amp;&amp; pa &lt;= pc */</font>
+
+   d <font color='#5555FF'>=</font> <font color='#BB00BB'>vmovn_u16</font><font face='Lucida Console'>(</font>pb<font face='Lucida Console'>)</font>;
+   e <font color='#5555FF'>=</font> <font color='#BB00BB'>vmovn_u16</font><font face='Lucida Console'>(</font>p1<font face='Lucida Console'>)</font>;
+
+   d <font color='#5555FF'>=</font> <font color='#BB00BB'>vbsl_u8</font><font face='Lucida Console'>(</font>d, b, c<font face='Lucida Console'>)</font>;
+   e <font color='#5555FF'>=</font> <font color='#BB00BB'>vbsl_u8</font><font face='Lucida Console'>(</font>e, a, d<font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>return</font> e;
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_paeth3_neon'></a>png_read_filter_row_paeth3_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_const_bytep pp <font color='#5555FF'>=</font> prev_row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+
+   uint8x16_t vtmp;
+   uint8x8x2_t <font color='#5555FF'>*</font>vrpt;
+   uint8x8x2_t vrp;
+   uint8x8_t vlast <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp<font face='Lucida Console'>)</font>;
+   vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+   vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; pp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>12</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint8x8x2_t <font color='#5555FF'>*</font>vppt;
+      uint8x8x2_t vpp;
+      uint8x8_t vtmp1, vtmp2, vtmp3;
+      uint32x2_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>pp<font face='Lucida Console'>)</font>;
+      vppt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vpp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vppt;
+
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vpp.val[<font color='#979000'>0</font>], vlast<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vtmp2, vpp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>6</font><font face='Lucida Console'>)</font>;
+      vtmp3 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>6</font><font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vtmp3, vtmp2<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vtmp1 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vrp.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>1</font>], <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+      vtmp2 <font color='#5555FF'>=</font> <font color='#BB00BB'>vext_u8</font><font face='Lucida Console'>(</font>vpp.val[<font color='#979000'>1</font>], vpp.val[<font color='#979000'>1</font>], <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld1q_u8</font><font face='Lucida Console'>(</font>rp <font color='#5555FF'>+</font> <font color='#979000'>12</font><font face='Lucida Console'>)</font>;
+      vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x2_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vtmp2, vtmp3<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vtmp1<font face='Lucida Console'>)</font>;
+
+      vlast <font color='#5555FF'>=</font> vtmp2;
+
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+      <font color='#BB00BB'>vst1_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2_t,<font color='#5555FF'>&amp;</font>vdest.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+      rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+   <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_read_filter_row_paeth4_neon'></a>png_read_filter_row_paeth4_neon</b><font face='Lucida Console'>(</font>png_row_infop row_info, png_bytep row,
+   png_const_bytep prev_row<font face='Lucida Console'>)</font>
+<b>{</b>
+   png_bytep rp <font color='#5555FF'>=</font> row;
+   png_bytep rp_stop <font color='#5555FF'>=</font> row <font color='#5555FF'>+</font> row_info<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>rowbytes;
+   png_const_bytep pp <font color='#5555FF'>=</font> prev_row;
+
+   uint8x8_t vlast <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+   uint8x8x4_t vdest;
+   vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vdup_n_u8</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font>; rp <font color='#5555FF'>&lt;</font> rp_stop; rp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font>, pp <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#979000'>16</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      uint32x2x4_t vtmp;
+      uint8x8x4_t <font color='#5555FF'>*</font>vrpt, <font color='#5555FF'>*</font>vppt;
+      uint8x8x4_t vrp, vpp;
+      uint32x2x4_t <font color='#5555FF'>*</font>temp_pointer;
+
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld4_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+      vrpt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x4_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vrp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vrpt;
+      vtmp <font color='#5555FF'>=</font> <font color='#BB00BB'>vld4_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptrc</font><font face='Lucida Console'>(</font>uint32_t,pp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+      vppt <font color='#5555FF'>=</font> <font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint8x8x4_t,<font color='#5555FF'>&amp;</font>vtmp<font face='Lucida Console'>)</font>;
+      vpp <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>vppt;
+
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vpp.val[<font color='#979000'>0</font>], vlast<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vrp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>0</font>], vpp.val[<font color='#979000'>1</font>], vpp.val[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vrp.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>1</font>], vpp.val[<font color='#979000'>2</font>], vpp.val[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>2</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vrp.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>paeth</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>2</font>], vpp.val[<font color='#979000'>3</font>], vpp.val[<font color='#979000'>2</font>]<font face='Lucida Console'>)</font>;
+      vdest.val[<font color='#979000'>3</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>vadd_u8</font><font face='Lucida Console'>(</font>vdest.val[<font color='#979000'>3</font>], vrp.val[<font color='#979000'>3</font>]<font face='Lucida Console'>)</font>;
+
+      vlast <font color='#5555FF'>=</font> vpp.val[<font color='#979000'>3</font>];
+
+      <font color='#BB00BB'>vst4_lane_u32</font><font face='Lucida Console'>(</font><font color='#BB00BB'>png_ptr</font><font face='Lucida Console'>(</font>uint32_t,rp<font face='Lucida Console'>)</font>, <font color='#BB00BB'>png_ldr</font><font face='Lucida Console'>(</font>uint32x2x4_t,<font color='#5555FF'>&amp;</font>vdest<font face='Lucida Console'>)</font>, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+   <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_OPT &gt; 0 */</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_READ_SUPPORTED */</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_IMPLEMENTATION == 1 (intrinsics) */</font>
+
+</pre></body></html>

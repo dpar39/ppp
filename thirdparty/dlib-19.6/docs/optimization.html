@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html xmlns:gcse="googleCustomSearch"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="shortcut icon" href="dlib-icon.ico"><meta name="verify-v1" content="02MiiaFNVzS5/u0eQhsy3/knioFHsia1X3DXRpHkE6I="><meta name="google-site-verification" content="DGSSJMKDomaDaDTIRJ8jDkv0YMx9Cz7OESbXHjjr6Jw"><title>dlib C++ Library
+               - Optimization</title><script type="text/javascript" src="dlib.js"></script><link rel="stylesheet" type="text/css" href="dlib.css"></head><body><a name="top"></a><div id="page_header"><a href="http://dlib.net"><img src="dlib-logo.png"></a></div><div id="top_content"><div id="main_menu" class="menu"><div class="menu_top"><b>The Library</b><ul class="tree"><li><a href="algorithms.html" class="menu">Algorithms</a></li><li><a href="api.html" class="menu">API Wrappers</a></li><li><a href="bayes.html" class="menu">Bayesian Nets</a></li><li><a href="compression.html" class="menu">Compression</a></li><li><a href="containers.html" class="menu">Containers</a></li><li><a href="graph_tools.html" class="menu">Graph Tools</a></li><li><a href="imaging.html" class="menu">Image Processing</a></li><li><a href="linear_algebra.html" class="menu">Linear Algebra</a></li><li><a href="ml.html" class="menu">Machine Learning</a></li><li><a href="metaprogramming.html" class="menu">Metaprogramming</a></li><li><a href="other.html" class="menu">Miscellaneous</a></li><li><a href="network.html" class="menu">Networking</a></li><li><a href="optimization.html" class="menu">Optimization</a></li><li><a href="parsing.html" class="menu">Parsing</a></li></ul><br><b>Help/Info</b><ul class="tree"><li><a href="http://blog.dlib.net" class="menu">Dlib Blog</a></li><li><a onclick="Toggle(this)" class="sub menu"><img src="plus.gif">Examples: C++</a><ul style="display:none;"><li><a href="3d_point_cloud_ex.cpp.html" class="menu">3D Point Cloud</a></li><li><a href="assignment_learning_ex.cpp.html" class="menu">Assignment Learning</a></li><li><a href="file_to_code_ex.cpp.html" class="menu">Base64 Encoder</a></li><li><a href="bayes_net_from_disk_ex.cpp.html" class="menu">Bayesian Network From Disk</a></li><li><a href="bayes_net_gui_ex.cpp.html" class="menu">Bayesian Network GUI</a></li><li><a href="bayes_net_ex.cpp.html" class="menu">Bayesian Network</a></li><li><a href="bridge_ex.cpp.html" class="menu">Bridge</a></li><li><a href="bsp_ex.cpp.html" class="menu">BSP</a></li><li><a href="svm_c_ex.cpp.html" class="menu">C-Support Vector Machine</a></li><li><a href="compress_stream_ex.cpp.html#_top" class="menu">Cmd Line Parser</a></li><li><a href="compress_stream_ex.cpp.html" class="menu">Compress Stream</a></li><li><a href="config_reader_ex.cpp.html" class="menu">Config File Reader</a></li><li><a href="custom_trainer_ex.cpp.html" class="menu">Custom Trainers</a></li><li><a href="dnn_face_recognition_ex.cpp.html" class="menu">Deep Face Recognition</a></li><li><a href="dnn_mmod_dog_hipsterizer.cpp.html" class="menu">Deep Learning Dog Hipsterizer</a></li><li><a href="dnn_mmod_face_detection_ex.cpp.html" class="menu">Deep Learning Face Detection</a></li><li><a href="dnn_imagenet_ex.cpp.html" class="menu">Deep Learning Imagenet Classifier</a></li><li><a href="dnn_imagenet_train_ex.cpp.html" class="menu">Deep Learning Imagenet Trainer </a></li><li><a href="dnn_inception_ex.cpp.html" class="menu">Deep Learning Inception</a></li><li><a href="dnn_introduction_ex.cpp.html" class="menu">Deep Learning Introduction Part 1</a></li><li><a href="dnn_introduction2_ex.cpp.html" class="menu">Deep Learning Introduction Part 2</a></li><li><a href="dnn_mmod_ex.cpp.html" class="menu">Deep Learning Max-Margin Object Detection</a></li><li><a href="dnn_mmod_train_find_cars_ex.cpp.html" class="menu">Deep Learning Vehicle Detection Trainer</a></li><li><a href="dnn_mmod_find_cars_ex.cpp.html" class="menu">Deep Learning Vehicle Detection</a></li><li><a href="dnn_metric_learning_ex.cpp.html" class="menu">Deep Metric Learning Introduction</a></li><li><a href="dnn_metric_learning_on_images_ex.cpp.html" class="menu">Deep Metric Learning on Images</a></li><li><a href="dir_nav_ex.cpp.html" class="menu">Directory Navigation</a></li><li><a href="empirical_kernel_map_ex.cpp.html" class="menu">Empirical Kernel Map</a></li><li><a href="face_detection_ex.cpp.html" class="menu">Face Detection</a></li><li><a href="face_landmark_detection_ex.cpp.html" class="menu">Face Landmark Detection</a></li><li><a href="fhog_ex.cpp.html" class="menu">FHOG Feature Extraction</a></li><li><a href="fhog_object_detector_ex.cpp.html" class="menu">FHOG Object Detection</a></li><li><a href="graph_labeling_ex.cpp.html" class="menu">Graph Labeling</a></li><li><a href="gui_api_ex.cpp.html" class="menu">GUI</a></li><li><a href="hough_transform_ex.cpp.html" class="menu">Hough Transform</a></li><li><a href="server_http_ex.cpp.html" class="menu">HTTP Server</a></li><li><a href="image_ex.cpp.html" class="menu">Image</a></li><li><a href="iosockstream_ex.cpp.html" class="menu">IO Socket Streams</a></li><li><a href="server_iostream_ex.cpp.html" class="menu">IO Streams Server</a></li><li><a href="kcentroid_ex.cpp.html" class="menu">Kernel Centroid</a></li><li><a href="kkmeans_ex.cpp.html" class="menu">Kernel K-Means Clustering</a></li><li><a href="krr_regression_ex.cpp.html" class="menu">Kernel Ridge Regression</a></li><li><a href="krls_filter_ex.cpp.html" class="menu">Kernel RLS Filtering</a></li><li><a href="krls_ex.cpp.html" class="menu">Kernel RLS Regression</a></li><li><a href="krr_classification_ex.cpp.html" class="menu">KRR Classification</a></li><li><a href="learning_to_track_ex.cpp.html" class="menu">Learning to Track</a></li><li><a href="max_cost_assignment_ex.cpp.html" class="menu">Linear Assignment Problems</a></li><li><a href="linear_manifold_regularizer_ex.cpp.html" class="menu">Linear Manifold Regularizer</a></li><li><a href="mpc_ex.cpp.html" class="menu">Linear Model Predictive Control</a></li><li><a href="logger_ex_2.cpp.html" class="menu">Logger Advanced</a></li><li><a href="logger_custom_output_ex.cpp.html" class="menu">Logger Custom Output</a></li><li><a href="logger_ex.cpp.html" class="menu">Logger</a></li><li><a href="matrix_expressions_ex.cpp.html" class="menu">Matrix Expressions</a></li><li><a href="matrix_ex.cpp.html" class="menu">Matrix</a></li><li><a href="member_function_pointer_ex.cpp.html" class="menu">Member Function Pointer</a></li><li><a href="model_selection_ex.cpp.html" class="menu">Model Selection</a></li><li><a href="multiclass_classification_ex.cpp.html" class="menu">Multiclass Classification</a></li><li><a href="multithreaded_object_ex.cpp.html" class="menu">Multithreaded Object</a></li><li><a href="mlp_ex.cpp.html" class="menu">Neural Network</a></li><li><a href="least_squares_ex.cpp.html" class="menu">Non-Linear Least Squares</a></li><li><a href="svm_ex.cpp.html" class="menu">Nu-Support Vector Machine</a></li><li><a href="integrate_function_adapt_simp_ex.cpp.html" class="menu">Numerical Integration</a></li><li><a href="object_detector_advanced_ex.cpp.html" class="menu">Object Detector Advanced</a></li><li><a href="object_detector_ex.cpp.html" class="menu">Object Detector</a></li><li><a href="one_class_classifiers_ex.cpp.html" class="menu">One Class Classifiers</a></li><li><a href="svm_pegasos_ex.cpp.html" class="menu">Online SVM</a></li><li><a href="optimization_ex.cpp.html" class="menu">Optimization</a></li><li><a href="parallel_for_ex.cpp.html" class="menu">Parallel For Loops</a></li><li><a href="pipe_ex_2.cpp.html" class="menu">Pipe 2</a></li><li><a href="pipe_ex.cpp.html" class="menu">Pipe</a></li><li><a href="quantum_computing_ex.cpp.html" class="menu">Quantum Computing</a></li><li><a href="queue_ex.cpp.html" class="menu">Queue</a></li><li><a href="random_cropper_ex.cpp.html" class="menu">Random Cropper</a></li><li><a href="rank_features_ex.cpp.html" class="menu">Rank Features</a></li><li><a href="rvm_ex.cpp.html" class="menu">Relevance Vector Classification</a></li><li><a href="rvm_regression_ex.cpp.html" class="menu">Relevance Vector Regression</a></li><li><a href="running_stats_ex.cpp.html" class="menu">Running Stats</a></li><li><a href="sequence_labeler_ex.cpp.html" class="menu">Sequence Labeling</a></li><li><a href="sequence_segmenter_ex.cpp.html" class="menu">Sequence Segmentation</a></li><li><a href="sockets_ex.cpp.html" class="menu">Sockets</a></li><li><a href="sockstreambuf_ex.cpp.html" class="menu">Sockstreambuf</a></li><li><a href="svm_sparse_ex.cpp.html" class="menu">Sparse Vectors</a></li><li><a href="sqlite_ex.cpp.html" class="menu">SQLite</a></li><li><a href="std_allocator_ex.cpp.html" class="menu">Std C++ Allocator</a></li><li><a href="svm_struct_ex.cpp.html" class="menu">Structural Support Vector Machines</a></li><li><a href="svr_ex.cpp.html" class="menu">Support Vector Regression</a></li><li><a href="surf_ex.cpp.html" class="menu">SURF</a></li><li><a href="svm_rank_ex.cpp.html" class="menu">SVM-Rank</a></li><li><a href="thread_function_ex.cpp.html" class="menu">Thread Function</a></li><li><a href="thread_pool_ex.cpp.html" class="menu">Thread Pool</a></li><li><a href="threaded_object_ex.cpp.html" class="menu">Threaded Object</a></li><li><a href="threads_ex.cpp.html" class="menu">Threads</a></li><li><a href="timer_ex.cpp.html" class="menu">Timer</a></li><li><a href="train_object_detector.cpp.html" class="menu">Train Object Detector</a></li><li><a href="train_shape_predictor_ex.cpp.html" class="menu">Train Shape Predictor</a></li><li><a href="using_custom_kernels_ex.cpp.html" class="menu">Using Custom Kernels</a></li><li><a href="video_tracking_ex.cpp.html" class="menu">Video Object Tracking</a></li><li><a href="webcam_face_pose_ex.cpp.html" class="menu">Webcam Face Pose Estimation</a></li><li><a href="xml_parser_ex.cpp.html" class="menu">XML Parser</a></li></ul></li><li><a onclick="Toggle(this)" class="sub menu"><img src="plus.gif">Examples: Python</a><ul style="display:none;"><li><a href="cnn_face_detector.py.html" class="menu">CNN Face Detector</a></li><li><a href="face_detector.py.html" class="menu">Face Detector</a></li><li><a href="face_landmark_detection.py.html" class="menu">Face Landmark Detection</a></li><li><a href="face_recognition.py.html" class="menu">Face Recognition</a></li><li><a href="find_candidate_object_locations.py.html" class="menu">Find Candidate Object Locations</a></li><li><a href="max_cost_assignment.py.html" class="menu">Linear Assignment Problems</a></li><li><a href="sequence_segmenter.py.html" class="menu">Sequence Segmenter</a></li><li><a href="svm_struct.py.html" class="menu">Structural Support Vector Machines</a></li><li><a href="svm_rank.py.html" class="menu">SVM-Rank</a></li><li><a href="train_object_detector.py.html" class="menu">Train Object Detector</a></li><li><a href="train_shape_predictor.py.html" class="menu">Train Shape Predictor</a></li><li><a href="correlation_tracker.py.html" class="menu">Video Object Tracking</a></li></ul></li><li><a href="faq.html" class="menu">FAQ</a></li><li><a href="index.html" class="menu">Home</a></li><li><a href="compile.html" class="menu">How to compile</a></li><li><a href="howto_contribute.html" class="menu">How to contribute</a></li><li><a href="term_index.html" class="menu">Index</a></li><li><a href="intro.html" class="menu">Introduction</a></li><li><a href="license.html" class="menu">License</a></li><li><a href="python/index.html" class="menu">Python API</a></li><li><a href="books.html" class="menu">Suggested Books</a></li><li><a href="http://sourceforge.net/p/dclib/wiki/Known_users/" class="menu">Who uses dlib?</a></li></ul><br><b>Current Release</b><ul class="tree"><li><a href="change_log.html" class="menu">Change Log</a></li><li><a href="release_notes.html" class="menu">Release Notes</a></li><li>Version: 19.6</li></ul><br></div><div class="menu_footer">
+      Last Modified:<br>Mar 20, 2017</div></div><div id="main_text"><div id="main_text_title">Optimization</div><div id="main_text_body"><p>
+            This page documents library components that attempt to find the 
+            minimum or maximum of a user supplied function.   An introduction
+            to the general purpose non-linear optimizers in this section can be
+            found <a href="optimization_ex.cpp.html">here</a>.  For an example
+            showing how to use the non-linear least squares routines look 
+            <a href="least_squares_ex.cpp.html">here</a>.
+         </p></div></div><div id="right_menu" class="menu"><div class="menu_top"><b>General Purpose Optimizers</b><ul class="tree"><li><a href="#find_max" class="menu">find_max</a></li><li><a href="#find_max_bobyqa" class="menu">find_max_bobyqa</a></li><li><a href="#find_max_box_constrained" class="menu">find_max_box_constrained</a></li><li><a href="#find_max_single_variable" class="menu">find_max_single_variable</a></li><li><a href="#find_max_trust_region" class="menu">find_max_trust_region</a></li><li><a href="#find_max_using_approximate_derivatives" class="menu">find_max_using_approximate_derivatives</a></li><li><a href="#find_min" class="menu">find_min</a></li><li><a href="#find_min_bobyqa" class="menu">find_min_bobyqa</a></li><li><a href="#find_min_box_constrained" class="menu">find_min_box_constrained</a></li><li><a href="#find_min_single_variable" class="menu">find_min_single_variable</a></li><li><a href="#find_min_trust_region" class="menu">find_min_trust_region</a></li><li><a href="#find_min_using_approximate_derivatives" class="menu">find_min_using_approximate_derivatives</a></li><li><a href="#find_optimal_parameters" class="menu">find_optimal_parameters</a></li></ul><br><b>Special Purpose Optimizers</b><ul class="tree"><li><a href="#elastic_net" class="menu">elastic_net</a></li><li><a href="#find_gap_between_convex_hulls" class="menu">find_gap_between_convex_hulls</a></li><li><a href="#find_max_factor_graph_nmplp" class="menu">find_max_factor_graph_nmplp</a></li><li><a href="#find_max_factor_graph_potts" class="menu">find_max_factor_graph_potts</a></li><li><a href="#find_max_factor_graph_viterbi" class="menu">find_max_factor_graph_viterbi</a></li><li><a href="#find_max_parse_cky" class="menu">find_max_parse_cky</a></li><li><a href="#max_cost_assignment" class="menu">max_cost_assignment</a></li><li><a href="#max_sum_submatrix" class="menu">max_sum_submatrix</a></li><li><a href="#min_cut" class="menu">min_cut</a></li><li><a href="#mpc" class="menu">mpc</a></li><li><a href="#oca" class="menu">oca</a></li><li><a href="#solve_least_squares" class="menu">solve_least_squares</a></li><li><a href="#solve_least_squares_lm" class="menu">solve_least_squares_lm</a></li><li><a href="#solve_qp2_using_smo" class="menu">solve_qp2_using_smo</a></li><li><a href="#solve_qp3_using_smo" class="menu">solve_qp3_using_smo</a></li><li><a href="#solve_qp4_using_smo" class="menu">solve_qp4_using_smo</a></li><li><a href="#solve_qp_box_constrained" class="menu">solve_qp_box_constrained</a></li><li><a href="#solve_qp_box_constrained_blockdiag" class="menu">solve_qp_box_constrained_blockdiag</a></li><li><a href="#solve_qp_using_smo" class="menu">solve_qp_using_smo</a></li><li><a href="#solve_trust_region_subproblem" class="menu">solve_trust_region_subproblem</a></li></ul><br><b>Strategies</b><ul class="tree"><li><a href="#bfgs_search_strategy" class="menu">bfgs_search_strategy</a></li><li><a href="#cg_search_strategy" class="menu">cg_search_strategy</a></li><li><a href="#gradient_norm_stop_strategy" class="menu">gradient_norm_stop_strategy</a></li><li><a href="#lbfgs_search_strategy" class="menu">lbfgs_search_strategy</a></li><li><a href="#newton_search_strategy" class="menu">newton_search_strategy</a></li><li><a href="#objective_delta_stop_strategy" class="menu">objective_delta_stop_strategy</a></li></ul><br><b>Helper Routines</b><ul class="tree"><li><a href="#backtracking_line_search" class="menu">backtracking_line_search</a></li><li><a href="#clamp_function" class="menu">clamp_function</a></li><li><a href="#derivative" class="menu">derivative</a></li><li><a href="#find_trees_not_rooted_with_tag" class="menu">find_trees_not_rooted_with_tag</a></li><li><a href="#graph_cut_score" class="menu">graph_cut_score</a></li><li><a href="#lagrange_poly_min_extrap" class="menu">lagrange_poly_min_extrap</a></li><li><a href="#line_search" class="menu">line_search</a></li><li><a href="#make_line_search_function" class="menu">make_line_search_function</a></li><li><a href="#negate_function" class="menu">negate_function</a></li><li><a href="#parse_tree_to_string" class="menu">parse_tree_to_string</a></li><li><a href="#poly_min_extrap" class="menu">poly_min_extrap</a></li><li><a href="#potts_model_score" class="menu">potts_model_score</a></li></ul><br></div><div class="menu_footer"></div></div></div><div id="bottom_content"><a name="backtracking_line_search"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">backtracking_line_search</h1><BR><BR>
+            Performs a line search on a given function and returns the input
+            that makes the function significantly smaller.  This implementation uses a
+            basic Armijo backtracking search with polynomial interpolation.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#backtracking_line_search">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="bfgs_search_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">bfgs_search_strategy</h1><BR><BR>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the BFGS quasi-newton method for determining 
+                this direction.
+
+                  <p>
+                This method uses an amount of memory that is quadratic in the number
+                of variables to be optimized.  It is generally very effective but 
+                if your problem has a very large number of variables then it isn't 
+                appropriate.  Instead, you should try the <a href="#lbfgs_search_strategy">lbfgs_search_strategy</a>.
+                  </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_search_strategies_abstract.h.html#bfgs_search_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="cg_search_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">cg_search_strategy</h1><BR><BR>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the Polak-Ribiere conjugate gradient method
+                for determining this direction.
+
+                  <p>
+                This method uses an amount of memory that is linear in the number
+                of variables to be optimized.  So it is capable of handling problems
+                with a very large number of variables.  However, it is generally
+                not as good as the L-BFGS algorithm (see the 
+                <a href="#lbfgs_search_strategy">lbfgs_search_strategy</a> class).
+                  </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_search_strategies_abstract.h.html#cg_search_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="clamp_function"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">clamp_function</h1><BR><BR>
+            This is a function that takes another function, f(x), as input and 
+            returns a new function object, g(x), such that  
+            <tt>g(x) == f(clamp(x,x_lower,x_upper))</tt> where x_lower and x_upper 
+            are vectors of box constraints which are applied to x.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#clamp_function">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="derivative"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">derivative</h1><BR><BR>
+            This is a function that takes another function as input and returns
+            a function object that numerically computes the derivative of the input function.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#derivative">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="elastic_net"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">elastic_net</h1><BR><BR>
+                This object is a tool for solving the following optimization problem:
+
+<pre>
+   min_w:      length_squared(X*w - Y) + ridge_lambda*length_squared(w)
+   such that:  sum(abs(w)) &lt;= lasso_budget
+</pre><p>
+                That is, it solves the elastic net optimization problem.  This object also
+                has the special property that you can quickly obtain different solutions
+                for different settings of ridge_lambda, lasso_budget, and target Y values.
+                </p><p>
+                This is because a large amount of work is precomputed in the constructor.
+                The solver will also remember the previous solution and will use that to
+                warm start subsequent invocations.  Therefore, you can efficiently get
+                solutions for a wide range of regularization parameters.
+                </p>
+                
+                
+                The particular algorithm used to solve it is described in the paper:
+                <blockquote>
+                    Zhou, Quan, et al. "A reduction of the elastic net to support vector
+                    machines with an application to gpu computing." arXiv preprint
+                    arXiv:1409.1976 (2014).  APA 
+                </blockquote>
+
+                And for the SVM solver sub-component we use the algorithm from:
+                <blockquote>
+                    Hsieh, Cho-Jui, et al. "A dual coordinate descent method for large-scale
+                    linear SVM." Proceedings of the 25th international conference on Machine
+                    learning. ACM, 2008. 
+                </blockquote><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/elastic_net_abstract.h.html#elastic_net">More Details...</a><div class="include_file">#include &lt;dlib/optimization/elastic_net.h&gt;</div></div></div><a name="find_gap_between_convex_hulls"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_gap_between_convex_hulls</h1><BR><BR>
+            This function measures the position and size of the gap between two convex
+            polytopes.  In particular, it solves the following quadratic program:
+<pre>
+   Minimize: f(cA,cB) == length_squared(A*cA - B*cB) 
+   subject to the following constraints on cA and cB:
+      - is_col_vector(cA) == true &amp;&amp; cA.size() == A.nc()
+      - is_col_vector(cB) == true &amp;&amp; cB.size() == B.nc()
+      - sum(cA) == 1 &amp;&amp; min(cA) &gt;= 0
+      - sum(cB) == 1 &amp;&amp; min(cB) &gt;= 0
+</pre><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp_using_smo_abstract.h.html#find_gap_between_convex_hulls">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max</h1><BR><BR>
+             Performs an unconstrained maximization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_max">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_bobyqa"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_bobyqa</h1><BR><BR>
+            This function is identical to the <a href="#find_min_bobyqa">find_min_bobyqa</a> routine 
+            except that it negates the objective function before performing optimization.  
+            Thus this function will attempt to find the maximizer of the objective rather than 
+            the minimizer.
+            <p>
+               Note that BOBYQA only works on functions of two or more variables.  So if you need to perform 
+               derivative-free optimization on a function of a single variable 
+               then you should use the <a href="#find_max_single_variable">find_max_single_variable</a>
+               function.
+            </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a>,
+               <a href="model_selection_ex.cpp.html">model_selection_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_bobyqa_abstract.h.html#find_max_bobyqa">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_box_constrained"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_box_constrained</h1><BR><BR>
+             Performs a box constrained maximization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This function uses a backtracking line search along with a gradient projection
+             step to handle the box constraints.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_max_box_constrained">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_factor_graph_nmplp"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_factor_graph_nmplp</h1><BR><BR>
+              This function is a tool for approximately solving the MAP problem in a graphical 
+              model or factor graph with pairwise potential functions.  That is, it attempts 
+              to solve a certain kind of optimization problem which can be defined as follows:
+<pre>
+   maximize: f(X)
+   where X is a set of integer valued variables and f(X) can be written
+   as the sum of functions which each involve only two variables from X.
+</pre>
+If the graph is tree-structured then this routine always gives the exact solution to the MAP problem.
+However, for graphs with cycles, the solution may be approximate.
+<br><br>
+            This function is an implementation of the NMPLP algorithm introduced in the 
+            following papers:
+                <blockquote>
+                Fixing Max-Product: Convergent Message Passing Algorithms for MAP LP-Relaxations (2008)
+                by Amir Globerson and Tommi Jaakkola
+                </blockquote><blockquote>
+                Introduction to dual decomposition for inference (2011)
+                by David Sontag, Amir Globerson, and Tommi Jaakkola 
+                </blockquote><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_max_factor_graph_nmplp_abstract.h.html#find_max_factor_graph_nmplp">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_factor_graph_potts"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_factor_graph_potts</h1><BR><BR>
+              This is a set of overloaded functions for exactly solving the MAP problem in a Potts
+              model.  This type of model is useful when you have a problem which
+              can be modeled as a bunch of binary decisions on some variables,
+              but you have some kind of labeling consistency constraint.  This
+              means that there is some penalty for giving certain pairs of variables
+              different labels.  So in addition to trying to figure out how to best
+              label each variable on its own, you have to worry about making the
+              labels pairwise consistent in some sense.  The find_max_factor_graph_potts()
+              routine can be used to find the most probable/highest scoring
+              labeling for this type of model.
+              <p>The implementation of this routine is based on the <a href="#min_cut">min_cut</a> object.</p><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/graph_cuts/find_max_factor_graph_potts_abstract.h.html#find_max_factor_graph_potts">More Details...</a><div class="include_file">#include &lt;dlib/graph_cuts.h&gt;</div></div></div><a name="find_max_factor_graph_viterbi"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_factor_graph_viterbi</h1><BR><BR>
+            This function is a tool for exactly solving the MAP problem in a chain-structured 
+            graphical model or factor graph.   In particular, it is an implementation of the classic Viterbi
+            algorithm for finding the maximizing assignment.  In addition to basic first order Markov
+            models, this function is also capable of finding the MAP assignment for higher order
+            Markov models.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_max_factor_graph_viterbi_abstract.h.html#find_max_factor_graph_viterbi">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_parse_cky"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_parse_cky</h1><BR><BR>
+            This function implements the CKY parsing algorithm.  In particular, it
+            finds the maximum scoring binary parse tree that parses an input sequence of tokens.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_max_parse_cky_abstract.h.html#find_max_parse_cky">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_single_variable"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_single_variable</h1><BR><BR>
+             Performs a bound constrained maximization of a nonlinear function.  The 
+             function must be of a single variable.  Derivatives are not required.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#find_max_single_variable">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_trust_region"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_trust_region</h1><BR><BR>
+             Performs an unconstrained maximization of a nonlinear function using 
+             a trust region method.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_trust_region_abstract.h.html#find_max_trust_region">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_max_using_approximate_derivatives"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_max_using_approximate_derivatives</h1><BR><BR>
+             Performs an unconstrained maximization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This version doesn't take a gradient function but instead numerically approximates 
+             the gradient.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_max_using_approximate_derivatives">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min</h1><BR><BR>
+             Performs an unconstrained minimization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+         <BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_min">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min_bobyqa"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min_bobyqa</h1><BR><BR>
+            This function defines the dlib interface to the BOBYQA software developed by M.J.D Powell.
+            BOBYQA is a method for optimizing a function in the absence of derivative information.  
+            Powell described it as a method that seeks the least value of a function of many 
+            variables, by applying a trust region method that forms quadratic models by 
+            interpolation.  There is usually some freedom in the interpolation conditions, 
+            which is taken up by minimizing the Frobenius norm of the change to the second 
+            derivative of the model, beginning with the zero matrix. The values of the variables 
+            are constrained by upper and lower bounds.  
+
+            <p>
+            The following paper, published in 2009 by Powell, describes the
+            detailed working of the BOBYQA algorithm.  
+
+               <blockquote>
+               The BOBYQA algorithm for bound constrained optimization 
+               without derivatives by M.J.D. Powell
+               </blockquote></p><p>
+               Note that BOBYQA only works on functions of two or more variables.  So if you need to perform 
+               derivative-free optimization on a function of a single variable 
+               then you should use the <a href="#find_min_single_variable">find_min_single_variable</a>
+               function.
+            </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a>,
+               <a href="model_selection_ex.cpp.html">model_selection_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_bobyqa_abstract.h.html#find_min_bobyqa">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min_box_constrained"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min_box_constrained</h1><BR><BR>
+             Performs a box constrained minimization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This function uses a backtracking line search along with a gradient projection
+             step to handle the box constraints.
+         <BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_min_box_constrained">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min_single_variable"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min_single_variable</h1><BR><BR>
+             Performs a bound constrained minimization of a nonlinear function.  The 
+             function must be of a single variable.  Derivatives are not required.  
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#find_min_single_variable">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min_trust_region"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min_trust_region</h1><BR><BR>
+             Performs an unconstrained minimization of a nonlinear function using 
+             a trust region method.
+         <BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_trust_region_abstract.h.html#find_min_trust_region">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_min_using_approximate_derivatives"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_min_using_approximate_derivatives</h1><BR><BR>
+             Performs an unconstrained minimization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This version doesn't take a gradient function but instead numerically approximates 
+             the gradient.
+         <BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_abstract.h.html#find_min_using_approximate_derivatives">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="find_optimal_parameters"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_optimal_parameters</h1><BR><BR>
+            Performs a constrained minimization of a function and doesn't require derivatives from the user. 
+            This function is similar to <a href="#find_min_bobyqa">find_min_bobyqa</a> and
+            <a href="#find_min_single_variable">find_min_single_variable</a> except that it
+            allows any number of variables and never throws exceptions when the max iteration
+            limit is reached (even if it didn't converge).
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_optimal_parameters_abstract.h.html#find_optimal_parameters">More Details...</a><div class="include_file">#include &lt;dlib/optimization/find_optimal_parameters.h&gt;</div></div></div><a name="find_trees_not_rooted_with_tag"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">find_trees_not_rooted_with_tag</h1><BR><BR>
+              Finds all the largest non-overlapping <a href="#find_max_parse_cky">parse trees</a> 
+              in tree that are not rooted with a particular tag.   
+              <p>
+              This function is useful when you want to cut a parse tree
+              into a bunch of sub-trees and you know that the top level of the tree is all
+              composed of the same kind of tag.  So if you want to just "slice off" the top
+              of the tree where this tag lives then this function is useful for doing that.
+              </p><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_max_parse_cky_abstract.h.html#find_trees_not_rooted_with_tag">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="gradient_norm_stop_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">gradient_norm_stop_strategy</h1><BR><BR>
+                This object represents a strategy for deciding if an optimization
+                algorithm should terminate.   This particular object looks at the 
+                norm (i.e. the length) of the current gradient vector and
+                stops if it is smaller than a user given threshold.  
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_stop_strategies_abstract.h.html#gradient_norm_stop_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="graph_cut_score"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">graph_cut_score</h1><BR><BR>
+            This routine computes the score for a candidate graph cut.  This is the 
+            quantity minimized by the <a href="#min_cut">min_cut</a> algorithm.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/graph_cuts/min_cut_abstract.h.html#graph_cut_score">More Details...</a><div class="include_file">#include &lt;dlib/graph_cuts.h&gt;</div></div></div><a name="lagrange_poly_min_extrap"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">lagrange_poly_min_extrap</h1><BR><BR>
+            This function finds the second order polynomial that interpolates a 
+            set of points and returns the minimum of that polynomial.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#lagrange_poly_min_extrap">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="lbfgs_search_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">lbfgs_search_strategy</h1><BR><BR>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the L-BFGS quasi-newton method for determining 
+                this direction.
+
+                  <p>
+                This method uses an amount of memory that is linear in the number
+                of variables to be optimized.  This makes it an excellent method 
+                to use when an optimization problem has a large number of variables.
+                  </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_search_strategies_abstract.h.html#lbfgs_search_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="line_search"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">line_search</h1><BR><BR>
+            Performs a gradient based line search on a given function and returns the input
+            that makes the function significantly smaller.  This implements the classic
+            line search method using the strong Wolfe conditions with a bracketing and then
+            sectioning phase, both using polynomial interpolation. 
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#line_search">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="make_line_search_function"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">make_line_search_function</h1><BR><BR>
+            This is a function that takes another function f(x) as input and returns
+            a function object l(z) = f(start + z*direction).   It is useful for
+            turning multi-variable functions into single-variable functions for
+            use with the <a href="#line_search">line_search</a> or 
+            <a href="#backtracking_line_search">backtracking_line_search</a> routines.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#make_line_search_function">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="max_cost_assignment"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">max_cost_assignment</h1><BR><BR>
+            This function is an implementation of the Hungarian algorithm (also know as the Kuhn-Munkres algorithm) which
+            runs in O(N^3) time.
+            It solves the optimal assignment problem. For example, suppose you have an equal number of workers
+            and jobs and you need to decide which workers to assign to which jobs. Some workers are better at 
+            certain jobs than others. So you would like to find out how to assign them all to jobs such that 
+            overall productivity is maximized. You can use this routine to solve this problem and others like it. 
+            <p>
+               Note that dlib also contains a <a href="ml.html#structural_assignment_trainer">machine learning</a>
+               method for learning the cost function needed to use the Hungarian algorithm.
+            </p><BR><BR>C++ Example Programs: <a href="max_cost_assignment_ex.cpp.html">max_cost_assignment_ex.cpp</a><BR>Python Example Programs: <a href="max_cost_assignment.py.html">max_cost_assignment.py</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/max_cost_assignment_abstract.h.html#max_cost_assignment">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="max_sum_submatrix"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">max_sum_submatrix</h1><BR><BR>
+              This function finds the submatrix within a user supplied matrix which has the largest sum.  It then
+              zeros out that submatrix and repeats the process until no more maximal submatrices can 
+              be found.   
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/max_sum_submatrix_abstract.h.html#max_sum_submatrix">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="min_cut"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">min_cut</h1><BR><BR>
+                This is a function object which can be used to find the min cut
+                on a graph.
+                The implementation is based on the method described in the following
+                paper:
+                <blockquote>
+                    An Experimental Comparison of Min-Cut/Max-Flow Algorithms for
+                    Energy Minimization in Vision, by Yuri Boykov and Vladimir Kolmogorov, 
+                    in PAMI 2004.
+                </blockquote><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/graph_cuts/min_cut_abstract.h.html#min_cut">More Details...</a><div class="include_file">#include &lt;dlib/graph_cuts.h&gt;</div></div></div><a name="mpc"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">mpc</h1><BR><BR>
+                This object implements a linear model predictive controller.  
+                In particular, it solves a certain quadratic program using the method
+                described in the paper:
+                <blockquote>
+                  A Fast Gradient method for embedded linear predictive control (2011)
+                  by Markus Kogel and Rolf Findeisen
+                </blockquote><BR><BR>C++ Example Programs: <a href="mpc_ex.cpp.html">mpc_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/control/mpc_abstract.h.html#mpc">More Details...</a><div class="include_file">#include &lt;dlib/control.h&gt;</div></div></div><a name="negate_function"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">negate_function</h1><BR><BR>
+            This is a function that takes another function as input and returns
+            a function object that computes the negation of the input function.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#negate_function">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="newton_search_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">newton_search_strategy</h1><BR><BR>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular routine 
+                is an implementation of the newton method for determining this direction.  
+                That means using it requires you to supply a method for
+                creating hessian matrices for the problem you are trying to optimize.
+
+               <p>
+               Note also that this is actually a helper function for creating 
+               <a href="dlib/optimization/optimization_search_strategies_abstract.h.html#newton_search_strategy_obj">newton_search_strategy_obj</a> objects.  
+               </p><BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_search_strategies_abstract.h.html#newton_search_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="objective_delta_stop_strategy"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">objective_delta_stop_strategy</h1><BR><BR>
+                This object represents a strategy for deciding if an optimization
+                algorithm should terminate.   This particular object looks at the 
+                change in the objective function from one iteration to the next and 
+                bases its decision on how large this change is.  If the change
+                is below a user given threshold then the search stops.
+         <BR><BR>C++ Example Programs: <a href="optimization_ex.cpp.html">optimization_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_stop_strategies_abstract.h.html#objective_delta_stop_strategy">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="oca"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">oca</h1><BR><BR>
+                This object is a tool for solving the following optimization problem:   
+<pre>
+   Minimize: f(w) == 0.5*||w||^2 + C*R(w)
+
+   Where R(w) is a user-supplied convex function and C &gt; 0.  Optionally,
+   this object can also add non-negativity constraints to some or all
+   of the elements of w.
+
+Or it can alternatively solve:
+   Minimize: f(w) == 0.5*||w-prior||^2 + C*R(w)
+
+   Where prior is a user supplied vector and R(w) has the same
+   interpretation as above.
+
+Or it can use the elastic net regularizer:
+   Minimize: f(w) == 0.5*(1-lasso_lambda)*length_squared(w) + lasso_lambda*sum(abs(w)) + C*R(w)
+
+   Where lasso_lambda is a number in the range [0, 1) and controls
+   trade-off between doing L1 and L2 regularization.  R(w) has the same
+   interpretation as above.
+</pre><br><br>
+
+                For a detailed discussion you should consult the following papers
+                from the Journal of Machine Learning Research:
+                <blockquote>
+                    Optimized Cutting Plane Algorithm for Large-Scale Risk Minimization
+                      by  Vojtech Franc, Soren Sonnenburg; 10(Oct):2157--2192, 2009. 
+                </blockquote><blockquote>
+                    Bundle Methods for Regularized Risk Minimization
+                      by Choon Hui Teo, S.V.N. Vishwanthan, Alex J. Smola, Quoc V. Le; 11(Jan):311-365, 2010. 
+                </blockquote><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_oca_abstract.h.html#oca">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="parse_tree_to_string"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">parse_tree_to_string</h1><BR><BR>
+            This is a set of functions useful for converting a parse tree output by 
+            <a href="#find_max_parse_cky">find_max_parse_cky</a> into a bracketed string
+            suitable for displaying the parse tree.  
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/find_max_parse_cky_abstract.h.html#parse_tree_to_string">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="poly_min_extrap"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">poly_min_extrap</h1><BR><BR>
+            This function finds the 2nd or 3rd degree polynomial that interpolates a 
+            set of points and returns the minimum of that polynomial.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_line_search_abstract.h.html#poly_min_extrap">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="potts_model_score"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">potts_model_score</h1><BR><BR>
+              This routine computes the model score for a Potts problem and a
+              candidate labeling.  This score is the quantity maximised
+              by the <a href="#find_max_factor_graph_potts">find_max_factor_graph_potts</a>
+              routine.
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/graph_cuts/find_max_factor_graph_potts_abstract.h.html#potts_model_score">More Details...</a><div class="include_file">#include &lt;dlib/graph_cuts.h&gt;</div></div></div><a name="solve_least_squares"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_least_squares</h1><BR><BR>
+            This is a function for solving non-linear least squares problems.  It uses a method
+            which combines the traditional Levenberg-Marquardt technique with a quasi-newton
+            approach.  It is appropriate for large residual problems (i.e. problems where the
+            terms in the least squares function, the residuals, don't go to zero but remain
+            large at the solution)
+         <BR><BR>C++ Example Programs: <a href="least_squares_ex.cpp.html">least_squares_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_least_squares_abstract.h.html#solve_least_squares">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_least_squares_lm"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_least_squares_lm</h1><BR><BR>
+            This is a function for solving non-linear least squares problems.  It uses 
+            the traditional Levenberg-Marquardt technique. 
+            It is appropriate for small residual problems (i.e. problems where the
+            terms in the least squares function, the residuals, go to zero at the solution)
+         <BR><BR>C++ Example Programs: <a href="least_squares_ex.cpp.html">least_squares_ex.cpp</a><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_least_squares_abstract.h.html#solve_least_squares_lm">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp2_using_smo"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp2_using_smo</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha 
+   subject to the following constraints:
+      sum(alpha) == nu*y.size() 
+      0 &lt;= min(alpha) &amp;&amp; max(alpha) &lt;= 1 
+      trans(y)*alpha == 0
+
+   Where all elements of y must be equal to +1 or -1 and f is convex.  
+   This means that Q should be symmetric and positive-semidefinite.
+</pre><br>
+                This object implements the strategy used by the LIBSVM tool.  The following papers
+                can be consulted for additional details:
+               <ul><li>Chang and Lin, Training {nu}-Support Vector Classifiers: Theory and Algorithms</li><li>Chih-Chung Chang and Chih-Jen Lin, LIBSVM : a library for support vector 
+                     machines, 2001. Software available at 
+                     <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/">http://www.csie.ntu.edu.tw/~cjlin/libsvm</a></li></ul><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp2_using_smo_abstract.h.html#solve_qp2_using_smo">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp3_using_smo"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp3_using_smo</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha + trans(p)*alpha
+   subject to the following constraints:
+        for all i such that y(i) == +1:  0 &lt;= alpha(i) &lt;= Cp 
+        for all i such that y(i) == -1:  0 &lt;= alpha(i) &lt;= Cn 
+        trans(y)*alpha == B 
+
+   Where all elements of y must be equal to +1 or -1 and f is convex.  
+   This means that Q should be symmetric and positive-semidefinite.
+</pre><br>
+                This object implements the strategy used by the LIBSVM tool.  The following papers
+                can be consulted for additional details:
+               <ul><li>Chih-Chung Chang and Chih-Jen Lin, LIBSVM : a library for support vector 
+                     machines, 2001. Software available at 
+                     <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/">http://www.csie.ntu.edu.tw/~cjlin/libsvm</a></li><li>Working Set Selection Using Second Order Information for Training Support Vector Machines by
+                     Fan, Chen, and Lin.  In the Journal of Machine Learning Research 2005.</li></ul><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp3_using_smo_abstract.h.html#solve_qp3_using_smo">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp4_using_smo"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp4_using_smo</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha,lambda) == 0.5*trans(alpha)*Q*alpha - trans(alpha)*b + 
+                                0.5*trans(lambda)*lambda - trans(lambda)*A*alpha - trans(lambda)*d
+   subject to the following constraints:
+      sum(alpha)  == C 
+      min(alpha)  &gt;= 0 
+      min(lambda) &gt;= 0
+      max(lambda) &lt;= max_lambda 
+   Where f is convex.  This means that Q should be positive-semidefinite.
+</pre><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp_using_smo_abstract.h.html#solve_qp4_using_smo">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp_box_constrained"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp_box_constrained</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha + trans(b)*alpha 
+   subject to the following box constraints on alpha:
+      0 &lt;= min(alpha-lower)
+      0 &lt;= max(upper-alpha)
+   Where f is convex.  This means that Q should be positive-semidefinite.
+</pre><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp_using_smo_abstract.h.html#solve_qp_box_constrained">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp_box_constrained_blockdiag"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp_box_constrained_blockdiag</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha + trans(b)*alpha 
+   subject to the following box constraints on alpha:
+      0 &lt;= min(alpha-lower)
+      0 &lt;= max(upper-alpha)
+   Where f is convex.  This means that Q should be positive-semidefinite.
+</pre>
+            
+            So it does the same thing as <a href="#solve_qp_box_constrained">solve_qp_box_constrained</a>,
+            except it is optimized for large Q matrices with a special block
+            structure.  In particular, Q must be grouped into identically sized
+            blocks where all blocks are diagonal matrices, except those on the
+            main diagonal which can be dense. 
+         <BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp_using_smo_abstract.h.html#solve_qp_box_constrained_blockdiag">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_qp_using_smo"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_qp_using_smo</h1><BR><BR>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha - trans(alpha)*b
+   subject to the following constraints:
+      sum(alpha) == C 
+      min(alpha) &gt;= 0 
+   Where f is convex.  This means that Q should be symmetric and positive-semidefinite.
+</pre><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_solve_qp_using_smo_abstract.h.html#solve_qp_using_smo">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div><a name="solve_trust_region_subproblem"></a><div class="component"><a href="#top"><font size="2"><center>[top]</center></font></a><h1 style="margin:0px;">solve_trust_region_subproblem</h1><BR><BR>
+             This function solves the following optimization problem:
+<pre>
+Minimize: f(p) == 0.5*trans(p)*B*p + trans(g)*p
+subject to the following constraint:
+   length(p) &lt;= radius
+</pre><BR><div class="include_file_more_details_wrapper"><a class="more_details" href="dlib/optimization/optimization_trust_region_abstract.h.html#solve_trust_region_subproblem">More Details...</a><div class="include_file">#include &lt;dlib/optimization.h&gt;</div></div></div></div></body></html>

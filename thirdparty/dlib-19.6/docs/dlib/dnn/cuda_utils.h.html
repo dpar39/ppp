@@ -1,0 +1,354 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cuda_utils.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_CUDA_UtILS_H_
+<font color='#0000FF'>#define</font> DLIB_CUDA_UtILS_H_
+
+<font color='#0000FF'>#ifndef</font> DLIB_USE_CUDA
+<font color='#0000FF'>#error</font> "<font color='#CC0000'>This file shouldn't be #included unless DLIB_USE_CUDA is #defined</font>"
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_errors.h.html'>cuda_errors.h</a>"
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cuda_runtime.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sstream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>vector<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>type_traits<font color='#5555FF'>&gt;</font>
+
+
+<font color='#009900'>// Check the return value of a call to the CUDA runtime for an error condition.
+</font><font color='#0000FF'>#define</font> CHECK_CUDA<font face='Lucida Console'>(</font>call<font face='Lucida Console'>)</font>                                                       \
+<font color='#0000FF'>do</font><b>{</b>                                                                              \
+    <font color='#0000FF'>const</font> cudaError_t error <font color='#5555FF'>=</font> call;                                            \
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>error <font color='#5555FF'>!</font><font color='#5555FF'>=</font> cudaSuccess<font face='Lucida Console'>)</font>                                                  \
+    <b>{</b>                                                                          \
+        std::ostringstream sout;                                               \
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Error while calling </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> #call <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> in file </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __FILE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>:</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __LINE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>. </font>";\
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>code: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> error <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>cudaGetErrorString</font><font face='Lucida Console'>(</font>error<font face='Lucida Console'>)</font>;\
+        <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>cuda_error</font><font face='Lucida Console'>(</font>sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;                                          \
+    <b>}</b>                                                                          \
+<b>}</b><font color='#0000FF'>while</font><font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#ifdef</font> __CUDACC__
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda
+    <b>{</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        __inline__ __device__ <font color='#0000FF'><u>size_t</u></font> <b><a name='pack_idx'></a>pack_idx</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> dim_size3,
+            <font color='#0000FF'><u>size_t</u></font> dim_size2,
+            <font color='#0000FF'><u>size_t</u></font> dim_size1,
+            <font color='#0000FF'><u>size_t</u></font> idx4,
+            <font color='#0000FF'><u>size_t</u></font> idx3,
+            <font color='#0000FF'><u>size_t</u></font> idx2,
+            <font color='#0000FF'><u>size_t</u></font> idx1
+        <font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - Converts a 4D array index into a 1D index assuming row major layout.  To
+                  understand precisely what this function does, imagine we had an array
+                  declared like this:
+                    int ARRAY[anything][dim_size3][dim_size2][dim_size1];
+                  Then we could index it like this:
+                    ARRAY[idx4][idx3][idx2][idx1]
+                  or equivalently like this:
+                    ((int*)ARRAY)[pack_idx(dim_size3,dim_size2,dim_size1, idx4,idx3,idx2,idx1)]
+        !*/</font>
+        <b>{</b>
+            <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>idx4<font color='#5555FF'>*</font>dim_size3 <font color='#5555FF'>+</font> idx3<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>dim_size2 <font color='#5555FF'>+</font> idx2<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>dim_size1 <font color='#5555FF'>+</font> idx1;
+        <b>}</b>
+
+        __inline__ __device__ <font color='#0000FF'><u>void</u></font> <b><a name='unpack_idx'></a>unpack_idx</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> idx,
+            <font color='#0000FF'><u>size_t</u></font> dim_size3,
+            <font color='#0000FF'><u>size_t</u></font> dim_size2,
+            <font color='#0000FF'><u>size_t</u></font> dim_size1,
+            <font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&amp;</font> idx4,
+            <font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&amp;</font> idx3,
+            <font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&amp;</font> idx2,
+            <font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&amp;</font> idx1
+        <font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - This function computes the inverse of pack_idx().  Therefore, 
+                  if PACKED == pack_idx(dim_size3,dim_size2,dim_size1, idx4,idx3,idx2,idx1)
+                  then unpack_idx(PACKED,dim_size3,dim_size2,dim_size1, IDX4,IDX3,IDX2,IDX1)
+                  results in:
+                    - IDX1 == idx1
+                    - IDX2 == idx2
+                    - IDX3 == idx3
+                    - IDX4 == idx4
+        !*/</font>
+        <b>{</b>
+            idx1 <font color='#5555FF'>=</font> idx<font color='#5555FF'>%</font>dim_size1;
+
+            idx <font color='#5555FF'>/</font><font color='#5555FF'>=</font> dim_size1;
+            idx2 <font color='#5555FF'>=</font> idx<font color='#5555FF'>%</font>dim_size2;
+
+            idx <font color='#5555FF'>/</font><font color='#5555FF'>=</font> dim_size2;
+            idx3 <font color='#5555FF'>=</font> idx<font color='#5555FF'>%</font>dim_size3;
+
+            idx <font color='#5555FF'>/</font><font color='#5555FF'>=</font> dim_size3;
+            idx4 <font color='#5555FF'>=</font> idx;
+        <b>}</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#009900'>// This function is from the article:
+</font>        <font color='#009900'>// http://devblogs.nvidia.com/parallelforall/faster-parallel-reductions-kepler/
+</font>        __inline__ __device__ <font color='#0000FF'><u>float</u></font> <b><a name='warp_reduce_sum'></a>warp_reduce_sum</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font> val<font face='Lucida Console'>)</font> 
+        <b>{</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> offset <font color='#5555FF'>=</font> warpSize<font color='#5555FF'>/</font><font color='#979000'>2</font>; offset <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font>; offset <font color='#5555FF'>/</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font> 
+                val <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font color='#BB00BB'>__shfl_down</font><font face='Lucida Console'>(</font>val, offset<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> val;
+        <b>}</b>
+
+        __inline__ __device__ <font color='#0000FF'><u>bool</u></font> <b><a name='is_first_thread_in_warp'></a>is_first_thread_in_warp</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font>threadIdx.x <font color='#5555FF'>&amp;</font> <font face='Lucida Console'>(</font>warpSize <font color='#5555FF'>-</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <b>}</b>
+
+        __inline__ __device__ <font color='#0000FF'><u>void</u></font> <b><a name='warp_reduce_atomic_add'></a>warp_reduce_atomic_add</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font><font color='#5555FF'>&amp;</font> out, 
+            <font color='#0000FF'><u>float</u></font> val
+        <font face='Lucida Console'>)</font> 
+        <font color='#009900'>/*!
+            ensures
+                - Atomically adds all the val variables in the current warp to out.
+                  See this page for an extended discussion: 
+                  http://devblogs.nvidia.com/parallelforall/faster-parallel-reductions-kepler/
+        !*/</font>
+        <b>{</b>
+            val <font color='#5555FF'>=</font> <font color='#BB00BB'>warp_reduce_sum</font><font face='Lucida Console'>(</font>val<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>is_first_thread_in_warp</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <font color='#BB00BB'>atomicAdd</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>out, val<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>struct</font> <b><a name='max_jobs'></a>max_jobs</b>
+        <b>{</b>
+            <b><a name='max_jobs'></a>max_jobs</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> n<font face='Lucida Console'>)</font> : num<font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+            <font color='#0000FF'><u>int</u></font> num;
+        <b>}</b>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> Kernel, <font color='#0000FF'>typename</font>... T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='launch_kernel'></a>launch_kernel</b> <font face='Lucida Console'>(</font>
+            Kernel K,
+            T ...args
+        <font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - launches the given kernel K(args...).  The point of this function is to
+                  automatically set the kernel launch parameters to something reasonable
+                  based on the properties of the kernel and the current GPU card.
+        !*/</font>
+        <b>{</b>
+            <font color='#0000FF'><u>int</u></font> num_blocks, num_threads;
+            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaOccupancyMaxPotentialBlockSize</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>num_blocks,<font color='#5555FF'>&amp;</font>num_threads,K<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            K<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>num_blocks,num_threads<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args...<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> Kernel, <font color='#0000FF'>typename</font>... T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='launch_kernel'></a>launch_kernel</b> <font face='Lucida Console'>(</font>
+            Kernel K,
+            max_jobs m,
+            T ...args
+        <font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - This function is just like launch_kernel(K,args...) except that you can
+                  additionally supply a max_jobs number that tells it how many possible
+                  total threads could be used.  This is useful when launching potentially
+                  small jobs that might not need the number of threads suggested by
+                  launch_kernel().  
+        !*/</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>m.num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+            <font color='#0000FF'><u>int</u></font> num_blocks, num_threads;
+            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaOccupancyMaxPotentialBlockSize</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>num_blocks,<font color='#5555FF'>&amp;</font>num_threads,K<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// Check if the job is really small and we don't really need to launch a kernel
+</font>            <font color='#009900'>// with this many blocks and threads.
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num_blocks<font color='#5555FF'>*</font>num_threads <font color='#5555FF'>&gt;</font> m.num<font face='Lucida Console'>)</font>
+                num_blocks <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>m.num<font color='#5555FF'>+</font>num_threads<font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>num_threads;
+
+            K<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>num_blocks,num_threads<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args...<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='grid_stride_range'></a>grid_stride_range</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This is a tool for making a for loop that loops over an entire block of
+                    memory inside a kernel, but doing so in a way that parallelizes
+                    appropriately across all the threads in a kernel launch.  For example,
+                    the following kernel would add the vector a to the vector b and store
+                    the output in out (assuming all vectors are of dimension n):
+                        __global__ void add_arrays(
+                            const float* a, 
+                            const float* b, 
+                            float* out, 
+                            size_t n
+                        )
+                        {
+                            for (auto i : grid_stride_range(0, n))
+                            {
+                                out[i] = a[i]+b[i];
+                            }
+                        }
+            !*/</font>
+
+        <font color='#0000FF'>public</font>:
+            __device__ <b><a name='grid_stride_range'></a>grid_stride_range</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>size_t</u></font> ibegin_,
+                <font color='#0000FF'><u>size_t</u></font> iend_
+            <font face='Lucida Console'>)</font> : 
+                ibegin<font face='Lucida Console'>(</font>ibegin_<font face='Lucida Console'>)</font>,
+                iend<font face='Lucida Console'>(</font>iend_<font face='Lucida Console'>)</font>
+            <b>{</b><b>}</b>
+
+            <font color='#0000FF'>class</font> <b><a name='iterator'></a>iterator</b>
+            <b>{</b>
+            <font color='#0000FF'>public</font>:
+                __device__ <b><a name='iterator'></a>iterator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+                __device__ <b><a name='iterator'></a>iterator</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> pos_<font face='Lucida Console'>)</font> : pos<font face='Lucida Console'>(</font>pos_<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+                __device__ <font color='#0000FF'><u>size_t</u></font> <b><a name='operator'></a>operator</b><font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+                <b>{</b>
+                    <font color='#0000FF'>return</font> pos;
+                <b>}</b>
+
+                __device__ iterator<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>+</font><font color='#5555FF'>+</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    pos <font color='#5555FF'>+</font><font color='#5555FF'>=</font> gridDim.x <font color='#5555FF'>*</font> blockDim.x;
+                    <font color='#0000FF'>return</font> <font color='#5555FF'>*</font><font color='#0000FF'>this</font>;
+                <b>}</b>
+
+                __device__ <font color='#0000FF'><u>bool</u></font> <b><a name='operator'></a>operator</b><font color='#5555FF'>!</font><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> iterator<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+                <b>{</b> <font color='#0000FF'>return</font> pos <font color='#5555FF'>&lt;</font> item.pos; <b>}</b>
+
+            <font color='#0000FF'>private</font>:
+                <font color='#0000FF'><u>size_t</u></font> pos;
+            <b>}</b>;
+
+            __device__ iterator <b><a name='begin'></a>begin</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#BB00BB'>iterator</font><font face='Lucida Console'>(</font>ibegin<font color='#5555FF'>+</font>blockDim.x <font color='#5555FF'>*</font> blockIdx.x <font color='#5555FF'>+</font> threadIdx.x<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            __device__ iterator <b><a name='end'></a>end</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#BB00BB'>iterator</font><font face='Lucida Console'>(</font>iend<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>size_t</u></font> ibegin;
+            <font color='#0000FF'><u>size_t</u></font> iend;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='grid_stride_range_y'></a>grid_stride_range_y</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This object is just like grid_stride_range except that it looks at
+                    CUDA's y thread index (e.g. threadIdx.y) instead of the x index.
+                    Therefore, if you launch a cuda kernel with a statement like:
+                        dim3 blocks(10,1);
+                        dim3 threads(32,32);  // You need to have x and y not equal to 1 to get parallelism over both loops.
+                        add_arrays&lt;&lt;&lt;blocks,threads&gt;&gt;&gt;(a,b,out,nr,nc);
+                    You can perform a nested 2D parallel for loop rather than doing just a
+                    1D for loop.
+                   
+                    So the code in the kernel would look like this if you wanted to add two
+                    2D matrices:
+                        __global__ void add_arrays(
+                            const float* a, 
+                            const float* b, 
+                            float* out, 
+                            size_t nr,
+                            size_t nc
+                        )
+                        {
+                            for (auto r : grid_stride_range_y(0, nr))
+                            {
+                                for (auto c : grid_stride_range(0, nc))
+                                {
+                                    auto i = r*nc+c;
+                                    out[i] = a[i]+b[i];
+                                }
+                            }
+                        }
+            !*/</font>
+
+        <font color='#0000FF'>public</font>:
+            __device__ <b><a name='grid_stride_range_y'></a>grid_stride_range_y</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>size_t</u></font> ibegin_,
+                <font color='#0000FF'><u>size_t</u></font> iend_
+            <font face='Lucida Console'>)</font> : 
+                ibegin<font face='Lucida Console'>(</font>ibegin_<font face='Lucida Console'>)</font>,
+                iend<font face='Lucida Console'>(</font>iend_<font face='Lucida Console'>)</font>
+            <b>{</b><b>}</b>
+
+            <font color='#0000FF'>class</font> <b><a name='iterator'></a>iterator</b>
+            <b>{</b>
+            <font color='#0000FF'>public</font>:
+                __device__ <b><a name='iterator'></a>iterator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+                __device__ <b><a name='iterator'></a>iterator</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> pos_<font face='Lucida Console'>)</font> : pos<font face='Lucida Console'>(</font>pos_<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+                __device__ <font color='#0000FF'><u>size_t</u></font> <b><a name='operator'></a>operator</b><font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+                <b>{</b>
+                    <font color='#0000FF'>return</font> pos;
+                <b>}</b>
+
+                __device__ iterator<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>+</font><font color='#5555FF'>+</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    pos <font color='#5555FF'>+</font><font color='#5555FF'>=</font> gridDim.y <font color='#5555FF'>*</font> blockDim.y;
+                    <font color='#0000FF'>return</font> <font color='#5555FF'>*</font><font color='#0000FF'>this</font>;
+                <b>}</b>
+
+                __device__ <font color='#0000FF'><u>bool</u></font> <b><a name='operator'></a>operator</b><font color='#5555FF'>!</font><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> iterator<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+                <b>{</b> <font color='#0000FF'>return</font> pos <font color='#5555FF'>&lt;</font> item.pos; <b>}</b>
+
+            <font color='#0000FF'>private</font>:
+                <font color='#0000FF'><u>size_t</u></font> pos;
+            <b>}</b>;
+
+            __device__ iterator <b><a name='begin'></a>begin</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#BB00BB'>iterator</font><font face='Lucida Console'>(</font>ibegin<font color='#5555FF'>+</font>blockDim.y <font color='#5555FF'>*</font> blockIdx.y <font color='#5555FF'>+</font> threadIdx.y<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            __device__ iterator <b><a name='end'></a>end</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#BB00BB'>iterator</font><font face='Lucida Console'>(</font>iend<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>size_t</u></font> ibegin;
+            <font color='#0000FF'><u>size_t</u></font> iend;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+    <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// __CUDACC__
+</font>
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_CUDA_UtILS_H_
+</font>
+
+</pre></body></html>

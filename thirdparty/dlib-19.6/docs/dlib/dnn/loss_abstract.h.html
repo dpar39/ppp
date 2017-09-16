@@ -1,0 +1,1025 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - loss_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_DNn_LOSS_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_DNn_LOSS_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='core_abstract.h.html'>core_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../image_processing/full_object_detection_abstract.h.html'>../image_processing/full_object_detection_abstract.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='EXAMPLE_LOSS_LAYER_'></a>EXAMPLE_LOSS_LAYER_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                A loss layer is the final layer in a deep neural network.  It computes the
+                task loss.  That is, it computes a number that tells us how well the
+                network is performing on some task, such as predicting a binary label.  
+
+                You can use one of the loss layers that comes with dlib (defined below).
+                But importantly, you are able to define your own loss layers to suit your
+                needs.  You do this by creating a class that defines an interface matching
+                the one described by this EXAMPLE_LOSS_LAYER_ class.  Note that there is no
+                dlib::EXAMPLE_LOSS_LAYER_ type.  It is shown here purely to document the
+                interface that a loss layer must implement.
+
+                A loss layer can optionally provide a to_label() method that converts the
+                output of a network into a user defined type.  If to_label() is not
+                provided then the operator() methods of add_loss_layer will not be
+                available, but otherwise everything will function as normal.
+
+                Finally, note that there are two broad flavors of loss layer, supervised
+                and unsupervised.  The EXAMPLE_LOSS_LAYER_ as shown here is a supervised
+                layer.  To make an unsupervised loss you simply leave out the
+                training_label_type typedef and the truth iterator argument to
+                compute_loss_value_and_gradient().
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#009900'>// In most cases training_label_type and output_label_type will be the same type.
+</font>        <font color='#0000FF'>typedef</font> whatever_type_you_use_for_training_labels training_label_type;
+        <font color='#0000FF'>typedef</font> whatever_type_you_use_for_outout_labels   output_label_type;
+
+        <b><a name='EXAMPLE_LOSS_LAYER_'></a>EXAMPLE_LOSS_LAYER_</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - EXAMPLE_LOSS_LAYER_ objects are default constructable.
+        !*/</font>
+
+        <b><a name='EXAMPLE_LOSS_LAYER_'></a>EXAMPLE_LOSS_LAYER_</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> EXAMPLE_LOSS_LAYER_<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - EXAMPLE_LOSS_LAYER_ objects are copy constructable.
+        !*/</font>
+
+        <font color='#009900'>// Implementing to_label() is optional.
+</font>        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of
+                  layers_abstract.h.
+                - input_tensor was given as input to the network sub and the outputs are
+                  now visible in layer&lt;i&gt;(sub).get_output(), for all valid i.
+                - input_tensor.num_samples() &gt; 0
+                - input_tensor.num_samples()%sub.sample_expansion_factor() == 0.
+                - iter == an iterator pointing to the beginning of a range of
+                  input_tensor.num_samples()/sub.sample_expansion_factor() elements.  Moreover,
+                  they must be output_label_type elements.
+            ensures
+                - Converts the output of the provided network to output_label_type objects and
+                  stores the results into the range indicated by iter.  In particular, for
+                  all valid i, it will be the case that:
+                    *(iter+i/sub.sample_expansion_factor()) is populated based on the output of
+                    sub and corresponds to the ith sample in input_tensor.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of
+                  layers_abstract.h.
+                - input_tensor was given as input to the network sub and the outputs are
+                  now visible in layer&lt;i&gt;(sub).get_output(), for all valid i.
+                - input_tensor.num_samples() &gt; 0
+                - input_tensor.num_samples()%sub.sample_expansion_factor() == 0.
+                - for all valid i:
+                    - layer&lt;i&gt;(sub).get_gradient_input() has the same dimensions as
+                      layer&lt;i&gt;(sub).get_output().
+                    - layer&lt;i&gt;(sub).get_gradient_input() contains all zeros (i.e.
+                      initially, all input gradients are 0).
+                - truth == an iterator pointing to the beginning of a range of
+                  input_tensor.num_samples()/sub.sample_expansion_factor() elements.  Moreover,
+                  they must be training_label_type elements.
+                - for all valid i:
+                    - *(truth+i/sub.sample_expansion_factor()) is the label of the ith sample in
+                      input_tensor.
+            ensures
+                - This function computes a loss function that describes how well the output
+                  of sub matches the expected labels given by truth.  Let's write the loss
+                  function as L(input_tensor, truth, sub).  
+                - Then compute_loss_value_and_gradient() computes the gradient of L() with
+                  respect to the outputs in sub.  Specifically, compute_loss_value_and_gradient() 
+                  assigns the gradients into sub by performing the following tensor
+                  assignments, for all valid i: 
+                    - layer&lt;i&gt;(sub).get_gradient_input() = the gradient of
+                      L(input_tensor,truth,sub) with respect to layer&lt;i&gt;(sub).get_output().
+                      Note that, since get_gradient_input() is zero initialized, you don't
+                      have to write gradient information to layers that have a zero
+                      loss gradient.
+                - returns L(input_tensor,truth,sub)
+        !*/</font>
+    <b>}</b>;
+
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> EXAMPLE_LOSS_LAYER_<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        print a string describing this layer.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_LOSS_LAYER_<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        This function is optional, but required if you want to print your networks with
+        net_to_xml().  Therefore, to_xml() prints a layer as XML.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_LOSS_LAYER_<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>EXAMPLE_LOSS_LAYER_<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+    <font color='#009900'>// For each loss layer you define, always define an add_loss_layer template so that
+</font>    <font color='#009900'>// layers can be easily composed.  Moreover, the convention is that the layer class
+</font>    <font color='#009900'>// ends with an _ while the add_loss_layer template has the same name but without the
+</font>    <font color='#009900'>// trailing _.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> EXAMPLE_LOSS_LAYER <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>EXAMPLE_LOSS_LAYER_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_binary_hinge_'></a>loss_binary_hinge_</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the hinge loss, which is
+                appropriate for binary classification problems.  Therefore, the possible
+                labels when using this loss are +1 and -1.  Moreover, it will cause the
+                network to produce outputs &gt; 0 when predicting a member of the +1 class and
+                values &lt; 0 otherwise.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> training_label_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the raw score for each classified object.  If the score
+            is &gt; 0 then the classifier is predicting the +1 class, otherwise it is
+            predicting the -1 class.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient() 
+            except it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - all values pointed to by truth are +1 or -1.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_binary_hinge <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_binary_hinge_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_binary_log_'></a>loss_binary_log_</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the log loss, which is
+                appropriate for binary classification problems.  Therefore, the possible
+                labels when using this loss are +1 and -1.  Moreover, it will cause the
+                network to produce outputs &gt; 0 when predicting a member of the +1 class and
+                values &lt; 0 otherwise.
+
+                To be more specific, this object contains a sigmoid layer followed by a 
+                cross-entropy layer.  
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> training_label_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the raw score for each classified object.  If the score
+            is &gt; 0 then the classifier is predicting the +1 class, otherwise it is
+            predicting the -1 class.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient() 
+            except it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - all values pointed to by truth are +1 or -1.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_binary_log <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_binary_log_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_multiclass_log_'></a>loss_multiclass_log_</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the multiclass logistic
+                regression loss (e.g. negative log-likelihood loss), which is appropriate
+                for multiclass classification problems.  This means that the possible
+                labels when using this loss are integers &gt;= 0.  
+                
+                Moreover, if after training you were to replace the loss layer of the
+                network with a softmax layer, the network outputs would give the
+                probabilities of each class assignment.  That is, if you have K classes
+                then the network should output tensors with the tensor::k()'th dimension
+                equal to K.  Applying softmax to these K values gives the probabilities of
+                each class.  The index into that K dimensional vector with the highest
+                probability is the predicted class label.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> training_label_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the predicted class for each classified object.  The number
+            of possible output classes is sub.get_output().k().
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient() 
+            except it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - all values pointed to by truth are &lt; sub.get_output().k()
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_multiclass_log <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_multiclass_log_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>struct</font> <b><a name='mmod_options'></a>mmod_options</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object contains all the parameters that control the behavior of loss_mmod_.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>struct</font> <b><a name='detector_window_size'></a>detector_window_size</b>
+        <b>{</b>
+            <b><a name='detector_window_size'></a>detector_window_size</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>; 
+            <b><a name='detector_window_size'></a>detector_window_size</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> w, <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> h<font face='Lucida Console'>)</font> : width<font face='Lucida Console'>(</font>w<font face='Lucida Console'>)</font>, height<font face='Lucida Console'>(</font>h<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> width <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> height <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+            <font color='#0000FF'>friend</font> <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> detector_window_size<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>friend</font> <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>detector_window_size<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+        <b>}</b>;
+
+        <b><a name='mmod_options'></a>mmod_options</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+
+        <font color='#009900'>// This kind of object detector is a sliding window detector.  The detector_windows
+</font>        <font color='#009900'>// field determines how many sliding windows we will use and what the shape of each
+</font>        <font color='#009900'>// window is.  Since you will usually use the MMOD loss with an image pyramid, the
+</font>        <font color='#009900'>// detector sizes also determine the size of the smallest object you can detect.
+</font>        std::vector<font color='#5555FF'>&lt;</font>detector_window_size<font color='#5555FF'>&gt;</font> detector_windows;
+
+        <font color='#009900'>// These parameters control how we penalize different kinds of mistakes.  See 
+</font>        <font color='#009900'>// Max-Margin Object Detection by Davis E. King (http://arxiv.org/abs/1502.00046)
+</font>        <font color='#009900'>// for further details.
+</font>        <font color='#0000FF'><u>double</u></font> loss_per_false_alarm <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+        <font color='#0000FF'><u>double</u></font> loss_per_missed_target <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+
+        <font color='#009900'>// A detection must have an intersection-over-union value greater than this for us
+</font>        <font color='#009900'>// to consider it a match against a ground truth box.
+</font>        <font color='#0000FF'><u>double</u></font> truth_match_iou_threshold <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>;
+
+        <font color='#009900'>// When doing non-max suppression, we use overlaps_nms to decide if a box overlaps
+</font>        <font color='#009900'>// an already output detection and should therefore be thrown out.
+</font>        test_box_overlap overlaps_nms <font color='#5555FF'>=</font> <b><a name='test_box_overlap'></a>test_box_overlap</b><font face='Lucida Console'>(</font><font color='#979000'>0.4</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// Any mmod_rect in the training data that has its ignore field set to true defines
+</font>        <font color='#009900'>// an "ignore zone" in an image.  Any detection from that area is totally ignored
+</font>        <font color='#009900'>// by the optimizer.  Therefore, this overlaps_ignore field defines how we decide
+</font>        <font color='#009900'>// if a box falls into an ignore zone.  You use these ignore zones if there are
+</font>        <font color='#009900'>// objects in your dataset that you are unsure if you want to detect or otherwise
+</font>        <font color='#009900'>// don't care if the detector gets them or not.  
+</font>        test_box_overlap overlaps_ignore;
+
+        <b><a name='mmod_options'></a>mmod_options</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> boxes,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> target_size,      
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> min_target_size,   
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> min_detector_window_overlap_iou <font color='#5555FF'>=</font> <font color='#979000'>0.75</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - 0 &lt; min_target_size &lt;= target_size
+                - 0.5 &lt; min_detector_window_overlap_iou &lt; 1
+            ensures
+                - This function tries to automatically set the MMOD options to reasonable
+                  values, assuming you have a training dataset of boxes.size() images, where
+                  the ith image contains objects boxes[i] you want to detect.
+                - The most important thing this function does is decide what detector
+                  windows should be used.  This is done by finding a set of detector
+                  windows that are sized such that:
+                    - When slid over an image pyramid, each box in boxes will have an
+                      intersection-over-union with one of the detector windows of at least
+                      min_detector_window_overlap_iou.  That is, we will make sure that
+                      each box in boxes could potentially be detected by one of the
+                      detector windows.  This essentially comes down to picking detector
+                      windows with aspect ratios similar to the aspect ratios in boxes.
+                    - The longest edge of each detector window is target_size pixels in
+                      length, unless the window's shortest side would be less than
+                      min_target_size pixels in length.  In this case the shortest side
+                      will be set to min_target_size length, and the other side sized to
+                      preserve the aspect ratio of the window.  
+                  This means that target_size and min_target_size control the size of the
+                  detector windows, while the aspect ratios of the detector windows are
+                  automatically determined by the contents of boxes.  It should also be
+                  emphasized that the detector isn't going to be able to detect objects
+                  smaller than any of the detector windows.  So consider that when setting
+                  these sizes.
+                - This function will also set the overlaps_nms tester to the most
+                  restrictive tester that doesn't reject anything in boxes.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> mmod_options<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>mmod_options<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_mmod_'></a>loss_mmod_</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the Max Margin Object
+                Detection loss defined in the paper:
+                    Max-Margin Object Detection by Davis E. King (http://arxiv.org/abs/1502.00046).
+               
+                This means you use this loss if you want to detect the locations of objects
+                in images.
+
+                It should also be noted that this loss layer requires an input layer that
+                defines the following functions:
+                    - image_contained_point()
+                    - tensor_space_to_image_space()
+                    - image_space_to_tensor_space()
+                A reference implementation of them and their definitions can be found in
+                the input_rgb_image_pyramid object, which is the recommended input layer to
+                be used with loss_mmod_.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font> training_label_type;
+        <font color='#0000FF'>typedef</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font> output_label_type;
+
+        <b><a name='loss_mmod_'></a>loss_mmod_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_options() == mmod_options()
+        !*/</font>
+
+        <b><a name='loss_mmod_'></a>loss_mmod_</b><font face='Lucida Console'>(</font>
+            mmod_options options_
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_options() == options_
+        !*/</font>
+
+        <font color='#0000FF'>const</font> mmod_options<font color='#5555FF'>&amp;</font> <b><a name='get_options'></a>get_options</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the options object that defines the general behavior of this loss layer.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter,
+            <font color='#0000FF'><u>double</u></font> adjust_threshold <font color='#5555FF'>=</font> <font color='#979000'>0</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that: 
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            Also, the output labels are std::vectors of mmod_rects where, for each mmod_rect R,
+            we have the following interpretations:
+                - R.rect == the location of an object in the image.
+                - R.detection_confidence the score for the object, the bigger the score the
+                  more confident the detector is that an object is really there.  Only
+                  objects with a detection_confidence &gt; adjust_threshold are output.  So if
+                  you want to output more objects (that are also of less confidence) you
+                  can call to_label() with a smaller value of adjust_threshold.
+                - R.ignore == false (this value is unused by to_label()).
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient() 
+            except it has the additional calling requirements that: 
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            Also, the loss value returned is roughly equal to the average number of
+            mistakes made per image.  This is the sum of false alarms and missed
+            detections, weighted by the loss weights for these types of mistakes specified
+            in the mmod_options.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_mmod <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_mmod_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_metric_'></a>loss_metric_</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it allows you to learn to map objects
+                into a vector space where objects sharing the same class label are close to
+                each other, while objects with different labels are far apart.   
+
+                To be specific, it optimizes the following loss function which considers
+                all pairs of objects in a mini-batch and computes a different loss depending 
+                on their respective class labels.  So if objects A1 and A2 in a mini-batch
+                share the same class label then their contribution to the loss is:
+                    max(0, length(A1-A2)-get_distance_threshold() + get_margin())
+
+                While if A1 and B1 have different class labels then their contribution to
+                the loss function is:
+                    max(0, get_distance_threshold()-length(A1-B1) + get_margin())
+
+                Therefore, this loss layer optimizes a version of the hinge loss.
+                Moreover, the loss is trying to make sure that all objects with the same
+                label are within get_distance_threshold() distance of each other.
+                Conversely, if two objects have different labels then they should be more
+                than get_distance_threshold() distance from each other in the learned
+                embedding.  So this loss function gives you a natural decision boundary for
+                deciding if two objects are from the same class.
+
+                Finally, the loss balances the number of negative pairs relative to the
+                number of positive pairs.  Therefore, if there are N pairs that share the
+                same identity in a mini-batch then the algorithm will only include the N
+                worst non-matching pairs in the loss.  That is, the algorithm performs hard
+                negative mining on the non-matching pairs.  This is important since there
+                are in general way more non-matching pairs than matching pairs.  So to
+                avoid imbalance in the loss this kind of hard negative mining is useful.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> training_label_type;
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font>,<font color='#979000'>0</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font> output_label_type;
+
+        <b><a name='loss_metric_'></a>loss_metric_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_margin() == 0.04
+                - #get_distance_threshold() == 0.6
+        !*/</font>
+
+        <b><a name='loss_metric_'></a>loss_metric_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> margin,
+            <font color='#0000FF'><u>float</u></font> dist_thresh
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - margin &gt; 0
+                - dist_thresh &gt; 0
+            ensures
+                - #get_margin() == margin
+                - #get_distance_threshold() == dist_thresh
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            This loss expects the network to produce a single vector (per sample) as
+            output.  This vector is the learned embedding.  Therefore, to_label() just
+            copies these output vectors from the network into the output label_iterators
+            given to this function, one for each sample in the input_tensor.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_margin'></a>get_margin</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the margin value used by the loss function.  See the discussion
+                  in WHAT THIS OBJECT REPRESENTS for details.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_distance_threshold'></a>get_distance_threshold</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the distance threshold value used by the loss function.  See the discussion
+                  in WHAT THIS OBJECT REPRESENTS for details.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient() 
+            except it has the additional calling requirements that: 
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_metric <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_metric_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_mean_squared_'></a>loss_mean_squared_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the mean squared loss, which is
+                appropriate for regression problems.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> training_label_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'><u>float</u></font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that:
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the predicted continuous variable.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth,
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient()
+            except it has the additional calling requirements that:
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_mean_squared <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_mean_squared_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_mean_squared_multioutput_'></a>loss_mean_squared_multioutput_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the mean squared loss,
+                which is appropriate for regression problems.  It is basically just like
+                loss_mean_squared_ except that it lets you define multiple outputs instead
+                of just 1.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> training_label_type;
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that:
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the predicted continuous variable.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth,
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient()
+            except it has the additional calling requirements that:
+                - sub.get_output().nr() == 1
+                - sub.get_output().nc() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - (*(truth + idx)).nc() == 1 for all idx such that 0 &lt;= idx &lt; sub.get_output().num_samples()
+                - (*(truth + idx)).nr() == sub.get_output().k() for all idx such that 0 &lt;= idx &lt; sub.get_output().num_samples()
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_mean_squared_multioutput <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_mean_squared_multioutput_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_multiclass_log_per_pixel_'></a>loss_multiclass_log_per_pixel_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the multiclass logistic
+                regression loss (e.g. negative log-likelihood loss), which is appropriate
+                for multiclass classification problems.  It is basically just like
+                loss_multiclass_log_ except that it lets you define matrix outputs instead
+                of scalar outputs.  It should be useful, for example, in semantic
+                segmentation where we want to classify each pixel of an image.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#009900'>// In semantic segmentation, if you don't know the ground-truth of some pixel,
+</font>        <font color='#009900'>// set the label of that pixel to this value. When you do so, the pixel will be
+</font>        <font color='#009900'>// ignored when computing gradients.
+</font>        <font color='#0000FF'>static</font> <font color='#0000FF'>const</font> uint16_t label_to_ignore <font color='#5555FF'>=</font> std::numeric_limits<font color='#5555FF'>&lt;</font>uint16_t<font color='#5555FF'>&gt;</font>::<b><a name='max'></a>max</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// In semantic segmentation, 65535 classes ought to be enough for anybody.
+</font>        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>uint16_t<font color='#5555FF'>&gt;</font> training_label_type;
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>uint16_t<font color='#5555FF'>&gt;</font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that:
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the predicted class for each classified element.  The number
+            of possible output classes is sub.get_output().k().
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth,
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient()
+            except it has the additional calling requirements that:
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - all values pointed to by truth are &lt; sub.get_output().k() or are equal to label_to_ignore.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_multiclass_log_per_pixel <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_multiclass_log_per_pixel_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_multiclass_log_per_pixel_weighted_'></a>loss_multiclass_log_per_pixel_weighted_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the multiclass logistic
+                regression loss (e.g. negative log-likelihood loss), which is appropriate
+                for multiclass classification problems.  It is basically just like
+                loss_multiclass_log_per_pixel_ except that it lets you define per-pixel
+                weights, which may be useful e.g. if you want to emphasize rare classes
+                while training.  (If the classification problem is difficult, a flat weight
+                structure may lead the network to always predict the most common label, in
+                particular if the degree of imbalance is high.  To emphasize a certain
+                class or classes, simply increase the weights of the corresponding pixels,
+                relative to the weights of the other pixels.)
+
+                Note that if you set the weight to 0 whenever a pixel's label is equal to
+                loss_multiclass_log_per_pixel_::label_to_ignore, and to 1 otherwise, then
+                you essentially get loss_multiclass_log_per_pixel_ as a special case.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>struct</font> <b><a name='weighted_label'></a>weighted_label</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This object represents the truth label of a single pixel, together with
+                    an associated weight (the higher the weight, the more emphasis the
+                    corresponding pixel is given during the training).
+            !*/</font>
+
+            <b><a name='weighted_label'></a>weighted_label</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b><a name='weighted_label'></a>weighted_label</b><font face='Lucida Console'>(</font>uint16_t label, <font color='#0000FF'><u>float</u></font> weight <font color='#5555FF'>=</font> <font color='#979000'>1.f</font><font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// The ground-truth label. In semantic segmentation, 65536 classes ought to be
+</font>            <font color='#009900'>// enough for anybody.
+</font>            uint16_t label <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+            <font color='#009900'>// The weight of the corresponding pixel.
+</font>            <font color='#0000FF'><u>float</u></font> weight <font color='#5555FF'>=</font> <font color='#979000'>1.f</font>;
+        <b>}</b>;
+
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>weighted_label<font color='#5555FF'>&gt;</font> training_label_type;
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>uint16_t<font color='#5555FF'>&gt;</font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that:
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output label is the predicted class for each classified element.  The number
+            of possible output classes is sub.get_output().k().
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth,
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient()
+            except it has the additional calling requirements that:
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - all labels pointed to by truth are &lt; sub.get_output().k(), or the corresponding weight
+                  is zero.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_multiclass_log_per_pixel_weighted <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_multiclass_log_per_pixel_weighted_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='loss_mean_squared_per_pixel_'></a>loss_mean_squared_per_pixel_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the loss layer interface defined above by
+                EXAMPLE_LOSS_LAYER_.  In particular, it implements the mean squared loss,
+                which is appropriate for regression problems.  It is basically just like
+                loss_mean_squared_multioutput_ except that it lets you define matrix or
+                image outputs, instead of vector.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> training_label_type;
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> output_label_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> SUB_TYPE,
+            <font color='#0000FF'>typename</font> label_iterator
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_label'></a>to_label</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            <font color='#0000FF'>const</font> SUB_TYPE<font color='#5555FF'>&amp;</font> sub,
+            label_iterator iter
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::to_label() except
+            it has the additional calling requirements that:
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+            and the output labels are the predicted continuous variables.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> const_label_iterator,
+            <font color='#0000FF'>typename</font> SUBNET
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss_value_and_gradient'></a>compute_loss_value_and_gradient</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input_tensor,
+            const_label_iterator truth,
+            SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            This function has the same interface as EXAMPLE_LOSS_LAYER_::compute_loss_value_and_gradient()
+            except it has the additional calling requirements that:
+                - sub.get_output().k() == 1
+                - sub.get_output().num_samples() == input_tensor.num_samples()
+                - sub.sample_expansion_factor() == 1
+                - for all idx such that 0 &lt;= idx &lt; sub.get_output().num_samples():
+                    - sub.get_output().nr() == (*(truth + idx)).nr()
+                    - sub.get_output().nc() == (*(truth + idx)).nc()
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> loss_mean_squared_per_pixel <font color='#5555FF'>=</font> add_loss_layer<font color='#5555FF'>&lt;</font>loss_mean_squared_per_pixel_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_LOSS_ABSTRACT_H_
+</font>
+
+</pre></body></html>

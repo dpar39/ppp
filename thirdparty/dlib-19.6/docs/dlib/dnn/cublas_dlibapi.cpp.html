@@ -1,0 +1,168 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cublas_dlibapi.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuBLAS_CPP_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuBLAS_CPP_
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cublas_dlibapi.h.html'>cublas_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_utils.h.html'>cuda_utils.h</a>"
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cublas_v2.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>vector<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>static</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> <b><a name='cublas_get_error_string'></a>cublas_get_error_string</b><font face='Lucida Console'>(</font>cublasStatus_t s<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#0000FF'>switch</font><font face='Lucida Console'>(</font>s<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>case</font> CUBLAS_STATUS_NOT_INITIALIZED: 
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>CUDA Runtime API initialization failed.</font>";
+        <font color='#0000FF'>case</font> CUBLAS_STATUS_ALLOC_FAILED: 
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>CUDA Resources could not be allocated.</font>";
+        <font color='#0000FF'>default</font>:
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>A call to cuBLAS failed</font>";
+    <b>}</b>
+<b>}</b>
+
+<font color='#009900'>// Check the return value of a call to the cuBLAS runtime for an error condition.
+</font><font color='#0000FF'>#define</font> CHECK_CUBLAS<font face='Lucida Console'>(</font>call<font face='Lucida Console'>)</font>                                                      \
+<font color='#0000FF'>do</font><b>{</b>                                                                              \
+    <font color='#0000FF'>const</font> cublasStatus_t error <font color='#5555FF'>=</font> call;                                         \
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>error <font color='#5555FF'>!</font><font color='#5555FF'>=</font> CUBLAS_STATUS_SUCCESS<font face='Lucida Console'>)</font>                                        \
+    <b>{</b>                                                                          \
+        std::ostringstream sout;                                               \
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Error while calling </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> #call <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> in file </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __FILE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>:</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> __LINE__ <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>. </font>";\
+        sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>code: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> error <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>cublas_get_error_string</font><font face='Lucida Console'>(</font>error<font face='Lucida Console'>)</font>;\
+        <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>cublas_error</font><font face='Lucida Console'>(</font>sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;                            \
+    <b>}</b>                                                                          \
+<b>}</b><font color='#0000FF'>while</font><font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda 
+    <b>{</b>
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='cublas_context'></a>cublas_context</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+            <font color='#009900'>// not copyable
+</font>            <b><a name='cublas_context'></a>cublas_context</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> cublas_context<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            cublas_context<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> cublas_context<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='cublas_context'></a>cublas_context</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                handles.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font><font color='#979000'>16</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            ~<b><a name='cublas_context'></a>cublas_context</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> h : handles<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>h<font face='Lucida Console'>)</font>
+                        <font color='#BB00BB'>cublasDestroy</font><font face='Lucida Console'>(</font>h<font face='Lucida Console'>)</font>;
+                <b>}</b>
+            <b>}</b>
+
+            cublasHandle_t <b><a name='get_handle'></a>get_handle</b> <font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>  
+            <b>{</b> 
+                <font color='#0000FF'><u>int</u></font> new_device_id;
+                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaGetDevice</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>new_device_id<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#009900'>// make room for more devices if needed
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>new_device_id <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font><font face='Lucida Console'>)</font>handles.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    handles.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font>new_device_id<font color='#5555FF'>+</font><font color='#979000'>16</font><font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// If we don't have a handle already for this device then make one
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>handles[new_device_id]<font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>CHECK_CUBLAS</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cublasCreate</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>handles[new_device_id]<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// Finally, return the handle for the current device
+</font>                <font color='#0000FF'>return</font> handles[new_device_id];
+            <b>}</b>
+
+        <font color='#0000FF'>private</font>:
+
+            std::vector<font color='#5555FF'>&lt;</font>cublasHandle_t<font color='#5555FF'>&gt;</font> handles;
+        <b>}</b>;
+
+        <font color='#0000FF'>static</font> cublasHandle_t <b><a name='context'></a>context</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            thread_local cublas_context c;
+            <font color='#0000FF'>return</font> c.<font color='#BB00BB'>get_handle</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='gemm'></a>gemm</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> beta,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'><u>float</u></font> alpha,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> lhs,
+            <font color='#0000FF'><u>bool</u></font> trans_lhs,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> rhs,
+            <font color='#0000FF'><u>bool</u></font> trans_rhs
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// Recall that BLAS uses column major order so to deal with that we flip the
+</font>            <font color='#009900'>// order of the lhs and rhs arguments.
+</font>            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> transa <font color='#5555FF'>=</font> trans_lhs ? CUBLAS_OP_T : CUBLAS_OP_N;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> transb <font color='#5555FF'>=</font> trans_rhs ? CUBLAS_OP_T : CUBLAS_OP_N;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> dest_nr <font color='#5555FF'>=</font> dest.<font color='#BB00BB'>num_samples</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> dest_nc <font color='#5555FF'>=</font> dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>dest_nr;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> lhs_nr <font color='#5555FF'>=</font> lhs.<font color='#BB00BB'>num_samples</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> lhs_nc <font color='#5555FF'>=</font> lhs.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>lhs_nr;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> rhs_nr <font color='#5555FF'>=</font> rhs.<font color='#BB00BB'>num_samples</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> rhs_nc <font color='#5555FF'>=</font> rhs.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>rhs_nr;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>trans_lhs <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> trans_rhs<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font> dest_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> lhs_nc <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              dest_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              lhs_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nc<font face='Lucida Console'>)</font>
+            <b>}</b>
+            <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>trans_lhs <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> trans_rhs<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font> dest_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> lhs_nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              dest_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              lhs_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nc<font face='Lucida Console'>)</font>
+            <b>}</b>
+            <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>trans_lhs <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font color='#5555FF'>!</font>trans_rhs<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font> dest_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> lhs_nc <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              dest_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nc <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              lhs_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nr<font face='Lucida Console'>)</font>
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font> dest_nr <font color='#5555FF'>=</font><font color='#5555FF'>=</font> lhs_nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              dest_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nc <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+                              lhs_nc <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rhs_nr<font face='Lucida Console'>)</font>
+            <b>}</b>
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> k <font color='#5555FF'>=</font> trans_rhs ? rhs_nc : rhs_nr;
+            <font color='#BB00BB'>CHECK_CUBLAS</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cublasSgemm</font><font face='Lucida Console'>(</font><font color='#BB00BB'>context</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,
+                              transb,
+                              transa, 
+                              dest_nc, dest_nr, k,
+                              <font color='#5555FF'>&amp;</font>alpha,
+                              rhs.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, rhs_nc,
+                              lhs.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, lhs_nc,
+                              <font color='#5555FF'>&amp;</font>beta,
+                              dest.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,dest_nc<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+    <b>}</b>  
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuBLAS_CPP_
+</font>
+
+
+
+</pre></body></html>

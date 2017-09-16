@@ -1,0 +1,98 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - random_cropper_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    When you are training a convolutional neural network using the loss_mmod loss
+    layer, you need to generate a bunch of identically sized training images.  The
+    random_cropper is a convenient tool to help you crop out a bunch of
+    identically sized images from a training dataset.
+
+    This example shows you what it does exactly and talks about some of its options.
+*/</font>
+
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>data_io.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>gui_widgets.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_transforms.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> argc, <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font color='#5555FF'>*</font> argv<font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>argc <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Give an image dataset XML file to run this program.</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>For example, if you are running from the examples folder then run this program by typing</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>   ./random_cropper_ex faces/training.xml</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+    <b>}</b>
+
+    <font color='#009900'>// First lets load a dataset
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> images;
+    std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> boxes;
+    <font color='#BB00BB'>load_image_dataset</font><font face='Lucida Console'>(</font>images, boxes, argv[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// Here we make our random_cropper.  It has a number of options. 
+</font>    random_cropper cropper;
+    <font color='#009900'>// We can tell it how big we want the cropped images to be.
+</font>    cropper.<font color='#BB00BB'>set_chip_dims</font><font face='Lucida Console'>(</font><font color='#979000'>400</font>,<font color='#979000'>400</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Also, when doing cropping, it will map the object annotations from the
+</font>    <font color='#009900'>// dataset to the cropped image as well as perform random scale jittering.
+</font>    <font color='#009900'>// You can tell it how much scale jittering you would like by saying "please
+</font>    <font color='#009900'>// make the objects in the crops have a min and max size of such and such".
+</font>    <font color='#009900'>// You do that by calling these two functions.  Here we are saying we want the
+</font>    <font color='#009900'>// objects in our crops to be between 0.2*400 and 0.8*400 pixels in height.
+</font>    cropper.<font color='#BB00BB'>set_min_object_size</font><font face='Lucida Console'>(</font><font color='#979000'>0.2</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_max_object_size</font><font face='Lucida Console'>(</font><font color='#979000'>0.8</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// The cropper can also randomly mirror and rotate crops, which we ask it to
+</font>    <font color='#009900'>// perform as well.
+</font>    cropper.<font color='#BB00BB'>set_randomly_flip</font><font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_max_rotation_degrees</font><font face='Lucida Console'>(</font><font color='#979000'>50</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// This fraction of crops are from random parts of images, rather than being centered
+</font>    <font color='#009900'>// on some object.
+</font>    cropper.<font color='#BB00BB'>set_background_crops_fraction</font><font face='Lucida Console'>(</font><font color='#979000'>0.2</font><font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// Now ask the cropper to generate a bunch of crops.  The output is stored in
+</font>    <font color='#009900'>// crops and crop_boxes.
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> crops;
+    std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> crop_boxes;
+    <font color='#009900'>// Make 1000 crops.
+</font>    <font color='#BB00BB'>cropper</font><font face='Lucida Console'>(</font><font color='#979000'>1000</font>, images, boxes, crops, crop_boxes<font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// Finally, lets look at the results
+</font>    image_window win;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> crops.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        win.<font color='#BB00BB'>clear_overlay</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        win.<font color='#BB00BB'>set_image</font><font face='Lucida Console'>(</font>crops[i]<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> b : crop_boxes[i]<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// Note that mmod_rect has an ignore field.  If an object was labeled
+</font>            <font color='#009900'>// ignore in boxes then it will still be labeled as ignore in
+</font>            <font color='#009900'>// crop_boxes.  Moreover, objects that are not well contained within
+</font>            <font color='#009900'>// the crop are also set to ignore.
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>b.ignore<font face='Lucida Console'>)</font>
+                win.<font color='#BB00BB'>add_overlay</font><font face='Lucida Console'>(</font>b.rect, <font color='#BB00BB'>rgb_pixel</font><font face='Lucida Console'>(</font><font color='#979000'>255</font>,<font color='#979000'>255</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>; <font color='#009900'>// draw ignored boxes as orange 
+</font>            <font color='#0000FF'>else</font>
+                win.<font color='#BB00BB'>add_overlay</font><font face='Lucida Console'>(</font>b.rect, <font color='#BB00BB'>rgb_pixel</font><font face='Lucida Console'>(</font><font color='#979000'>255</font>,<font color='#979000'>0</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;   <font color='#009900'>// draw other boxes as red
+</font>        <b>}</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Hit enter to view the next random crop.</font>";
+        cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+
+
+
+
+
+</pre></body></html>

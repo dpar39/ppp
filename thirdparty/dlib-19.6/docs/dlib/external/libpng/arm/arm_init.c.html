@@ -1,0 +1,235 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - arm_init.c</title></head><body bgcolor='white'><pre>
+
+<font color='#009900'>/* arm_init.c - NEON optimised filter functions
+ *
+ * Copyright (c) 2013 Glenn Randers-Pehrson
+ * Written by Mans Rullgard, 2011.
+ * Last changed in libpng 1.6.6 [September 16, 2013]
+ *
+ * This code is released under the libpng license.
+ * For conditions of distribution and use, see the disclaimer
+ * and license in png.h
+ */</font>
+<font color='#009900'>/* Below, after checking __linux__, various non-C90 POSIX 1003.1 functions are
+ * called.
+ */</font>
+<font color='#0000FF'>#define</font> _POSIX_SOURCE <font color='#979000'>1</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pngpriv.h.html'>../pngpriv.h</a>"
+
+<font color='#0000FF'>#ifdef</font> PNG_READ_SUPPORTED
+<font color='#0000FF'>#if</font> PNG_ARM_NEON_OPT <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font>
+<font color='#0000FF'>#ifdef</font> PNG_ARM_NEON_CHECK_SUPPORTED <font color='#009900'>/* Do run-time checks */</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>signal.h<font color='#5555FF'>&gt;</font> <font color='#009900'>/* for sig_atomic_t */</font>
+
+<font color='#0000FF'>#ifdef</font> __ANDROID__
+<font color='#009900'>/* Linux provides access to information about CPU capabilites via
+ * /proc/self/auxv, however Android blocks this while still claiming to be
+ * Linux.  The Andoid NDK, however, provides appropriate support.
+ *
+ * Documentation: http://www.kandroid.org/ndk/docs/CPU-ARM-NEON.html
+ */</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cpu<font color='#5555FF'>-</font>features.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>static</font> <font color='#0000FF'><u>int</u></font>
+<b><a name='png_have_neon'></a>png_have_neon</b><font face='Lucida Console'>(</font>png_structp png_ptr<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#009900'>/* This is a whole lot easier than the mess below, however it is probably
+    * implemented as below, therefore it is better to cache the result (these
+    * function calls may be slow!)
+    */</font>
+   <font color='#BB00BB'>PNG_UNUSED</font><font face='Lucida Console'>(</font>png_ptr<font face='Lucida Console'>)</font>
+   <font color='#0000FF'>return</font> <font color='#BB00BB'>android_getCpuFamily</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> ANDROID_CPU_FAMILY_ARM <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>
+      <font face='Lucida Console'>(</font><font color='#BB00BB'>android_getCpuFeatures</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font> ANDROID_CPU_ARM_FEATURE_NEON<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+<b>}</b>
+<font color='#0000FF'>#elif</font> defined<font face='Lucida Console'>(</font>__linux__<font face='Lucida Console'>)</font>
+<font color='#009900'>/* The generic __linux__ implementation requires reading /proc/self/auxv and
+ * looking at each element for one that records NEON capabilities.
+ */</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>unistd.h<font color='#5555FF'>&gt;</font> <font color='#009900'>/* for POSIX 1003.1 */</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>errno.h<font color='#5555FF'>&gt;</font>  <font color='#009900'>/* for EINTR */</font>
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>types.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>stat.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>fcntl.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>elf.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>asm<font color='#5555FF'>/</font>hwcap.h<font color='#5555FF'>&gt;</font>
+
+<font color='#009900'>/* A read call may be interrupted, in which case it returns -1 and sets errno to
+ * EINTR if nothing was done, otherwise (if something was done) a partial read
+ * may result.
+ */</font>
+<font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font>
+<b><a name='safe_read'></a>safe_read</b><font face='Lucida Console'>(</font>png_structp png_ptr, <font color='#0000FF'><u>int</u></font> fd, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>buffer_in, <font color='#0000FF'><u>size_t</u></font> nbytes<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#0000FF'><u>size_t</u></font> ntotal <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+   <font color='#0000FF'><u>char</u></font> <font color='#5555FF'>*</font>buffer <font color='#5555FF'>=</font> <font color='#BB00BB'>png_voidcast</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font>, buffer_in<font face='Lucida Console'>)</font>;
+
+   <font color='#0000FF'>while</font> <font face='Lucida Console'>(</font>nbytes <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> nread;
+      <font color='#0000FF'><u>int</u></font> iread;
+
+      <font color='#009900'>/* Passing nread &gt; INT_MAX to read is implementation defined in POSIX
+       * 1003.1, therefore despite the unsigned argument portable code must
+       * limit the value to INT_MAX!
+       */</font>
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>nbytes <font color='#5555FF'>&gt;</font> INT_MAX<font face='Lucida Console'>)</font>
+         nread <font color='#5555FF'>=</font> INT_MAX;
+
+      <font color='#0000FF'>else</font>
+         nread <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font><font color='#009900'>/*SAFE*/</font>nbytes;
+
+      iread <font color='#5555FF'>=</font> <font color='#BB00BB'>read</font><font face='Lucida Console'>(</font>fd, buffer, nread<font face='Lucida Console'>)</font>;
+
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>iread <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#009900'>/* This is the devil in the details, a read can terminate early with 0
+          * bytes read because of EINTR, yet it still returns -1 otherwise end
+          * of file cannot be distinguished.
+          */</font>
+         <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>errno <font color='#5555FF'>!</font><font color='#5555FF'>=</font> EINTR<font face='Lucida Console'>)</font>
+         <b>{</b>
+            <font color='#BB00BB'>png_warning</font><font face='Lucida Console'>(</font>png_ptr, "<font color='#CC0000'>/proc read failed</font>"<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> <font color='#979000'>0</font>; <font color='#009900'>/* I.e. a permanent failure */</font>
+         <b>}</b>
+      <b>}</b>
+
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>iread <font color='#5555FF'>&lt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#009900'>/* Not a valid 'read' result: */</font>
+         <font color='#BB00BB'>png_warning</font><font face='Lucida Console'>(</font>png_ptr, "<font color='#CC0000'>OS /proc read bug</font>"<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>iread <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#009900'>/* Continue reading until a permanent failure, or EOF */</font>
+         buffer <font color='#5555FF'>+</font><font color='#5555FF'>=</font> iread;
+         nbytes <font color='#5555FF'>-</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font><font color='#009900'>/*SAFE*/</font>iread;
+         ntotal <font color='#5555FF'>+</font><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font><font color='#009900'>/*SAFE*/</font>iread;
+      <b>}</b>
+
+      <font color='#0000FF'>else</font>
+         <font color='#0000FF'>return</font> ntotal;
+   <b>}</b>
+
+   <font color='#0000FF'>return</font> ntotal; <font color='#009900'>/* nbytes == 0 */</font>
+<b>}</b>
+
+<font color='#0000FF'>static</font> <font color='#0000FF'><u>int</u></font>
+<b><a name='png_have_neon'></a>png_have_neon</b><font face='Lucida Console'>(</font>png_structp png_ptr<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#0000FF'><u>int</u></font> fd <font color='#5555FF'>=</font> <font color='#BB00BB'>open</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>/proc/self/auxv</font>", O_RDONLY<font face='Lucida Console'>)</font>;
+   Elf32_auxv_t aux;
+
+   <font color='#009900'>/* Failsafe: failure to open means no NEON */</font>
+   <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>fd <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#BB00BB'>png_warning</font><font face='Lucida Console'>(</font>png_ptr, "<font color='#CC0000'>/proc/self/auxv open failed</font>"<font face='Lucida Console'>)</font>;
+      <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+   <b>}</b>
+
+   <font color='#0000FF'>while</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>safe_read</font><font face='Lucida Console'>(</font>png_ptr, fd, <font color='#5555FF'>&amp;</font>aux, <font color='#0000FF'>sizeof</font> aux<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#0000FF'>sizeof</font> aux<font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>aux.a_type <font color='#5555FF'>=</font><font color='#5555FF'>=</font> AT_HWCAP <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font face='Lucida Console'>(</font>aux.a_un.a_val <font color='#5555FF'>&amp;</font> HWCAP_NEON<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>fd<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+      <b>}</b>
+   <b>}</b>
+
+   <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>fd<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+<b>}</b>
+<font color='#0000FF'>#else</font>
+   <font color='#009900'>/* We don't know how to do a run-time check on this system */</font>
+#  error "<font color='#CC0000'>no support for run-time ARM NEON checks</font>"
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* OS checks */</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_CHECK_SUPPORTED */</font>
+
+<font color='#0000FF'>#ifndef</font> PNG_ALIGNED_MEMORY_SUPPORTED
+#  error "<font color='#CC0000'>ALIGNED_MEMORY is required; set: -DPNG_ALIGNED_MEMORY_SUPPORTED</font>"
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'><u>void</u></font>
+<b><a name='png_init_filter_functions_neon'></a>png_init_filter_functions_neon</b><font face='Lucida Console'>(</font>png_structp pp, <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> bpp<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#009900'>/* The switch statement is compiled in for ARM_NEON_API, the call to
+    * png_have_neon is compiled in for ARM_NEON_CHECK.  If both are defined
+    * the check is only performed if the API has not set the NEON option on
+    * or off explicitly.  In this case the check controls what happens.
+    *
+    * If the CHECK is not compiled in and the option is UNSET the behavior prior
+    * to 1.6.7 was to use the NEON code - this was a bug caused by having the
+    * wrong order of the 'ON' and 'default' cases.  UNSET now defaults to OFF,
+    * as documented in png.h
+    */</font>
+<font color='#0000FF'>#ifdef</font> PNG_ARM_NEON_API_SUPPORTED
+   <font color='#0000FF'>switch</font> <font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>options <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> PNG_ARM_NEON<font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font> <font color='#979000'>3</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>case</font> PNG_OPTION_UNSET:
+         <font color='#009900'>/* Allow the run-time check to execute if it has been enabled -
+          * thus both API and CHECK can be turned on.  If it isn't supported
+          * this case will fall through to the 'default' below, which just
+          * returns.
+          */</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_API_SUPPORTED */</font>
+<font color='#0000FF'>#ifdef</font> PNG_ARM_NEON_CHECK_SUPPORTED
+         <b>{</b>
+            <font color='#0000FF'>static</font> <font color='#0000FF'>volatile</font> sig_atomic_t no_neon <font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font>; <font color='#009900'>/* not checked */</font>
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>no_neon <font color='#5555FF'>&lt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+               no_neon <font color='#5555FF'>=</font> <font color='#5555FF'>!</font><font color='#BB00BB'>png_have_neon</font><font face='Lucida Console'>(</font>pp<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>no_neon<font face='Lucida Console'>)</font>
+               <font color='#0000FF'>return</font>;
+         <b>}</b>
+<font color='#0000FF'>#ifdef</font> PNG_ARM_NEON_API_SUPPORTED
+         <font color='#0000FF'>break</font>;
+<font color='#0000FF'>#endif</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_CHECK_SUPPORTED */</font>
+
+<font color='#0000FF'>#ifdef</font> PNG_ARM_NEON_API_SUPPORTED
+      <font color='#0000FF'>default</font>: <font color='#009900'>/* OFF or INVALID */</font>
+         <font color='#0000FF'>return</font>;
+
+      <font color='#0000FF'>case</font> PNG_OPTION_ON:
+         <font color='#009900'>/* Option turned on */</font>
+         <font color='#0000FF'>break</font>;
+   <b>}</b>
+<font color='#0000FF'>#endif</font>
+
+   <font color='#009900'>/* IMPORTANT: any new external functions used here must be declared using
+    * PNG_INTERNAL_FUNCTION in ../pngpriv.h.  This is required so that the
+    * 'prefix' option to configure works:
+    *
+    *    ./configure --with-libpng-prefix=foobar_
+    *
+    * Verify you have got this right by running the above command, doing a build
+    * and examining pngprefix.h; it must contain a #define for every external
+    * function you add.  (Notice that this happens automatically for the
+    * initialization function.)
+    */</font>
+   pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_UP<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font> png_read_filter_row_up_neon;
+
+   <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>bpp <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>3</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_SUB<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font> png_read_filter_row_sub3_neon;
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_AVG<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font> png_read_filter_row_avg3_neon;
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_PAETH<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font>
+         png_read_filter_row_paeth3_neon;
+   <b>}</b>
+
+   <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>bpp <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>4</font><font face='Lucida Console'>)</font>
+   <b>{</b>
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_SUB<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font> png_read_filter_row_sub4_neon;
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_AVG<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font> png_read_filter_row_avg4_neon;
+      pp<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font>read_filter[PNG_FILTER_VALUE_PAETH<font color='#5555FF'>-</font><font color='#979000'>1</font>] <font color='#5555FF'>=</font>
+          png_read_filter_row_paeth4_neon;
+   <b>}</b>
+<b>}</b>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_ARM_NEON_OPT &gt; 0 */</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>/* PNG_READ_SUPPORTED */</font>
+
+</pre></body></html>

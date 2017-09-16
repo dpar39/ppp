@@ -1,0 +1,236 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn_face_recognition_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This is an example illustrating the use of the deep learning tools from the dlib C++
+    Library.  In it, we will show how to do face recognition.  This example uses the
+    pretrained dlib_face_recognition_resnet_model_v1 model which is freely available from
+    the dlib web site.  This model has a 99.38% accuracy on the standard LFW face
+    recognition benchmark, which is comparable to other state-of-the-art methods for face
+    recognition as of February 2017. 
+    
+    In this example, we will use dlib to do face clustering.  Included in the examples
+    folder is an image, bald_guys.jpg, which contains a bunch of photos of action movie
+    stars Vin Diesel, The Rock, Jason Statham, and Bruce Willis.   We will use dlib to
+    automatically find their faces in the image and then to automatically determine how
+    many people there are (4 in this case) as well as which faces belong to each person.
+    
+    Finally, this example uses a network with the loss_metric loss.  Therefore, if you want
+    to learn how to train your own models, or to get a general introduction to this loss
+    layer, you should read the <a href="dnn_metric_learning_ex.cpp.html">dnn_metric_learning_ex.cpp</a> and
+    <a href="dnn_metric_learning_on_images_ex.cpp.html">dnn_metric_learning_on_images_ex.cpp</a> examples.
+*/</font>
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>dnn.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>gui_widgets.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>clustering.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>string.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_io.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_processing<font color='#5555FF'>/</font>frontal_face_detector.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#009900'>// The next bit of code defines a ResNet network.  It's basically copied
+</font><font color='#009900'>// and pasted from the <a href="dnn_imagenet_ex.cpp.html">dnn_imagenet_ex.cpp</a> example, except we replaced the loss
+</font><font color='#009900'>// layer with loss_metric and made the network somewhat smaller.  Go read the introductory
+</font><font color='#009900'>// dlib DNN examples to learn what all this stuff means.
+</font><font color='#009900'>//
+</font><font color='#009900'>// Also, the <a href="dnn_metric_learning_on_images_ex.cpp.html">dnn_metric_learning_on_images_ex.cpp</a> example shows how to train this network.
+</font><font color='#009900'>// The dlib_face_recognition_resnet_model_v1 model used by this example was trained using
+</font><font color='#009900'>// essentially the code shown in <a href="dnn_metric_learning_on_images_ex.cpp.html">dnn_metric_learning_on_images_ex.cpp</a> except the
+</font><font color='#009900'>// mini-batches were made larger (35x15 instead of 5x5), the iterations without progress
+</font><font color='#009900'>// was set to 10000, the jittering you can see below in jitter_image() was used during
+</font><font color='#009900'>// training, and the training dataset consisted of about 3 million images instead of 55.
+</font><font color='#009900'>// Also, the input layer was locked to images of size 150.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, <font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual <font color='#5555FF'>=</font> add_prev1<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>1</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, <font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual_down <font color='#5555FF'>=</font> add_prev2<font color='#5555FF'>&lt;</font>avg_pool<font color='#5555FF'>&lt;</font><font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,skip1<font color='#5555FF'>&lt;</font>tag2<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>2</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, <font color='#0000FF'><u>int</u></font> stride, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> 
+<font color='#0000FF'>using</font> block  <font color='#5555FF'>=</font> BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,relu<font color='#5555FF'>&lt;</font>BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,stride,stride,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares      <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual<font color='#5555FF'>&lt;</font>block,N,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares_down <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual_down<font color='#5555FF'>&lt;</font>block,N,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> alevel0 <font color='#5555FF'>=</font> ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,SUBNET<font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> alevel1 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>256</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> alevel2 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> alevel3 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,ares_down<font color='#5555FF'>&lt;</font><font color='#979000'>64</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> alevel4 <font color='#5555FF'>=</font> ares<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,ares<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#0000FF'>using</font> anet_type <font color='#5555FF'>=</font> loss_metric<font color='#5555FF'>&lt;</font>fc_no_bias<font color='#5555FF'>&lt;</font><font color='#979000'>128</font>,avg_pool_everything<font color='#5555FF'>&lt;</font>
+                            alevel0<font color='#5555FF'>&lt;</font>
+                            alevel1<font color='#5555FF'>&lt;</font>
+                            alevel2<font color='#5555FF'>&lt;</font>
+                            alevel3<font color='#5555FF'>&lt;</font>
+                            alevel4<font color='#5555FF'>&lt;</font>
+                            max_pool<font color='#5555FF'>&lt;</font><font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>,<font color='#979000'>7</font>,<font color='#979000'>7</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,
+                            input_rgb_image_sized<font color='#5555FF'>&lt;</font><font color='#979000'>150</font><font color='#5555FF'>&gt;</font>
+                            <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> <b><a name='jitter_image'></a>jitter_image</b><font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> img
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> argc, <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font color='#5555FF'>*</font> argv<font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>argc <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Run this example by invoking it like this: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>   ./dnn_face_recognition_ex faces/bald_guys.jpg</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>You will also need to get the face landmarking model file as well as </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>the face recognition model file.  Download and then decompress these files from: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+    <b>}</b>
+
+    <font color='#009900'>// The first thing we are going to do is load all our models.  First, since we need to
+</font>    <font color='#009900'>// find faces in the image we will need a face detector:
+</font>    frontal_face_detector detector <font color='#5555FF'>=</font> <font color='#BB00BB'>get_frontal_face_detector</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// We will also use a face landmarking model to align faces to a standard pose:  (see <a href="face_landmark_detection_ex.cpp.html">face_landmark_detection_ex.cpp</a> for an introduction)
+</font>    shape_predictor sp;
+    <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>shape_predictor_68_face_landmarks.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> sp;
+    <font color='#009900'>// And finally we load the DNN responsible for face recognition.
+</font>    anet_type net;
+    <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>dlib_face_recognition_resnet_model_v1.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> net;
+
+    matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> img;
+    <font color='#BB00BB'>load_image</font><font face='Lucida Console'>(</font>img, argv[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Display the raw image on the screen
+</font>    image_window <font color='#BB00BB'>win</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>; 
+
+    <font color='#009900'>// Run the face detector on the image of our action heroes, and for each face extract a
+</font>    <font color='#009900'>// copy that has been normalized to 150x150 pixels in size and appropriately rotated
+</font>    <font color='#009900'>// and centered.
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> faces;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> face : <font color='#BB00BB'>detector</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>auto</font> shape <font color='#5555FF'>=</font> <font color='#BB00BB'>sp</font><font face='Lucida Console'>(</font>img, face<font face='Lucida Console'>)</font>;
+        matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> face_chip;
+        <font color='#BB00BB'>extract_image_chip</font><font face='Lucida Console'>(</font>img, <font color='#BB00BB'>get_face_chip_details</font><font face='Lucida Console'>(</font>shape,<font color='#979000'>150</font>,<font color='#979000'>0.25</font><font face='Lucida Console'>)</font>, face_chip<font face='Lucida Console'>)</font>;
+        faces.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>move</font><font face='Lucida Console'>(</font>face_chip<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#009900'>// Also put some boxes on the faces so we can see that the detector is finding
+</font>        <font color='#009900'>// them.
+</font>        win.<font color='#BB00BB'>add_overlay</font><font face='Lucida Console'>(</font>face<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>faces.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>No faces found in image!</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+    <b>}</b>
+
+    <font color='#009900'>// This call asks the DNN to convert each face image in faces into a 128D vector.
+</font>    <font color='#009900'>// In this 128D vector space, images from the same person will be close to each other
+</font>    <font color='#009900'>// but vectors from different people will be far apart.  So we can use these vectors to
+</font>    <font color='#009900'>// identify if a pair of images are from the same person or from different people.  
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font>,<font color='#979000'>0</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> face_descriptors <font color='#5555FF'>=</font> <font color='#BB00BB'>net</font><font face='Lucida Console'>(</font>faces<font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// In particular, one simple thing we can do is face clustering.  This next bit of code
+</font>    <font color='#009900'>// creates a graph of connected faces and then uses the Chinese whispers graph clustering
+</font>    <font color='#009900'>// algorithm to identify how many people there are and which faces belong to whom.
+</font>    std::vector<font color='#5555FF'>&lt;</font>sample_pair<font color='#5555FF'>&gt;</font> edges;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> face_descriptors.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> j <font color='#5555FF'>=</font> i<font color='#5555FF'>+</font><font color='#979000'>1</font>; j <font color='#5555FF'>&lt;</font> face_descriptors.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>j<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// Faces are connected in the graph if they are close enough.  Here we check if
+</font>            <font color='#009900'>// the distance between two face descriptors is less than 0.6, which is the
+</font>            <font color='#009900'>// decision threshold the network was trained to use.  Although you can
+</font>            <font color='#009900'>// certainly use any other threshold you find useful.
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>length</font><font face='Lucida Console'>(</font>face_descriptors[i]<font color='#5555FF'>-</font>face_descriptors[j]<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> <font color='#979000'>0.6</font><font face='Lucida Console'>)</font>
+                edges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>sample_pair</font><font face='Lucida Console'>(</font>i,j<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+    std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> labels;
+    <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> num_clusters <font color='#5555FF'>=</font> <font color='#BB00BB'>chinese_whispers</font><font face='Lucida Console'>(</font>edges, labels<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// This will correctly indicate that there are 4 people in the image.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>number of people found in the image: </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_clusters <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+
+    <font color='#009900'>// Now let's display the face clustering results on the screen.  You will see that it
+</font>    <font color='#009900'>// correctly grouped all the faces. 
+</font>    std::vector<font color='#5555FF'>&lt;</font>image_window<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>win_clusters</font><font face='Lucida Console'>(</font>num_clusters<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> cluster_id <font color='#5555FF'>=</font> <font color='#979000'>0</font>; cluster_id <font color='#5555FF'>&lt;</font> num_clusters; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>cluster_id<font face='Lucida Console'>)</font>
+    <b>{</b>
+        std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> temp;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> j <font color='#5555FF'>=</font> <font color='#979000'>0</font>; j <font color='#5555FF'>&lt;</font> labels.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>j<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>cluster_id <font color='#5555FF'>=</font><font color='#5555FF'>=</font> labels[j]<font face='Lucida Console'>)</font>
+                temp.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>faces[j]<font face='Lucida Console'>)</font>;
+        <b>}</b>
+        win_clusters[cluster_id].<font color='#BB00BB'>set_title</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>face cluster </font>" <font color='#5555FF'>+</font> <font color='#BB00BB'>cast_to_string</font><font face='Lucida Console'>(</font>cluster_id<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        win_clusters[cluster_id].<font color='#BB00BB'>set_image</font><font face='Lucida Console'>(</font><font color='#BB00BB'>tile_images</font><font face='Lucida Console'>(</font>temp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+
+
+
+    <font color='#009900'>// Finally, let's print one of the face descriptors to the screen.  
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>face descriptor for one face: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>trans</font><font face='Lucida Console'>(</font>face_descriptors[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    <font color='#009900'>// It should also be noted that face recognition accuracy can be improved if jittering
+</font>    <font color='#009900'>// is used when creating face descriptors.  In particular, to get 99.38% on the LFW
+</font>    <font color='#009900'>// benchmark you need to use the jitter_image() routine to compute the descriptors,
+</font>    <font color='#009900'>// like so:
+</font>    matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font>,<font color='#979000'>0</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font> face_descriptor <font color='#5555FF'>=</font> <font color='#BB00BB'>mean</font><font face='Lucida Console'>(</font><font color='#BB00BB'>mat</font><font face='Lucida Console'>(</font><font color='#BB00BB'>net</font><font face='Lucida Console'>(</font><font color='#BB00BB'>jitter_image</font><font face='Lucida Console'>(</font>faces[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>jittered face descriptor for one face: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>trans</font><font face='Lucida Console'>(</font>face_descriptor<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <font color='#009900'>// If you use the model without jittering, as we did when clustering the bald guys, it
+</font>    <font color='#009900'>// gets an accuracy of 99.13% on the LFW benchmark.  So jittering makes the whole
+</font>    <font color='#009900'>// procedure a little more accurate but makes face descriptor calculation slower.
+</font>
+
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>hit enter to terminate</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+<b>}</b>
+<font color='#0000FF'>catch</font> <font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> <b><a name='jitter_image'></a>jitter_image</b><font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> img
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#009900'>// All this function does is make 100 copies of img, all slightly jittered by being
+</font>    <font color='#009900'>// zoomed, rotated, and translated a little bit differently.
+</font>    thread_local random_cropper cropper;
+    cropper.<font color='#BB00BB'>set_chip_dims</font><font face='Lucida Console'>(</font><font color='#979000'>150</font>,<font color='#979000'>150</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_randomly_flip</font><font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_max_object_size</font><font face='Lucida Console'>(</font><font color='#979000'>0.99999</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_background_crops_fraction</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_min_object_size</font><font face='Lucida Console'>(</font><font color='#979000'>0.97</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_translate_amount</font><font face='Lucida Console'>(</font><font color='#979000'>0.02</font><font face='Lucida Console'>)</font>;
+    cropper.<font color='#BB00BB'>set_max_rotation_degrees</font><font face='Lucida Console'>(</font><font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+
+    std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>raw_boxes</font><font face='Lucida Console'>(</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>, ignored_crop_boxes;
+    raw_boxes[<font color='#979000'>0</font>] <font color='#5555FF'>=</font> <font color='#BB00BB'>shrink_rect</font><font face='Lucida Console'>(</font><font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>,<font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> crops; 
+
+    matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> temp; 
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> <font color='#979000'>100</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>cropper</font><font face='Lucida Console'>(</font>img, raw_boxes, temp, ignored_crop_boxes<font face='Lucida Console'>)</font>;
+        crops.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>move</font><font face='Lucida Console'>(</font>temp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+    <font color='#0000FF'>return</font> crops;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+
+</pre></body></html>

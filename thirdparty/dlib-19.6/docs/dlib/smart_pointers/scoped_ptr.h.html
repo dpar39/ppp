@@ -1,0 +1,19 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - scoped_ptr.h</title></head><body bgcolor='white'><pre>
+<font color='#0000FF'>#ifndef</font> DLIB_SCOPED_PTr_H_
+<font color='#0000FF'>#define</font> DLIB_SCOPED_PTr_H_ 
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib <b>{</b>
+  <font color='#009900'>// Template alias for compatibility with clients using old dlib::scoped_ptr
+</font>  <font color='#009900'>// Old scoped_ptr implementation is removed completely
+</font>  <font color='#009900'>// This alias may fail in some reference deduction cases
+</font>  
+  <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>class</font> <b><a name='Deleter'></a>Deleter</b> <font color='#5555FF'>=</font> std::default_delete<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font>
+  <font color='#0000FF'>using</font> scoped_ptr <font color='#5555FF'>=</font> std::unique_ptr<font color='#5555FF'>&lt;</font>T, Deleter<font color='#5555FF'>&gt;</font>;
+
+<b>}</b>
+
+<font color='#0000FF'>#endif</font>
+
+</pre></body></html>

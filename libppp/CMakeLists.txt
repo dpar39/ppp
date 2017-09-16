@@ -12,9 +12,6 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # OpenCV Library
 find_package(OpenCV REQUIRED)
-find_package(dlib REQUIRED)
-
-message(STATUS "Using dlib-${dlib_VERSION}")
 
 # Boost library for non C++17 compiler
 if (UNIX)
@@ -38,20 +35,40 @@ endif()
 file(GLOB LIB_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
+# Add some source files needed for DLIB
+set(LIB_SRC_FILES ${LIB_SRC_FILES}
+    ${DLIB_ROOT}/dlib/base64/base64_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/bit_stream/bit_stream_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/threads/threads_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/threads/threads_kernel_2.cpp
+    ${DLIB_ROOT}/dlib/threads/threads_kernel_shared.cpp
+    ${DLIB_ROOT}/dlib/entropy_decoder/entropy_decoder_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/entropy_decoder/entropy_decoder_kernel_2.cpp
+    ${DLIB_ROOT}/dlib/entropy_encoder/entropy_encoder_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/entropy_encoder/entropy_encoder_kernel_2.cpp
+    ${DLIB_ROOT}/dlib/md5/md5_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/tokenizer/tokenizer_kernel_1.cpp
+    ${DLIB_ROOT}/dlib/unicode/unicode.cpp
+    ${DLIB_ROOT}/dlib/data_io/mnist.cpp
+)
+
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${dlib_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
+    ${DLIB_ROOT}
+    ${DLIB_ROOT}/dlib/base64
+    ${DLIB_ROOT}/dlib/entropy_decoder
+    ${DLIB_ROOT}/dlib/entropy_encoder
 )
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
-    ${dlib_LIBS}
     ${Boost_LIBRARIES}
     ${OPENCV_3RDPARTY_LIBS}
 )
 
+include_directories(${MODULE_INC_DIRS})
 add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 

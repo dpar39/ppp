@@ -1,0 +1,463 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - input_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_DNn_INPUT_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_DNn_INPUT_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pixel.h.html'>../pixel.h</a>"
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='EXAMPLE_INPUT_LAYER'></a>EXAMPLE_INPUT_LAYER</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                Each deep neural network model in dlib begins with an input layer. The job
+                of the input layer is to convert an input_type into a tensor.  Nothing more
+                and nothing less.  
+                
+                Note that there is no dlib::EXAMPLE_INPUT_LAYER type.  It is shown here
+                purely to document the interface that an input layer object must implement.
+                If you are using some kind of image or matrix object as your input_type
+                then you can use the provided dlib::input layer defined below.  Otherwise,
+                you need to define your own custom input layer.
+
+            THREAD SAFETY
+                Input layer objects must be thread safe.  That is, multiple threads must be
+                able to make calls to a single instance at the same time. 
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='EXAMPLE_INPUT_LAYER'></a>EXAMPLE_INPUT_LAYER</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Default constructs this object.  This function is not required to do
+                  anything in particular but it must exist, that is, it is required that
+                  layer objects be default constructable. 
+        !*/</font>
+
+        <b><a name='EXAMPLE_INPUT_LAYER'></a>EXAMPLE_INPUT_LAYER</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> EXAMPLE_INPUT_LAYER<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - EXAMPLE_INPUT_LAYER objects are copy constructable
+        !*/</font>
+
+        <b><a name='EXAMPLE_INPUT_LAYER'></a>EXAMPLE_INPUT_LAYER</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> some_other_input_layer_type<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Constructs this object from item.  This form of constructor is optional
+                  but it allows you to provide a conversion from one input layer type to
+                  another.  For example, the following code is valid only if my_input_layer2 can
+                  be constructed from my_input_layer1:
+                    relu&lt;fc&lt;relu&lt;fc&lt;my_input_layer1&gt;&gt;&gt;&gt; my_dnn1;
+                    relu&lt;fc&lt;relu&lt;fc&lt;my_input_layer2&gt;&gt;&gt;&gt; my_dnn2(my_dnn1);
+                  This kind of pattern is useful if you want to use one type of input layer
+                  during training but a different type of layer during testing since it
+                  allows you to easily convert between related deep neural network types.  
+        !*/</font>
+
+        <font color='#0000FF'>typedef</font> whatever_type_to_tensor_expects input_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.
+                - #data.num_samples()%distance(ibegin,iend) == 0. 
+                  Normally you would have #data.num_samples() == distance(ibegin,iend) but
+                  you can also expand the output by some integer factor so long as the loss
+                  you use can deal with it correctly.
+                - The data in the ith sample of #data corresponds to the input_type object
+                  *(ibegin+i/sample_expansion_factor).
+                  where sample_expansion_factor==#data.num_samples()/distance(ibegin,iend).
+        !*/</font>
+    <b>}</b>;
+
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> EXAMPLE_INPUT_LAYER<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        print a string describing this layer.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_INPUT_LAYER<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        This function is optional, but required if you want to print your networks with
+        net_to_xml().  Therefore, to_xml() prints a layer as XML.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_INPUT_LAYER<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>EXAMPLE_INPUT_LAYER<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> T
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input'></a>input</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON T
+                T is a matrix or array2d object and it must contain some kind of pixel
+                type.  I.e. pixel_traits&lt;T::type&gt; must be defined. 
+
+            WHAT THIS OBJECT REPRESENTS
+                This is a basic input layer that simply copies images into a tensor.  
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> T input_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - The input range should contain image objects that all have the same
+                  dimensions.
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.  In
+                  particular, if the input images have R rows, C columns, and K channels
+                  (where K is given by pixel_traits::num) then we will have:
+                    - #data.num_samples() == std::distance(ibegin,iend)
+                    - #data.nr() == R
+                    - #data.nc() == C
+                    - #data.k() == K
+                  For example, a matrix&lt;float,3,3&gt; would turn into a tensor with 3 rows, 3
+                  columns, and k()==1.  Or a matrix&lt;rgb_pixel,4,5&gt; would turn into a tensor
+                  with 4 rows, 5 columns, and k()==3 (since rgb_pixels have 3 channels).
+                - If the input data contains pixels of type unsigned char, rgb_pixel, or
+                  other pixel types with a basic_pixel_type of unsigned char then each
+                  value written to the output tensor is first divided by 256.0 so that the
+                  resulting outputs are all in the range [0,1].
+        !*/</font>
+
+        <font color='#009900'>// Provided for compatibility with input_rgb_image_pyramid's interface
+</font>        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image'></a>input_rgb_image</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This input layer works with RGB images of type matrix&lt;rgb_pixel&gt;.  It is
+                very similar to the dlib::input layer except that it allows you to subtract
+                the average color value from each color channel when converting an image to
+                a tensor.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> input_type;
+
+        <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_avg_red()   == 122.782
+                - #get_avg_green() == 117.001
+                - #get_avg_blue()  == 104.298
+        !*/</font>
+
+        <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> avg_red,
+            <font color='#0000FF'><u>float</u></font> avg_green,
+            <font color='#0000FF'><u>float</u></font> avg_blue
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - #get_avg_red() == avg_red
+                - #get_avg_green() == avg_green
+                - #get_avg_blue() == avg_blue
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_red'></a>get_avg_red</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the red color channel.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_green'></a>get_avg_green</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the green color channel.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_blue'></a>get_avg_blue</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the blue color channel.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - The input range should contain images that all have the same
+                  dimensions.
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.  In
+                  particular, if the input images have R rows, C columns then we will have:
+                    - #data.num_samples() == std::distance(ibegin,iend)
+                    - #data.nr() == R
+                    - #data.nc() == C
+                    - #data.k() == 3
+                  Moreover, each color channel is normalized by having its average value
+                  subtracted (according to get_avg_red(), get_avg_green(), or
+                  get_avg_blue()) and then is divided by 256.0.
+        !*/</font>
+
+
+        <font color='#009900'>// Provided for compatibility with input_rgb_image_pyramid's interface
+</font>        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font> NR, <font color='#0000FF'><u>size_t</u></font> NC<font color='#5555FF'>=</font>NR<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image_sized'></a>input_rgb_image_sized</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This layer has an interface and behavior identical to input_rgb_image
+                except that it requires input images to have NR rows and NC columns.  This
+                is checked by a DLIB_CASSERT inside to_tensor().
+
+                You can also convert between input_rgb_image and input_rgb_image_sized by
+                copy construction or assignment.
+        !*/</font>
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> PYRAMID_TYPE
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON PYRAMID_TYPE
+                PYRAMID_TYPE must be an instance of the dlib::pyramid_down template.
+
+            WHAT THIS OBJECT REPRESENTS
+                This input layer works with RGB images of type matrix&lt;rgb_pixel&gt;.  It is
+                identical to input_rgb_image except that it outputs a tensor containing a
+                tiled image pyramid of each input image rather than a simple copy of each
+                image.  The tiled image pyramid is created using create_tiled_pyramid().
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> input_type;
+        <font color='#0000FF'>typedef</font> PYRAMID_TYPE pyramid_type;
+
+        <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_avg_red()   == 122.782
+                - #get_avg_green() == 117.001
+                - #get_avg_blue()  == 104.298
+                - #get_pyramid_padding() == 10
+                - #get_pyramid_outer_padding() == 11
+        !*/</font>
+
+        <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> avg_red,
+            <font color='#0000FF'><u>float</u></font> avg_green,
+            <font color='#0000FF'><u>float</u></font> avg_blue
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - #get_avg_red() == avg_red
+                - #get_avg_green() == avg_green
+                - #get_avg_blue() == avg_blue
+                - #get_pyramid_padding() == 10
+                - #get_pyramid_outer_padding() == 11
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_red'></a>get_avg_red</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the red color channel.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_green'></a>get_avg_green</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the green color channel.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_blue'></a>get_avg_blue</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the value subtracted from the blue color channel.
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_pyramid_padding'></a>get_pyramid_padding</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - When this object creates a pyramid it will call create_tiled_pyramid() and
+                  set create_tiled_pyramid's pyramid_padding parameter to get_pyramid_padding().
+        !*/</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_pyramid_padding'></a>set_pyramid_padding</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> value
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_pyramid_padding() == value
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_pyramid_outer_padding'></a>get_pyramid_outer_padding</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - When this object creates a pyramid it will call create_tiled_pyramid()
+                  and set create_tiled_pyramid's pyramid_outer_padding parameter to
+                  get_pyramid_outer_padding().
+        !*/</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_pyramid_outer_padding'></a>set_pyramid_outer_padding</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> value
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_pyramid_outer_padding() == value
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - The input range should contain images that all have the same
+                  dimensions.
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.  In
+                  particular, we will have:
+                    - #data.num_samples() == std::distance(ibegin,iend)
+                    - #data.k() == 3
+                    - Each sample in #data contains a tiled image pyramid of the
+                      corresponding input image.  The tiled pyramid is created by
+                      create_tiled_pyramid().
+                  Moreover, each color channel is normalized by having its average value
+                  subtracted (according to get_avg_red(), get_avg_green(), or
+                  get_avg_blue()) and then is divided by 256.0.
+        !*/</font>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - data is a tensor that was produced by this-&gt;to_tensor()
+            ensures
+                - Since data is a tensor that is built from a bunch of identically sized
+                  images, we can ask if those images were big enough to contain the point
+                  p.  This function returns the answer to that question.
+        !*/</font>
+
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>double</u></font> scale,
+            drectangle r 
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - data is a tensor that was produced by this-&gt;to_tensor()
+                - 0 &lt; scale &lt;= 1
+            ensures
+                - This function maps from to_tensor()'s input image space to its output
+                  tensor space.  Therefore, given that data is a tensor produced by
+                  to_tensor(), image_space_to_tensor_space() allows you to ask for the
+                  rectangle in data that corresponds to a rectangle in the original image
+                  space.
+
+                  Note that since the output tensor contains an image pyramid, there are
+                  multiple points in the output tensor that correspond to any input
+                  location.  So you must also specify a scale so we know what level of the
+                  pyramid is needed.  So given a rectangle r in an input image, you can
+                  ask, what rectangle in data corresponds to r when things are scale times
+                  smaller?  That rectangle is returned by this function.
+                - A scale of 1 means we don't move anywhere in the pyramid scale space relative
+                  to the input image while smaller values of scale mean we move down the
+                  pyramid.
+        !*/</font>
+
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            drectangle r
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - data is a tensor that was produced by this-&gt;to_tensor()
+            ensures
+                - This function maps from to_tensor()'s output tensor space to its input
+                  image space.  Therefore, given that data is a tensor produced by
+                  to_tensor(), tensor_space_to_image_space() allows you to ask for the
+                  rectangle in the input image that corresponds to a rectangle in data.
+                - It should be noted that this function isn't always an inverse of
+                  image_space_to_tensor_space().  This is because you can ask
+                  image_space_to_tensor_space() for the coordinates of points outside the input
+                  image and they will be mapped to somewhere that doesn't have an inverse.
+                  But for points actually inside the input image this function performs an
+                  approximate inverse mapping.  I.e. when image_contained_point(data,center(r))==true 
+                  there is an approximate inverse.
+        !*/</font>
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_INPUT_ABSTRACT_H_
+</font>
+
+</pre></body></html>

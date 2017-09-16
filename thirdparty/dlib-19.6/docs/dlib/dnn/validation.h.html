@@ -1,0 +1,99 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - validation.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNn_VALIDATION_H_
+<font color='#0000FF'>#define</font> DLIB_DNn_VALIDATION_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../svm/cross_validate_object_detection_trainer_abstract.h.html'>../svm/cross_validate_object_detection_trainer_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../svm/cross_validate_object_detection_trainer.h.html'>../svm/cross_validate_object_detection_trainer.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='layers.h.html'>layers.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> SUBNET,
+        <font color='#0000FF'>typename</font> image_array_type
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>,<font color='#979000'>1</font>,<font color='#979000'>3</font><font color='#5555FF'>&gt;</font> <b><a name='test_object_detection_function'></a>test_object_detection_function</b> <font face='Lucida Console'>(</font>
+        loss_mmod<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> detector,
+        <font color='#0000FF'>const</font> image_array_type<font color='#5555FF'>&amp;</font> images,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> truth_dets,
+        <font color='#0000FF'>const</font> test_box_overlap<font color='#5555FF'>&amp;</font> overlap_tester <font color='#5555FF'>=</font> <font color='#BB00BB'>test_box_overlap</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> adjust_threshold <font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+        <font color='#0000FF'>const</font> test_box_overlap<font color='#5555FF'>&amp;</font> overlaps_ignore_tester <font color='#5555FF'>=</font> <font color='#BB00BB'>test_box_overlap</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// make sure requires clause is not broken
+</font>        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font> <font color='#BB00BB'>is_learning_problem</font><font face='Lucida Console'>(</font>images,truth_dets<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>true</font> , 
+                    "<font color='#CC0000'>\t matrix test_object_detection_function()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t invalid inputs were given to this function</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t is_learning_problem(images,truth_dets): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>is_learning_problem</font><font face='Lucida Console'>(</font>images,truth_dets<font face='Lucida Console'>)</font>
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t images.size(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+                    <font face='Lucida Console'>)</font>;
+
+
+
+        <font color='#0000FF'><u>double</u></font> correct_hits <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#0000FF'><u>double</u></font> total_true_targets <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+        std::vector<font color='#5555FF'>&lt;</font>std::pair<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>,<font color='#0000FF'><u>bool</u></font><font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font> all_dets;
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> missing_detections <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+        resizable_tensor temp;
+
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font> hits; 
+            detector.<font color='#BB00BB'>to_tensor</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>images[i], <font color='#5555FF'>&amp;</font>images[i]<font color='#5555FF'>+</font><font color='#979000'>1</font>, temp<font face='Lucida Console'>)</font>;
+            detector.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>forward</font><font face='Lucida Console'>(</font>temp<font face='Lucida Console'>)</font>;
+            detector.<font color='#BB00BB'>loss_details</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>to_label</font><font face='Lucida Console'>(</font>temp, detector.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#5555FF'>&amp;</font>hits, adjust_threshold<font face='Lucida Console'>)</font>;
+
+
+            std::vector<font color='#5555FF'>&lt;</font>full_object_detection<font color='#5555FF'>&gt;</font> truth_boxes;
+            std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font> ignore;
+            std::vector<font color='#5555FF'>&lt;</font>std::pair<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>,rectangle<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> boxes;
+            <font color='#009900'>// copy hits and truth_dets into the above three objects
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> b : truth_dets[i]<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>b.ignore<font face='Lucida Console'>)</font>
+                    ignore.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>b<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font>
+                    truth_boxes.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>full_object_detection</font><font face='Lucida Console'>(</font>b.rect<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> b : hits<font face='Lucida Console'>)</font>
+                boxes.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>make_pair</font><font face='Lucida Console'>(</font>b.detection_confidence, b.rect<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+            correct_hits <font color='#5555FF'>+</font><font color='#5555FF'>=</font> impl::<font color='#BB00BB'>number_of_truth_hits</font><font face='Lucida Console'>(</font>truth_boxes, ignore, boxes, overlap_tester, all_dets, missing_detections, overlaps_ignore_tester<font face='Lucida Console'>)</font>;
+            total_true_targets <font color='#5555FF'>+</font><font color='#5555FF'>=</font> truth_boxes.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        std::<font color='#BB00BB'>sort</font><font face='Lucida Console'>(</font>all_dets.<font color='#BB00BB'>rbegin</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, all_dets.<font color='#BB00BB'>rend</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>double</u></font> precision, recall;
+
+        <font color='#0000FF'><u>double</u></font> total_hits <font color='#5555FF'>=</font> all_dets.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>total_hits <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            precision <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+        <font color='#0000FF'>else</font>
+            precision <font color='#5555FF'>=</font> correct_hits <font color='#5555FF'>/</font> total_hits;
+
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>total_true_targets <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            recall <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+        <font color='#0000FF'>else</font>
+            recall <font color='#5555FF'>=</font> correct_hits <font color='#5555FF'>/</font> total_true_targets;
+
+        matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>, <font color='#979000'>1</font>, <font color='#979000'>3</font><font color='#5555FF'>&gt;</font> res;
+        res <font color='#5555FF'>=</font> precision, recall, <font color='#BB00BB'>average_precision</font><font face='Lucida Console'>(</font>all_dets, missing_detections<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>return</font> res;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_VALIDATION_H_
+</font>
+
+</pre></body></html>

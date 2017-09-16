@@ -1,0 +1,1585 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - tensor_tools.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_TeNSOR_TOOLS_H_
+<font color='#0000FF'>#define</font> DLIB_TeNSOR_TOOLS_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor.h.html'>tensor.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cudnn_dlibapi.h.html'>cudnn_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cublas_dlibapi.h.html'>cublas_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cusolver_dlibapi.h.html'>cusolver_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='curand_dlibapi.h.html'>curand_dlibapi.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cpu_dlib.h.html'>cpu_dlib.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_dlib.h.html'>cuda_dlib.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../rand.h.html'>../rand.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../geometry/rectangle.h.html'>../geometry/rectangle.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'><u>bool</u></font> <b><a name='dnn_prefer_fastest_algorithms'></a>dnn_prefer_fastest_algorithms</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_dnn_prefer_fastest_algorithms'></a>set_dnn_prefer_fastest_algorithms</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_dnn_prefer_smallest_algorithms'></a>set_dnn_prefer_smallest_algorithms</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>namespace</font> dlib <b>{</b> <font color='#0000FF'>namespace</font> tt
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='inverse_norms'></a>inverse_norms</b> <font face='Lucida Console'>(</font>
+        resizable_tensor<font color='#5555FF'>&amp;</font> invnorms,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - #invnorms == reciprocal(sqrt(sum_cols(squared(mat(data))) + eps))
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='dot_prods'></a>dot_prods</b> <font face='Lucida Console'>(</font>
+        resizable_tensor<font color='#5555FF'>&amp;</font> out,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> lhs,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> rhs
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(lhs,rhs) == true
+        ensures
+            - #out.num_samples() == lhs.num_samples()
+            - #out.k() == #out.nr() == #out.nc() == 1
+            - #out == sum_cols(pointwise_multiply(mat(lhs), mat(rhs))); 
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='scale_columns'></a>scale_columns</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> out,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(out,m) == true
+            - is_vector(v) == true
+            - v.size() == mat(m).nc()
+        ensures
+            - performs: out = scale_columns(mat(m),mat(v));
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='scale_rows'></a>scale_rows</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> out,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(out,m) == true
+            - is_vector(v) == true
+            - v.size() == m.num_samples()
+        ensures
+            - performs: out = scale_rows(mat(m),mat(v));
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='scale_rows2'></a>scale_rows2</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>float</u></font> beta, 
+        tensor<font color='#5555FF'>&amp;</font> out,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m2,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v2
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(out,m1) == true
+            - have_same_dimensions(out,m2) == true
+            - have_same_dimensions(v1,v2) == true
+            - is_vector(v1) == true
+            - v1.size() == m1.num_samples()
+        ensures
+            - performs: 
+                out = beta*out + scale_rows(mat(m1) - scale_rows(mat(m2),mat(v1)), mat(v2));
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>    
+    <font color='#0000FF'><u>void</u></font> <b><a name='exp'></a>exp</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size() == src.size()
+        ensures
+            - performs: dest = exp(mat(src))
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='log'></a>log</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size() == src.size()
+        ensures
+            - performs: dest = log(mat(src))
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='log10'></a>log10</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size() == src.size()
+        ensures
+            - performs: dest = log10(mat(src))
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='gemm'></a>gemm</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>float</u></font> beta,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'><u>float</u></font> alpha,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> lhs,
+        <font color='#0000FF'><u>bool</u></font> trans_lhs,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> rhs,
+        <font color='#0000FF'><u>bool</u></font> trans_rhs
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest does not alias the memory of lhs or rhs
+            - The dimensions of lhs and rhs must be compatible for matrix multiplication.
+              In particular:
+                - Let L == trans_lhs ? trans(mat(lhs)) : mat(lhs)
+                - Let R == trans_rhs ? trans(mat(rhs)) : mat(rhs)
+                - Let D == mat(dest)
+                - D.nr() == L.nr() &amp;&amp; D.nc() == R.nc()
+                  (i.e. dest must be preallocated and have the correct output dimensions)
+                - L.nc() == R.nr()
+        ensures
+            - performs: dest = alpha*L*R + beta*mat(dest)
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='inv'></a>inv</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a functor for doing matrix inversion on the GPU.  The only
+                reason it's an object is to avoid the reallocation of some GPU memory
+                blocks if you want to do a bunch of matrix inversions in a row.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m,
+            resizable_tensor<font color='#5555FF'>&amp;</font> out
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - m.size() == m.num_samples()*m.num_samples()
+                  (i.e. mat(m) must be a square matrix)
+            ensures
+                - out == inv(mat(m));
+        !*/</font>
+
+    <font color='#0000FF'>private</font>:
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        cuda::inv finv;
+<font color='#0000FF'>#endif</font>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='tensor_rand'></a>tensor_rand</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a tool for filling a tensor with random numbers.  
+
+                Note that the sequence of random numbers output by this object is different
+                when dlib is compiled with DLIB_USE_CUDA.  So you should not write code
+                that depends on any specific sequence of numbers coming out of a
+                tensor_rand.
+
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#009900'>// not copyable
+</font>        <b><a name='tensor_rand'></a>tensor_rand</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_rand<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        tensor_rand<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_rand<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <b><a name='tensor_rand'></a>tensor_rand</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> : tensor_rand<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <b><a name='tensor_rand'></a>tensor_rand</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <font color='#0000FF'><u>long</u></font> seed<font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='fill_gaussian'></a>fill_gaussian</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>float</u></font> mean <font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+            <font color='#0000FF'><u>float</u></font> stddev <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - data.size()%2 == 0
+            ensures
+                - Fills data with random numbers drawn from a Gaussian distribution
+                  with the given mean and standard deviation.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='fill_uniform'></a>fill_uniform</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Fills data with uniform random numbers in the range (0.0, 1.0].
+        !*/</font>
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        cuda::curand_generator rnd;
+<font color='#0000FF'>#else</font>
+        dlib::rand rnd;
+<font color='#0000FF'>#endif</font>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='multiply'></a>multiply</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>bool</u></font> add_to,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.k()  == src1.k()  == src2.k()
+            - dest.nr() == src1.nr() == src2.nr()
+            - dest.nc() == src1.nc() == src2.nc()
+            - dest.num_samples(), src1.num_samples(), and src2.num_samples() must each
+              either be 1 or whichever ones aren't equal to 1 must have the same values.
+        ensures
+            - let MD = max(dest.num_samples(), src1.num_samples(), src2.num_samples)
+            - This function pointwise multiplies src1 with src2 and stores the result into
+              #dest.  However, how the multiplication happens depends on the dimensions of
+              the tensors.  First, when src1 and src2 are multiplied together, if either
+              has a num_samples() dimension that is != MD, then it is first replicated to
+              produce a tensor with num_samples()==MD dimensions and then they are
+              pointwise multiplied together.
+
+              Second, if dest.num_samples()==1, then after the pointwise multiplication of
+              src1 with src2, the result has its samples summed to produce an output tensor
+              with num_samples()==1 which is then assigned to #dest.
+            - if (add_to) then
+                - Instead of assigning the result to dest, this function adds the result to dest.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='multiply_conv'></a>multiply_conv</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>bool</u></font> add_to,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - if (have_same_dimensions(dest, src1) == true) then
+                - src2.num_samples() == 1
+                - src2.nr() == 1
+                - src2.nc() == 1
+                - src2.k() == src1.k()
+            - else
+                - have_same_dimensions(src1, src2) == true) 
+                - dest.num_samples() == 1
+                - dest.nr() == 1
+                - dest.nc() == 1
+                - dest.k() == src1.k()
+        ensures
+            - Performs #dest == src1*src2 
+              In particular, if the elements of dest, src1, and src2 were indexed by (n,k,r,c) then
+              we would have:
+                - if (have_same_dimensions(dest,src1)) then
+                    #dest(n,k,r,c) == src1(n,k,r,c)*src2(k)
+                - else
+                    #dest(k) == sum over {n,r,c} of src1(n,k,r,c)*src2(n,k,r,c)
+            - if (add_to) then
+                - Instead of assigning the result to dest, this function adds the result to dest.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='multiply_zero_padded'></a>multiply_zero_padded</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>bool</u></font> add_to,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - if (add_to) then
+                - performs: dest += src1 * src2
+            - else
+                - performs: dest = src1 * src2
+            - In either case, the multiplication happens pointwise according to 4D tensor
+              arithmetic.  If the dimensions don't match then missing elements are presumed
+              to be equal to 0.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size()==src.size()
+        ensures
+            - #dest == A*src + B
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size()==src.size()
+        ensures
+            - #dest == A*src 
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+        ensures
+            - #dest == A*src1 + B*src2 + C
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+        ensures
+            - #dest == A*src1 + B*src2
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> D
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires 
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+            - dest.size()==src3.size()
+        ensures
+            - #dest == A*src1 + B*src2 + C*src3 + D
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires 
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+            - dest.size()==src3.size()
+        ensures
+            - #dest == A*src1 + B*src2 + C*src3
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform_range'></a>affine_transform_range</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>size_t</u></font> begin,
+        <font color='#0000FF'><u>size_t</u></font> end,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires 
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+            - dest.size()==src3.size()
+            - begin &lt;= end &lt;= dest.size()
+        ensures
+            - This function operates much like
+              affine_transform(dest,src1,src2,src3,A,B,C,0), except that it runs over only
+              the half open range [begin,end) rather than processing the entire tensor.
+              Specifically, it does this:
+                - for i in the range [begin, end):
+                    - #dest.host()[i] == A*src1.host()[i] + B*src2.host()[i] + C*src3.host()[i]
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> rectangle<font color='#5555FF'>&amp;</font> rect,
+        tensor<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3, 
+        <font color='#0000FF'><u>float</u></font> A, 
+        <font color='#0000FF'><u>float</u></font> B,
+        <font color='#0000FF'><u>float</u></font> C
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.size()==src1.size()
+            - dest.size()==src2.size()
+            - dest.size()==src3.size()
+            - dest.num_samples()==src1.num_samples()
+            - dest.num_samples()==src2.num_samples()
+            - dest.num_samples()==src3.num_samples()
+            - get_rect(mat(dest)).contains(rect) == true
+              (i.e. rect must be entirely contained within dest)
+        ensures
+            - This function operates much like
+              affine_transform(dest,src1,src2,src3,A,B,C,0), except that it runs over only
+              the sub-rectangle indicated by rect.  In particular, this function is equivalent
+              to:
+                set_subm(dest,rect) = A*subm(mat(src1),rect) + B*subm(mat(src2),rect) + C*subm(mat(src3),rect)
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> A,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> B
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,src) == true
+            - if (A.num_samples() == 1) then
+                - B.num_samples() == 1
+            - else
+                - A.num_samples() == src.num_samples()
+                - B.num_samples() == src.num_samples()
+            - A.nr() == B.nr() == src.nr()
+            - A.nc() == B.nc() == src.nc()
+            - A.k()  == B.k()  == src.k()
+        ensures
+            - if (A.num_samples() == 1) then
+                - #dest == A*src + B
+                    (done for each sample in src)
+            - else
+                - for all valid i:
+                    - #dest.host()[i] == A.host()[i]*src.host()[i] + B.host()[i]  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform_conv'></a>affine_transform_conv</b><font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> A,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> B
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,src) == true
+            - have_same_dimensions(A, B) == true
+            - A.num_samples() == 1
+            - A.nr() == 1
+            - A.nc() == 1
+            - A.k() == src.k()
+        ensures
+            - Performs #dest == A*src + B
+              In particular, if the elements of dest and src were indexed by (n,k,r,c) then
+              we would have:
+                #dest(n,k,r,c) == A(k)*src(n,k,r,c) + B(k).
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='compute_adam_update'></a>compute_adam_update</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>size_t</u></font> begin,
+        <font color='#0000FF'><u>size_t</u></font> end,
+        tensor<font color='#5555FF'>&amp;</font> s,
+        tensor<font color='#5555FF'>&amp;</font> m,
+        tensor<font color='#5555FF'>&amp;</font> v,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> t,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> weight_decay,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> momentum1,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> momentum2,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - s.size() == m.size() = v.size() == params.size() == params_grad.size()
+            - t &gt; 0
+            - learning_rate &gt; 0
+            - weight_decay &gt;= 0
+            - 0 &lt;= momentum1 &lt; 1
+            - 0 &lt;= momentum2 &lt; 1
+            - begin &lt;= end &lt;= params.size()
+        ensures
+            - This function implements the ADAM parameter update method described in the paper:
+                Kingma, Diederik P., and Jimmy Ba Adam. "A method for stochastic
+                optimization." International Conference on Learning Representation. 2015.
+              Specifically, it implements the method shown as Algorithm 1.
+            - #s is the update vector that should be added to the parameters.
+            - The function only operates in the half open range [begin,end) of the memory
+              blocks of each tensor.  E.g. to make this function run on the entire tensor
+              set begin to 0 and end to params.size().
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_inference'></a>batch_normalize_inference</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_means,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_variances
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - gamma.num_samples() == 1 
+            - gamma.nr() == src.nr() 
+            - gamma.nc() == src.nc() 
+            - gamma.k()  == src.k()
+            - have_same_dimensions(gamma, beta) 
+            - have_same_dimensions(gamma, running_means) 
+            - have_same_dimensions(gamma, running_variances)
+        ensures
+            - Linearly transforms src as a call to batch_normalize() would if src had means
+              and variances as given by running_means and running_variances.  That is, this
+              function performs: 
+                dest = gamma*(src-running_means)/sqrt(running_variances+eps) + beta
+              Note that it does it in a pointwise fashion over the samples in src.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize'></a>batch_normalize</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+        resizable_tensor<font color='#5555FF'>&amp;</font> means,
+        resizable_tensor<font color='#5555FF'>&amp;</font> invstds,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> averaging_factor,
+        resizable_tensor<font color='#5555FF'>&amp;</font> running_means,
+        resizable_tensor<font color='#5555FF'>&amp;</font> running_variances,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - src.num_samples() &gt; 1
+            - gamma.num_samples() == 1
+            - beta.num_samples() == 1
+            - gamma.nr() == beta.nr() == src.nr()
+            - gamma.nc() == beta.nc() == src.nc()
+            - gamma.k()  == beta.k()  == src.k()
+            - 0 &lt;= averaging_factor &lt;= 1
+            - if (averaging_factor != 1)
+                - have_same_dimensions(running_means, means) == true
+                - have_same_dimensions(running_variances, invstds) == true
+        ensures
+            - have_same_dimensions(#dest, src) == true
+            - #means.num_samples() == 1
+            - #invstds.num_samples() == 1
+            - means.nr() == invstds.nr() == src.nr()
+            - means.nc() == invstds.nc() == src.nc()
+            - means.k()  == invstds.k()  == src.k()
+            - #src == the batch normalized version of src.
+            - #means == the mean values of the contents of src.
+            - #invstds == 1/(the standard deviation values of the contents of src).
+            - #running_means = (1-averaging_factor)*mat(#running_means) + averaging_factor*mat(#means);
+            - #running_variances = (1-averaging_factor)*mat(#running_variances) + averaging_factor*(variance of contents of src);
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_gradient'></a>batch_normalize_gradient</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> means,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> invstds,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma,
+        tensor<font color='#5555FF'>&amp;</font> src_grad,
+        tensor<font color='#5555FF'>&amp;</font> gamma_grad, 
+        tensor<font color='#5555FF'>&amp;</font> beta_grad 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - invstds and means should be the output of a call to
+              batch_normalize(eps,dest,means,invstds,src,gamma,beta)
+            - have_same_dimensions(gradient_input, src) == true
+            - have_same_dimensions(src, src_grad) == true
+            - src.num_samples() &gt; 1
+            - gamma.num_samples() == 1
+            - have_same_dimensions(gamma, gamma_grad) == true
+            - have_same_dimensions(gamma, beta_grad) == true
+            - gamma.nr() == src.nr()
+            - gamma.nc() == src.nc()
+            - gamma.k()  == src.k()
+            - have_same_dimensions(means, gamma) == true
+            - have_same_dimensions(invstds, gamma) == true
+        ensures
+            - Let f(src,gamma,beta) == dot(gradient_input, dest output of
+              batch_normalize(eps,dest,means,invstds,src,gamma,beta))
+            - Adds the gradient of f() with respect to src to #src_grad.
+            - Assigns the gradient of f() with respect to gamma to #gamma_grad.
+            - Assigns the gradient of f() with respect to beta to #beta_grad.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv_inference'></a>batch_normalize_conv_inference</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_means,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_variances
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - gamma.num_samples() == 1 
+            - gamma.nr() == 1 
+            - gamma.nc() == 1 
+            - gamma.k()  == src.k()
+            - have_same_dimensions(gamma, beta) 
+            - have_same_dimensions(gamma, running_means) 
+            - have_same_dimensions(gamma, running_variances)
+        ensures
+            - Linearly transforms src as a call to batch_normalize_conv() would if src had
+              means and variances as given by running_means and running_variances.  That
+              is, this function performs: 
+                dest = gamma*(src-running_means)/sqrt(running_variances+eps) + beta
+              Note that it does this in a pointwise fashion over the samples, rows, and
+              columns in src.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv'></a>batch_normalize_conv</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+        resizable_tensor<font color='#5555FF'>&amp;</font> means,
+        resizable_tensor<font color='#5555FF'>&amp;</font> invstds,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> averaging_factor,
+        resizable_tensor<font color='#5555FF'>&amp;</font> running_means,
+        resizable_tensor<font color='#5555FF'>&amp;</font> running_variances,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - src.num_samples() &gt; 1
+            - gamma.num_samples()==gamma.nr()==gamma.nc() == 1
+            - beta.num_samples() ==beta.nr() ==gamma.nc() == 1
+            - gamma.k()  == beta.k()  == src.k()
+            - 0 &lt;= averaging_factor &lt;= 1
+            - if (averaging_factor != 1)
+                - have_same_dimensions(running_means, means) == true
+                - have_same_dimensions(running_variances, invstds) == true
+        ensures
+            - have_same_dimensions(#dest, src) == true
+            - #means.num_samples()==means.nr()==means.nc() == 1
+            - #invstds.num_samples() ==invstds.nr() ==invstds.nc() == 1
+            - means.k()  == invstds.k()  == src.k()
+            - #src == the batch normalized version of src.
+            - #means == the mean values of the contents of src.
+            - #invstds == 1/(the standard deviation values of the contents of src).
+            - #running_means = (1-averaging_factor)*mat(#running_means) + averaging_factor*mat(#means);
+            - #running_variances = (1-averaging_factor)*mat(#running_variances) + averaging_factor*(variance of contents of src);
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv_gradient'></a>batch_normalize_conv_gradient</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> means,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> invstds,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma,
+        tensor<font color='#5555FF'>&amp;</font> src_grad,
+        tensor<font color='#5555FF'>&amp;</font> gamma_grad, 
+        tensor<font color='#5555FF'>&amp;</font> beta_grad 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - eps &gt; 0
+            - invstds and means should be the output of a call to
+              batch_normalize_conv(eps,dest,means,invstds,src,gamma,beta)
+            - have_same_dimensions(gradient_input, src) == true
+            - have_same_dimensions(src, src_grad) == true
+            - src.num_samples() &gt; 1
+            - gamma.num_samples()==gamma.nr()==gamma.nc() == 1
+            - have_same_dimensions(gamma, gamma_grad) == true
+            - have_same_dimensions(gamma, beta_grad) == true
+            - gamma.k()  == src.k()
+            - have_same_dimensions(means, gamma) == true
+            - have_same_dimensions(invstds, gamma) == true
+        ensures
+            - Let f(src,gamma,beta) == dot(gradient_input, dest output of
+              batch_normalize_conv(eps,dest,means,invstds,src,gamma,beta))
+            - Adds the gradient of f() with respect to src to #src_grad.
+            - Assigns the gradient of f() with respect to gamma to #gamma_grad.
+            - Assigns the gradient of f() with respect to beta to #beta_grad.
+    !*/</font>
+
+<font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='threshold'></a>threshold</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> data,
+        <font color='#0000FF'><u>float</u></font> thresh
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - Sets all elements of data to 1 or 0 depending on if they are above or below
+              the given threshold.  Specifically, for all valid i:
+                - #data.host()[i] == data.host()[i]&gt;thresh ? 1 : 0
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='dot'></a>dot</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> a,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> b,
+        tensor<font color='#5555FF'>&amp;</font> result,
+        <font color='#0000FF'><u>size_t</u></font> idx
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - a.size() == b.size()
+            - idx &lt; result.size()
+        ensures
+            - #result.host()[idx] == result.host()[idx] + dot(a,b);
+              I.e. Adds the dot product between a and b into the idx-th element of result.
+              The reason you might want to use this more complex version of dot() is
+              because, when using CUDA, it runs by generating asynchronous kernel launches
+              whereas the version of dot() that returns the result immediately as a scalar
+              must block the host while we wait for the result to be computed and then
+              transfered from the GPU do the host for return by dot().  So this version of
+              dot() might be much faster in some cases.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='add'></a>add</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>float</u></font> beta,
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'><u>float</u></font> alpha,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - One of the following is true: 
+                - have_same_dimensions(src, dest)
+                - src.num_samples()==1 &amp;&amp; src.k()==dest.k() &amp;&amp; src.nr()==1 &amp;&amp; src.nc()==1
+                - src.num_samples()==1 &amp;&amp; src.k()==dest.k() &amp;&amp; src.nr()==dest.nr() &amp;&amp; src.nc()==dest.nc()
+                - src.num_samples()==1 &amp;&amp; src.k()==1 &amp;&amp; src.nr()==dest.nr() &amp;&amp; src.nc()==dest.nc()
+                - src.num_samples()==dest.num_samples() &amp;&amp; src.k()==1 &amp;&amp; src.nr()==1 &amp;&amp; src.nc()==1
+            - is_same_object(src,dest) == false
+        ensures
+            - performs: dest = beta*dest + alpha*src
+              However, how the addition happens depends on the dimensions of src.  In
+              particular, this function adds the scaled values of one src tensor to dest.
+              Each dimension of the src tensor must match the corresponding dimension of
+              the dest tensor or must be equal to 1. In the latter case, the same value
+              from the src tensor, for those dimensions, will be used to add into the dest
+              tensor.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='add'></a>add</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - performs: dest = src1 + src2
+              The addition happens pointwise according to 4D tensor arithmetic.  If the
+              dimensions don't match then missing elements are presumed to be equal to 0.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='assign_conv_bias_gradient'></a>assign_conv_bias_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - grad.num_samples() == 1
+            - grad.k()  &gt;= 1
+            - grad.nr() == 1
+            - grad.nc() == 1
+            - gradient_input.k() == grad.k()
+            - gradient_input.size() &gt; 0
+            - is_same_object(grad,gradient_input) == false
+        ensures
+            - let BIAS be a tensor with the same dimensions as grad.
+            - let OUT be the output of add(1,OUT,1,BIAS)
+            - let f(gradient_input,BIAS) == dot(gradient_input,OUT)
+            - Then this function computes the gradient of f() with respect to BIAS and
+              assigns it to grad.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='assign_bias_gradient'></a>assign_bias_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - grad.num_samples() == 1
+            - gradient_input.k() == grad.k()
+            - gradient_input.nr() == grad.nr()
+            - gradient_input.nc() == grad.nc()
+            - gradient_input.size() &gt; 0
+            - is_same_object(grad,gradient_input) == false
+        ensures
+            - let BIAS be a tensor with the same dimensions as grad.
+            - let OUT be the output of add(1,OUT,1,BIAS)
+            - let f(gradient_input,BIAS) == dot(gradient_input,OUT)
+            - Then this function computes the gradient of f() with respect to BIAS and
+              assigns it to grad.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='tensor_conv'></a>tensor_conv</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <b><a name='tensor_conv'></a>tensor_conv</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_conv<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        tensor_conv<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_conv<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <b><a name='tensor_conv'></a>tensor_conv</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='clear'></a>clear</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+            tensor<font color='#5555FF'>&amp;</font> output,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters
+        <font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>impl</font><font face='Lucida Console'>(</font>add_to_output,output,data,filters<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - setup() has been called.  Specifically, setup() has been called like this:
+                    this-&gt;setup(data, filters, stride_y, stride_x, padding_y, padding_x);
+                - is_same_object(output,data) == false
+                - is_same_object(output,filters) == false
+                - filters.k() == data.k()
+                - filters.nr() &lt;= src.nr() + 2*padding_y
+                - filters.nc() &lt;= src.nc() + 2*padding_x
+                - #output.num_samples() == data.num_samples()
+                - #output.k() == filters.num_samples()
+                - #output.nr() == 1+(data.nr() + 2*padding_y - filters.nr())/stride_y
+                - #output.nc() == 1+(data.nc() + 2*padding_x - filters.nc())/stride_x
+            ensures
+                - Convolves filters over data.  If add_to_output==true then we add the
+                  results to output, otherwise we assign to output, overwriting the
+                  previous values in output.
+                - filters contains filters.num_samples() filters. 
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+            resizable_tensor<font color='#5555FF'>&amp;</font> output,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters
+        <font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>impl</font><font face='Lucida Console'>(</font>add_to_output,output,data,filters<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - setup() has been called.  Specifically, setup() has been called like this:
+                    this-&gt;setup(data, filters, stride_y, stride_x, padding_y, padding_x);
+                - is_same_object(output,data) == false
+                - is_same_object(output,filters) == false
+                - filters.k() == data.k()
+                - filters.nr() &lt;= src.nr() + 2*padding_y
+                - filters.nc() &lt;= src.nc() + 2*padding_x
+            ensures
+                - Convolves filters over data.  If add_to_output==true then we add the
+                  results to output, otherwise we assign to output, overwriting the
+                  previous values in output.  
+                - filters contains filters.num_samples() filters. 
+                - #output.num_samples() == data.num_samples()
+                - #output.k() == filters.num_samples()
+                - #output.nr() == 1+(data.nr() + 2*padding_y - filters.nr())/stride_y
+                - #output.nc() == 1+(data.nc() + 2*padding_x - filters.nc())/stride_x
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient_for_data'></a>get_gradient_for_data</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters,
+            tensor<font color='#5555FF'>&amp;</font> data_gradient
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>get_gradient_for_data</font><font face='Lucida Console'>(</font>add_to_output,gradient_input,filters,data_gradient<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - One of the following must be true:
+                    - filters has the same dimensions as the filters object given to the
+                      last call to operator().  Also, data_gradient has the same dimensions
+                      as the data object given to the last call to operator().
+                    - setup() has been called.  Specifically, setup() has been called like this:
+                      this-&gt;setup(data_gradient, filters, stride_y, stride_x, padding_y, padding_x);
+                - gradient_input has the following dimensions:
+                    - gradient_input.num_samples() == data_gradient.num_samples()
+                    - gradient_input.k() == filters.num_samples()
+                    - gradient_input.nr() == 1+(data_gradient.nr() + 2*padding_y - filters.nr())/stride_y
+                    - gradient_input.nc() == 1+(data_gradient.nc() + 2*padding_x - filters.nc())/stride_x
+                    - NOTE, these dimensions are what you would obtain if gradient_input
+                      has the same dimensions as the last output of operator().  
+                - is_same_object(data_gradient,filters) == false
+                - is_same_object(data_gradient,gradient_input) == false
+            ensures
+                - let OUT be the output of (*this)(OUT,data,filters,sx,sy).
+                - let f(data,filters) == dot(OUT, gradient_input)
+                - if (add_to_output) then
+                    - This function finds the gradient of f() with respect to data and adds
+                      this gradient to data_gradient.
+                - else
+                    - This function finds the gradient of f() with respect to data and
+                      assigns this gradient to data_gradient, overwriting the previous
+                      values in data_gradient.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient_for_filters'></a>get_gradient_for_filters</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            tensor<font color='#5555FF'>&amp;</font> filters_gradient
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>get_gradient_for_filters</font><font face='Lucida Console'>(</font>add_to_output,gradient_input,data,filters_gradient<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - One of the following must be true:
+                    - filters_gradient has the same dimensions as the filters object given
+                      to the last call to operator().  Also, data has the same dimensions
+                      as the data object given to the last call to operator().
+                    - setup() has been called.  Specifically, setup() has been called like this:
+                      this-&gt;setup(data, filters_gradient, stride_y, stride_x, padding_y, padding_x);
+                - gradient_input has the following dimensions:
+                    - gradient_input.num_samples() == data.num_samples()
+                    - gradient_input.k() == filters.num_samples()
+                    - gradient_input.nr() == 1+(data.nr() + 2*padding_y - filters.nr())/stride_y
+                    - gradient_input.nc() == 1+(data.nc() + 2*padding_x - filters.nc())/stride_x
+                    - NOTE, these dimensions are what you would obtain if gradient_input
+                      has the same dimensions as the last output of operator().  
+                - is_same_object(filters_gradient,data) == false
+                - is_same_object(filters_gradient,gradient_input) == false
+            ensures
+                - let OUT be the output of (*this)(OUT,data,filters,sx,sy).
+                - let f(data,filters) == dot(OUT, gradient_input)
+                - if (add_to_output) then
+                    - This function finds the gradient of f() with respect to filters and
+                      adds this gradient to filters_gradient.
+                - else 
+                    - This function finds the gradient of f() with respect to filters and
+                      assigns this gradient to filters_gradient, overwriting the previous
+                      values in filters_gradient.
+        !*/</font>
+
+ 
+        <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters,
+            <font color='#0000FF'><u>int</u></font> stride_y,
+            <font color='#0000FF'><u>int</u></font> stride_x,
+            <font color='#0000FF'><u>int</u></font> padding_y,
+            <font color='#0000FF'><u>int</u></font> padding_x
+        <font face='Lucida Console'>)</font> <b>{</b>impl.<font color='#BB00BB'>setup</font><font face='Lucida Console'>(</font>data,filters,stride_y,stride_x,padding_y,padding_x<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - filters.k() == data.k()
+                - stride_y &gt; 0
+                - stride_x &gt; 0
+                - 0 &lt;= padding_y &lt; filters.nr()
+                - 0 &lt;= padding_x &lt; filters.nc()
+            ensures
+                - When operator() is called, the output tensor will have these dimensions:
+                    - output.nr() == 1+(data.nr() + 2*padding_y - filters.nr())/stride_y
+                    - output.nc() == 1+(data.nc() + 2*padding_x - filters.nc())/stride_x
+                    - output.num_samples() == data.num_samples()
+                    - output.k() == filters.num_samples()
+                - The point of setup() is to allow this object to gather information about
+                  all the tensor sizes and filter layouts involved in the computation.  In
+                  particular, the reason the tensors are input into setup() is just to
+                  observe their sizes.  setup() doesn't do anything with the contents of
+                  the tensors, or store any kind of references to the data or filter
+                  tensors. 
+        !*/</font>
+       
+    <font color='#0000FF'>private</font>:
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        cuda::tensor_conv impl;
+<font color='#0000FF'>#else</font>
+        cpu::tensor_conv impl;
+<font color='#0000FF'>#endif</font>
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='pooling'></a>pooling</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                The pooling object is a tool for performing spatial pooling over a tensor.
+                It can be configured to do either max or average pooling.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='pooling'></a>pooling</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> pooling<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        pooling<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> pooling<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <b><a name='pooling'></a>pooling</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='clear'></a>clear</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='setup_max_pooling'></a>setup_max_pooling</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> window_height,
+            <font color='#0000FF'><u>int</u></font> window_width,
+            <font color='#0000FF'><u>int</u></font> stride_y,
+            <font color='#0000FF'><u>int</u></font> stride_x,
+            <font color='#0000FF'><u>int</u></font> padding_y,
+            <font color='#0000FF'><u>int</u></font> padding_x
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>setup_max_pooling</font><font face='Lucida Console'>(</font>window_height, window_width, stride_y, stride_x, padding_y, padding_x<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - window_height &gt; 0
+                - window_width &gt; 0
+                - stride_y &gt; 0
+                - stride_x &gt; 0
+                - 0 &lt;= padding_y &lt; window_height
+                - 0 &lt;= padding_x &lt; window_width
+            ensures
+                - When you call operator() it will do max pooling with the given
+                  parameters.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='setup_avg_pooling'></a>setup_avg_pooling</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> window_height,
+            <font color='#0000FF'><u>int</u></font> window_width,
+            <font color='#0000FF'><u>int</u></font> stride_y,
+            <font color='#0000FF'><u>int</u></font> stride_x,
+            <font color='#0000FF'><u>int</u></font> padding_y,
+            <font color='#0000FF'><u>int</u></font> padding_x
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>setup_avg_pooling</font><font face='Lucida Console'>(</font>window_height, window_width, stride_y, stride_x, padding_y, padding_x<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - window_height &gt; 0
+                - window_width &gt; 0
+                - stride_y &gt; 0
+                - stride_x &gt; 0
+                - 0 &lt;= padding_y &lt; window_height
+                - 0 &lt;= padding_x &lt; window_width
+            ensures
+                - When you call operator() it will do average pooling with the given
+                  parameters.
+        !*/</font>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='does_max_pooling'></a>does_max_pooling</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> impl.<font color='#BB00BB'>does_max_pooling</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>impl</font><font face='Lucida Console'>(</font>dest, src<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - is_same_object(dest,src) == false
+                - either setup_max_pooling() or setup_avg_pooling() has been called.
+                - window_width  &lt;= src.nc() + 2*padding_x
+                - window_height &lt;= src.nr() + 2*padding_y
+            ensures
+                - #dest.num_samples() == src.num_samples()
+                - #dest.k() == src.k()
+                - #dest.nr() == 1 + (src.nr() + 2*padding_y - window_height)/stride_y
+                - #dest.nc() == 1 + (src.nc() + 2*padding_x - window_width)/stride_x
+                - WINDOW == centered_rect(x*stride_x + window_width/2 - padding_x,
+                                          y*stride_y + window_height/2 - padding_y,
+                                          window_width,
+                                          window_height)
+                - for all valid s, k, r, and c:
+                    - if (does_max_pooling()) then
+                        - image_plane(#dest,s,k)(r,c) == max(subm_clipped(image_plane(src,s,k),WINDOW(c,r)))
+                    - else
+                        - image_plane(#dest,s,k)(r,c) == mean(subm_clipped(image_plane(src,s,k),WINDOW(c,r)))
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient'></a>get_gradient</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            tensor<font color='#5555FF'>&amp;</font> grad 
+        <font face='Lucida Console'>)</font> <b>{</b> impl.<font color='#BB00BB'>get_gradient</font><font face='Lucida Console'>(</font>gradient_input, dest, src, grad<font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(gradient_input,dest) == true
+                - have_same_dimensions(src,grad) == true
+                - dest contains the result of calling (*this)(dest,src)
+                - is_same_object(grad,gradient_input) == false
+                - is_same_object(grad,dest) == false
+                - is_same_object(grad,src) == false
+            ensures
+                - Recalling that dest is the output of (*this)(dest,src),
+                  let f(src) == dot(gradient_input,dest)
+                - Then this function computes the gradient of f() with respect to src and
+                  adds it to grad.
+        !*/</font>
+
+        <font color='#0000FF'>private</font>:
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        cuda::pooling impl;
+<font color='#0000FF'>#else</font>
+        cpu::pooling impl;
+<font color='#0000FF'>#endif</font>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='softmax'></a>softmax</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest, src) == true
+        ensures
+            - Note that the softmax function is a vector valued function: 
+                s(x) == exp(x)/sum(exp(x)) 
+            - Computes the softmax function on src and writes the results to dest.  The
+              softmax is computed per spatial location across the different channels at
+              each location.  That is, softmax() outputs a new tensor, #dest, where each of
+              the spatial locations in dest (i.e. image idx, row idx, and column idx)
+              contains the output of s() evaluated over the channel values at each
+              location.
+            - This function supports in-place operation, i.e. having
+              is_same_object(dest, src)==true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='softmax_gradient'></a>softmax_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,gradient_input) == true 
+            - have_same_dimensions(dest,grad) == true 
+        ensures
+            - We interpret dest as the output of softmax(dest,SRC) for some SRC tensor.
+              Then let f(SRC) == dot(gradient_input,dest).  Then this function computes the
+              gradient of f() with respect to SRC and stores it to grad.  Moreover, if
+              is_same_object(grad,gradient_input)==true then the output is assigned to
+              grad, replacing its previous contents.  Otherwise the output is added to
+              grad.
+            - This function supports in-place operation, i.e. having
+              is_same_object(grad, gradient_input)==true
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='sigmoid'></a>sigmoid</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest, src) == true
+        ensures
+            - for all valid i:
+                - #dest.host()[i] == 1/(1+std::exp(-src.host()[i])) 
+            - This function supports in-place operation, i.e. having
+              is_same_object(dest, src)==true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='sigmoid_gradient'></a>sigmoid_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,gradient_input) == true 
+            - have_same_dimensions(dest,grad) == true 
+        ensures
+            - Recalling that dest is the output of sigmoid(dest,SRC) for some SRC tensor,
+              let f(SRC) == dot(gradient_input,dest).  Then this function computes the
+              gradient of f() with respect to SRC and stores it to grad.  Moreover, if
+              is_same_object(grad,gradient_input)==true then the output is assigned to
+              grad, replacing its previous contents.  Otherwise the output is added to
+              grad.
+            - This function supports in-place operation, i.e. having
+              is_same_object(grad, gradient_input)==true
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='relu'></a>relu</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest, src) == true
+        ensures
+            - for all valid i:
+                - #dest.host()[i] == std::max(0,src.host()[i]) 
+            - This function supports in-place operation, i.e. having
+              is_same_object(dest, src)==true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='relu_gradient'></a>relu_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,gradient_input) == true 
+            - have_same_dimensions(dest,grad) == true 
+        ensures
+            - Recalling that dest is the output of relu(dest,SRC) for some SRC tensor,
+              let f(SRC) == dot(gradient_input,dest).  Then this function computes the
+              gradient of f() with respect to SRC and stores it to grad.  Moreover, if
+              is_same_object(grad,gradient_input)==true then the output is assigned to
+              grad, replacing its previous contents.  Otherwise the output is added to
+              grad.
+            - This function supports in-place operation, i.e. having
+              is_same_object(grad, gradient_input)==true
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='prelu'></a>prelu</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> param
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest, src) == true
+            - param.size() == 1
+        ensures
+            - for all valid i:
+                - if (src.host()[i] &gt; 0) then
+                    - #dest.host()[i] == src.host()[i]
+                - else
+                    - #dest.host()[i] == src.host()[i] * param.host()[0]
+            - This function supports in-place operation, i.e. having
+              is_same_object(dest, src)==true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='prelu_gradient'></a>prelu_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> param,
+        tensor<font color='#5555FF'>&amp;</font> params_grad 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(grad,src) == true 
+            - have_same_dimensions(grad,gradient_input) == true 
+            - param.size() == 1
+            - params_grad.size() == 1
+            - is_same_object(grad, gradient_input) == false
+        ensures
+            - Recalling that dest is the output of prelu(dest,src,param) let 
+              f(src,param) == dot(gradient_input,dest)
+            - Then this function computes the gradient of f() with respect to src and
+              param.  It assigns the gradient with respect to param to #params_grad and
+              adds the gradient with respect to src to #grad.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='tanh'></a>tanh</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest, src) == true
+        ensures
+            - for all valid i:
+                - #dest.host()[i] == std::tanh(src.host()[i]) 
+            - This function supports in-place operation, i.e. having
+              is_same_object(dest, src)==true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='tanh_gradient'></a>tanh_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - have_same_dimensions(dest,gradient_input) == true 
+            - have_same_dimensions(dest,grad) == true 
+        ensures
+            - Recalling that dest is the output of tanh(dest,SRC) for some SRC tensor,
+              let f(SRC) == dot(gradient_input,dest).  Then this function computes the
+              gradient of f() with respect to SRC and stores it to grad.  Moreover, if
+              is_same_object(grad,gradient_input)==true then the output is assigned to
+              grad, replacing its previous contents.  Otherwise the output is added to
+              grad.
+            - This function supports in-place operation, i.e. having
+              is_same_object(grad, gradient_input)==true
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='resize_bilinear'></a>resize_bilinear</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> dest,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - is_same_object(dest, src)==false
+            - dest.num_samples() == src.num_samples()
+            - dest.k() == src.k()
+        ensures
+            - for all valid i,k:  image_plane(dest,i,k) is a copy of image_plane(src,i,k)
+              that has been bilinearly interpolated to fit into the shape of
+              image_plane(dest,i,k).
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='resize_bilinear_gradient'></a>resize_bilinear_gradient</b> <font face='Lucida Console'>(</font>
+        tensor<font color='#5555FF'>&amp;</font> grad,
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - is_same_object(grad, gradient_input)==false
+            - gradient_input.num_samples() == grad.num_samples()
+            - gradient_input.k() == grad.k()
+        ensures
+            - Suppose that DEST is the output of resize_bilinear(DEST,SRC) for some SRC
+              tensor, let f(SRC) == dot(gradient_input,DEST).  Then this function computes
+              the gradient of f() with respect to SRC and adds it to grad.   It should be
+              noted that we don't need to know the contents of DEST to compute this
+              gradient.  All that matters is that gradient_input have the same dimensions
+              as DEST.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='multi_device_tensor_averager'></a>multi_device_tensor_averager</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object is a tool for very quickly averaging a bunch of tensors
+                together.
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='multi_device_tensor_averager'></a>multi_device_tensor_averager</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> multi_device_tensor_averager<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        multi_device_tensor_averager<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> multi_device_tensor_averager<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <b><a name='multi_device_tensor_averager'></a>multi_device_tensor_averager</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set'></a>set</b><font face='Lucida Console'>(</font>
+            std::vector<font color='#5555FF'>&lt;</font>tensor<font color='#5555FF'>*</font><font color='#5555FF'>&gt;</font> items
+        <font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            requires
+                - All the tensors in items are the same size
+            ensures
+                - When you call average() we will average the tensors in items.
+                - It's important that the tensors already be allocated to their devices
+                  before you call set().  This is because set() will setup the types of
+                  between device transfers now and use them when you call average().  
+        !*/</font>
+        <b>{</b>
+            <font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> ::dlib::cuda;
+            accessible_groups.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            epa.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>items.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+
+            scale <font color='#5555FF'>=</font> <font color='#979000'>1.0</font><font color='#5555FF'>/</font>items.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// split item into groups of accessible devices
+</font>            std::vector<font color='#5555FF'>&lt;</font>tensor<font color='#5555FF'>*</font><font color='#5555FF'>&gt;</font> group, unused;
+            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>items.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                group.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>items[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>for</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> items.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>can_access_peer</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>items[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>items[i]<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                        group.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>items[i]<font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>else</font>
+                        unused.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>items[i]<font face='Lucida Console'>)</font>;
+                <b>}</b>
+                accessible_groups.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>group<font face='Lucida Console'>)</font>;
+                unused.<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>items<font face='Lucida Console'>)</font>;
+                unused.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                group.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> g : accessible_groups<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> g.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    epa.<font color='#BB00BB'>emplace_back</font><font face='Lucida Console'>(</font><font color='#0000FF'>new</font> <font color='#BB00BB'>enable_peer_access</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[i]<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <b>}</b>
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='num_device_groups'></a>num_device_groups</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> accessible_groups.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+        <font color='#009900'>/*!
+            ensures
+                - The devices given to set() are grouped together when they can directly
+                  access each other using GPUDirect.  This function returns the number of
+                  such groups.  For example, if all devices can directly access each other
+                  then the number of groups is 1.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='average'></a>average</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            requires
+                - All the devices have stopped writing to the tensors given to set().  So
+                  you should probably call cudaDeviceSynchronize() on each of the relevant
+                  devices before calling average().
+            ensures
+                - Computes the average of all the tensors given to set() and then sets them
+                  all equal to the average.
+        !*/</font>
+        <b>{</b>
+            <font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> ::dlib::cuda;
+
+
+            <font color='#009900'>// First we average things within each group
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> g : accessible_groups<font face='Lucida Console'>)</font>
+            <b>{</b>
+                raii_set_device <font color='#BB00BB'>set_dev</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>g.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+                    tt::<font color='#BB00BB'>affine_transform</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], scale<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font> 
+                    tt::<font color='#BB00BB'>affine_transform</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[<font color='#979000'>1</font>], scale, scale<font face='Lucida Console'>)</font>;
+
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>2</font>; i <font color='#5555FF'>&lt;</font> g.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                    tt::<font color='#BB00BB'>affine_transform</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[<font color='#979000'>0</font>], <font color='#5555FF'>*</font>g[i], <font color='#979000'>1</font>, scale<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>accessible_groups.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                tensor<font color='#5555FF'>&amp;</font> total_avg <font color='#5555FF'>=</font> <font color='#5555FF'>*</font>accessible_groups[<font color='#979000'>0</font>][<font color='#979000'>0</font>];
+                raii_set_device <font color='#BB00BB'>set_dev</font><font face='Lucida Console'>(</font>total_avg<font face='Lucida Console'>)</font>;
+                accum_buffer.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>total_avg<font face='Lucida Console'>)</font>;
+                <font color='#009900'>// now we need to average things across groups
+</font>                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> accessible_groups.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>accum_buffer, <font color='#5555FF'>*</font>accessible_groups[i][<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+                    tt::<font color='#BB00BB'>add</font><font face='Lucida Console'>(</font>total_avg, total_avg, accum_buffer<font face='Lucida Console'>)</font>;
+                <b>}</b>
+
+                <font color='#009900'>// Now total_avg has the final average in it.  So we need to send
+</font>                <font color='#009900'>// copies of it back to each of the groups.
+</font>                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> accessible_groups.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>accessible_groups[i][<font color='#979000'>0</font>], total_avg<font face='Lucida Console'>)</font>;
+                <b>}</b>
+            <b>}</b>
+
+
+            <font color='#009900'>// Now propagate averages back out to each element using point to point
+</font>            <font color='#009900'>// communication inside a group.
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> g : accessible_groups<font face='Lucida Console'>)</font>
+            <b>{</b>
+                raii_set_device <font color='#BB00BB'>set_dev</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> g.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>g[i], <font color='#5555FF'>*</font>g[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>; 
+            <b>}</b>
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        std::vector<font color='#5555FF'>&lt;</font>std::unique_ptr<font color='#5555FF'>&lt;</font>::dlib::cuda::enable_peer_access<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> epa;
+        std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>tensor<font color='#5555FF'>*</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> accessible_groups;
+        <font color='#0000FF'><u>float</u></font> scale;
+
+        resizable_tensor accum_buffer;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='copy_tensor'></a>copy_tensor</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> add_to,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'><u>size_t</u></font> dest_k_offset,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'><u>size_t</u></font> src_k_offset,
+            <font color='#0000FF'><u>size_t</u></font> count_k
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - dest.nc() == src.nc()
+            - dest.nr() == src.nr()
+            - dest.num_samples() == src.num_samples()
+            - dest.k() - dest_k_offset &gt;= count_k
+            - src.k() - src_k_offset &gt;= count_k
+            - is_same_object(dest,src) == false
+            - The memory areas of src and dest do not overlap.
+        ensures
+            - if (add_to) then
+                - performs: dest[i, k + dest_k_offset, r, c] += src[i, k + src_k_offset, r, c], where k in [0..count_k]
+                  i.e., adds content of each sample from src in to corresponding place of sample at dest.
+            - else
+                - performs: dest[i, k + dest_k_offset, r, c]  = src[i, k + src_k_offset, r, c], where k in [0..count_k]
+                  i.e., copies content of each sample from src in to corresponding place of sample at dest.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b><b>}</b>
+
+<font color='#0000FF'>#ifdef</font> NO_MAKEFILE
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor_tools.cpp.html'>tensor_tools.cpp</a>"
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_TeNSOR_TOOLS_H_
+</font>
+
+
+</pre></body></html>

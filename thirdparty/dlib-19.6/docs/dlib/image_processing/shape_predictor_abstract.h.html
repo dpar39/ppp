@@ -1,0 +1,198 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - shape_predictor_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2014  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_SHAPE_PREDICToR_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_SHAPE_PREDICToR_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='full_object_detection_abstract.h.html'>full_object_detection_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../geometry.h.html'>../geometry.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pixel.h.html'>../pixel.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='shape_predictor'></a>shape_predictor</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object is a tool that takes in an image region containing some object
+                and outputs a set of point locations that define the pose of the object.
+                The classic example of this is human face pose prediction, where you take
+                an image of a human face as input and are expected to identify the
+                locations of important facial landmarks such as the corners of the mouth
+                and eyes, tip of the nose, and so forth.
+
+                To create useful instantiations of this object you need to use the
+                shape_predictor_trainer object defined in the
+                shape_predictor_trainer_abstract.h file to train a shape_predictor using a
+                set of training images, each annotated with shapes you want to predict.
+
+            THREAD SAFETY
+                No synchronization is required when using this object.  In particular, a
+                single instance of this object can be used from multiple threads at the
+                same time.  
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='shape_predictor'></a>shape_predictor</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #num_parts() == 0
+                - #num_features() == 0
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='num_parts'></a>num_parts</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of parts in the shapes predicted by this object.
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='num_features'></a>num_features</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Returns the dimensionality of the feature vector output by operator().
+                  This number is the total number of trees in this object times the number
+                  of leaves on each tree.  
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type, <font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+        full_object_detection <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> image_type<font color='#5555FF'>&amp;</font> img,
+            <font color='#0000FF'>const</font> rectangle<font color='#5555FF'>&amp;</font> rect,
+            std::vector<font color='#5555FF'>&lt;</font>std::pair<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> feats
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - image_type == an image object that implements the interface defined in
+                  dlib/image_processing/generic_image.h 
+                - T is some unsigned integral type (e.g. unsigned int).
+                - U is any scalar type capable of storing the value 1 (e.g. float).
+            ensures
+                - Runs the shape prediction algorithm on the part of the image contained in
+                  the given bounding rectangle.  So it will try and fit the shape model to
+                  the contents of the given rectangle in the image.  For example, if there
+                  is a human face inside the rectangle and you use a face landmarking shape
+                  model then this function will return the locations of the face landmarks
+                  as the parts.  So the return value is a full_object_detection DET such
+                  that:
+                    - DET.get_rect() == rect
+                    - DET.num_parts() == num_parts()
+                    - for all valid i:
+                        - DET.part(i) == the location in img for the i-th part of the shape
+                          predicted by this object.
+                - #feats == a sparse vector that records which leaf each tree used to make
+                  the shape prediction.   Moreover, it is an indicator vector, Therefore,
+                  for all valid i:
+                    - #feats[i].second == 1
+                  Further, #feats is a vector from the space of num_features() dimensional
+                  vectors.  The output shape positions can be represented as the dot
+                  product between #feats and a weight vector.  Therefore, #feats encodes
+                  all the information from img that was used to predict the returned shape
+                  object.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+        full_object_detection <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> image_type<font color='#5555FF'>&amp;</font> img,
+            <font color='#0000FF'>const</font> rectangle<font color='#5555FF'>&amp;</font> rect
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - image_type == an image object that implements the interface defined in
+                  dlib/image_processing/generic_image.h 
+            ensures
+                - Calling this function is equivalent to calling (*this)(img, rect, ignored)
+                  where the 3d argument is discarded.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> shape_predictor<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b> <font face='Lucida Console'>(</font>shape_predictor<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> image_array
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>double</u></font> <b><a name='test_shape_predictor'></a>test_shape_predictor</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> shape_predictor<font color='#5555FF'>&amp;</font> sp,
+        <font color='#0000FF'>const</font> image_array<font color='#5555FF'>&amp;</font> images,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>full_object_detection<font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> objects,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> scales
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - image_array is a dlib::array of image objects where each image object
+              implements the interface defined in dlib/image_processing/generic_image.h 
+            - images.size() == objects.size()
+            - for all valid i and j:
+                - objects[i][j].num_parts() == sp.num_parts()
+            - if (scales.size() != 0) then
+                - There must be a scale value for each full_object_detection in objects.
+                  That is, it must be the case that:
+                    - scales.size() == objects.size()
+                    - for all valid i:
+                        - scales[i].size() == objects[i].size()
+        ensures
+            - Tests the given shape_predictor by running it on each of the given objects and
+              checking how well it recovers the part positions.  In particular, for all 
+              valid i and j we perform:
+                sp(images[i], objects[i][j].get_rect())
+              and compare the result with the truth part positions in objects[i][j].  We
+              then return the average distance (measured in pixels) between a predicted
+              part location and its true position.  
+            - Note that any parts in objects that are set to OBJECT_PART_NOT_PRESENT are
+              simply ignored.
+            - if (scales.size() != 0) then
+                - Each time we compute the distance between a predicted part location and
+                  its true location in objects[i][j] we divide the distance by
+                  scales[i][j].  Therefore, if you want the reported error to be the
+                  average pixel distance then give an empty scales vector, but if you want
+                  the returned value to be something else like the average distance
+                  normalized by some feature of each object (e.g. the interocular distance)
+                  then you can supply those normalizing values via scales.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> image_array
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>double</u></font> <b><a name='test_shape_predictor'></a>test_shape_predictor</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> shape_predictor<font color='#5555FF'>&amp;</font> sp,
+        <font color='#0000FF'>const</font> image_array<font color='#5555FF'>&amp;</font> images,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>full_object_detection<font color='#5555FF'>&gt;</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> objects
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - image_array is a dlib::array of image objects where each image object
+              implements the interface defined in dlib/image_processing/generic_image.h 
+            - images.size() == objects.size()
+            - for all valid i and j:
+                - objects[i][j].num_parts() == sp.num_parts()
+        ensures
+            - returns test_shape_predictor(sp, images, objects, no_scales) where no_scales
+              is an empty vector.  So this is just a convenience function for calling the
+              above test_shape_predictor() routine without a scales argument.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_SHAPE_PREDICToR_ABSTRACT_H_
+</font>
+
+</pre></body></html>

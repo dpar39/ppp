@@ -1,0 +1,40 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNn_
+<font color='#0000FF'>#define</font> DLIB_DNn_
+
+<font color='#009900'>// DNN module uses template-based network declaration that leads to very long
+</font><font color='#009900'>// type names. Visual Studio will produce Warning C4503 in such cases
+</font><font color='#0000FF'>#ifdef</font> _MSC_VER
+#   pragma <b><a name='warning'></a>warning</b><font face='Lucida Console'>(</font> disable: <font color='#979000'>4503</font> <font face='Lucida Console'>)</font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/tensor.h.html'>dnn/tensor.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/input.h.html'>dnn/input.h</a>"
+
+<font color='#009900'>// Problem:    Visual Studio's vcpkgsrv.exe constantly uses a single CPU core,
+</font><font color='#009900'>//             apparently never finishing whatever it's trying to do. Moreover,
+</font><font color='#009900'>//             this issue prevents some operations like switching from Debug to
+</font><font color='#009900'>//             Release (and vice versa) in the IDE. (Your mileage may vary.)
+</font><font color='#009900'>// Workaround: Keep manually killing the vcpkgsrv.exe process.
+</font><font color='#009900'>// Solution:   Disable IntelliSense for some files. Which files? Unfortunately
+</font><font color='#009900'>//             this seems to be a trial-and-error process.
+</font><font color='#0000FF'>#ifndef</font> __INTELLISENSE__
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/layers.h.html'>dnn/layers.h</a>"
+<font color='#0000FF'>#endif</font> <font color='#009900'>// __INTELLISENSE__
+</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/loss.h.html'>dnn/loss.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/core.h.html'>dnn/core.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/solvers.h.html'>dnn/solvers.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/trainer.h.html'>dnn/trainer.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/cpu_dlib.h.html'>dnn/cpu_dlib.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/tensor_tools.h.html'>dnn/tensor_tools.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/utilities.h.html'>dnn/utilities.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='dnn/validation.h.html'>dnn/validation.h</a>"
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_
+</font>
+
+
+</pre></body></html>

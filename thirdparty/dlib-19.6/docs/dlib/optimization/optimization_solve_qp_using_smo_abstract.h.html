@@ -1,0 +1,285 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - optimization_solve_qp_using_smo_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2010  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_OPTIMIZATION_SOLVE_QP_UsING_SMO_ABSTRACT_Hh_
+<font color='#0000FF'>#ifdef</font> DLIB_OPTIMIZATION_SOLVE_QP_UsING_SMO_ABSTRACT_Hh_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>map<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../unordered_pair.h.html'>../unordered_pair.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> EXP1,
+        <font color='#0000FF'>typename</font> EXP2,
+        <font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='solve_qp_using_smo'></a>solve_qp_using_smo</b> <font face='Lucida Console'>(</font> 
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP1<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> Q,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP2<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> b,
+        matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> alpha,
+        T eps,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> max_iter
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - Q.nr() == Q.nc()
+            - is_col_vector(b) == true
+            - is_col_vector(alpha) == true
+            - b.size() == alpha.size() == Q.nr()
+            - alpha.size() &gt; 0
+            - min(alpha) &gt;= 0
+            - eps &gt; 0
+            - max_iter &gt; 0
+        ensures
+            - Let C == sum(alpha) (i.e. C is the sum of the alpha values you 
+              supply to this function)
+            - This function solves the following quadratic program:
+                Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha - trans(alpha)*b
+                subject to the following constraints:
+                    - sum(alpha) == C (i.e. the sum of alpha values doesn't change)
+                    - min(alpha) &gt;= 0 (i.e. all alpha values are nonnegative)
+                Where f is convex.  This means that Q should be positive-semidefinite.
+            - The solution to the above QP will be stored in #alpha.
+            - This function uses a simple implementation of the sequential minimal
+              optimization algorithm.  It starts the algorithm with the given alpha
+              and it works on the problem until the duality gap (i.e. how far away
+              we are from the optimum solution) is less than eps.  So eps controls 
+              how accurate the solution is and smaller values result in better solutions.
+            - At most max_iter iterations of optimization will be performed.  
+            - returns the number of iterations performed.  If this method fails to
+              converge to eps accuracy then the number returned will be max_iter+1.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> EXP1,
+        <font color='#0000FF'>typename</font> EXP2,
+        <font color='#0000FF'>typename</font> EXP3,
+        <font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L,
+        <font color='#0000FF'><u>long</u></font> NR2, <font color='#0000FF'><u>long</u></font> NC2
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='solve_qp4_using_smo'></a>solve_qp4_using_smo</b> <font face='Lucida Console'>(</font> 
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP1<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> A,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP2<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> Q,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP3<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> b,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP4<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> d,
+        matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> alpha,
+        matrix<font color='#5555FF'>&lt;</font>T,NR2,NC2,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> lambda,
+        T eps,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> max_iter,
+        T max_lambda <font color='#5555FF'>=</font> std::numeric_limits<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::<font color='#BB00BB'>infinity</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - A.nc() == alpha.size()
+            - Q.nr() == Q.nc()
+            - is_col_vector(b) == true
+            - is_col_vector(d) == true
+            - is_col_vector(alpha) == true
+            - b.size() == alpha.size() == Q.nr()
+            - d.size() == A.nr()
+            - alpha.size() &gt; 0
+            - min(alpha) &gt;= 0
+            - eps &gt; 0
+            - max_iter &gt; 0
+            - max_lambda &gt;= 0
+        ensures
+            - Let C == sum(alpha) (i.e. C is the sum of the alpha values you 
+              supply to this function)
+            - This function solves the following quadratic program:
+                Minimize: f(alpha,lambda) == 0.5*trans(alpha)*Q*alpha - trans(alpha)*b + 
+                                             0.5*trans(lambda)*lambda - trans(lambda)*A*alpha - trans(lambda)*d
+                subject to the following constraints:
+                    - sum(alpha)  == C (i.e. the sum of alpha values doesn't change)
+                    - min(alpha)  &gt;= 0 (i.e. all alpha values are nonnegative)
+                    - min(lambda) &gt;= 0 (i.e. all lambda values are nonnegative)
+                    - max(lambda) &lt;= max_lambda (i.e. all lambda values are less than max_lambda)
+                Where f is convex.  This means that Q should be positive-semidefinite.
+            - If you don't want an upper limit on lambda then max_lambda can be set to
+              infinity.
+            - The solution to the above QP will be stored in #alpha and #lambda.  
+            - This function uses a simple implementation of the sequential minimal
+              optimization algorithm.  It starts the algorithm with the given alpha
+              and it works on the problem until the duality gap (i.e. how far away
+              we are from the optimum solution) is less than eps.  So eps controls 
+              how accurate the solution is and smaller values result in better solutions.
+              The initial value of lambda is ignored since the optimal lambda can be
+              obtained via a simple closed form expression given alpha.
+            - At most max_iter iterations of optimization will be performed.  
+            - returns the number of iterations performed.  If this method fails to
+              converge to eps accuracy then the number returned will be max_iter+1.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> EXP1,
+        <font color='#0000FF'>typename</font> EXP2,
+        <font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='solve_qp_box_constrained'></a>solve_qp_box_constrained</b> <font face='Lucida Console'>(</font> 
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP1<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> Q,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP2<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> b,
+        matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> alpha,
+        <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> lower,
+        <font color='#0000FF'>const</font> matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> upper,
+        T eps,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> max_iter
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - Q.nr() == Q.nc()
+            - alpha.size() == lower.size() == upper.size()
+            - is_col_vector(b) == true
+            - is_col_vector(alpha) == true
+            - is_col_vector(lower) == true
+            - is_col_vector(upper) == true
+            - b.size() == alpha.size() == Q.nr()
+            - alpha.size() &gt; 0
+            - 0 &lt;= min(alpha-lower)
+            - 0 &lt;= max(upper-alpha)
+            - eps &gt; 0
+            - max_iter &gt; 0
+        ensures
+            - This function solves the following quadratic program:
+                Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha + trans(b)*alpha 
+                subject to the following box constraints on alpha:
+                    - 0 &lt;= min(alpha-lower)
+                    - 0 &lt;= max(upper-alpha)
+                Where f is convex.  This means that Q should be positive-semidefinite.
+            - The solution to the above QP will be stored in #alpha.
+            - This function uses a combination of a SMO algorithm along with Nesterov's
+              method as the main iteration of the solver.  It starts the algorithm with the
+              given alpha and it works on the problem until the derivative of f(alpha) is
+              smaller than eps for each element of alpha or the alpha value is at a box
+              constraint.  So eps controls how accurate the solution is and smaller values
+              result in better solutions.
+            - At most max_iter iterations of optimization will be performed.  
+            - returns the number of iterations performed.  If this method fails to
+              converge to eps accuracy then the number returned will be max_iter+1.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='solve_qp_box_constrained_blockdiag'></a>solve_qp_box_constrained_blockdiag</b> <font face='Lucida Console'>(</font> 
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NR,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> Q_blocks,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> bs,
+        <font color='#0000FF'>const</font> std::map<font color='#5555FF'>&lt;</font>unordered_pair<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&gt;</font>, matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> Q_offdiag,
+        std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> alphas,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> lowers,
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> uppers,
+        T eps,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> max_iter
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - Q_blocks.size() &gt; 0
+            - Q_blocks.size() == bs.size() == alphas.size() == lowers.size() == uppers.size()
+            - All the matrices in Q_blocks have the same dimensions.  Moreover, they are
+              non-empty square matrices.
+            - All the matrices in bs, Q_offdiag, alphas, lowers, and uppers have the same
+              dimensions.  Moreover, they are all column vectors.
+            - Q_blocks[0].nr() == alphas[0].size()
+              (i.e. the dimensionality of the column vectors in alphas must match the
+              dimensionality of the square matrices in Q_blocks.)
+            - for all valid i:
+                - 0 &lt;= min(alphas[i]-lowers[i])
+                - 0 &lt;= max(uppers[i]-alphas[i])
+            - eps &gt; 0
+            - max_iter &gt; 0
+        ensures
+            - This function solves the same QP as solve_qp_box_constrained(), except it is
+              optimized for the case where the Q matrix has a certain sparsity structure.
+              To be precise:
+                - Let Q1 be a block diagonal matrix with the elements of Q_blocks placed
+                  along its diagonal, and in the order contained in Q_blocks.  
+                - Let Q2 be a matrix with the same size as Q1, except instead of being block diagonal, it
+                  is block structured into Q_blocks.nr() by Q_blocks.nc() blocks.  If we let (r,c) be the
+                  coordinate of each block then each block contains the matrix
+                  diagm(Q_offdiag[make_unordered_pair(r,c)]) or the zero matrix if Q_offdiag has no entry
+                  for the coordinate (r,c).
+                - Let Q == Q1+Q2
+                - Let b == the concatenation of all the vectors in bs into one big vector.
+                - Let alpha == the concatenation of all the vectors in alphas into one big vector.
+                - Let lower == the concatenation of all the vectors in lowers into one big vector.
+                - Let upper == the concatenation of all the vectors in uppers into one big vector.
+                - Then this function solves the following quadratic program:
+                    Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha + trans(b)*alpha 
+                    subject to the following box constraints on alpha:
+                        - 0 &lt;= min(alpha-lower)
+                        - 0 &lt;= max(upper-alpha)
+                    Where f is convex.  This means that Q should be positive-semidefinite.
+                - More specifically, this function is identical to
+                  solve_qp_box_constrained(Q, b, alpha, lower, upper, eps, max_iter),
+                  except that it runs faster since it avoids unnecessary computation by
+                  taking advantage of the sparsity structure in the QP.
+            - The solution to the above QP will be stored in #alphas.
+            - This function uses a combination of a SMO algorithm along with Nesterov's
+              method as the main iteration of the solver.  It starts the algorithm with the
+              given alpha and it works on the problem until the derivative of f(alpha) is
+              smaller than eps for each element of alpha or the alpha value is at a box
+              constraint.  So eps controls how accurate the solution is and smaller values
+              result in better solutions.
+            - At most max_iter iterations of optimization will be performed.  
+            - returns the number of iterations performed.  If this method fails to
+              converge to eps accuracy then the number returned will be max_iter+1.
+    !*/</font>
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> EXP1,
+        <font color='#0000FF'>typename</font> EXP2,
+        <font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NRa, <font color='#0000FF'><u>long</u></font> NRb
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='find_gap_between_convex_hulls'></a>find_gap_between_convex_hulls</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP1<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> A,
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP2<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> B,
+        matrix<font color='#5555FF'>&lt;</font>T,NRa,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> cA,
+        matrix<font color='#5555FF'>&lt;</font>T,NRb,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> cB,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> max_iter <font color='#5555FF'>=</font> <font color='#979000'>1000</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - A.nr() == B.nr()
+            - A.size() != 0
+            - B.size() != 0
+            - eps &gt; 0
+            - max_iter &gt; 0
+        ensures
+            - If you think of A and B as sets of column vectors, then we can identify the
+              convex sets hullA and hullB, which are the convex hulls of A and B
+              respectively.  This function finds the pair of points in hullA and hullB that
+              are nearest to each other.  To be precise, this function solves the following
+              quadratic program:
+                Minimize: f(cA,cB) == length_squared(A*cA - B*cB) 
+                subject to the following constraints on cA and cB:
+                    - is_col_vector(cA) == true &amp;&amp; cA.size() == A.nc()
+                    - is_col_vector(cB) == true &amp;&amp; cB.size() == B.nc()
+                    - sum(cA) == 1 &amp;&amp; min(cA) &gt;= 0
+                    - sum(cB) == 1 &amp;&amp; min(cB) &gt;= 0
+            - This function uses an iterative block coordinate descent algorithm to solve
+              the QP.  It runs until either max_iter iterations have been performed or the
+              QP is solved to at least eps accuracy.
+            - returns the number of iterations performed.  If this method fails to
+              converge to eps accuracy then the number returned will be max_iter+1.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_OPTIMIZATION_SOLVE_QP_UsING_SMO_ABSTRACT_Hh_
+</font>
+
+
+</pre></body></html>

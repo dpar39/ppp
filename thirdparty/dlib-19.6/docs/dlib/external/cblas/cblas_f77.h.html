@@ -1,0 +1,704 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_f77.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>/*
+ * cblas_f77.h
+ * Written by Keita Teranishi
+ *
+ * Updated by Jeff Horner
+ * Merged cblas_f77.h and cblas_fortran_header.h
+ */</font>
+
+<font color='#0000FF'>#ifndef</font> CBLAS_F77_H
+<font color='#0000FF'>#define</font> CBLAS_f77_H
+
+<font color='#0000FF'>#ifdef</font> CRAY
+   <font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>fortran.h<font color='#5555FF'>&gt;</font>
+   <font color='#0000FF'>#define</font> F77_CHAR _fcd
+   <font color='#0000FF'>#define</font> C2F_CHAR<font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font> _cptofcd<font face='Lucida Console'>(</font> <font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font>, <font color='#979000'>1</font> <font face='Lucida Console'>)</font> <font face='Lucida Console'>)</font>
+   <font color='#0000FF'>#define</font> C2F_STR<font face='Lucida Console'>(</font>a, i<font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font> _cptofcd<font face='Lucida Console'>(</font> <font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font>, <font face='Lucida Console'>(</font>i<font face='Lucida Console'>)</font> <font face='Lucida Console'>)</font> <font face='Lucida Console'>)</font>
+   <font color='#0000FF'>#define</font> F77_STRLEN<font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>_fcdlen<font face='Lucida Console'>)</font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#ifdef</font> WeirdNEC
+   <font color='#0000FF'>#define</font> F77_INT <font color='#0000FF'><u>long</u></font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#ifdef</font>  F77_CHAR
+   <font color='#0000FF'>#define</font> FCHAR F77_CHAR
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> FCHAR <font color='#0000FF'><u>char</u></font> <font color='#5555FF'>*</font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#ifdef</font> F77_INT
+   <font color='#0000FF'>#define</font> FINT <font color='#0000FF'>const</font> F77_INT <font color='#5555FF'>*</font>
+   <font color='#0000FF'>#define</font> FINT2 F77_INT <font color='#5555FF'>*</font>
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> FINT <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> <font color='#5555FF'>*</font>
+   <font color='#0000FF'>#define</font> FINT2 <font color='#0000FF'><u>int</u></font> <font color='#5555FF'>*</font>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#if</font> defined<font face='Lucida Console'>(</font>ADD_<font face='Lucida Console'>)</font>
+<font color='#009900'>/*
+ * Level 1 BLAS
+ */</font>
+<font color='#0000FF'>#define</font> F77_xerbla xerbla_
+   <font color='#0000FF'>#define</font> F77_srotg      srotg_
+   <font color='#0000FF'>#define</font> F77_srotmg     srotmg_
+   <font color='#0000FF'>#define</font> F77_srot       srot_
+   <font color='#0000FF'>#define</font> F77_srotm      srotm_
+   <font color='#0000FF'>#define</font> F77_drotg      drotg_
+   <font color='#0000FF'>#define</font> F77_drotmg     drotmg_
+   <font color='#0000FF'>#define</font> F77_drot       drot_
+   <font color='#0000FF'>#define</font> F77_drotm      drotm_
+   <font color='#0000FF'>#define</font> F77_sswap      sswap_
+   <font color='#0000FF'>#define</font> F77_scopy      scopy_
+   <font color='#0000FF'>#define</font> F77_saxpy      saxpy_
+   <font color='#0000FF'>#define</font> F77_isamax_sub isamaxsub_
+   <font color='#0000FF'>#define</font> F77_dswap      dswap_
+   <font color='#0000FF'>#define</font> F77_dcopy      dcopy_
+   <font color='#0000FF'>#define</font> F77_daxpy      daxpy_
+   <font color='#0000FF'>#define</font> F77_idamax_sub idamaxsub_
+   <font color='#0000FF'>#define</font> F77_cswap      cswap_
+   <font color='#0000FF'>#define</font> F77_ccopy      ccopy_
+   <font color='#0000FF'>#define</font> F77_caxpy      caxpy_
+   <font color='#0000FF'>#define</font> F77_icamax_sub icamaxsub_
+   <font color='#0000FF'>#define</font> F77_zswap      zswap_
+   <font color='#0000FF'>#define</font> F77_zcopy      zcopy_
+   <font color='#0000FF'>#define</font> F77_zaxpy      zaxpy_
+   <font color='#0000FF'>#define</font> F77_izamax_sub izamaxsub_
+   <font color='#0000FF'>#define</font> F77_sdot_sub   sdotsub_
+   <font color='#0000FF'>#define</font> F77_ddot_sub   ddotsub_
+   <font color='#0000FF'>#define</font> F77_dsdot_sub   dsdotsub_
+   <font color='#0000FF'>#define</font> F77_sscal      sscal_
+   <font color='#0000FF'>#define</font> F77_dscal      dscal_
+   <font color='#0000FF'>#define</font> F77_cscal      cscal_
+   <font color='#0000FF'>#define</font> F77_zscal      zscal_
+   <font color='#0000FF'>#define</font> F77_csscal      csscal_
+   <font color='#0000FF'>#define</font> F77_zdscal      zdscal_
+   <font color='#0000FF'>#define</font> F77_cdotu_sub  cdotusub_
+   <font color='#0000FF'>#define</font> F77_cdotc_sub  cdotcsub_
+   <font color='#0000FF'>#define</font> F77_zdotu_sub  zdotusub_
+   <font color='#0000FF'>#define</font> F77_zdotc_sub  zdotcsub_
+   <font color='#0000FF'>#define</font> F77_snrm2_sub  snrm2sub_
+   <font color='#0000FF'>#define</font> F77_sasum_sub  sasumsub_
+   <font color='#0000FF'>#define</font> F77_dnrm2_sub  dnrm2sub_
+   <font color='#0000FF'>#define</font> F77_dasum_sub  dasumsub_
+   <font color='#0000FF'>#define</font> F77_scnrm2_sub  scnrm2sub_
+   <font color='#0000FF'>#define</font> F77_scasum_sub  scasumsub_
+   <font color='#0000FF'>#define</font> F77_dznrm2_sub  dznrm2sub_
+   <font color='#0000FF'>#define</font> F77_dzasum_sub  dzasumsub_
+   <font color='#0000FF'>#define</font> F77_sdsdot_sub   sdsdotsub_
+<font color='#009900'>/*
+ * Level 2 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_ssymv      ssymv_
+   <font color='#0000FF'>#define</font> F77_ssbmv      ssbmv_
+   <font color='#0000FF'>#define</font> F77_sspmv      sspmv_
+   <font color='#0000FF'>#define</font> F77_sger       sger_
+   <font color='#0000FF'>#define</font> F77_ssyr       ssyr_
+   <font color='#0000FF'>#define</font> F77_sspr       sspr_
+   <font color='#0000FF'>#define</font> F77_ssyr2      ssyr2_
+   <font color='#0000FF'>#define</font> F77_sspr2      sspr2_
+   <font color='#0000FF'>#define</font> F77_dsymv      dsymv_
+   <font color='#0000FF'>#define</font> F77_dsbmv      dsbmv_
+   <font color='#0000FF'>#define</font> F77_dspmv      dspmv_
+   <font color='#0000FF'>#define</font> F77_dger       dger_
+   <font color='#0000FF'>#define</font> F77_dsyr       dsyr_
+   <font color='#0000FF'>#define</font> F77_dspr       dspr_
+   <font color='#0000FF'>#define</font> F77_dsyr2      dsyr2_
+   <font color='#0000FF'>#define</font> F77_dspr2      dspr2_
+   <font color='#0000FF'>#define</font> F77_chemv      chemv_
+   <font color='#0000FF'>#define</font> F77_chbmv      chbmv_
+   <font color='#0000FF'>#define</font> F77_chpmv      chpmv_
+   <font color='#0000FF'>#define</font> F77_cgeru      cgeru_
+   <font color='#0000FF'>#define</font> F77_cgerc      cgerc_
+   <font color='#0000FF'>#define</font> F77_cher       cher_
+   <font color='#0000FF'>#define</font> F77_chpr       chpr_
+   <font color='#0000FF'>#define</font> F77_cher2      cher2_
+   <font color='#0000FF'>#define</font> F77_chpr2      chpr2_
+   <font color='#0000FF'>#define</font> F77_zhemv      zhemv_
+   <font color='#0000FF'>#define</font> F77_zhbmv      zhbmv_
+   <font color='#0000FF'>#define</font> F77_zhpmv      zhpmv_
+   <font color='#0000FF'>#define</font> F77_zgeru      zgeru_
+   <font color='#0000FF'>#define</font> F77_zgerc      zgerc_
+   <font color='#0000FF'>#define</font> F77_zher       zher_
+   <font color='#0000FF'>#define</font> F77_zhpr       zhpr_
+   <font color='#0000FF'>#define</font> F77_zher2      zher2_
+   <font color='#0000FF'>#define</font> F77_zhpr2      zhpr2_
+   <font color='#0000FF'>#define</font> F77_sgemv      sgemv_
+   <font color='#0000FF'>#define</font> F77_sgbmv      sgbmv_
+   <font color='#0000FF'>#define</font> F77_strmv      strmv_
+   <font color='#0000FF'>#define</font> F77_stbmv      stbmv_
+   <font color='#0000FF'>#define</font> F77_stpmv      stpmv_
+   <font color='#0000FF'>#define</font> F77_strsv      strsv_
+   <font color='#0000FF'>#define</font> F77_stbsv      stbsv_
+   <font color='#0000FF'>#define</font> F77_stpsv      stpsv_
+   <font color='#0000FF'>#define</font> F77_dgemv      dgemv_
+   <font color='#0000FF'>#define</font> F77_dgbmv      dgbmv_
+   <font color='#0000FF'>#define</font> F77_dtrmv      dtrmv_
+   <font color='#0000FF'>#define</font> F77_dtbmv      dtbmv_
+   <font color='#0000FF'>#define</font> F77_dtpmv      dtpmv_
+   <font color='#0000FF'>#define</font> F77_dtrsv      dtrsv_
+   <font color='#0000FF'>#define</font> F77_dtbsv      dtbsv_
+   <font color='#0000FF'>#define</font> F77_dtpsv      dtpsv_
+   <font color='#0000FF'>#define</font> F77_cgemv      cgemv_
+   <font color='#0000FF'>#define</font> F77_cgbmv      cgbmv_
+   <font color='#0000FF'>#define</font> F77_ctrmv      ctrmv_
+   <font color='#0000FF'>#define</font> F77_ctbmv      ctbmv_
+   <font color='#0000FF'>#define</font> F77_ctpmv      ctpmv_
+   <font color='#0000FF'>#define</font> F77_ctrsv      ctrsv_
+   <font color='#0000FF'>#define</font> F77_ctbsv      ctbsv_
+   <font color='#0000FF'>#define</font> F77_ctpsv      ctpsv_
+   <font color='#0000FF'>#define</font> F77_zgemv      zgemv_
+   <font color='#0000FF'>#define</font> F77_zgbmv      zgbmv_
+   <font color='#0000FF'>#define</font> F77_ztrmv      ztrmv_
+   <font color='#0000FF'>#define</font> F77_ztbmv      ztbmv_
+   <font color='#0000FF'>#define</font> F77_ztpmv      ztpmv_
+   <font color='#0000FF'>#define</font> F77_ztrsv      ztrsv_
+   <font color='#0000FF'>#define</font> F77_ztbsv      ztbsv_
+   <font color='#0000FF'>#define</font> F77_ztpsv      ztpsv_
+<font color='#009900'>/*
+ * Level 3 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_chemm      chemm_
+   <font color='#0000FF'>#define</font> F77_cherk      cherk_
+   <font color='#0000FF'>#define</font> F77_cher2k     cher2k_
+   <font color='#0000FF'>#define</font> F77_zhemm      zhemm_
+   <font color='#0000FF'>#define</font> F77_zherk      zherk_
+   <font color='#0000FF'>#define</font> F77_zher2k     zher2k_
+   <font color='#0000FF'>#define</font> F77_sgemm      sgemm_
+   <font color='#0000FF'>#define</font> F77_ssymm      ssymm_
+   <font color='#0000FF'>#define</font> F77_ssyrk      ssyrk_
+   <font color='#0000FF'>#define</font> F77_ssyr2k     ssyr2k_
+   <font color='#0000FF'>#define</font> F77_strmm      strmm_
+   <font color='#0000FF'>#define</font> F77_strsm      strsm_
+   <font color='#0000FF'>#define</font> F77_dgemm      dgemm_
+   <font color='#0000FF'>#define</font> F77_dsymm      dsymm_
+   <font color='#0000FF'>#define</font> F77_dsyrk      dsyrk_
+   <font color='#0000FF'>#define</font> F77_dsyr2k     dsyr2k_
+   <font color='#0000FF'>#define</font> F77_dtrmm      dtrmm_
+   <font color='#0000FF'>#define</font> F77_dtrsm      dtrsm_
+   <font color='#0000FF'>#define</font> F77_cgemm      cgemm_
+   <font color='#0000FF'>#define</font> F77_csymm      csymm_
+   <font color='#0000FF'>#define</font> F77_csyrk      csyrk_
+   <font color='#0000FF'>#define</font> F77_csyr2k     csyr2k_
+   <font color='#0000FF'>#define</font> F77_ctrmm      ctrmm_
+   <font color='#0000FF'>#define</font> F77_ctrsm      ctrsm_
+   <font color='#0000FF'>#define</font> F77_zgemm      zgemm_
+   <font color='#0000FF'>#define</font> F77_zsymm      zsymm_
+   <font color='#0000FF'>#define</font> F77_zsyrk      zsyrk_
+   <font color='#0000FF'>#define</font> F77_zsyr2k     zsyr2k_
+   <font color='#0000FF'>#define</font> F77_ztrmm      ztrmm_
+   <font color='#0000FF'>#define</font> F77_ztrsm      ztrsm_
+<font color='#0000FF'>#elif</font> defined<font face='Lucida Console'>(</font>UPCASE<font face='Lucida Console'>)</font>
+<font color='#009900'>/*
+ * Level 1 BLAS
+ */</font>
+<font color='#0000FF'>#define</font> F77_xerbla  XERBLA
+   <font color='#0000FF'>#define</font> F77_srotg      SROTG
+   <font color='#0000FF'>#define</font> F77_srotmg     SROTMG
+   <font color='#0000FF'>#define</font> F77_srot       SROT
+   <font color='#0000FF'>#define</font> F77_srotm      SROTM
+   <font color='#0000FF'>#define</font> F77_drotg      DROTG
+   <font color='#0000FF'>#define</font> F77_drotmg     DROTMG
+   <font color='#0000FF'>#define</font> F77_drot       DROT
+   <font color='#0000FF'>#define</font> F77_drotm      DROTM
+   <font color='#0000FF'>#define</font> F77_sswap      SSWAP
+   <font color='#0000FF'>#define</font> F77_scopy      SCOPY
+   <font color='#0000FF'>#define</font> F77_saxpy      SAXPY
+   <font color='#0000FF'>#define</font> F77_isamax_sub ISAMAXSUB
+   <font color='#0000FF'>#define</font> F77_dswap      DSWAP
+   <font color='#0000FF'>#define</font> F77_dcopy      DCOPY
+   <font color='#0000FF'>#define</font> F77_daxpy      DAXPY
+   <font color='#0000FF'>#define</font> F77_idamax_sub IDAMAXSUB
+   <font color='#0000FF'>#define</font> F77_cswap      CSWAP
+   <font color='#0000FF'>#define</font> F77_ccopy      CCOPY
+   <font color='#0000FF'>#define</font> F77_caxpy      CAXPY
+   <font color='#0000FF'>#define</font> F77_icamax_sub ICAMAXSUB
+   <font color='#0000FF'>#define</font> F77_zswap      ZSWAP
+   <font color='#0000FF'>#define</font> F77_zcopy      ZCOPY
+   <font color='#0000FF'>#define</font> F77_zaxpy      ZAXPY
+   <font color='#0000FF'>#define</font> F77_izamax_sub IZAMAXSUB
+   <font color='#0000FF'>#define</font> F77_sdot_sub   SDOTSUB
+   <font color='#0000FF'>#define</font> F77_ddot_sub   DDOTSUB
+   <font color='#0000FF'>#define</font> F77_dsdot_sub   DSDOTSUB
+   <font color='#0000FF'>#define</font> F77_sscal      SSCAL
+   <font color='#0000FF'>#define</font> F77_dscal      DSCAL
+   <font color='#0000FF'>#define</font> F77_cscal      CSCAL
+   <font color='#0000FF'>#define</font> F77_zscal      ZSCAL
+   <font color='#0000FF'>#define</font> F77_csscal      CSSCAL
+   <font color='#0000FF'>#define</font> F77_zdscal      ZDSCAL
+   <font color='#0000FF'>#define</font> F77_cdotu_sub  CDOTUSUB
+   <font color='#0000FF'>#define</font> F77_cdotc_sub  CDOTCSUB
+   <font color='#0000FF'>#define</font> F77_zdotu_sub  ZDOTUSUB
+   <font color='#0000FF'>#define</font> F77_zdotc_sub  ZDOTCSUB
+   <font color='#0000FF'>#define</font> F77_snrm2_sub  SNRM2SUB
+   <font color='#0000FF'>#define</font> F77_sasum_sub  SASUMSUB
+   <font color='#0000FF'>#define</font> F77_dnrm2_sub  DNRM2SUB
+   <font color='#0000FF'>#define</font> F77_dasum_sub  DASUMSUB
+   <font color='#0000FF'>#define</font> F77_scnrm2_sub  SCNRM2SUB
+   <font color='#0000FF'>#define</font> F77_scasum_sub  SCASUMSUB
+   <font color='#0000FF'>#define</font> F77_dznrm2_sub  DZNRM2SUB
+   <font color='#0000FF'>#define</font> F77_dzasum_sub  DZASUMSUB
+   <font color='#0000FF'>#define</font> F77_sdsdot_sub   SDSDOTSUB
+<font color='#009900'>/*
+ * Level 2 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_ssymv      SSYMV
+   <font color='#0000FF'>#define</font> F77_ssbmv      SSBMV
+   <font color='#0000FF'>#define</font> F77_sspmv      SSPMV
+   <font color='#0000FF'>#define</font> F77_sger       SGER
+   <font color='#0000FF'>#define</font> F77_ssyr       SSYR
+   <font color='#0000FF'>#define</font> F77_sspr       SSPR
+   <font color='#0000FF'>#define</font> F77_ssyr2      SSYR2
+   <font color='#0000FF'>#define</font> F77_sspr2      SSPR2
+   <font color='#0000FF'>#define</font> F77_dsymv      DSYMV
+   <font color='#0000FF'>#define</font> F77_dsbmv      DSBMV
+   <font color='#0000FF'>#define</font> F77_dspmv      DSPMV
+   <font color='#0000FF'>#define</font> F77_dger       DGER
+   <font color='#0000FF'>#define</font> F77_dsyr       DSYR
+   <font color='#0000FF'>#define</font> F77_dspr       DSPR
+   <font color='#0000FF'>#define</font> F77_dsyr2      DSYR2
+   <font color='#0000FF'>#define</font> F77_dspr2      DSPR2
+   <font color='#0000FF'>#define</font> F77_chemv      CHEMV
+   <font color='#0000FF'>#define</font> F77_chbmv      CHBMV
+   <font color='#0000FF'>#define</font> F77_chpmv      CHPMV
+   <font color='#0000FF'>#define</font> F77_cgeru      CGERU
+   <font color='#0000FF'>#define</font> F77_cgerc      CGERC
+   <font color='#0000FF'>#define</font> F77_cher       CHER
+   <font color='#0000FF'>#define</font> F77_chpr       CHPR
+   <font color='#0000FF'>#define</font> F77_cher2      CHER2
+   <font color='#0000FF'>#define</font> F77_chpr2      CHPR2
+   <font color='#0000FF'>#define</font> F77_zhemv      ZHEMV
+   <font color='#0000FF'>#define</font> F77_zhbmv      ZHBMV
+   <font color='#0000FF'>#define</font> F77_zhpmv      ZHPMV
+   <font color='#0000FF'>#define</font> F77_zgeru      ZGERU
+   <font color='#0000FF'>#define</font> F77_zgerc      ZGERC
+   <font color='#0000FF'>#define</font> F77_zher       ZHER
+   <font color='#0000FF'>#define</font> F77_zhpr       ZHPR
+   <font color='#0000FF'>#define</font> F77_zher2      ZHER2
+   <font color='#0000FF'>#define</font> F77_zhpr2      ZHPR2
+   <font color='#0000FF'>#define</font> F77_sgemv      SGEMV
+   <font color='#0000FF'>#define</font> F77_sgbmv      SGBMV
+   <font color='#0000FF'>#define</font> F77_strmv      STRMV
+   <font color='#0000FF'>#define</font> F77_stbmv      STBMV
+   <font color='#0000FF'>#define</font> F77_stpmv      STPMV
+   <font color='#0000FF'>#define</font> F77_strsv      STRSV
+   <font color='#0000FF'>#define</font> F77_stbsv      STBSV
+   <font color='#0000FF'>#define</font> F77_stpsv      STPSV
+   <font color='#0000FF'>#define</font> F77_dgemv      DGEMV
+   <font color='#0000FF'>#define</font> F77_dgbmv      DGBMV
+   <font color='#0000FF'>#define</font> F77_dtrmv      DTRMV
+   <font color='#0000FF'>#define</font> F77_dtbmv      DTBMV
+   <font color='#0000FF'>#define</font> F77_dtpmv      DTPMV
+   <font color='#0000FF'>#define</font> F77_dtrsv      DTRSV
+   <font color='#0000FF'>#define</font> F77_dtbsv      DTBSV
+   <font color='#0000FF'>#define</font> F77_dtpsv      DTPSV
+   <font color='#0000FF'>#define</font> F77_cgemv      CGEMV
+   <font color='#0000FF'>#define</font> F77_cgbmv      CGBMV
+   <font color='#0000FF'>#define</font> F77_ctrmv      CTRMV
+   <font color='#0000FF'>#define</font> F77_ctbmv      CTBMV
+   <font color='#0000FF'>#define</font> F77_ctpmv      CTPMV
+   <font color='#0000FF'>#define</font> F77_ctrsv      CTRSV
+   <font color='#0000FF'>#define</font> F77_ctbsv      CTBSV
+   <font color='#0000FF'>#define</font> F77_ctpsv      CTPSV
+   <font color='#0000FF'>#define</font> F77_zgemv      ZGEMV
+   <font color='#0000FF'>#define</font> F77_zgbmv      ZGBMV
+   <font color='#0000FF'>#define</font> F77_ztrmv      ZTRMV
+   <font color='#0000FF'>#define</font> F77_ztbmv      ZTBMV
+   <font color='#0000FF'>#define</font> F77_ztpmv      ZTPMV
+   <font color='#0000FF'>#define</font> F77_ztrsv      ZTRSV
+   <font color='#0000FF'>#define</font> F77_ztbsv      ZTBSV
+   <font color='#0000FF'>#define</font> F77_ztpsv      ZTPSV
+<font color='#009900'>/*
+ * Level 3 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_chemm      CHEMM
+   <font color='#0000FF'>#define</font> F77_cherk      CHERK
+   <font color='#0000FF'>#define</font> F77_cher2k     CHER2K
+   <font color='#0000FF'>#define</font> F77_zhemm      ZHEMM
+   <font color='#0000FF'>#define</font> F77_zherk      ZHERK
+   <font color='#0000FF'>#define</font> F77_zher2k     ZHER2K
+   <font color='#0000FF'>#define</font> F77_sgemm      SGEMM
+   <font color='#0000FF'>#define</font> F77_ssymm      SSYMM
+   <font color='#0000FF'>#define</font> F77_ssyrk      SSYRK
+   <font color='#0000FF'>#define</font> F77_ssyr2k     SSYR2K
+   <font color='#0000FF'>#define</font> F77_strmm      STRMM
+   <font color='#0000FF'>#define</font> F77_strsm      STRSM
+   <font color='#0000FF'>#define</font> F77_dgemm      DGEMM
+   <font color='#0000FF'>#define</font> F77_dsymm      DSYMM
+   <font color='#0000FF'>#define</font> F77_dsyrk      DSYRK
+   <font color='#0000FF'>#define</font> F77_dsyr2k     DSYR2K
+   <font color='#0000FF'>#define</font> F77_dtrmm      DTRMM
+   <font color='#0000FF'>#define</font> F77_dtrsm      DTRSM
+   <font color='#0000FF'>#define</font> F77_cgemm      CGEMM
+   <font color='#0000FF'>#define</font> F77_csymm      CSYMM
+   <font color='#0000FF'>#define</font> F77_csyrk      CSYRK
+   <font color='#0000FF'>#define</font> F77_csyr2k     CSYR2K
+   <font color='#0000FF'>#define</font> F77_ctrmm      CTRMM
+   <font color='#0000FF'>#define</font> F77_ctrsm      CTRSM
+   <font color='#0000FF'>#define</font> F77_zgemm      ZGEMM
+   <font color='#0000FF'>#define</font> F77_zsymm      ZSYMM
+   <font color='#0000FF'>#define</font> F77_zsyrk      ZSYRK
+   <font color='#0000FF'>#define</font> F77_zsyr2k     ZSYR2K
+   <font color='#0000FF'>#define</font> F77_ztrmm      ZTRMM
+   <font color='#0000FF'>#define</font> F77_ztrsm      ZTRSM
+<font color='#0000FF'>#elif</font> defined<font face='Lucida Console'>(</font>NOCHANGE<font face='Lucida Console'>)</font>
+<font color='#009900'>/*
+ * Level 1 BLAS
+ */</font>
+<font color='#0000FF'>#define</font> F77_xerbla  xerbla
+   <font color='#0000FF'>#define</font> F77_srotg      srotg
+   <font color='#0000FF'>#define</font> F77_srotmg     srotmg
+   <font color='#0000FF'>#define</font> F77_srot       srot
+   <font color='#0000FF'>#define</font> F77_srotm      srotm
+   <font color='#0000FF'>#define</font> F77_drotg      drotg
+   <font color='#0000FF'>#define</font> F77_drotmg     drotmg
+   <font color='#0000FF'>#define</font> F77_drot       drot
+   <font color='#0000FF'>#define</font> F77_drotm      drotm
+   <font color='#0000FF'>#define</font> F77_sswap      sswap
+   <font color='#0000FF'>#define</font> F77_scopy      scopy
+   <font color='#0000FF'>#define</font> F77_saxpy      saxpy
+   <font color='#0000FF'>#define</font> F77_isamax_sub isamaxsub
+   <font color='#0000FF'>#define</font> F77_dswap      dswap
+   <font color='#0000FF'>#define</font> F77_dcopy      dcopy
+   <font color='#0000FF'>#define</font> F77_daxpy      daxpy
+   <font color='#0000FF'>#define</font> F77_idamax_sub idamaxsub
+   <font color='#0000FF'>#define</font> F77_cswap      cswap
+   <font color='#0000FF'>#define</font> F77_ccopy      ccopy
+   <font color='#0000FF'>#define</font> F77_caxpy      caxpy
+   <font color='#0000FF'>#define</font> F77_icamax_sub icamaxsub
+   <font color='#0000FF'>#define</font> F77_zswap      zswap
+   <font color='#0000FF'>#define</font> F77_zcopy      zcopy
+   <font color='#0000FF'>#define</font> F77_zaxpy      zaxpy
+   <font color='#0000FF'>#define</font> F77_izamax_sub izamaxsub
+   <font color='#0000FF'>#define</font> F77_sdot_sub   sdotsub
+   <font color='#0000FF'>#define</font> F77_ddot_sub   ddotsub
+   <font color='#0000FF'>#define</font> F77_dsdot_sub   dsdotsub
+   <font color='#0000FF'>#define</font> F77_sscal      sscal
+   <font color='#0000FF'>#define</font> F77_dscal      dscal
+   <font color='#0000FF'>#define</font> F77_cscal      cscal
+   <font color='#0000FF'>#define</font> F77_zscal      zscal
+   <font color='#0000FF'>#define</font> F77_csscal      csscal
+   <font color='#0000FF'>#define</font> F77_zdscal      zdscal
+   <font color='#0000FF'>#define</font> F77_cdotu_sub  cdotusub
+   <font color='#0000FF'>#define</font> F77_cdotc_sub  cdotcsub
+   <font color='#0000FF'>#define</font> F77_zdotu_sub  zdotusub
+   <font color='#0000FF'>#define</font> F77_zdotc_sub  zdotcsub
+   <font color='#0000FF'>#define</font> F77_snrm2_sub  snrm2sub
+   <font color='#0000FF'>#define</font> F77_sasum_sub  sasumsub
+   <font color='#0000FF'>#define</font> F77_dnrm2_sub  dnrm2sub
+   <font color='#0000FF'>#define</font> F77_dasum_sub  dasumsub
+   <font color='#0000FF'>#define</font> F77_scnrm2_sub  scnrm2sub
+   <font color='#0000FF'>#define</font> F77_scasum_sub  scasumsub
+   <font color='#0000FF'>#define</font> F77_dznrm2_sub  dznrm2sub
+   <font color='#0000FF'>#define</font> F77_dzasum_sub  dzasumsub
+   <font color='#0000FF'>#define</font> F77_sdsdot_sub   sdsdotsub
+<font color='#009900'>/*
+ * Level 2 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_ssymv      ssymv
+   <font color='#0000FF'>#define</font> F77_ssbmv      ssbmv
+   <font color='#0000FF'>#define</font> F77_sspmv      sspmv
+   <font color='#0000FF'>#define</font> F77_sger       sger
+   <font color='#0000FF'>#define</font> F77_ssyr       ssyr
+   <font color='#0000FF'>#define</font> F77_sspr       sspr
+   <font color='#0000FF'>#define</font> F77_ssyr2      ssyr2
+   <font color='#0000FF'>#define</font> F77_sspr2      sspr2
+   <font color='#0000FF'>#define</font> F77_dsymv      dsymv
+   <font color='#0000FF'>#define</font> F77_dsbmv      dsbmv
+   <font color='#0000FF'>#define</font> F77_dspmv      dspmv
+   <font color='#0000FF'>#define</font> F77_dger       dger
+   <font color='#0000FF'>#define</font> F77_dsyr       dsyr
+   <font color='#0000FF'>#define</font> F77_dspr       dspr
+   <font color='#0000FF'>#define</font> F77_dsyr2      dsyr2
+   <font color='#0000FF'>#define</font> F77_dspr2      dspr2
+   <font color='#0000FF'>#define</font> F77_chemv      chemv
+   <font color='#0000FF'>#define</font> F77_chbmv      chbmv
+   <font color='#0000FF'>#define</font> F77_chpmv      chpmv
+   <font color='#0000FF'>#define</font> F77_cgeru      cgeru
+   <font color='#0000FF'>#define</font> F77_cgerc      cgerc
+   <font color='#0000FF'>#define</font> F77_cher       cher
+   <font color='#0000FF'>#define</font> F77_chpr       chpr
+   <font color='#0000FF'>#define</font> F77_cher2      cher2
+   <font color='#0000FF'>#define</font> F77_chpr2      chpr2
+   <font color='#0000FF'>#define</font> F77_zhemv      zhemv
+   <font color='#0000FF'>#define</font> F77_zhbmv      zhbmv
+   <font color='#0000FF'>#define</font> F77_zhpmv      zhpmv
+   <font color='#0000FF'>#define</font> F77_zgeru      zgeru
+   <font color='#0000FF'>#define</font> F77_zgerc      zgerc
+   <font color='#0000FF'>#define</font> F77_zher       zher
+   <font color='#0000FF'>#define</font> F77_zhpr       zhpr
+   <font color='#0000FF'>#define</font> F77_zher2      zher2
+   <font color='#0000FF'>#define</font> F77_zhpr2      zhpr2
+   <font color='#0000FF'>#define</font> F77_sgemv      sgemv
+   <font color='#0000FF'>#define</font> F77_sgbmv      sgbmv
+   <font color='#0000FF'>#define</font> F77_strmv      strmv
+   <font color='#0000FF'>#define</font> F77_stbmv      stbmv
+   <font color='#0000FF'>#define</font> F77_stpmv      stpmv
+   <font color='#0000FF'>#define</font> F77_strsv      strsv
+   <font color='#0000FF'>#define</font> F77_stbsv      stbsv
+   <font color='#0000FF'>#define</font> F77_stpsv      stpsv
+   <font color='#0000FF'>#define</font> F77_dgemv      dgemv
+   <font color='#0000FF'>#define</font> F77_dgbmv      dgbmv
+   <font color='#0000FF'>#define</font> F77_dtrmv      dtrmv
+   <font color='#0000FF'>#define</font> F77_dtbmv      dtbmv
+   <font color='#0000FF'>#define</font> F77_dtpmv      dtpmv
+   <font color='#0000FF'>#define</font> F77_dtrsv      dtrsv
+   <font color='#0000FF'>#define</font> F77_dtbsv      dtbsv
+   <font color='#0000FF'>#define</font> F77_dtpsv      dtpsv
+   <font color='#0000FF'>#define</font> F77_cgemv      cgemv
+   <font color='#0000FF'>#define</font> F77_cgbmv      cgbmv
+   <font color='#0000FF'>#define</font> F77_ctrmv      ctrmv
+   <font color='#0000FF'>#define</font> F77_ctbmv      ctbmv
+   <font color='#0000FF'>#define</font> F77_ctpmv      ctpmv
+   <font color='#0000FF'>#define</font> F77_ctrsv      ctrsv
+   <font color='#0000FF'>#define</font> F77_ctbsv      ctbsv
+   <font color='#0000FF'>#define</font> F77_ctpsv      ctpsv
+   <font color='#0000FF'>#define</font> F77_zgemv      zgemv
+   <font color='#0000FF'>#define</font> F77_zgbmv      zgbmv
+   <font color='#0000FF'>#define</font> F77_ztrmv      ztrmv
+   <font color='#0000FF'>#define</font> F77_ztbmv      ztbmv
+   <font color='#0000FF'>#define</font> F77_ztpmv      ztpmv
+   <font color='#0000FF'>#define</font> F77_ztrsv      ztrsv
+   <font color='#0000FF'>#define</font> F77_ztbsv      ztbsv
+   <font color='#0000FF'>#define</font> F77_ztpsv      ztpsv
+<font color='#009900'>/*
+ * Level 3 BLAS
+ */</font>
+   <font color='#0000FF'>#define</font> F77_chemm      chemm
+   <font color='#0000FF'>#define</font> F77_cherk      cherk
+   <font color='#0000FF'>#define</font> F77_cher2k     cher2k
+   <font color='#0000FF'>#define</font> F77_zhemm      zhemm
+   <font color='#0000FF'>#define</font> F77_zherk      zherk
+   <font color='#0000FF'>#define</font> F77_zher2k     zher2k
+   <font color='#0000FF'>#define</font> F77_sgemm      sgemm
+   <font color='#0000FF'>#define</font> F77_ssymm      ssymm
+   <font color='#0000FF'>#define</font> F77_ssyrk      ssyrk
+   <font color='#0000FF'>#define</font> F77_ssyr2k     ssyr2k
+   <font color='#0000FF'>#define</font> F77_strmm      strmm
+   <font color='#0000FF'>#define</font> F77_strsm      strsm
+   <font color='#0000FF'>#define</font> F77_dgemm      dgemm
+   <font color='#0000FF'>#define</font> F77_dsymm      dsymm
+   <font color='#0000FF'>#define</font> F77_dsyrk      dsyrk
+   <font color='#0000FF'>#define</font> F77_dsyr2k     dsyr2k
+   <font color='#0000FF'>#define</font> F77_dtrmm      dtrmm
+   <font color='#0000FF'>#define</font> F77_dtrsm      dtrsm
+   <font color='#0000FF'>#define</font> F77_cgemm      cgemm
+   <font color='#0000FF'>#define</font> F77_csymm      csymm
+   <font color='#0000FF'>#define</font> F77_csyrk      csyrk
+   <font color='#0000FF'>#define</font> F77_csyr2k     csyr2k
+   <font color='#0000FF'>#define</font> F77_ctrmm      ctrmm
+   <font color='#0000FF'>#define</font> F77_ctrsm      ctrsm
+   <font color='#0000FF'>#define</font> F77_zgemm      zgemm
+   <font color='#0000FF'>#define</font> F77_zsymm      zsymm
+   <font color='#0000FF'>#define</font> F77_zsyrk      zsyrk
+   <font color='#0000FF'>#define</font> F77_zsyr2k     zsyr2k
+   <font color='#0000FF'>#define</font> F77_ztrmm      ztrmm
+   <font color='#0000FF'>#define</font> F77_ztrsm      ztrsm
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#ifdef</font> __cplusplus
+<font color='#0000FF'>extern</font> "<font color='#CC0000'>C</font>" <b>{</b>
+<font color='#0000FF'>#endif</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_xerbla'></a>F77_xerbla</b><font face='Lucida Console'>(</font>FCHAR, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+<font color='#009900'>/*
+ * Level 1 Fortran Prototypes
+ */</font>
+
+<font color='#009900'>/* Single Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_srot'></a>F77_srot</b><font face='Lucida Console'>(</font>FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_srotg'></a>F77_srotg</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;    
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_srotm'></a>F77_srotm</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_srotmg'></a>F77_srotmg</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sswap'></a>F77_sswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_scopy'></a>F77_scopy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_saxpy'></a>F77_saxpy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sdot_sub'></a>F77_sdot_sub</b><font face='Lucida Console'>(</font>FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sdsdot_sub'></a>F77_sdsdot_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sscal'></a>F77_sscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_snrm2_sub'></a>F77_snrm2_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sasum_sub'></a>F77_sasum_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_isamax_sub'></a>F77_isamax_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font> , FINT, FINT2<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_drot'></a>F77_drot</b><font face='Lucida Console'>(</font>FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_drotg'></a>F77_drotg</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;    
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_drotm'></a>F77_drotm</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_drotmg'></a>F77_drotmg</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,<font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dswap'></a>F77_dswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dcopy'></a>F77_dcopy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_daxpy'></a>F77_daxpy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dswap'></a>F77_dswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsdot_sub'></a>F77_dsdot_sub</b><font face='Lucida Console'>(</font>FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ddot_sub'></a>F77_ddot_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dscal'></a>F77_dscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dnrm2_sub'></a>F77_dnrm2_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dasum_sub'></a>F77_dasum_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_idamax_sub'></a>F77_idamax_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font> , FINT, FINT2<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Single Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cswap'></a>F77_cswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ccopy'></a>F77_ccopy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_caxpy'></a>F77_caxpy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cswap'></a>F77_cswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cdotc_sub'></a>F77_cdotc_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cdotu_sub'></a>F77_cdotu_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cscal'></a>F77_cscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_icamax_sub'></a>F77_icamax_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, FINT2<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_csscal'></a>F77_csscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_scnrm2_sub'></a>F77_scnrm2_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_scasum_sub'></a>F77_scasum_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zswap'></a>F77_zswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zcopy'></a>F77_zcopy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zaxpy'></a>F77_zaxpy</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zswap'></a>F77_zswap</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zdotc_sub'></a>F77_zdotc_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zdotu_sub'></a>F77_zdotu_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zdscal'></a>F77_zdscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zscal'></a>F77_zscal</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dznrm2_sub'></a>F77_dznrm2_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dzasum_sub'></a>F77_dzasum_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_izamax_sub'></a>F77_izamax_sub</b><font face='Lucida Console'>(</font> FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, FINT2<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/*
+ * Level 2 Fortran Prototypes
+ */</font>
+
+<font color='#009900'>/* Single Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sgemv'></a>F77_sgemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sgbmv'></a>F77_sgbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,  <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssymv'></a>F77_ssymv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>,  FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssbmv'></a>F77_ssbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sspmv'></a>F77_sspmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_strmv'></a>F77_strmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_stbmv'></a>F77_stbmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_strsv'></a>F77_strsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_stbsv'></a>F77_stbsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_stpmv'></a>F77_stpmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_stpsv'></a>F77_stpsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sger'></a>F77_sger</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssyr'></a>F77_ssyr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sspr'></a>F77_sspr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>; 
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sspr2'></a>F77_sspr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT,  <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>; 
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssyr2'></a>F77_ssyr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT,  <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dgemv'></a>F77_dgemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dgbmv'></a>F77_dgbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,  <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsymv'></a>F77_dsymv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>,  FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsbmv'></a>F77_dsbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dspmv'></a>F77_dspmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtrmv'></a>F77_dtrmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtbmv'></a>F77_dtbmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtrsv'></a>F77_dtrsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtbsv'></a>F77_dtbsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtpmv'></a>F77_dtpmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtpsv'></a>F77_dtpsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dger'></a>F77_dger</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsyr'></a>F77_dsyr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dspr'></a>F77_dspr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>; 
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dspr2'></a>F77_dspr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT,  <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>; 
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsyr2'></a>F77_dsyr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT,  <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Single Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cgemv'></a>F77_cgemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cgbmv'></a>F77_cgbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,  <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chemv'></a>F77_chemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chbmv'></a>F77_chbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chpmv'></a>F77_chpmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctrmv'></a>F77_ctrmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctbmv'></a>F77_ctbmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctpmv'></a>F77_ctpmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctrsv'></a>F77_ctrsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctbsv'></a>F77_ctbsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctpsv'></a>F77_ctpsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cgerc'></a>F77_cgerc</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cgeru'></a>F77_cgeru</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,  FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cher'></a>F77_cher</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cher2'></a>F77_cher2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chpr'></a>F77_chpr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chpr2'></a>F77_chpr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zgemv'></a>F77_zgemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zgbmv'></a>F77_zgbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,  <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhemv'></a>F77_zhemv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhbmv'></a>F77_zhbmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhpmv'></a>F77_zhpmv</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztrmv'></a>F77_ztrmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztbmv'></a>F77_ztbmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztpmv'></a>F77_ztpmv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztrsv'></a>F77_ztrsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztbsv'></a>F77_ztbsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztpsv'></a>F77_ztpsv</b><font face='Lucida Console'>(</font> FCHAR, FCHAR, FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zgerc'></a>F77_zgerc</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zgeru'></a>F77_zgeru</b><font face='Lucida Console'>(</font> FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>,  FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zher'></a>F77_zher</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zher2'></a>F77_zher2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhpr'></a>F77_zhpr</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhpr2'></a>F77_zhpr2</b><font face='Lucida Console'>(</font>FCHAR, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>void</u></font> <font color='#5555FF'>*</font><font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/*
+ * Level 3 Fortran Prototypes
+ */</font>
+
+<font color='#009900'>/* Single Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_sgemm'></a>F77_sgemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssymm'></a>F77_ssymm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssyrk'></a>F77_ssyrk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ssyr2k'></a>F77_ssyr2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_strmm'></a>F77_strmm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_strsm'></a>F77_strsm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dgemm'></a>F77_dgemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsymm'></a>F77_dsymm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsyrk'></a>F77_dsyrk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dsyr2k'></a>F77_dsyr2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtrmm'></a>F77_dtrmm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_dtrsm'></a>F77_dtrsm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Single Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cgemm'></a>F77_cgemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_csymm'></a>F77_csymm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_chemm'></a>F77_chemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_csyrk'></a>F77_csyrk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cherk'></a>F77_cherk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_csyr2k'></a>F77_csyr2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_cher2k'></a>F77_cher2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctrmm'></a>F77_ctrmm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ctrsm'></a>F77_ctrsm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>/* Double Complex Precision */</font>
+
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zgemm'></a>F77_zgemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zsymm'></a>F77_zsymm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zhemm'></a>F77_zhemm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zsyrk'></a>F77_zsyrk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zherk'></a>F77_zherk</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zsyr2k'></a>F77_zsyr2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_zher2k'></a>F77_zher2k</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztrmm'></a>F77_ztrmm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'><u>void</u></font> <b><a name='F77_ztrsm'></a>F77_ztrsm</b><font face='Lucida Console'>(</font>FCHAR, FCHAR, FCHAR, FCHAR, FINT, FINT, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>, FINT<font face='Lucida Console'>)</font>;
+
+<font color='#0000FF'>#ifdef</font> __cplusplus
+<b>}</b>
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>/*  CBLAS_F77_H */</font>
+
+</pre></body></html>

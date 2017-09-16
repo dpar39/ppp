@@ -1,0 +1,540 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - subprocess_stream.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='subprocess_stream.h.html'>subprocess_stream.h</a>"
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sstream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>utility<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cstdio<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>fcntl.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>signal.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>wait.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>select.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='call_matlab.h.html'>call_matlab.h</a>"
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='make_fd_non_blocking'></a>make_fd_non_blocking</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> fd<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'><u>int</u></font> flags <font color='#5555FF'>=</font> <font color='#BB00BB'>fcntl</font><font face='Lucida Console'>(</font>fd, F_GETFL, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>fcntl</font><font face='Lucida Console'>(</font>fd, F_SETFL, flags <font color='#5555FF'>|</font> O_NONBLOCK<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#009900'>// Block until fd is ready to read,  while also echoing whatever is in fd_printf to
+</font>    <font color='#009900'>// cout.
+</font>    <font color='#0000FF'><u>int</u></font> <b><a name='read_echoing_select'></a>read_echoing_select</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> fd, <font color='#0000FF'><u>int</u></font> fd_printf<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// run until fd has data ready
+</font>        <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>fd_printf <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            fd_set rfds;
+            <font color='#0000FF'><u>int</u></font> retval;
+
+            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>FD_ZERO</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>FD_SET</font><font face='Lucida Console'>(</font>fd, <font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>FD_SET</font><font face='Lucida Console'>(</font>fd_printf, <font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// select times out every second just so we can check for matlab ctrl+c.
+</font>                <font color='#0000FF'>struct</font> timeval tv;
+                tv.tv_sec <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+                tv.tv_usec <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+                <font color='#0000FF'>try</font><b>{</b><font color='#BB00BB'>check_for_matlab_ctrl_c</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>1</font>; <b>}</b>
+                retval <font color='#5555FF'>=</font> <font color='#BB00BB'>select</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>fd,fd_printf<font face='Lucida Console'>)</font><font color='#5555FF'>+</font><font color='#979000'>1</font>, <font color='#5555FF'>&amp;</font>rfds, NULL, NULL, <font color='#5555FF'>&amp;</font>tv<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>try</font><b>{</b><font color='#BB00BB'>check_for_matlab_ctrl_c</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>1</font>; <b>}</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font> <font color='#009900'>// keep going if it was just a timeout.
+</font>                    <font color='#0000FF'>continue</font>;
+                <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> errno <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EINTR<font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>continue</font>;
+
+                <font color='#0000FF'>break</font>;
+            <b>}</b>
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font> 
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>FD_ISSET</font><font face='Lucida Console'>(</font>fd,<font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+                <b>}</b>
+                <font color='#0000FF'>else</font>
+                <b>{</b>
+                    <font color='#0000FF'><u>char</u></font> buf[<font color='#979000'>1024</font>];
+                    <font color='#0000FF'><u>int</u></font> num <font color='#5555FF'>=</font> <font color='#BB00BB'>read</font><font face='Lucida Console'>(</font>fd_printf,buf, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>buf<font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+                        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        buf[num] <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> buf <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> flush;
+                    <b>}</b>
+                <b>}</b>
+            <b>}</b>
+        <b>}</b>
+        <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+    <b>}</b>
+
+    <font color='#0000FF'><u>int</u></font> <b><a name='write_echoing_select'></a>write_echoing_select</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> fd, <font color='#0000FF'><u>int</u></font> fd_printf<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// run until fd has data ready
+</font>        <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>fd_printf <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            fd_set rfds, wfds;
+            <font color='#0000FF'><u>int</u></font> retval;
+            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>FD_ZERO</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>FD_ZERO</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>wfds<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>FD_SET</font><font face='Lucida Console'>(</font>fd, <font color='#5555FF'>&amp;</font>wfds<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>FD_SET</font><font face='Lucida Console'>(</font>fd_printf, <font color='#5555FF'>&amp;</font>rfds<font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// select times out every second just so we can check for matlab ctrl+c.
+</font>                <font color='#0000FF'>struct</font> timeval tv;
+                tv.tv_sec <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+                tv.tv_usec <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+                <font color='#0000FF'>try</font><b>{</b><font color='#BB00BB'>check_for_matlab_ctrl_c</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>1</font>; <b>}</b>
+                retval <font color='#5555FF'>=</font> <font color='#BB00BB'>select</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>fd,fd_printf<font face='Lucida Console'>)</font><font color='#5555FF'>+</font><font color='#979000'>1</font>, <font color='#5555FF'>&amp;</font>rfds, <font color='#5555FF'>&amp;</font>wfds, NULL, <font color='#5555FF'>&amp;</font>tv<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>try</font><b>{</b><font color='#BB00BB'>check_for_matlab_ctrl_c</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>1</font>; <b>}</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font> <font color='#009900'>// keep going if it was just a timeout.
+</font>                    <font color='#0000FF'>continue</font>;
+                <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> errno <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EINTR<font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>continue</font>;
+
+                <font color='#0000FF'>break</font>;
+            <b>}</b>
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>retval <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font> 
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>FD_ISSET</font><font face='Lucida Console'>(</font>fd,<font color='#5555FF'>&amp;</font>wfds<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+                <b>}</b>
+                <font color='#0000FF'>else</font>
+                <b>{</b>
+                    <font color='#0000FF'><u>char</u></font> buf[<font color='#979000'>1024</font>];
+                    <font color='#0000FF'><u>int</u></font> num <font color='#5555FF'>=</font> <font color='#BB00BB'>read</font><font face='Lucida Console'>(</font>fd_printf,buf, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>buf<font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>
+                        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        buf[num] <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> buf <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> flush;
+                    <b>}</b>
+                <b>}</b>
+            <b>}</b>
+        <b>}</b>
+        <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='filestreambuf'></a>filestreambuf</b> : <font color='#0000FF'>public</font> std::streambuf
+    <b>{</b>
+        <font color='#009900'>/*!
+                    INITIAL VALUE
+                        - fd == the file descriptor we read from.
+                        - in_buffer == an array of in_buffer_size bytes
+                        - out_buffer == an array of out_buffer_size bytes
+
+                    CONVENTION
+                        - in_buffer == the input buffer used by this streambuf
+                        - out_buffer == the output buffer used by this streambuf
+                        - max_putback == the maximum number of chars to have in the put back buffer.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='filestreambuf'></a>filestreambuf</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> fd_,
+            <font color='#0000FF'><u>int</u></font> fd_printf_
+        <font face='Lucida Console'>)</font> :
+            fd<font face='Lucida Console'>(</font>fd_<font face='Lucida Console'>)</font>,
+            fd_printf<font face='Lucida Console'>(</font>fd_printf_<font face='Lucida Console'>)</font>,
+            out_buffer<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>,
+            in_buffer<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>init</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>virtual</font> ~<b><a name='filestreambuf'></a>filestreambuf</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>sync</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>delete</font> [] out_buffer;
+            <font color='#0000FF'>delete</font> [] in_buffer;
+        <b>}</b>
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='sync'></a>sync</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>flush_out_buffer</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EOF<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// an error occurred
+</font>                <font color='#0000FF'>return</font> <font color='#5555FF'>-</font><font color='#979000'>1</font>;
+            <b>}</b>
+            <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+        <b>}</b>
+    <font color='#0000FF'>protected</font>:
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='init'></a>init</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>try</font>
+            <b>{</b>
+                out_buffer <font color='#5555FF'>=</font> <font color='#0000FF'>new</font> <font color='#0000FF'><u>char</u></font>[out_buffer_size];
+                in_buffer <font color='#5555FF'>=</font> <font color='#0000FF'>new</font> <font color='#0000FF'><u>char</u></font>[in_buffer_size];
+            <b>}</b>
+            <font color='#0000FF'>catch</font> <font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>out_buffer<font face='Lucida Console'>)</font> <font color='#0000FF'>delete</font> [] out_buffer;
+                <font color='#0000FF'>throw</font>;
+            <b>}</b>
+            <font color='#BB00BB'>setp</font><font face='Lucida Console'>(</font>out_buffer, out_buffer <font color='#5555FF'>+</font> <font face='Lucida Console'>(</font>out_buffer_size<font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>setg</font><font face='Lucida Console'>(</font>in_buffer<font color='#5555FF'>+</font>max_putback, 
+                in_buffer<font color='#5555FF'>+</font>max_putback, 
+                in_buffer<font color='#5555FF'>+</font>max_putback<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='flush_out_buffer'></a>flush_out_buffer</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'><u>int</u></font> num <font color='#5555FF'>=</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#BB00BB'>pbase</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> num_written <font color='#5555FF'>=</font> num;
+            <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> buf <font color='#5555FF'>=</font> out_buffer;
+            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>num <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font><font face='Lucida Console'>(</font><font color='#BB00BB'>write_echoing_select</font><font face='Lucida Console'>(</font>fd, fd_printf<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font> EOF;
+                <font color='#0000FF'><u>int</u></font> status <font color='#5555FF'>=</font> <font color='#BB00BB'>write</font><font face='Lucida Console'>(</font>fd,buf,num<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>status <font color='#5555FF'>&lt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#009900'>// the write was not successful so return EOF 
+</font>                    <font color='#0000FF'>return</font> EOF;
+                <b>}</b> 
+                num <font color='#5555FF'>-</font><font color='#5555FF'>=</font> status;
+                buf <font color='#5555FF'>+</font><font color='#5555FF'>=</font> status;
+            <b>}</b>
+            <font color='#BB00BB'>pbump</font><font face='Lucida Console'>(</font><font color='#5555FF'>-</font>num_written<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> num_written;
+        <b>}</b>
+
+        <font color='#009900'>// output functions
+</font>        int_type <b><a name='overflow'></a>overflow</b> <font face='Lucida Console'>(</font>
+            int_type c
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>c <font color='#5555FF'>!</font><font color='#5555FF'>=</font> EOF<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#5555FF'>*</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> c;
+                <font color='#BB00BB'>pbump</font><font face='Lucida Console'>(</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>flush_out_buffer</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EOF<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// an error occurred
+</font>                <font color='#0000FF'>return</font> EOF;
+            <b>}</b>
+            <font color='#0000FF'>return</font> c;
+        <b>}</b>
+
+
+        std::streamsize <b><a name='xsputn'></a>xsputn</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> s,
+            std::streamsize num
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// Add a sanity check here 
+</font>            <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font>num <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+                "<font color='#CC0000'>\tstd::streamsize filestreambuf::xsputn</font>"
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\tThe number of bytes to write can't be negative</font>"
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\tnum:  </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num 
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\tthis: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#0000FF'>this</font>
+            <font face='Lucida Console'>)</font>;
+
+            std::streamsize space_left <font color='#5555FF'>=</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font>std::streamsize<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#BB00BB'>epptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> space_left<font face='Lucida Console'>)</font>
+            <b>{</b>
+                std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,s,<font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>num<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>pbump</font><font face='Lucida Console'>(</font><font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>num<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>return</font> num;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,s,<font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>space_left<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                s <font color='#5555FF'>+</font><font color='#5555FF'>=</font> space_left;
+                <font color='#BB00BB'>pbump</font><font face='Lucida Console'>(</font>space_left<font face='Lucida Console'>)</font>;
+                std::streamsize num_left <font color='#5555FF'>=</font> num <font color='#5555FF'>-</font> space_left;
+
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>flush_out_buffer</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EOF<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#009900'>// the write was not successful so return that 0 bytes were written
+</font>                    <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+                <b>}</b>
+
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num_left <font color='#5555FF'>&lt;</font> out_buffer_size<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font><font color='#BB00BB'>pptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,s,<font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>num_left<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                    <font color='#BB00BB'>pbump</font><font face='Lucida Console'>(</font>num_left<font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>return</font> num;
+                <b>}</b>
+                <font color='#0000FF'>else</font>
+                <b>{</b>
+                    <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>num_left <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        <font color='#0000FF'>if</font><font face='Lucida Console'>(</font><font color='#BB00BB'>write_echoing_select</font><font face='Lucida Console'>(</font>fd, fd_printf<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                            <font color='#0000FF'>return</font> EOF;
+                        <font color='#0000FF'><u>int</u></font> status <font color='#5555FF'>=</font> <font color='#BB00BB'>write</font><font face='Lucida Console'>(</font>fd,s,num_left<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>status <font color='#5555FF'>&lt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                        <b>{</b>
+                            <font color='#009900'>// the write was not successful so return that 0 bytes were written
+</font>                            <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+                        <b>}</b> 
+                        num_left <font color='#5555FF'>-</font><font color='#5555FF'>=</font> status;
+                        s <font color='#5555FF'>+</font><font color='#5555FF'>=</font> status;
+                    <b>}</b>
+                    <font color='#0000FF'>return</font> num;
+                <b>}</b>
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#009900'>// input functions
+</font>        int_type <b><a name='underflow'></a>underflow</b><font face='Lucida Console'>(</font> 
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> <font color='#BB00BB'>egptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font><font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'><u>int</u></font> num_put_back <font color='#5555FF'>=</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>-</font> <font color='#BB00BB'>eback</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num_put_back <font color='#5555FF'>&gt;</font> max_putback<font face='Lucida Console'>)</font>
+            <b>{</b>
+                num_put_back <font color='#5555FF'>=</font> max_putback;
+            <b>}</b>
+
+            <font color='#009900'>// copy the putback characters into the putback end of the in_buffer
+</font>            std::<font color='#BB00BB'>memmove</font><font face='Lucida Console'>(</font>in_buffer<font color='#5555FF'>+</font><font face='Lucida Console'>(</font>max_putback<font color='#5555FF'>-</font>num_put_back<font face='Lucida Console'>)</font>, <font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>num_put_back, num_put_back<font face='Lucida Console'>)</font>;
+
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>read_echoing_select</font><font face='Lucida Console'>(</font>fd, fd_printf<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font> EOF;
+            <font color='#0000FF'><u>int</u></font> num <font color='#5555FF'>=</font> <font color='#BB00BB'>read</font><font face='Lucida Console'>(</font>fd,in_buffer<font color='#5555FF'>+</font>max_putback, in_buffer_size<font color='#5555FF'>-</font>max_putback<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// an error occurred or the connection is over which is EOF
+</font>                <font color='#0000FF'>return</font> EOF;
+            <b>}</b>
+
+            <font color='#009900'>// reset in_buffer pointers
+</font>            <font color='#BB00BB'>setg</font> <font face='Lucida Console'>(</font>in_buffer<font color='#5555FF'>+</font><font face='Lucida Console'>(</font>max_putback<font color='#5555FF'>-</font>num_put_back<font face='Lucida Console'>)</font>,
+                in_buffer<font color='#5555FF'>+</font>max_putback,
+                in_buffer<font color='#5555FF'>+</font>max_putback<font color='#5555FF'>+</font>num<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>return</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font><font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        std::streamsize <b><a name='xsgetn'></a>xsgetn</b> <font face='Lucida Console'>(</font>
+            char_type<font color='#5555FF'>*</font> s, 
+            std::streamsize n
+        <font face='Lucida Console'>)</font>
+        <b>{</b> 
+            std::streamsize temp <font color='#5555FF'>=</font> n;
+            <font color='#0000FF'>while</font> <font face='Lucida Console'>(</font>n <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>int</u></font> num <font color='#5555FF'>=</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#BB00BB'>egptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>-</font> <font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> n<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#009900'>// copy data from our buffer 
+</font>                    std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>s, <font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                    <font color='#BB00BB'>gbump</font><font face='Lucida Console'>(</font><font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>return</font> temp;
+                <b>}</b>
+
+                <font color='#009900'>// read more data into our buffer  
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>underflow</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> EOF<font face='Lucida Console'>)</font>
+                        <font color='#0000FF'>break</font>;
+                    <font color='#0000FF'>continue</font>;
+                <b>}</b>
+
+                <font color='#009900'>// copy all the data from our buffer 
+</font>                std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>s, <font color='#BB00BB'>gptr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, num<font face='Lucida Console'>)</font>;
+                n <font color='#5555FF'>-</font><font color='#5555FF'>=</font> num;
+                <font color='#BB00BB'>gbump</font><font face='Lucida Console'>(</font>num<font face='Lucida Console'>)</font>;
+                s <font color='#5555FF'>+</font><font color='#5555FF'>=</font> num;
+            <b>}</b>
+            <font color='#0000FF'>return</font> temp<font color='#5555FF'>-</font>n;       
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+
+        <font color='#009900'>// member data
+</font>        <font color='#0000FF'><u>int</u></font>  fd;
+        <font color='#0000FF'><u>int</u></font>  fd_printf;
+        <font color='#0000FF'>static</font> <font color='#0000FF'>const</font> std::streamsize max_putback <font color='#5555FF'>=</font> <font color='#979000'>4</font>;
+        <font color='#0000FF'>static</font> <font color='#0000FF'>const</font> std::streamsize out_buffer_size <font color='#5555FF'>=</font> <font color='#979000'>10000</font>;
+        <font color='#0000FF'>static</font> <font color='#0000FF'>const</font> std::streamsize in_buffer_size <font color='#5555FF'>=</font> <font color='#979000'>10000</font>;
+        <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> out_buffer;
+        <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> in_buffer;
+
+    <b>}</b>;
+
+    <font color='#0000FF'>namespace</font> impl
+    <b>{</b>
+        <font color='#0000FF'><u>int</u></font> <b><a name='get_data_fd'></a>get_data_fd</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> env_fd <font color='#5555FF'>=</font> <font color='#BB00BB'>getenv</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>DLIB_SUBPROCESS_DATA_FD</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>env_fd <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>,"<font color='#CC0000'></font>"<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> <font color='#BB00BB'>atoi</font><font face='Lucida Console'>(</font>env_fd<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        std::iostream<font color='#5555FF'>&amp;</font> <b><a name='get_data_iostream'></a>get_data_iostream</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>static</font> filestreambuf <font color='#BB00BB'>dbuff</font><font face='Lucida Console'>(</font><font color='#BB00BB'>get_data_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>static</font> iostream <font color='#BB00BB'>out</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>dbuff<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ---------------------------------------------------------------------------------------- 
+</font>
+    subprocess_stream::
+    <b><a name='subprocess_stream'></a>subprocess_stream</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> program_name<font face='Lucida Console'>)</font> : stderr<font face='Lucida Console'>(</font>NULL<font face='Lucida Console'>)</font>, iosub<font face='Lucida Console'>(</font>NULL<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>access</font><font face='Lucida Console'>(</font>program_name, F_OK<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error: '</font>" <font color='#5555FF'>+</font> std::<font color='#BB00BB'>string</font><font face='Lucida Console'>(</font>program_name<font face='Lucida Console'>)</font> <font color='#5555FF'>+</font> "<font color='#CC0000'>' file does not exist.</font>"<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>access</font><font face='Lucida Console'>(</font>program_name, X_OK<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error: '</font>" <font color='#5555FF'>+</font> std::<font color='#BB00BB'>string</font><font face='Lucida Console'>(</font>program_name<font face='Lucida Console'>)</font> <font color='#5555FF'>+</font> "<font color='#CC0000'>' file is not executable.</font>"<font face='Lucida Console'>)</font>;
+
+        child_pid <font color='#5555FF'>=</font> <font color='#BB00BB'>fork</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>child_pid <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font> 
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Failed to start child process</font>"<font face='Lucida Console'>)</font>; 
+
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>child_pid <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font> 
+        <b>{</b>   
+            <font color='#009900'>// In child process
+</font>            <font color='#BB00BB'>dup2</font><font face='Lucida Console'>(</font>stdout_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, STDOUT_FILENO<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>dup2</font><font face='Lucida Console'>(</font>stderr_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,  STDERR_FILENO<font face='Lucida Console'>)</font>;
+            stdout_pipe.<font color='#BB00BB'>close</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            stderr_pipe.<font color='#BB00BB'>close</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> argv[] <font color='#5555FF'>=</font> <b>{</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>program_name, nullptr<b>}</b>;
+            <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> cudadevs <font color='#5555FF'>=</font> <font color='#BB00BB'>getenv</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>CUDA_VISIBLE_DEVICES</font>"<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>cudadevs<font face='Lucida Console'>)</font>
+            <b>{</b>
+                std::ostringstream sout;
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>DLIB_SUBPROCESS_DATA_FD=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>data_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                std::string extra <font color='#5555FF'>=</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+                std::string extra2 <font color='#5555FF'>=</font> std::<font color='#BB00BB'>string</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>CUDA_VISIBLE_DEVICES=</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>+</font> cudadevs;
+                <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> envp[] <font color='#5555FF'>=</font> <b>{</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>extra.<font color='#BB00BB'>c_str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>extra2.<font color='#BB00BB'>c_str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, nullptr<b>}</b>;
+                <font color='#BB00BB'>execve</font><font face='Lucida Console'>(</font>argv[<font color='#979000'>0</font>], argv, envp<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                std::ostringstream sout;
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>DLIB_SUBPROCESS_DATA_FD=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>data_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                std::string extra <font color='#5555FF'>=</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> envp[] <font color='#5555FF'>=</font> <b>{</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>extra.<font color='#BB00BB'>c_str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, nullptr<b>}</b>;
+                <font color='#BB00BB'>execve</font><font face='Lucida Console'>(</font>argv[<font color='#979000'>0</font>], argv, envp<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+
+            <font color='#009900'>// If launching the child didn't work then bail immediately so the parent
+</font>            <font color='#009900'>// process has no chance to get tweaked out (*cough* MATLAB *cough*).
+</font>            <font color='#BB00BB'>_Exit</font><font face='Lucida Console'>(</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>else</font> 
+        <b>{</b>
+            <font color='#009900'>// In parent process
+</font>            <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>data_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>stdout_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>stderr_pipe.<font color='#BB00BB'>child_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>make_fd_non_blocking</font><font face='Lucida Console'>(</font>data_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>make_fd_non_blocking</font><font face='Lucida Console'>(</font>stdout_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>make_fd_non_blocking</font><font face='Lucida Console'>(</font>stderr_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            inout_buf <font color='#5555FF'>=</font> std::unique_ptr<font color='#5555FF'>&lt;</font>filestreambuf<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#0000FF'>new</font> <font color='#BB00BB'>filestreambuf</font><font face='Lucida Console'>(</font>data_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, stdout_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            err_buf <font color='#5555FF'>=</font> std::unique_ptr<font color='#5555FF'>&lt;</font>filestreambuf<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font color='#0000FF'>new</font> <font color='#BB00BB'>filestreambuf</font><font face='Lucida Console'>(</font>stderr_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, stdout_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            iosub.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font>inout_buf.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            stderr.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font>err_buf.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            iosub.<font color='#BB00BB'>tie</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>iosub<font face='Lucida Console'>)</font>;
+            stderr.<font color='#BB00BB'>tie</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>iosub<font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    subprocess_stream::
+    ~<b><a name='subprocess_stream'></a>subprocess_stream</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+    <b>{</b>
+        <font color='#0000FF'>try</font>
+        <b>{</b>
+            <font color='#BB00BB'>wait</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>catch</font> <font face='Lucida Console'>(</font>dlib::error<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::cerr <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> std::endl;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> subprocess_stream::
+    <b><a name='wait'></a>wait</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>wait_called<font face='Lucida Console'>)</font>
+        <b>{</b>
+            wait_called <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <font color='#BB00BB'>send_eof</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            std::ostringstream sout;
+            sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> stderr.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>try</font><b>{</b><font color='#BB00BB'>check_for_matlab_ctrl_c</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b> <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font> 
+            <b>{</b> 
+                <font color='#BB00BB'>kill</font><font face='Lucida Console'>(</font>child_pid, SIGTERM<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'><u>int</u></font> status;
+            <font color='#BB00BB'>waitpid</font><font face='Lucida Console'>(</font>child_pid, <font color='#5555FF'>&amp;</font>status, <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>status<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Child process terminated with an error.\n</font>" <font color='#5555FF'>+</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Child process terminated with an error.\n</font>" <font color='#5555FF'>+</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> subprocess_stream::
+    <b><a name='send_eof'></a>send_eof</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> inout_buf<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>sync</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;  ::<font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>data_pipe.<font color='#BB00BB'>parent_fd</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+
+
+</pre></body></html>

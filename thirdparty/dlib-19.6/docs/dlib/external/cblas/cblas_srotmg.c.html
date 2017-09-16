@@ -1,0 +1,18 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_srotmg.c</title></head><body bgcolor='white'><pre>
+<font color='#009900'>/*
+ * cblas_srotmg.c
+ *
+ * The program is a C interface to srotmg.
+ *
+ * Written by Keita Teranishi.  2/11/1998
+ *
+ */</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas.h.html'>cblas.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas_f77.h.html'>cblas_f77.h</a>"
+<font color='#0000FF'><u>void</u></font> <b><a name='cblas_srotmg'></a>cblas_srotmg</b><font face='Lucida Console'>(</font> <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>d1, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>d2, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>b1, 
+                        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> b2, <font color='#0000FF'><u>float</u></font> <font color='#5555FF'>*</font>p<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#BB00BB'>F77_srotmg</font><font face='Lucida Console'>(</font>d1,d2,b1,<font color='#5555FF'>&amp;</font>b2,p<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+</pre></body></html>

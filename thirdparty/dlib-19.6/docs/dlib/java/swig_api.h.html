@@ -1,0 +1,129 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - swig_api.h</title></head><body bgcolor='white'><pre>
+<font color='#0000FF'>#ifndef</font> EXAMPLE_SWIG_ApI_H_ 
+<font color='#0000FF'>#define</font> EXAMPLE_SWIG_ApI_H_
+
+<font color='#009900'>// This file is essentially a small unit test for the swig cmake scripts and the java array
+</font><font color='#009900'>// classes.  All it does it define a few simple functions for writing to and summing
+</font><font color='#009900'>// arrays.  The swig_test.java file then calls these C++ functions and checks if they work
+</font><font color='#009900'>// correctly.  
+</font>
+
+
+<font color='#009900'>// Let's use java_array.h, a tool for efficiently binding java native arrays to C++
+</font><font color='#009900'>// function arguments.  You do this by putting this pair of include statements in your
+</font><font color='#009900'>// swig_api.h file.  Then after that you can use the java::array, java::array_view, and
+</font><font color='#009900'>// java::array_view_crit classes.  
+</font><font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>java<font color='#5555FF'>/</font>java_array.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#ifdef</font> SWIG
+<font color='#5555FF'>%</font>include <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>java<font color='#5555FF'>/</font>java_array.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#endif</font>
+
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> java;
+
+
+<font color='#009900'>// SWIG can't expose templated functions to java.  We declare these here as helper
+</font><font color='#009900'>// functions to make the non-templated routines swig will expose easier to write.  You can
+</font><font color='#009900'>// see these java exposed methods below (i.e. sum(), sum_crit(), assign(), and
+</font><font color='#009900'>// assign_crit()).
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+T <b><a name='tsum'></a>tsum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font>
+<b>{</b>
+    T s <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> v : arr<font face='Lucida Console'>)</font>
+        s <font color='#5555FF'>+</font><font color='#5555FF'>=</font> v;
+    <font color='#0000FF'>return</font> s;
+<b>}</b>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+T <b><a name='tsum'></a>tsum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font>
+<b>{</b>
+    T s <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> v : arr<font face='Lucida Console'>)</font>
+        s <font color='#5555FF'>+</font><font color='#5555FF'>=</font> v;
+    <font color='#0000FF'>return</font> s;
+<b>}</b>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='tassign'></a>tassign</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> arr.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        arr[i] <font color='#5555FF'>=</font> i;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#009900'>// Now write some functions SWIG will expose to java.  SWIG will automatically expose
+</font><font color='#009900'>// pretty much any non-template C++ code to java.  So just by defining these functions here
+</font><font color='#009900'>// we expose them to java.
+</font><font color='#009900'>// 
+</font><font color='#009900'>// All global C++ functions will appear in java as static member functions of class called
+</font><font color='#009900'>// "global", which is where these sum and assign routines will appear.  You can see
+</font><font color='#009900'>// examples of java code that calls them in swig_test.java.
+</font>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font>int16_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font>int16_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font>int16_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array_view<font color='#5555FF'>&lt;</font>int16_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+
+
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array_view<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+
+
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font>int64_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font>int64_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font>int64_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array_view<font color='#5555FF'>&lt;</font>int64_t<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+
+
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+
+
+
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>double</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>double</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+
+
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>float</u></font> <b><a name='sum_crit'></a>sum_crit</b><font face='Lucida Console'>(</font>array<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> arr<font face='Lucida Console'>)</font> 
+<b>{</b> 
+    array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>a</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font>; 
+<b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>float</u></font> <b><a name='sum'></a>sum</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> array<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> 
+<b>{</b> 
+    array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>a</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>return</font> <font color='#BB00BB'>tsum</font><font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font>; 
+<b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign_crit'></a>assign_crit</b><font face='Lucida Console'>(</font>array_view_crit<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='assign'></a>assign</b><font face='Lucida Console'>(</font>array<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> arr<font face='Lucida Console'>)</font> 
+<b>{</b> 
+    array_view<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>a</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>;
+    <font color='#BB00BB'>tassign</font><font face='Lucida Console'>(</font>a<font face='Lucida Console'>)</font>; 
+<b>}</b>
+
+array<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font> <b><a name='make_an_array'></a>make_an_array</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> s<font face='Lucida Console'>)</font>
+<b>{</b>
+    array<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>arr</font><font face='Lucida Console'>(</font>s<font face='Lucida Console'>)</font>;
+    array_view_crit<font color='#5555FF'>&lt;</font>int32_t<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>a</font><font face='Lucida Console'>(</font>arr<font face='Lucida Console'>)</font>;
+
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> a.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        a[i] <font color='#5555FF'>=</font> i;
+
+    <font color='#0000FF'>return</font> arr;
+<b>}</b>
+
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// EXAMPLE_SWIG_ApI_H_
+</font>
+
+
+</pre></body></html>

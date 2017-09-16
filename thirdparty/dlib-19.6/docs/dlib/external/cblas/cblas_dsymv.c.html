@@ -1,0 +1,68 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_dsymv.c</title></head><body bgcolor='white'><pre>
+<font color='#009900'>/*
+ *
+ * cblas_dsymv.c
+ * This program is a C interface to dsymv.
+ * Written by Keita Teranishi
+ * 4/6/1998
+ *
+ */</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas.h.html'>cblas.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas_f77.h.html'>cblas_f77.h</a>"
+<font color='#0000FF'><u>void</u></font> <b><a name='cblas_dsymv'></a>cblas_dsymv</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_ORDER order,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_UPLO Uplo, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> N,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> alpha, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font>  <font color='#5555FF'>*</font>A, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> lda,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font>  <font color='#5555FF'>*</font>X, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> incX, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> beta,
+                 <font color='#0000FF'><u>double</u></font>  <font color='#5555FF'>*</font>Y, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> incY<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#0000FF'><u>char</u></font> UL;
+<font color='#0000FF'>#ifdef</font> F77_CHAR
+   F77_CHAR F77_UL;
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> F77_UL <font color='#5555FF'>&amp;</font>UL   
+<font color='#0000FF'>#endif</font>
+<font color='#0000FF'>#ifdef</font> F77_INT
+   F77_INT F77_N<font color='#5555FF'>=</font>N, F77_lda<font color='#5555FF'>=</font>lda, F77_incX<font color='#5555FF'>=</font>incX, F77_incY<font color='#5555FF'>=</font>incY;
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> F77_N N
+   <font color='#0000FF'>#define</font> F77_lda lda
+   <font color='#0000FF'>#define</font> F77_incX incX
+   <font color='#0000FF'>#define</font> F77_incY incY
+<font color='#0000FF'>#endif</font>
+
+   <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>order <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasColMajor<font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUpper<font face='Lucida Console'>)</font> UL <font color='#5555FF'>=</font> '<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLower<font face='Lucida Console'>)</font> UL <font color='#5555FF'>=</font> '<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>2</font>, "<font color='#CC0000'>cblas_dsymv</font>","<font color='#CC0000'>Illegal Uplo setting, %d\n</font>",Uplo <font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+      <font color='#0000FF'>#ifdef</font> F77_CHAR
+         F77_UL <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>UL<font face='Lucida Console'>)</font>;
+      <font color='#0000FF'>#endif</font>
+      <font color='#BB00BB'>F77_dsymv</font><font face='Lucida Console'>(</font>F77_UL, <font color='#5555FF'>&amp;</font>F77_N, <font color='#5555FF'>&amp;</font>alpha, A, <font color='#5555FF'>&amp;</font>F77_lda, X,  
+                     <font color='#5555FF'>&amp;</font>F77_incX, <font color='#5555FF'>&amp;</font>beta, Y, <font color='#5555FF'>&amp;</font>F77_incY<font face='Lucida Console'>)</font>;
+   <b>}</b>
+   <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>order <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasRowMajor<font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUpper<font face='Lucida Console'>)</font> UL <font color='#5555FF'>=</font> '<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLower<font face='Lucida Console'>)</font> UL <font color='#5555FF'>=</font> '<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>2</font>, "<font color='#CC0000'>cblas_dsymv</font>","<font color='#CC0000'>Illegal Uplo setting, %d\n</font>", Uplo<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+      <font color='#0000FF'>#ifdef</font> F77_CHAR
+         F77_UL <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>UL<font face='Lucida Console'>)</font>;
+      <font color='#0000FF'>#endif</font>
+      <font color='#BB00BB'>F77_dsymv</font><font face='Lucida Console'>(</font>F77_UL, <font color='#5555FF'>&amp;</font>F77_N, <font color='#5555FF'>&amp;</font>alpha, 
+                     A ,<font color='#5555FF'>&amp;</font>F77_lda, X,<font color='#5555FF'>&amp;</font>F77_incX, <font color='#5555FF'>&amp;</font>beta, Y, <font color='#5555FF'>&amp;</font>F77_incY<font face='Lucida Console'>)</font>;
+   <b>}</b>
+   <font color='#0000FF'>else</font> <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>1</font>, "<font color='#CC0000'>cblas_dsymv</font>", "<font color='#CC0000'>Illegal Order setting, %d\n</font>", order<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'>return</font>;
+<b>}</b>
+
+</pre></body></html>

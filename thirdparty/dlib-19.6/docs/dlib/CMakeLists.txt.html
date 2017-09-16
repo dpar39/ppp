@@ -1,0 +1,789 @@
+<html><head><title>
+dlib/CMakeLists.txt
+</title></head><body bgcolor='white'><pre>
+<font color='#009900'>#</font>
+<font color='#009900'># This is a CMake makefile.  You can find the cmake utility and</font>
+<font color='#009900'># information about it at http://www.cmake.org</font>
+<font color='#009900'>#</font>
+
+
+<font color='blue'>cmake_minimum_required</font>(VERSION 2.8.12)
+<font color='blue'>project</font>(dlib)
+
+<font color='#009900'># Adhere to GNU filesystem layout conventions</font>
+<font color='blue'>include</font>(GNUInstallDirs)
+
+<font color='#009900'># default to a Release build (except if CMAKE_BUILD_TYPE is set)</font>
+<font color='blue'>include</font>(cmake_utils/release_build_by_default)
+<font color='blue'>include</font>(cmake_utils/use_cpp_11.cmake)
+
+
+<font color='blue'>set</font>(CPACK_PACKAGE_VERSION_MAJOR "<font color='#CC0000'>19</font>")
+<font color='blue'>set</font>(CPACK_PACKAGE_VERSION_MINOR "<font color='#CC0000'>6</font>")
+<font color='blue'>set</font>(CPACK_PACKAGE_VERSION_PATCH "<font color='#CC0000'>0</font>")
+<font color='blue'>set</font>(VERSION ${<font color='#BB00BB'>CPACK_PACKAGE_VERSION_MAJOR</font>}.${<font color='#BB00BB'>CPACK_PACKAGE_VERSION_MINOR</font>}.${<font color='#BB00BB'>CPACK_PACKAGE_VERSION_PATCH</font>})
+<font color='#009900'># Set DLIB_VERSION in the including CMake file so they can use it to do whatever they want. </font>
+<font color='blue'>get_directory_property</font>(has_parent PARENT_DIRECTORY)
+<font color='blue'>if</font>(has_parent)
+<font color='blue'>   set</font>(DLIB_VERSION ${<font color='#BB00BB'>VERSION</font>} PARENT_SCOPE)
+<font color='blue'>endif</font>()
+
+<font color='#009900'># Set only because there are old target_link_libraries() statements in the</font>
+<font color='#009900'># FindCUDA.cmake file that comes with CMake that error out if the new behavior</font>
+<font color='#009900'># is used.</font>
+<font color='blue'>cmake_policy</font>(SET CMP0023 OLD)
+
+
+<font color='blue'>macro </font>(enable_preprocessor_switch option_name)
+<font color='blue'>   list</font>(APPEND active_preprocessor_switches "<font color='#CC0000'>-D${<font color='#BB00BB'>option_name</font>}</font>")
+<font color='blue'>endmacro</font>()
+
+<font color='blue'>macro </font>(disable_preprocessor_switch option_name)
+<font color='blue'>   if </font>(active_preprocessor_switches)
+<font color='blue'>      list</font>(REMOVE_ITEM active_preprocessor_switches "<font color='#CC0000'>-D${<font color='#BB00BB'>option_name</font>}</font>")
+<font color='blue'>   endif</font>()
+<font color='blue'>endmacro</font>()
+
+<font color='blue'>macro </font>(toggle_preprocessor_switch option_name)
+<font color='blue'>   if </font>(${<font color='#BB00BB'>option_name</font>})
+<font color='blue'>      enable_preprocessor_switch</font>(${<font color='#BB00BB'>option_name</font>})
+<font color='blue'>   else</font>()
+<font color='blue'>      disable_preprocessor_switch</font>(${<font color='#BB00BB'>option_name</font>})
+<font color='blue'>   endif</font>()
+<font color='blue'>endmacro</font>()
+
+
+
+<font color='#009900'># Suppress superfluous randlib warnings about libdlib.a having no symbols on MacOSX.</font>
+<font color='blue'>if </font>(APPLE)
+<font color='blue'>    set</font>(CMAKE_C_ARCHIVE_CREATE   "<font color='#CC0000'><CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS></font>")
+<font color='blue'>    set</font>(CMAKE_CXX_ARCHIVE_CREATE "<font color='#CC0000'><CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS></font>")
+<font color='blue'>    set</font>(CMAKE_C_ARCHIVE_FINISH   "<font color='#CC0000'><CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET></font>")
+<font color='blue'>    set</font>(CMAKE_CXX_ARCHIVE_FINISH "<font color='#CC0000'><CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET></font>")
+<font color='blue'>endif</font>()
+
+<font color='#009900'># Don't try to call add_library(dlib) and setup dlib's stuff if it has already</font>
+<font color='#009900'># been done by some other part of the current cmake project.  We do this</font>
+<font color='#009900'># because it avoids getting warnings/errors about cmake policy CMP0002.  This</font>
+<font color='#009900'># happens when a project tries to call add_subdirectory() <a href=')/CMakeLists.txt.html'>on</a> dlib more than</font>
+<font color='#009900'># once.  This most often happens when the top level of a project depends on two</font>
+<font color='#009900'># or more other things which both depend on dlib. </font>
+<font color='blue'>if </font>(NOT TARGET dlib)
+
+<font color='blue'>   set </font>(DLIB_ISO_CPP_ONLY_STR 
+   "<font color='#CC0000'>Enable this if you don't want to compile any non-ISO C++ code (i.e. you don't use any of the API Wrappers)</font>" )
+<font color='blue'>   set </font>(DLIB_NO_GUI_SUPPORT_STR 
+   "<font color='#CC0000'>Enable this if you don't want to compile any of the dlib GUI code</font>" )
+<font color='blue'>   set </font>(DLIB_ENABLE_STACK_TRACE_STR 
+   "<font color='#CC0000'>Enable this if you want to turn on the DLIB_STACK_TRACE macros</font>" )
+<font color='blue'>   set </font>(DLIB_USE_BLAS_STR
+   "<font color='#CC0000'>Disable this if you don't want to use a BLAS library</font>" )
+<font color='blue'>   set </font>(DLIB_USE_LAPACK_STR
+   "<font color='#CC0000'>Disable this if you don't want to use a LAPACK library</font>" )
+<font color='blue'>   set </font>(DLIB_USE_CUDA_STR
+   "<font color='#CC0000'>Disable this if you don't want to use NVIDIA CUDA</font>" )
+<font color='blue'>   set </font>(DLIB_PNG_SUPPORT_STR
+   "<font color='#CC0000'>Disable this if you don't want to link against libpng</font>" )
+<font color='blue'>   set </font>(DLIB_GIF_SUPPORT_STR
+   "<font color='#CC0000'>Disable this if you don't want to link against libgif</font>" )
+<font color='blue'>   set </font>(DLIB_JPEG_SUPPORT_STR
+   "<font color='#CC0000'>Disable this if you don't want to link against libjpeg</font>" )
+<font color='blue'>   set </font>(DLIB_LINK_WITH_SQLITE3_STR
+   "<font color='#CC0000'>Disable this if you don't want to link against sqlite3</font>" )
+<font color='#009900'>   #set (DLIB_USE_FFTW_STR "<font color='#CC0000'>Disable this if you don't want to link against fftw</font>" )</font>
+<font color='blue'>   set </font>(DLIB_USE_MKL_FFT_STR
+   "<font color='#CC0000'>Disable this is you don't want to use the MKL DFTI FFT implementation</font>" )
+<font color='blue'>   set </font>(DLIB_ENABLE_ASSERTS_STR
+   "<font color='#CC0000'>Enable this if you want to turn on the DLIB_ASSERT macro</font>" )
+
+
+<font color='blue'>   option</font>(DLIB_ENABLE_ASSERTS ${<font color='#BB00BB'>DLIB_ENABLE_ASSERTS_STR</font>} OFF)
+<font color='blue'>   option</font>(DLIB_ISO_CPP_ONLY ${<font color='#BB00BB'>DLIB_ISO_CPP_ONLY_STR</font>} OFF)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_ISO_CPP_ONLY)
+<font color='blue'>   option</font>(DLIB_NO_GUI_SUPPORT ${<font color='#BB00BB'>DLIB_NO_GUI_SUPPORT_STR</font>} OFF)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_NO_GUI_SUPPORT)
+<font color='blue'>   option</font>(DLIB_ENABLE_STACK_TRACE ${<font color='#BB00BB'>DLIB_ENABLE_STACK_TRACE_STR</font>} OFF)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_ENABLE_STACK_TRACE)
+
+<font color='blue'>   if</font>(DLIB_ENABLE_ASSERTS)
+<font color='#009900'>      # Set these variables so they are set in the config.h.in file when dlib</font>
+<font color='#009900'>      # is installed.</font>
+<font color='blue'>      set </font>(DLIB_DISABLE_ASSERTS false)
+<font color='blue'>      set </font>(ENABLE_ASSERTS true) 
+<font color='blue'>      enable_preprocessor_switch</font>(ENABLE_ASSERTS)
+<font color='blue'>      disable_preprocessor_switch</font>(DLIB_DISABLE_ASSERTS)
+<font color='blue'>   else</font>()
+<font color='#009900'>      # Set these variables so they are set in the config.h.in file when dlib</font>
+<font color='#009900'>      # is installed.</font>
+<font color='blue'>      set </font>(DLIB_DISABLE_ASSERTS true)
+<font color='blue'>      set </font>(ENABLE_ASSERTS false) 
+<font color='blue'>      disable_preprocessor_switch</font>(ENABLE_ASSERTS)
+<font color='#009900'>      # Never force the asserts off when doing an in project build.  The only</font>
+<font color='#009900'>      # time this matters is when using visual studio.  The visual studio IDE</font>
+<font color='#009900'>      # has a drop down that lets the user select either release or debug</font>
+<font color='#009900'>      # builds.  The DLIB_ASSERT macro is setup to enable/disable automatically</font>
+<font color='#009900'>      # based on this drop down (via preprocessor magic).  However, if</font>
+<font color='#009900'>      # DLIB_DISABLE_ASSERTS is defined it permanently disables asserts no</font>
+<font color='#009900'>      # matter what, which would defeat the visual studio drop down.  So here</font>
+<font color='#009900'>      # we make a point to not do that kind of severe disabling when in a</font>
+<font color='#009900'>      # project build.  It should also be pointed out that DLIB_DISABLE_ASSERTS</font>
+<font color='#009900'>      # is only needed when building and installing dlib as a separately</font>
+<font color='#009900'>      # installed library.  It doesn't matter when doing an in project build. </font>
+<font color='blue'>      if </font>(NOT DLIB_IN_PROJECT_BUILD)
+<font color='blue'>         enable_preprocessor_switch</font>(DLIB_DISABLE_ASSERTS)
+<font color='blue'>      endif</font>()
+<font color='blue'>   endif</font>()
+
+<font color='blue'>   if </font>(DLIB_ISO_CPP_ONLY)
+<font color='blue'>      option</font>(DLIB_JPEG_SUPPORT ${<font color='#BB00BB'>DLIB_JPEG_SUPPORT_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_LINK_WITH_SQLITE3 ${<font color='#BB00BB'>DLIB_LINK_WITH_SQLITE3_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_USE_BLAS ${<font color='#BB00BB'>DLIB_USE_BLAS_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_USE_LAPACK ${<font color='#BB00BB'>DLIB_USE_LAPACK_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_USE_CUDA ${<font color='#BB00BB'>DLIB_USE_CUDA_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_PNG_SUPPORT ${<font color='#BB00BB'>DLIB_PNG_SUPPORT_STR</font>} OFF)
+<font color='blue'>      option</font>(DLIB_GIF_SUPPORT ${<font color='#BB00BB'>DLIB_GIF_SUPPORT_STR</font>} OFF)
+<font color='#009900'>      #option(DLIB_USE_FFTW ${<font color='#BB00BB'>DLIB_USE_FFTW_STR</font>} OFF)</font>
+<font color='blue'>      option</font>(DLIB_USE_MKL_FFT ${<font color='#BB00BB'>DLIB_USE_MKL_FFT_STR</font>} OFF)
+<font color='blue'>   else</font>()
+<font color='blue'>      option</font>(DLIB_JPEG_SUPPORT ${<font color='#BB00BB'>DLIB_JPEG_SUPPORT_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_LINK_WITH_SQLITE3 ${<font color='#BB00BB'>DLIB_LINK_WITH_SQLITE3_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_USE_BLAS ${<font color='#BB00BB'>DLIB_USE_BLAS_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_USE_LAPACK ${<font color='#BB00BB'>DLIB_USE_LAPACK_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_USE_CUDA ${<font color='#BB00BB'>DLIB_USE_CUDA_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_PNG_SUPPORT ${<font color='#BB00BB'>DLIB_PNG_SUPPORT_STR</font>} ON)
+<font color='blue'>      option</font>(DLIB_GIF_SUPPORT ${<font color='#BB00BB'>DLIB_GIF_SUPPORT_STR</font>} ON)
+<font color='#009900'>      #option(DLIB_USE_FFTW ${<font color='#BB00BB'>DLIB_USE_FFTW_STR</font>} ON)</font>
+<font color='blue'>      option</font>(DLIB_USE_MKL_FFT ${<font color='#BB00BB'>DLIB_USE_MKL_FFT_STR</font>} ON)
+<font color='blue'>   endif</font>()
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_JPEG_SUPPORT)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_USE_BLAS)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_USE_LAPACK)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_USE_CUDA)
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_PNG_SUPPORT) 
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_GIF_SUPPORT) 
+<font color='#009900'>   #toggle_preprocessor_switch(DLIB_USE_FFTW)</font>
+<font color='blue'>   toggle_preprocessor_switch</font>(DLIB_USE_MKL_FFT)
+
+
+<font color='blue'>   set</font>(source_files 
+         base64/base64_kernel_1.cpp
+         bigint/bigint_kernel_1.cpp
+         bigint/bigint_kernel_2.cpp
+         bit_stream/bit_stream_kernel_1.cpp
+         entropy_decoder/entropy_decoder_kernel_1.cpp
+         entropy_decoder/entropy_decoder_kernel_2.cpp
+         entropy_encoder/entropy_encoder_kernel_1.cpp
+         entropy_encoder/entropy_encoder_kernel_2.cpp
+         md5/md5_kernel_1.cpp
+         tokenizer/tokenizer_kernel_1.cpp
+         unicode/unicode.cpp
+         data_io/image_dataset_metadata.cpp
+         data_io/mnist.cpp
+         dnn/cpu_dlib.cpp
+         dnn/tensor_tools.cpp
+   )
+
+
+<font color='blue'>   set</font>(dlib_needed_libraries)
+<font color='blue'>   set</font>(dlib_needed_includes)
+
+<font color='blue'>   if </font>(DLIB_ISO_CPP_ONLY)
+<font color='blue'>       add_library</font>(dlib STATIC ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>       if </font>(UNIX AND NOT DLIB_IN_PROJECT_BUILD)
+<font color='blue'>           add_library</font>(dlib_shared SHARED ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>           add_dependencies</font>(dlib_shared dlib)
+<font color='blue'>       endif</font>()
+<font color='blue'>   else</font>()
+
+<font color='blue'>      set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+         sockets/sockets_kernel_1.cpp
+         bsp/bsp.cpp
+         dir_nav/dir_nav_kernel_1.cpp
+         dir_nav/dir_nav_kernel_2.cpp
+         dir_nav/dir_nav_extensions.cpp
+         linker/linker_kernel_1.cpp
+         logger/extra_logger_headers.cpp
+         logger/logger_kernel_1.cpp
+         logger/logger_config_file.cpp
+         misc_api/misc_api_kernel_1.cpp
+         misc_api/misc_api_kernel_2.cpp
+         sockets/sockets_extensions.cpp
+         sockets/sockets_kernel_2.cpp
+         sockstreambuf/sockstreambuf.cpp
+         sockstreambuf/sockstreambuf_unbuffered.cpp
+         server/server_kernel.cpp
+         server/server_iostream.cpp
+         server/server_http.cpp
+         threads/multithreaded_object_extension.cpp
+         threads/threaded_object_extension.cpp
+         threads/threads_kernel_1.cpp
+         threads/threads_kernel_2.cpp
+         threads/threads_kernel_shared.cpp
+         threads/thread_pool_extension.cpp
+         threads/async.cpp
+         timer/timer.cpp
+         stack_trace.cpp
+         )
+
+<font color='blue'>      if</font>(UNIX)
+<font color='blue'>         set</font>(CMAKE_THREAD_PREFER_PTHREAD ON)
+<font color='blue'>         find_package</font>(Threads REQUIRED)
+<font color='blue'>         set</font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>CMAKE_THREAD_LIBS_INIT</font>})
+<font color='blue'>      endif</font>()
+
+<font color='#009900'>      # we want to link to the right stuff depending on our platform.  </font>
+<font color='blue'>      if </font>(WIN32 AND NOT CYGWIN) ###############################################################################
+<font color='blue'>         if </font>(DLIB_NO_GUI_SUPPORT)
+<font color='blue'>            set </font>(dlib_needed_libraries ws2_32 winmm)
+<font color='blue'>         else</font>()
+<font color='blue'>            set </font>(dlib_needed_libraries ws2_32 winmm comctl32 gdi32 imm32)
+<font color='blue'>         endif</font>()
+<font color='blue'>      elseif</font>(APPLE) ############################################################################
+<font color='blue'>         set</font>(CMAKE_MACOSX_RPATH 1)
+<font color='blue'>         if </font>(NOT DLIB_NO_GUI_SUPPORT)
+<font color='blue'>            find_package</font>(X11 QUIET)
+<font color='blue'>            if </font>(X11_FOUND)
+<font color='#009900'>               # If both X11 and anaconda are installed, it's possible for the</font>
+<font color='#009900'>               # anaconda path to appear before /opt/X11, so we remove anaconda.</font>
+<font color='blue'>               foreach </font>(ITR ${<font color='#BB00BB'>X11_INCLUDE_DIR</font>})
+<font color='blue'>                  if </font>("<font color='#CC0000'>${<font color='#BB00BB'>ITR</font>}</font>" MATCHES "<font color='#CC0000'>(.*)(ana|mini)conda(.*)</font>")
+<font color='blue'>                     list </font>(REMOVE_ITEM X11_INCLUDE_DIR ${<font color='#BB00BB'>ITR</font>})
+<font color='blue'>                  endif </font>()
+<font color='blue'>               endforeach</font>(ITR)
+<font color='blue'>               include_directories</font>(${<font color='#BB00BB'>X11_INCLUDE_DIR</font>})
+<font color='blue'>               set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>X11_LIBRARIES</font>})
+<font color='blue'>            else</font>()
+<font color='blue'>               find_library</font>(xlib X11)
+<font color='#009900'>               # Make sure X11 is in the include path.  Note that we look for</font>
+<font color='#009900'>               # Xlocale.h rather than Xlib.h because it avoids finding a partial</font>
+<font color='#009900'>               # copy of the X11 headers on systems with anaconda installed.</font>
+<font color='blue'>               find_path</font>(xlib_path Xlocale.h
+                  PATHS 
+                  /Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include
+                  /opt/local/include
+                  PATH_SUFFIXES X11
+                  )
+<font color='blue'>               if </font>(xlib AND xlib_path)
+<font color='blue'>                  get_filename_component</font>(x11_path ${<font color='#BB00BB'>xlib_path</font>} PATH CACHE)
+<font color='blue'>                  include_directories</font>(${<font color='#BB00BB'>x11_path</font>})
+<font color='blue'>                  set</font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>xlib</font>} )
+<font color='blue'>                  set</font>(X11_FOUND 1)
+<font color='blue'>               endif</font>()
+<font color='blue'>            endif</font>()
+<font color='blue'>            if </font>(NOT X11_FOUND)
+<font color='blue'>               message</font>("<font color='#CC0000'> *****************************************************************************</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** DLIB GUI SUPPORT DISABLED BECAUSE X11 DEVELOPMENT LIBRARIES NOT FOUND ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** Make sure XQuartz is installed if you want GUI support.               ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** You can download XQuartz from: http://xquartz.macosforge.org/landing/ ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *****************************************************************************</font>")
+<font color='blue'>               set</font>(DLIB_NO_GUI_SUPPORT ON CACHE STRING ${<font color='#BB00BB'>DLIB_NO_GUI_SUPPORT_STR</font>} FORCE )
+<font color='blue'>               enable_preprocessor_switch</font>(DLIB_NO_GUI_SUPPORT)
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         mark_as_advanced</font>(pthreadlib xlib xlib_path x11_path)
+<font color='blue'>      else </font>() ##################################################################################
+<font color='#009900'>         # link to the nsl library if it exists.  this is something you need sometimes </font>
+<font color='blue'>         find_library</font>(nsllib nsl)
+<font color='blue'>         if </font>(nsllib)
+<font color='blue'>            set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>nsllib</font>})
+<font color='blue'>         endif </font>()
+
+<font color='#009900'>         # link to the socket library if it exists.  this is something you need on solaris</font>
+<font color='blue'>         find_library</font>(socketlib socket)
+<font color='blue'>         if </font>(socketlib)
+<font color='blue'>            set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>socketlib</font>})
+<font color='blue'>         endif </font>()
+
+<font color='blue'>         if </font>(NOT DLIB_NO_GUI_SUPPORT)
+<font color='blue'>            include</font>(FindX11)
+<font color='blue'>            if </font>(X11_FOUND)
+<font color='blue'>               include_directories</font>(${<font color='#BB00BB'>X11_INCLUDE_DIR</font>})
+<font color='blue'>               set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>X11_LIBRARIES</font>})
+<font color='blue'>            else</font>()
+<font color='blue'>               message</font>("<font color='#CC0000'> *****************************************************************************</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** DLIB GUI SUPPORT DISABLED BECAUSE X11 DEVELOPMENT LIBRARIES NOT FOUND ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** Make sure libx11-dev is installed if you want GUI support.            ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *** On Ubuntu run: sudo apt-get install libx11-dev                        ***</font>")
+<font color='blue'>               message</font>("<font color='#CC0000'> *****************************************************************************</font>")
+<font color='blue'>               set</font>(DLIB_NO_GUI_SUPPORT ON CACHE STRING ${<font color='#BB00BB'>DLIB_NO_GUI_SUPPORT_STR</font>} FORCE )
+<font color='blue'>               enable_preprocessor_switch</font>(DLIB_NO_GUI_SUPPORT)
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         mark_as_advanced</font>(nsllib pthreadlib socketlib)
+<font color='blue'>      endif </font>() ##################################################################################
+
+<font color='blue'>      if </font>(NOT DLIB_NO_GUI_SUPPORT)
+<font color='blue'>         set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+            gui_widgets/fonts.cpp
+            gui_widgets/widgets.cpp
+            gui_widgets/drawable.cpp
+            gui_widgets/canvas_drawing.cpp
+            gui_widgets/style.cpp
+            gui_widgets/base_widgets.cpp
+            gui_core/gui_core_kernel_1.cpp
+            gui_core/gui_core_kernel_2.cpp
+            )
+<font color='blue'>      endif</font>()
+
+<font color='blue'>      INCLUDE </font>(CheckFunctionExists)
+
+<font color='blue'>      if </font>(DLIB_GIF_SUPPORT)
+<font color='blue'>         find_package</font>(GIF QUIET)
+<font color='blue'>         if </font>(GIF_FOUND)
+<font color='blue'>            set </font>(dlib_needed_includes ${<font color='#BB00BB'>dlib_needed_includes</font>} ${<font color='#BB00BB'>GIF_INCLUDE_DIR</font>})
+<font color='blue'>            set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>GIF_LIBRARY</font>})
+<font color='blue'>         else</font>()
+<font color='blue'>            set</font>(DLIB_GIF_SUPPORT OFF CACHE STRING ${<font color='#BB00BB'>DLIB_GIF_SUPPORT_STR</font>} FORCE )
+<font color='blue'>            toggle_preprocessor_switch</font>(DLIB_GIF_SUPPORT)
+<font color='blue'>         endif</font>()
+<font color='blue'>      endif</font>()
+
+<font color='blue'>      if </font>(DLIB_PNG_SUPPORT)
+<font color='#009900'>         # try to find libpng </font>
+<font color='blue'>         find_package</font>(PNG QUIET)
+<font color='#009900'>         # Make sure there isn't something wrong with the version of LIBPNG</font>
+<font color='#009900'>         # installed on this system.  </font>
+<font color='blue'>         if </font>(PNG_FOUND)
+<font color='blue'>            set</font>(CMAKE_REQUIRED_LIBRARIES ${<font color='#BB00BB'>PNG_LIBRARIES</font>})
+<font color='blue'>            CHECK_FUNCTION_EXISTS</font>(png_create_read_struct LIBPNG_IS_GOOD)
+<font color='blue'>         endif</font>()
+<font color='blue'>         if </font>(PNG_FOUND AND LIBPNG_IS_GOOD)
+<font color='blue'>            include_directories</font>(${<font color='#BB00BB'>PNG_INCLUDE_DIR</font>})
+<font color='blue'>            set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>PNG_LIBRARIES</font>})
+<font color='blue'>            set</font>(REQUIRES_LIBS "<font color='#CC0000'> libpng</font>")
+<font color='blue'>         else</font>()
+<font color='#009900'>            # If we can't find libpng then statically compile it in.</font>
+<font color='blue'>            include_directories</font>(external/libpng external/zlib)
+<font color='blue'>            set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+               external/libpng/png.c
+               external/libpng/pngerror.c
+               external/libpng/pngget.c
+               external/libpng/pngmem.c
+               external/libpng/pngpread.c
+               external/libpng/pngread.c
+               external/libpng/pngrio.c
+               external/libpng/pngrtran.c
+               external/libpng/pngrutil.c
+               external/libpng/pngset.c
+               external/libpng/pngtrans.c
+               external/libpng/pngwio.c
+               external/libpng/pngwrite.c
+               external/libpng/pngwtran.c
+               external/libpng/pngwutil.c
+               external/zlib/adler32.c
+               external/zlib/compress.c
+               external/zlib/crc32.c
+               external/zlib/deflate.c
+               external/zlib/gzclose.c
+               external/zlib/gzlib.c
+               external/zlib/gzread.c
+               external/zlib/gzwrite.c
+               external/zlib/infback.c
+               external/zlib/inffast.c
+               external/zlib/inflate.c
+               external/zlib/inftrees.c
+               external/zlib/trees.c
+               external/zlib/uncompr.c
+               external/zlib/zutil.c
+               )
+
+<font color='blue'>            include</font>(cmake_utils/check_if_neon_available.cmake)
+<font color='blue'>            if </font>(ARM_NEON_IS_AVAILABLE)
+<font color='blue'>               message </font>(STATUS "<font color='#CC0000'>NEON instructions will be used for libpng.</font>")
+<font color='blue'>               enable_language</font>(ASM)
+<font color='blue'>               set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+                  external/libpng/arm/arm_init.c
+                  external/libpng/arm/filter_neon_intrinsics.c
+                  external/libpng/arm/filter_neon.S
+                  )
+<font color='blue'>               set_source_files_properties</font>(external/libpng/arm/filter_neon.S PROPERTIES COMPILE_FLAGS "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_ASM_FLAGS</font>} ${<font color='#BB00BB'>CMAKE_CXX_FLAGS</font>} -x assembler-with-cpp</font>")
+<font color='blue'>            endif</font>()
+<font color='blue'>            set</font>(REQUIRES_LIBS "<font color='#CC0000'></font>")
+<font color='blue'>         endif</font>()
+<font color='blue'>         set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+            image_loader/png_loader.cpp
+            image_saver/save_png.cpp
+            )
+<font color='blue'>      endif</font>()
+
+<font color='blue'>      if </font>(DLIB_JPEG_SUPPORT)
+<font color='#009900'>         # try to find libjpeg </font>
+<font color='blue'>         find_package</font>(JPEG QUIET)
+<font color='#009900'>         # Make sure there isn't something wrong with the version of libjpeg </font>
+<font color='#009900'>         # installed on this system.  Also don't use the installed libjpeg</font>
+<font color='#009900'>         # if this is an APPLE system because apparently it's broken (as of 2015/01/01).</font>
+<font color='blue'>         if </font>(JPEG_FOUND)
+<font color='blue'>            set</font>(CMAKE_REQUIRED_LIBRARIES ${<font color='#BB00BB'>JPEG_LIBRARY</font>})
+<font color='blue'>            CHECK_FUNCTION_EXISTS</font>(jpeg_read_header LIBJPEG_IS_GOOD)
+<font color='blue'>         endif</font>()
+<font color='blue'>         if </font>(JPEG_FOUND AND LIBJPEG_IS_GOOD AND NOT APPLE)
+<font color='blue'>            include_directories</font>(${<font color='#BB00BB'>JPEG_INCLUDE_DIR</font>})
+<font color='blue'>            set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>JPEG_LIBRARY</font>})
+<font color='blue'>         else</font>()
+<font color='#009900'>            # If we can't find libjpeg then statically compile it in.</font>
+<font color='blue'>            add_definitions</font>(-DDLIB_JPEG_STATIC)
+<font color='blue'>            set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+                  external/libjpeg/jcomapi.cpp
+                  external/libjpeg/jdapimin.cpp
+                  external/libjpeg/jdapistd.cpp
+                  external/libjpeg/jdatasrc.cpp
+                  external/libjpeg/jdcoefct.cpp
+                  external/libjpeg/jdcolor.cpp
+                  external/libjpeg/jddctmgr.cpp
+                  external/libjpeg/jdhuff.cpp
+                  external/libjpeg/jdinput.cpp
+                  external/libjpeg/jdmainct.cpp
+                  external/libjpeg/jdmarker.cpp
+                  external/libjpeg/jdmaster.cpp
+                  external/libjpeg/jdmerge.cpp
+                  external/libjpeg/jdphuff.cpp
+                  external/libjpeg/jdpostct.cpp
+                  external/libjpeg/jdsample.cpp
+                  external/libjpeg/jerror.cpp
+                  external/libjpeg/jidctflt.cpp
+                  external/libjpeg/jidctfst.cpp
+                  external/libjpeg/jidctint.cpp
+                  external/libjpeg/jidctred.cpp
+                  external/libjpeg/jmemmgr.cpp
+                  external/libjpeg/jmemnobs.cpp
+                  external/libjpeg/jquant1.cpp
+                  external/libjpeg/jquant2.cpp
+                  external/libjpeg/jutils.cpp  
+                  external/libjpeg/jcapimin.cpp
+                  external/libjpeg/jdatadst.cpp
+                  external/libjpeg/jcparam.cpp
+                  external/libjpeg/jcapistd.cpp
+                  external/libjpeg/jcmarker.cpp
+                  external/libjpeg/jcinit.cpp
+                  external/libjpeg/jcmaster.cpp
+                  external/libjpeg/jcdctmgr.cpp
+                  external/libjpeg/jccoefct.cpp  
+                  external/libjpeg/jccolor.cpp  
+                  external/libjpeg/jchuff.cpp  
+                  external/libjpeg/jcmainct.cpp  
+                  external/libjpeg/jcphuff.cpp  
+                  external/libjpeg/jcprepct.cpp  
+                  external/libjpeg/jcsample.cpp
+                  external/libjpeg/jfdctint.cpp
+                  external/libjpeg/jfdctflt.cpp
+                  external/libjpeg/jfdctfst.cpp
+                  )
+<font color='blue'>         endif</font>()
+<font color='blue'>         set</font>(source_files ${<font color='#BB00BB'>source_files</font>}
+            image_loader/jpeg_loader.cpp
+            image_saver/save_jpeg.cpp
+            )
+<font color='blue'>      endif</font>()
+
+
+<font color='blue'>      if </font>(DLIB_USE_BLAS OR DLIB_USE_LAPACK OR DLIB_USE_MKL_FFT)
+<font color='#009900'>          # Try to find BLAS, LAPACK and MKL</font>
+<font color='blue'>         include</font>(cmake_utils/cmake_find_blas.txt)
+
+<font color='blue'>         if </font>(DLIB_USE_BLAS)
+<font color='blue'>            if </font>(blas_found)
+<font color='blue'>               set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>blas_libraries</font>})
+<font color='blue'>            else</font>()
+<font color='blue'>               set</font>(DLIB_USE_BLAS OFF CACHE STRING ${<font color='#BB00BB'>DLIB_USE_BLAS_STR</font>} FORCE )
+<font color='blue'>               toggle_preprocessor_switch</font>(DLIB_USE_BLAS)
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         if </font>(DLIB_USE_LAPACK)
+<font color='blue'>            if </font>(lapack_found)
+<font color='blue'>               set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>lapack_libraries</font>})
+<font color='blue'>            else</font>()
+<font color='blue'>               set</font>(DLIB_USE_LAPACK OFF CACHE STRING ${<font color='#BB00BB'>DLIB_USE_LAPACK_STR</font>} FORCE )
+<font color='blue'>               toggle_preprocessor_switch</font>(DLIB_USE_LAPACK)
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         if </font>(DLIB_USE_MKL_FFT)
+<font color='blue'>            if </font>(found_intel_mkl AND found_intel_mkl_headers)
+<font color='blue'>               set </font>(dlib_needed_includes ${<font color='#BB00BB'>dlib_needed_includes</font>} ${<font color='#BB00BB'>mkl_include_dir</font>})
+<font color='blue'>               set </font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>mkl_libraries</font>})
+<font color='blue'>            else</font>()
+<font color='blue'>               set</font>(DLIB_USE_MKL_FFT OFF CACHE STRING ${<font color='#BB00BB'>DLIB_USE_MKL_FFT_STR</font>} FORCE )
+<font color='blue'>               toggle_preprocessor_switch</font>(DLIB_USE_MKL_FFT)
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+<font color='blue'>      endif</font>()
+
+
+<font color='blue'>      if </font>(DLIB_USE_CUDA)
+<font color='blue'>         find_package</font>(CUDA 7.5)
+
+<font color='blue'>         if </font>(CUDA_FOUND AND MSVC AND NOT CUDA_CUBLAS_LIBRARIES AND "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_SIZEOF_VOID_P</font>}</font>" EQUAL "<font color='#CC0000'>4</font>")
+<font color='blue'>            message</font>(WARNING "<font color='#CC0000'>You have CUDA installed, but we can't use it unless you put visual studio in 64bit mode.</font>")
+<font color='blue'>            set</font>(CUDA_FOUND 0)
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         if </font>(CUDA_FOUND AND COMPILER_CAN_DO_CPP_11)
+
+<font color='#009900'>            # There is some bug in cmake that causes it to mess up the</font>
+<font color='#009900'>            # -std=c++11 option if you let it propagate it to nvcc in some</font>
+<font color='#009900'>            # cases.  So instead we disable this and manually include</font>
+<font color='#009900'>            # things from CMAKE_CXX_FLAGS in the CUDA_NVCC_FLAGS list below.</font>
+<font color='blue'>            if </font>(APPLE)
+<font color='blue'>               set</font>(CUDA_PROPAGATE_HOST_FLAGS OFF)
+<font color='#009900'>               # Grab all the -D flags from CMAKE_CXX_FLAGS so we can pass them</font>
+<font color='#009900'>               # to nvcc.</font>
+<font color='blue'>               string</font>(REGEX MATCHALL "<font color='#CC0000'>-D[^ ]*</font>" FLAGS_FOR_NVCC ${<font color='#BB00BB'>CMAKE_CXX_FLAGS</font>})
+<font color='blue'>            endif</font>()
+
+
+<font color='blue'>            set</font>(CUDA_HOST_COMPILATION_CPP ON)
+<font color='#009900'>            # Note that we add __STRICT_ANSI__ to avoid freaking out nvcc with gcc specific</font>
+<font color='#009900'>            # magic in the standard C++ header files (since nvcc uses gcc headers on</font>
+<font color='#009900'>            # linux).</font>
+<font color='blue'>            list</font>(APPEND CUDA_NVCC_FLAGS "<font color='#CC0000'>-arch=sm_30;-D__STRICT_ANSI__;-D_MWAITXINTRIN_H_INCLUDED;-D_FORCE_INLINES;${<font color='#BB00BB'>FLAGS_FOR_NVCC</font>}</font>")
+<font color='blue'>            list</font>(APPEND CUDA_NVCC_FLAGS ${<font color='#BB00BB'>active_preprocessor_switches</font>})
+<font color='blue'>            if </font>(NOT MSVC)
+<font color='blue'>               list</font>(APPEND CUDA_NVCC_FLAGS "<font color='#CC0000'>-std=c++11</font>")
+<font color='blue'>            endif</font>()
+<font color='blue'>            if </font>(CMAKE_POSITION_INDEPENDENT_CODE)
+<font color='#009900'>               # sometimes this setting isn't propagated to NVCC, which then causes the</font>
+<font color='#009900'>               # compile to fail.  So make sure it's propagated.</font>
+<font color='blue'>               if </font>(NOT MSVC) # Visual studio doesn't have -fPIC so don't do it in that case.
+<font color='blue'>                  list</font>(APPEND CUDA_NVCC_FLAGS "<font color='#CC0000'>-Xcompiler -fPIC</font>")
+<font color='blue'>               endif</font>()
+<font color='blue'>            endif</font>()
+
+<font color='blue'>            include</font>(cmake_utils/test_for_cudnn/find_cudnn.txt)
+
+<font color='blue'>            if </font>(cudnn AND NOT DEFINED cuda_test_compile_worked AND NOT DEFINED cudnn_test_compile_worked)
+<font color='#009900'>               # make sure cuda is really working by doing a test compile</font>
+<font color='blue'>               message</font>(STATUS "<font color='#CC0000'>Building a CUDA test project to see if your compiler is compatible with CUDA...</font>")
+
+<font color='blue'>               set</font>(CUDA_TEST_CMAKE_FLAGS "<font color='#CC0000'>-DCMAKE_PREFIX_PATH=${<font color='#BB00BB'>CMAKE_PREFIX_PATH</font>}</font>"
+                                         "<font color='#CC0000'>-DCMAKE_INCLUDE_PATH=${<font color='#BB00BB'>CMAKE_INCLUDE_PATH</font>}</font>"
+                                         "<font color='#CC0000'>-DCMAKE_LIBRARY_PATH=${<font color='#BB00BB'>CMAKE_LIBRARY_PATH</font>}</font>")
+
+<font color='blue'>               if </font>(NOT MSVC) # see https://github.com/davisking/dlib/issues/363
+<font color='blue'>                  list</font>(APPEND CUDA_TEST_CMAKE_FLAGS "<font color='#CC0000'>-DCUDA_HOST_COMPILER=${<font color='#BB00BB'>CUDA_HOST_COMPILER</font>}</font>")
+<font color='blue'>               endif</font>()
+
+<font color='blue'>               try_compile</font>(cuda_test_compile_worked ${<font color='#BB00BB'>PROJECT_BINARY_DIR</font>}/cuda_test_build 
+                           ${<font color='#BB00BB'>PROJECT_SOURCE_DIR</font>}/cmake_utils/test_for_cuda cuda_test
+                           CMAKE_FLAGS ${<font color='#BB00BB'>CUDA_TEST_CMAKE_FLAGS</font>}
+                           )
+<font color='blue'>               if </font>(NOT cuda_test_compile_worked)
+<font color='blue'>                  message</font>(STATUS "<font color='#CC0000'>*** CUDA was found but your compiler failed to compile a simple CUDA program so dlib isn't going to use CUDA. ***</font>")
+<font color='blue'>               else</font>()
+<font color='blue'>                  message</font>(STATUS "<font color='#CC0000'>Checking if you have the right version of cuDNN installed.</font>")
+<font color='blue'>                  try_compile</font>(cudnn_test_compile_worked ${<font color='#BB00BB'>PROJECT_BINARY_DIR</font>}/cudnn_test_build 
+                              ${<font color='#BB00BB'>PROJECT_SOURCE_DIR</font>}/cmake_utils/test_for_cudnn cudnn_test
+                              CMAKE_FLAGS ${<font color='#BB00BB'>CUDA_TEST_CMAKE_FLAGS</font>}
+                                          )
+<font color='blue'>                  if </font>(cudnn_test_compile_worked)
+<font color='blue'>                     message</font>(STATUS "<font color='#CC0000'>Found cuDNN: </font>" ${<font color='#BB00BB'>cudnn</font>})
+<font color='blue'>                  else</font>()
+<font color='blue'>                     message</font>(STATUS "<font color='#CC0000'>*** Found cuDNN, but it looks like the wrong version so dlib will not use it. ***</font>")
+<font color='blue'>                  endif</font>()
+<font color='blue'>               endif</font>()
+<font color='blue'>            endif</font>()
+
+<font color='#009900'>            # Find where cuSOLVER is since the FindCUDA cmake package doesn't</font>
+<font color='#009900'>            # bother to look for it.</font>
+<font color='blue'>            get_filename_component</font>(cuda_blas_path "<font color='#CC0000'>${<font color='#BB00BB'>CUDA_CUBLAS_LIBRARIES</font>}</font>" DIRECTORY)
+<font color='blue'>            find_library</font>(cusolver cusolver HINTS ${<font color='#BB00BB'>cuda_blas_path</font>})
+<font color='blue'>            mark_as_advanced</font>(cusolver)
+<font color='#009900'>            # Also find OpenMP since cuSOLVER needs it.  Importantly, we only</font>
+<font color='#009900'>            # look for one to link to if our use of BLAS, specifically the</font>
+<font color='#009900'>            # Intel MKL, hasn't already decided what to use.  This is because</font>
+<font color='#009900'>            # it makes the MKL bug out if you link to another openmp lib other</font>
+<font color='#009900'>            # than Intel's when you use the MKL.</font>
+<font color='blue'>            if </font>(NOT openmp_libarires AND NOT MSVC)
+<font color='blue'>               find_package</font>(OpenMP)
+<font color='blue'>               if </font>(OPENMP_FOUND)
+<font color='blue'>                  set</font>(openmp_libarires ${<font color='#BB00BB'>OpenMP_CXX_FLAGS</font>}) 
+<font color='blue'>               else</font>()
+<font color='blue'>                  message</font>(STATUS "<font color='#CC0000'>*** Didn't find OpenMP, which is required to use CUDA. ***</font>")
+<font color='blue'>                  set</font>(CUDA_FOUND 0)
+<font color='blue'>               endif</font>()
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+
+<font color='blue'>         if </font>(CUDA_FOUND AND cudnn AND COMPILER_CAN_DO_CPP_11 AND cuda_test_compile_worked AND cudnn_test_compile_worked AND cudnn_include)
+<font color='blue'>            set</font>(source_files ${<font color='#BB00BB'>source_files</font>} 
+               dnn/cuda_dlib.cu 
+               dnn/cudnn_dlibapi.cpp
+               dnn/cublas_dlibapi.cpp
+               dnn/cusolver_dlibapi.cu
+               dnn/curand_dlibapi.cpp
+               dnn/cuda_data_ptr.cpp
+               dnn/gpu_data.cpp
+               )
+<font color='blue'>            set</font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} 
+                                      ${<font color='#BB00BB'>CUDA_CUBLAS_LIBRARIES</font>} 
+                                      ${<font color='#BB00BB'>cudnn</font>}
+                                      ${<font color='#BB00BB'>CUDA_curand_LIBRARY</font>}
+                                      ${<font color='#BB00BB'>cusolver</font>}
+                                      ${<font color='#BB00BB'>openmp_libarires</font>}
+                                      )
+<font color='blue'>            include_directories</font>(${<font color='#BB00BB'>cudnn_include</font>})
+<font color='blue'>         else</font>()
+<font color='blue'>            set</font>(DLIB_USE_CUDA OFF CACHE STRING ${<font color='#BB00BB'>DLIB_USE_BLAS_STR</font>} FORCE )
+<font color='blue'>            toggle_preprocessor_switch</font>(DLIB_USE_CUDA)
+<font color='blue'>            if </font>(COMPILER_CAN_DO_CPP_11)
+<font color='blue'>               if </font>(NOT cudnn OR NOT cudnn_include OR NOT cudnn_test_compile_worked)
+<font color='blue'>                  message</font>(STATUS "<font color='#CC0000'>*** cuDNN V5.0 OR GREATER NOT FOUND.  DLIB WILL NOT USE CUDA. ***</font>")
+<font color='blue'>                  message</font>(STATUS "<font color='#CC0000'>*** If you have cuDNN then set CMAKE_PREFIX_PATH to include cuDNN's folder.</font>")
+<font color='blue'>               endif</font>()
+<font color='blue'>            else </font>()
+<font color='blue'>               message</font>(STATUS "<font color='#CC0000'>*** Dlib CUDA support requires C++11 but your compiler doesn't support it. ***</font>")
+<font color='blue'>            endif</font>()
+<font color='blue'>         endif</font>()
+<font color='blue'>      endif</font>()
+      
+
+<font color='blue'>      if </font>(DLIB_LINK_WITH_SQLITE3)
+<font color='blue'>         find_library</font>(sqlite sqlite3)
+<font color='#009900'>         # make sure sqlite3.h is in the include path</font>
+<font color='blue'>         find_path</font>(sqlite_path sqlite3.h)
+<font color='blue'>         if </font>(sqlite AND sqlite_path)
+<font color='blue'>            get_filename_component</font>(sqlite_path2 ${<font color='#BB00BB'>sqlite_path</font>} PATH CACHE)
+<font color='blue'>            set</font>(dlib_needed_includes ${<font color='#BB00BB'>dlib_needed_includes</font>} ${<font color='#BB00BB'>sqlite_path2</font>})
+<font color='blue'>            set</font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>sqlite</font>} )
+<font color='blue'>         else</font>()
+<font color='blue'>            set</font>(DLIB_LINK_WITH_SQLITE3 OFF CACHE STRING ${<font color='#BB00BB'>DLIB_LINK_WITH_SQLITE3_STR</font>} FORCE )
+<font color='blue'>         endif</font>()
+<font color='blue'>         mark_as_advanced</font>(sqlite sqlite_path sqlite_path2)
+<font color='blue'>      endif</font>()
+
+
+
+<font color='blue'>      if </font>(DLIB_USE_FFTW)
+<font color='blue'>         find_library</font>(fftw fftw3)
+<font color='#009900'>         # make sure fftw3.h is in the include path</font>
+<font color='blue'>         find_path</font>(fftw_path fftw3.h)
+<font color='blue'>         if </font>(fftw AND fftw_path)
+<font color='blue'>            set</font>(dlib_needed_includes ${<font color='#BB00BB'>dlib_needed_includes</font>} ${<font color='#BB00BB'>fftw_path</font>})
+<font color='blue'>            set</font>(dlib_needed_libraries ${<font color='#BB00BB'>dlib_needed_libraries</font>} ${<font color='#BB00BB'>fftw</font>} )
+<font color='blue'>         else</font>()
+<font color='blue'>            set</font>(DLIB_USE_FFTW OFF CACHE STRING ${<font color='#BB00BB'>DLIB_USE_FFTW_STR</font>} FORCE )
+<font color='blue'>            toggle_preprocessor_switch</font>(DLIB_USE_FFTW)
+<font color='blue'>         endif</font>()
+<font color='blue'>         mark_as_advanced</font>(fftw fftw_path)
+<font color='blue'>      endif</font>()
+
+
+
+<font color='#009900'>      # Tell CMake to build dlib via add_library()/cuda_add_library()</font>
+<font color='blue'>      if </font>(DLIB_USE_CUDA)
+<font color='#009900'>         # The old cuda_add_library() command doesn't support CMake's newer dependency</font>
+<font color='#009900'>         # stuff, so we have to set the include path manually still, which we do here.</font>
+<font color='blue'>         include_directories</font>(${<font color='#BB00BB'>dlib_needed_includes</font>})
+<font color='blue'>         cuda_add_library</font>(dlib STATIC ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>      else</font>()
+<font color='blue'>         add_library</font>(dlib STATIC ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>      endif</font>()
+<font color='blue'>      if </font>(UNIX AND NOT DLIB_IN_PROJECT_BUILD)
+<font color='blue'>         if </font>(DLIB_USE_CUDA)
+<font color='blue'>            cuda_add_library</font>(dlib_shared SHARED ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>            add_dependencies</font>(dlib_shared dlib)
+<font color='blue'>         else</font>()
+<font color='blue'>            add_library</font>(dlib_shared SHARED ${<font color='#BB00BB'>source_files</font>} )
+<font color='blue'>            add_dependencies</font>(dlib_shared dlib)
+<font color='blue'>         endif</font>()
+<font color='blue'>      endif</font>()
+
+<font color='blue'>   endif </font>()  ##### end of if NOT DLIB_ISO_CPP_ONLY ##########################################################
+
+
+<font color='blue'>   target_include_directories</font>(dlib
+                              INTERFACE $<BUILD_INTERFACE:${<font color='#BB00BB'>CMAKE_CURRENT_SOURCE_DIR</font>}/..>
+                              INTERFACE $<INSTALL_INTERFACE:include>
+                              PUBLIC ${<font color='#BB00BB'>dlib_needed_includes</font>}
+                              )
+<font color='blue'>   target_link_libraries</font>(dlib PRIVATE ${<font color='#BB00BB'>dlib_needed_libraries</font>})
+<font color='blue'>   if </font>(DLIB_IN_PROJECT_BUILD)
+<font color='blue'>      target_compile_options</font>(dlib PUBLIC ${<font color='#BB00BB'>active_preprocessor_switches</font>})
+<font color='blue'>   else</font>()
+<font color='blue'>      target_compile_options</font>(dlib PRIVATE ${<font color='#BB00BB'>active_preprocessor_switches</font>})
+<font color='blue'>   endif</font>()
+<font color='blue'>   if </font>(UNIX AND NOT DLIB_IN_PROJECT_BUILD)
+<font color='blue'>      target_include_directories</font>(dlib_shared
+                                 INTERFACE $<BUILD_INTERFACE:${<font color='#BB00BB'>CMAKE_CURRENT_SOURCE_DIR</font>}/..>
+                                 INTERFACE $<INSTALL_INTERFACE:include>
+                                 PUBLIC ${<font color='#BB00BB'>dlib_needed_includes</font>}
+                                 )
+<font color='blue'>      target_link_libraries</font>(dlib_shared PRIVATE ${<font color='#BB00BB'>dlib_needed_libraries</font>})
+<font color='blue'>      target_compile_options</font>(dlib_shared PRIVATE ${<font color='#BB00BB'>active_preprocessor_switches</font>})
+<font color='blue'>   endif</font>()
+
+
+<font color='#009900'>   # Allow the unit tests to ask us to compile the all/source.cpp file just to make sure it compiles.</font>
+<font color='blue'>   if </font>(DLIB_TEST_COMPILE_ALL_SOURCE_CPP)
+<font color='blue'>      ADD_LIBRARY</font>(dlib_all_source_cpp STATIC all/source.cpp) 
+<font color='blue'>      target_link_libraries</font>(dlib_all_source_cpp dlib)
+<font color='blue'>      target_compile_options</font>(dlib_all_source_cpp PUBLIC ${<font color='#BB00BB'>active_preprocessor_switches</font>})
+<font color='blue'>   endif</font>()
+
+<font color='#009900'>   # Install the library</font>
+<font color='blue'>   if </font>(NOT DLIB_IN_PROJECT_BUILD)
+<font color='blue'>       cmake_minimum_required</font>(VERSION 2.8.8)
+<font color='blue'>       if</font>(UNIX)
+<font color='blue'>           set_target_properties</font>(dlib_shared PROPERTIES
+                                        OUTPUT_NAME dlib 
+                                        VERSION ${<font color='#BB00BB'>VERSION</font>})
+<font color='blue'>           install</font>(TARGETS dlib dlib_shared
+                   EXPORT dlib 
+                   RUNTIME DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_BINDIR</font>} # Windows (including cygwin) considers .dll to be runtime artifacts
+                   LIBRARY DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>}
+                   ARCHIVE DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>})
+<font color='blue'>       else</font>()
+<font color='blue'>           install</font>(TARGETS dlib
+                   EXPORT dlib 
+                   RUNTIME DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_BINDIR</font>} # Windows considers .dll to be runtime artifacts
+                   LIBRARY DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>}
+                   ARCHIVE DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>})
+<font color='blue'>       endif</font>()
+
+<font color='blue'>       install</font>(DIRECTORY ${<font color='#BB00BB'>CMAKE_CURRENT_SOURCE_DIR</font>}/ DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_INCLUDEDIR</font>}/dlib
+               FILES_MATCHING PATTERN "<font color='#CC0000'>*.h</font>" PATTERN "<font color='#CC0000'>*.cmake</font>"
+               REGEX "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}</font>" EXCLUDE)
+
+
+<font color='blue'>       configure_file</font>(${<font color='#BB00BB'>PROJECT_SOURCE_DIR</font>}/config.h.in ${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config.h)
+<font color='#009900'>       # overwrite config.h with the configured one</font>
+<font color='blue'>       install</font>(FILES ${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config.h DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_INCLUDEDIR</font>}/dlib)
+
+<font color='blue'>       configure_file</font>(${<font color='#BB00BB'>PROJECT_SOURCE_DIR</font>}/revision.h.in ${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/revision.h)
+<font color='blue'>       install</font>(FILES ${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/revision.h DESTINATION ${<font color='#BB00BB'>CMAKE_INSTALL_INCLUDEDIR</font>}/dlib)
+
+<font color='#009900'>       ## Config.cmake generation and installation</font>
+
+<font color='blue'>       set</font>(ConfigPackageLocation "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>}/cmake/dlib</font>")
+<font color='blue'>       install</font>(EXPORT dlib
+            NAMESPACE dlib::
+            DESTINATION ${<font color='#BB00BB'>ConfigPackageLocation</font>})
+
+<font color='blue'>       configure_file</font>(cmake_utils/dlibConfig.cmake.in "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config/dlibConfig.cmake</font>" @ONLY)
+
+<font color='blue'>       include</font>(CMakePackageConfigHelpers)
+<font color='blue'>       write_basic_package_version_file</font>(
+           "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config/dlibConfigVersion.cmake</font>"
+           VERSION ${<font color='#BB00BB'>VERSION</font>}
+           COMPATIBILITY AnyNewerVersion
+           )
+
+<font color='blue'>       install</font>(FILES 
+                    "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config/dlibConfig.cmake</font>" 
+                    "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/config/dlibConfigVersion.cmake</font>" 
+               DESTINATION ${<font color='#BB00BB'>ConfigPackageLocation</font>})
+
+<font color='#009900'>       ## dlib-1.pc generation and installation</font>
+
+<font color='blue'>       configure_file</font>("<font color='#CC0000'>cmake_utils/dlib.pc.in</font>" "<font color='#CC0000'>dlib-1.pc</font>" @ONLY)
+<font color='blue'>       install</font>(FILES "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_CURRENT_BINARY_DIR</font>}/dlib-1.pc</font>"
+           DESTINATION "<font color='#CC0000'>${<font color='#BB00BB'>CMAKE_INSTALL_LIBDIR</font>}/pkgconfig</font>")
+
+<font color='blue'>   endif</font>()
+
+<font color='blue'>endif</font>()
+
+<font color='blue'>add_library</font>(dlib::dlib ALIAS dlib)
+</pre></body></html>

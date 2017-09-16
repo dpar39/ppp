@@ -1,0 +1,78 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - curand_dlibapi.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuRAND_H_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuRAND_H_
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor.h.html'>tensor.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_errors.h.html'>cuda_errors.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_data_ptr.h.html'>cuda_data_ptr.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda 
+    <b>{</b>
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='curand_generator'></a>curand_generator</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+            <font color='#009900'>// not copyable
+</font>            <b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> curand_generator<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            curand_generator<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> curand_generator<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> : curand_generator<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+            <b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <font color='#0000FF'><u>long</u></font> seed<font face='Lucida Console'>)</font>;
+            ~<b><a name='curand_generator'></a>curand_generator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='fill'></a>fill</b> <font face='Lucida Console'>(</font>
+                cuda_data_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> data
+            <font face='Lucida Console'>)</font>;
+            <font color='#009900'>/*!
+                ensures
+                    - Fills data with random 32-bit unsigned integers.
+            !*/</font>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='fill_gaussian'></a>fill_gaussian</b> <font face='Lucida Console'>(</font>
+                tensor<font color='#5555FF'>&amp;</font> data,
+                <font color='#0000FF'><u>float</u></font> mean <font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+                <font color='#0000FF'><u>float</u></font> stddev <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+            <font face='Lucida Console'>)</font>;
+            <font color='#009900'>/*!
+                requires
+                    - data.size()%2 == 0
+                    - stddev &gt;= 0
+                ensures
+                    - Fills data with random numbers drawn from a Gaussian distribution
+                      with the given mean and standard deviation.
+            !*/</font>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='fill_uniform'></a>fill_uniform</b> <font face='Lucida Console'>(</font>
+                tensor<font color='#5555FF'>&amp;</font> data
+            <font face='Lucida Console'>)</font>;
+            <font color='#009900'>/*!
+                ensures
+                    - Fills data with uniform random numbers in the range (0.0, 1.0].
+            !*/</font>
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> handle;
+        <b>}</b>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+    <b>}</b>  
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuRAND_H_
+</font>
+
+
+
+</pre></body></html>

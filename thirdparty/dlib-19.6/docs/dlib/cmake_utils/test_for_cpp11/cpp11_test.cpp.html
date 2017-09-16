@@ -1,0 +1,54 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cpp11_test.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+
+<font color='#0000FF'>class</font> <b><a name='testme'></a>testme</b>
+<b>{</b>
+<font color='#0000FF'>public</font>:
+
+    <b><a name='testme'></a>testme</b><font face='Lucida Console'>(</font>testme<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+    <b><a name='testme'></a>testme</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> testme<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font> <b><a name='auto_return'></a>auto_return</b><font face='Lucida Console'>(</font>T f<font face='Lucida Console'>)</font> <font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font> <b><a name='decltype'></a>decltype</b><font face='Lucida Console'>(</font><font color='#BB00BB'>f</font><font face='Lucida Console'>(</font><font color='#979000'>4</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>f</font><font face='Lucida Console'>(</font><font color='#979000'>4</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font> <b><a name='auto_return'></a>auto_return</b><font face='Lucida Console'>(</font>T f<font face='Lucida Console'>)</font> <font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font> <b><a name='decltype'></a>decltype</b><font face='Lucida Console'>(</font><font color='#BB00BB'>f</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>f</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+    <font color='#0000FF'>static</font> <font color='#0000FF'><u>int</u></font> <b><a name='returnint'></a>returnint</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>0</font>; <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='dostuff'></a>dostuff</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        thread_local <font color='#0000FF'><u>int</u></font> stuff1 <font color='#5555FF'>=</font> <font color='#979000'>999</font>;
+        <font color='#0000FF'>auto</font> x <font color='#5555FF'>=</font> <font color='#979000'>4</font>;
+
+        <font color='#BB00BB'>decltype</font><font face='Lucida Console'>(</font>x<font face='Lucida Console'>)</font> asdf <font color='#5555FF'>=</font> <font color='#979000'>9</font>;
+
+        <font color='#0000FF'>auto</font> f <font color='#5555FF'>=</font> []<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>in a lambda!</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl; <b>}</b>;
+        <font color='#BB00BB'>f</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+        <font color='#BB00BB'>auto_return</font><font face='Lucida Console'>(</font>returnint<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='variadic_template'></a>variadic_template</b><font face='Lucida Console'>(</font>
+        T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+    <b>}</b>
+
+
+
+    std::shared_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font><font color='#5555FF'>&gt;</font> asdf;
+<b>}</b>;
+
+<font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+
+</pre></body></html>

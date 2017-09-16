@@ -1,0 +1,25 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_dswap.c</title></head><body bgcolor='white'><pre>
+<font color='#009900'>/*
+ * cblas_dswap.c
+ *
+ * The program is a C interface to dswap.
+ *
+ * Written by Keita Teranishi.  2/11/1998
+ *
+ */</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas.h.html'>cblas.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas_f77.h.html'>cblas_f77.h</a>"
+<font color='#0000FF'><u>void</u></font> <b><a name='cblas_dswap'></a>cblas_dswap</b><font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> N, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>X, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> incX, <font color='#0000FF'><u>double</u></font> <font color='#5555FF'>*</font>Y,
+                       <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> incY<font face='Lucida Console'>)</font>
+<b>{</b>
+<font color='#0000FF'>#ifdef</font> F77_INT
+   F77_INT F77_N<font color='#5555FF'>=</font>N, F77_incX<font color='#5555FF'>=</font>incX, F77_incY<font color='#5555FF'>=</font>incY;
+<font color='#0000FF'>#else</font> 
+   <font color='#0000FF'>#define</font> F77_N N
+   <font color='#0000FF'>#define</font> F77_incX incX
+   <font color='#0000FF'>#define</font> F77_incY incY
+<font color='#0000FF'>#endif</font>
+   <font color='#BB00BB'>F77_dswap</font><font face='Lucida Console'>(</font> <font color='#5555FF'>&amp;</font>F77_N, X, <font color='#5555FF'>&amp;</font>F77_incX, Y, <font color='#5555FF'>&amp;</font>F77_incY<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+</pre></body></html>

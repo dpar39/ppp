@@ -1,0 +1,1703 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - core_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_DNn_CORE_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_DNn_CORE_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor_abstract.h.html'>tensor_abstract.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>type_traits<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>tuple<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>vector<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../rand.h.html'>../rand.h</a>"
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font>... T 
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font> <b><a name='tuple_tail'></a>tuple_tail</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> std::tuple<font color='#5555FF'>&lt;</font>T...<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item 
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - returns a tuple that contains everything in item except for tuple_head(item).
+              The items will be in the same order as they are in item, just without
+              tuple_head(item).
+            - This function will correctly handle nested tuples.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font>... T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font> <b><a name='tuple_head'></a>tuple_head</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> std::tuple<font color='#5555FF'>&lt;</font>T...<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+    <font face='Lucida Console'>)</font>; 
+    <font color='#009900'>/*!
+        ensures
+            - returns a copy of the first thing in the tuple that isn't a std::tuple.
+              Essentially, this function calls std::get&lt;0&gt;() recursively on item until
+              a non-std::tuple object is found.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>double</u></font> <b><a name='get_learning_rate_multiplier'></a>get_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> obj
+    <font face='Lucida Console'>)</font>; 
+    <font color='#009900'>/*!
+        ensures
+            - if (obj has a get_learning_rate_multiplier() member function) then
+                - returns obj.get_learning_rate_multiplier()
+            - else
+                - returns 1
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>double</u></font> <b><a name='get_weight_decay_multiplier'></a>get_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> obj
+    <font face='Lucida Console'>)</font>; 
+    <font color='#009900'>/*!
+        ensures
+            - if (obj has a get_weight_decay_multiplier() member function) then
+                - returns obj.get_weight_decay_multiplier()
+            - else
+                - returns 1
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>bool</u></font> <b><a name='dnn_prefer_fastest_algorithms'></a>dnn_prefer_fastest_algorithms</b><font face='Lucida Console'>(</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - If dlib should prefer to use fast algorithms rather than ones that use less
+              RAM then this function returns true and false otherwise.
+            - On program startup this function will default to true.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_dnn_prefer_fastest_algorithms'></a>set_dnn_prefer_fastest_algorithms</b><font face='Lucida Console'>(</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - #dnn_prefer_fastest_algorithms() == true
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_dnn_prefer_smallest_algorithms'></a>set_dnn_prefer_smallest_algorithms</b><font face='Lucida Console'>(</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - #dnn_prefer_fastest_algorithms() == false 
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> T
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='sstack'></a>sstack</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a basic stack of T objects.  It contains no data itself but simply
+                points to a memory range of T object and allows you to access that block of
+                T objects as a stack.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> T value_type;
+
+        <b><a name='sstack'></a>sstack</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <b><a name='sstack'></a>sstack</b> <font face='Lucida Console'>(</font>
+            T<font color='#5555FF'>*</font> data,
+            <font color='#0000FF'><u>size_t</u></font> s
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #size() == s
+                - #top() == *data
+                - #pop(i).top() == data[i]
+        !*/</font>
+
+        <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> <b><a name='top'></a>top</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - size() != 0
+            ensures
+                - returns the top element of the stack.
+        !*/</font>
+
+        T<font color='#5555FF'>&amp;</font> <b><a name='top'></a>top</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - size() != 0
+            ensures
+                - returns the top element of the stack.  
+        !*/</font>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of elements in this stack.  
+        !*/</font>
+
+        sstack <b><a name='pop'></a>pop</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> num <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - num &lt;= size()
+            ensures
+                - returns a reference to the sub-stack S such that:
+                    - S.size() == size()-num.
+                    - S.top() is num elements down the stack. 
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> T
+        <font color='#5555FF'>&gt;</font>
+    sstack<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font> <b><a name='make_sstack'></a>make_sstack</b><font face='Lucida Console'>(</font>
+        std::vector<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+    <font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> sstack<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>item.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>; <b>}</b>
+    <font color='#009900'>/*!
+        ensures
+            - returns a sstack that sits on top of the given std::vector.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> LAYER_DETAILS, 
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='add_layer'></a>add_layer</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON LAYER_DETAILS
+                - Must be a type that implements the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                  defined in layers_abstract.h
+
+            REQUIREMENTS ON SUBNET
+                - One of the following must be true:
+                    - SUBNET implements the EXAMPLE_INPUT_LAYER interface defined in
+                      input_abstract.h.
+                    - SUBNET is an add_layer object.
+                    - SUBNET is an add_tag_layer object.
+                    - SUBNET is an add_skip_layer object.
+                    - SUBNET is a repeat object.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object represents a deep neural network.  In particular, it is a tool
+                for adding another layer on top of the neural network of type SUBNET, which
+                is specified as a template argument.  The specific layer added is defined
+                by the LAYER_DETAILS details template argument.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> LAYER_DETAILS layer_details_type;
+        <font color='#0000FF'>typedef</font> SUBNET subnet_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> subnet_type::input_type input_type;
+        <font color='#009900'>// num_computational_layers will always give the number of layers in the network
+</font>        <font color='#009900'>// that transform tensors (i.e. layers defined by something that implements the
+</font>        <font color='#009900'>// EXAMPLE_COMPUTATIONAL_LAYER_ interface).  This is all the layers except for
+</font>        <font color='#009900'>// loss, tag, and skip layers.
+</font>        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_computational_layers <font color='#5555FF'>=</font> subnet_type::num_computational_layers <font color='#5555FF'>+</font> <font color='#979000'>1</font>;
+        <font color='#009900'>// num_layers counts all the layers in the network regardless of their type.  
+</font>        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_layers <font color='#5555FF'>=</font> subnet_type::num_layers <font color='#5555FF'>+</font> <font color='#979000'>1</font>;
+
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - default constructs all the layers in this network.
+                - #sample_expansion_factor() == 0
+        !*/</font>
+
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_layer<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>add_layer<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        add_layer<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font>add_layer<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        add_layer<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_layer<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <font color='#009900'>/*!
+            ensures
+                - this object is copyable and movable.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> add_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This constructor allows you to copy neural network objects from one to
+                  another as long as their corresponding layers can be constructed from
+                  each other.
+                - #layer_details() == layer_details_type(item.layer_details())
+                - #subnet()        == subnet_type(item.subnet())
+                - #sample_expansion_factor() == item.sample_expansion_factor()
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T, <font color='#0000FF'>typename</font> LD, <font color='#0000FF'>typename</font> ...U<font color='#5555FF'>&gt;</font>
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> std::tuple<font color='#5555FF'>&lt;</font>LD,U...<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> layer_det, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #layer_details() == layer_details_type(tuple_head(layer_det))
+                - #subnet()        == subnet_type(tuple_tail(layer_det),args)
+                - #sample_expansion_factor() == 0 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> layer_details_type<font color='#5555FF'>&amp;</font> layer_det, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #layer_details() == layer_details_type(layer_det)
+                - #subnet()        == subnet_type(args)
+                - #sample_expansion_factor() == 0 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This version of the constructor is only called if layer_details_type
+                  can't be constructed from the first thing in args.  In this case, the
+                  args are simply passed on to the sub layers in their entirety.
+                - #layer_details() == layer_details_type()
+                - #subnet()        == subnet_type(args)
+                - #sample_expansion_factor() == 0 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_layer'></a>add_layer</b><font face='Lucida Console'>(</font>
+            layer_details_type<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> layer_det, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #layer_details() == layer_det
+                - #subnet()        == subnet_type(args)
+                - #sample_expansion_factor() == 0 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.
+                - #data.num_samples()%distance(ibegin,iend) == 0. 
+                - #sample_expansion_factor() == #data.num_samples()/distance(ibegin,iend).
+                - #sample_expansion_factor() &gt; 0
+                - The data in the ith sample of #data corresponds to the input_type object
+                  *(ibegin+i/#sample_expansion_factor()).
+                - Invokes data.async_copy_to_device() so that the data begins transferring
+                  to the GPU device, if present.
+                - This function is implemented by calling the to_tensor() routine defined
+                  at the input layer of this network.  
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> <b><a name='sample_expansion_factor'></a>sample_expansion_factor</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - When to_tensor() is invoked on this network's input layer it converts N
+                  input objects into M samples, all stored inside a resizable_tensor.  It
+                  is always the case that M is some integer multiple of N.
+                  sample_expansion_factor() returns the value of this multiplier.  To be
+                  very specific, it is always true that M==I*N where I is some integer.
+                  This integer I is what is returned by sample_expansion_factor().
+        !*/</font>
+
+        <font color='#0000FF'>const</font> subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the immediate subnetwork of *this network.  
+        !*/</font>
+
+        subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the immediate subnetwork of *this network.  
+        !*/</font>
+
+        <font color='#0000FF'>const</font> layer_details_type<font color='#5555FF'>&amp;</font> <b><a name='layer_details'></a>layer_details</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the layer_details_type instance that defines the behavior of the
+                  layer at the top of this network.  I.e. returns the layer details that
+                  defines the behavior of the layer nearest to the network output rather
+                  than the input layer.
+        !*/</font>
+
+        layer_details_type<font color='#5555FF'>&amp;</font> <b><a name='layer_details'></a>layer_details</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the layer_details_type instance that defines the behavior of the
+                  layer at the top of this network.  I.e. returns the layer details that
+                  defines the behavior of the layer nearest to the network output rather
+                  than the input layer.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - runs [ibegin,iend) through the network and returns the results.
+                  In particular, this function performs:
+                    to_tensor(ibegin,iend,temp_tensor);
+                    return forward(temp_tensor);
+                - The return value from this function is also available in #get_output().
+                  i.e. this function returns #get_output().
+                - have_same_dimensions(#get_gradient_input(), #get_output()) == true.
+                - All elements of #get_gradient_input() are set to 0. 
+                  i.e. calling this function clears out #get_gradient_input() and ensures
+                  it has the same dimensions as the most recent output.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> input_type<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - runs a single x through the network and returns the output.
+                  I.e. returns (*this)(&amp;x, &amp;x+1);
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+            ensures
+                - Runs x through the network and returns the results.  In particular, this
+                  function performs the equivalent of:
+                    subnet().forward(x);
+                    if (this is the first time forward() has been called) then
+                        layer_details().setup(subnet());
+                    layer_details().forward(subnet(), get_output());
+                - The return value from this function is also available in #get_output().
+                  i.e. this function returns #get_output().
+                - have_same_dimensions(#get_gradient_input(), #get_output()) == true
+                - All elements of #get_gradient_input() are set to 0. 
+                  i.e. calling this function clears out #get_gradient_input() and ensures
+                  it has the same dimensions as the most recent output.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_output'></a>get_output</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the output for the last tensor that was run through the network.
+                  If nothing has been run through the network yet then returns an empty
+                  tensor. 
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_gradient_input'></a>get_gradient_input</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the error gradient for this network.  That is, this is the error
+                  gradient that this network will use to compute parameter gradients when
+                  back_propagate_error() is called.  Therefore, when performing back
+                  propagation, layers that sit on top of this network layer write their
+                  back-propagated error gradients into get_gradient_input().  Or to put it
+                  another way, during back-propagation, layers take the contents of their
+                  get_gradient_input() and back-propagate it through themselves and store
+                  the result into their subnetwork's get_gradient_input().
+
+                  This means you should consider get_gradient_input() as an input to the
+                  back_propagate_error() method.  
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_final_data_gradient'></a>get_final_data_gradient</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - if back_propagate_error() has been called to back-propagate a gradient
+                  through this network then you can call get_final_data_gradient() to
+                  obtain the last data gradient computed.  That is, this function returns
+                  the gradient of the network with respect to its inputs.
+                - Note that there is only one "final data gradient" for an entire network,
+                  not one per layer, since there is only one input to the entire network.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_parameter_gradient'></a>get_parameter_gradient</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - if back_propagate_error() has been called then you can call
+                  get_parameter_gradient() to find the gradient of this layer's parameters.
+                  When we update the parameters by calling update_parameters(), it will use
+                  the gradient in get_parameter_gradient() to perform the update.
+                  Therefore, you should consider get_parameter_gradient() as an input to
+                  update_parameters().
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_parameter_gradient'></a>get_parameter_gradient</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a non-const reference to the tensor returned by the above
+                  get_parameter_gradient() method.  You could use this method to modify the
+                  parameter gradient in some way before invoking update_parameters().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='back_propagate_error'></a>back_propagate_error</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - forward(x) was called to forward propagate x though the network.
+                  Moreover, this was the most recent call to forward() and x has not been
+                  subsequently modified in any way.
+                - get_gradient_input() has been set equal to the gradient of this network's
+                  output with respect to some loss function.
+            ensures
+                - Back propagates the error gradient, get_gradient_input(), through this
+                  network and computes parameter and data gradients, via backpropagation.
+                  Specifically, this function populates get_final_data_gradient() and also,
+                  for each layer, the tensor returned by get_parameter_gradient().
+                - All elements of #get_gradient_input() are set to 0. 
+                - have_same_dimensions(#get_final_data_gradient(), x) == true.
+                - have_same_dimensions(#get_parameter_gradient(), layer_details().get_layer_params()) == true.
+                - #get_final_data_gradient() contains the gradient of the network with
+                  respect to x.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='back_propagate_error'></a>back_propagate_error</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - forward(x) was called to forward propagate x though the network.
+                  Moreover, this was the most recent call to forward() and x has not been
+                  subsequently modified in any way.
+                - have_same_dimensions(gradient_input, get_output()) == true
+            ensures
+                - This function is identical to the version of back_propagate_error()
+                  defined immediately above except that it back-propagates gradient_input
+                  through the network instead of get_gradient_input().  Therefore, this
+                  version of back_propagate_error() is equivalent to performing:
+                    get_gradient_input() = gradient_input;
+                    back_propagate_error(x);
+                  Except that calling back_propagate_error(x,gradient_input) avoids the
+                  copy and is therefore slightly more efficient.
+                - All elements of #get_gradient_input() are set to 0. 
+                - have_same_dimensions(#get_final_data_gradient(), x) == true.
+                - have_same_dimensions(#get_parameter_gradient(), layer_details().get_layer_params()) == true.
+                - #get_final_data_gradient() contains the gradient of the network with
+                  respect to x.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> solver_type<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='update_parameters'></a>update_parameters</b><font face='Lucida Console'>(</font>
+            sstack<font color='#5555FF'>&lt;</font>solver_type<font color='#5555FF'>&gt;</font> solvers, 
+            <font color='#0000FF'><u>double</u></font> learning_rate
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - solver_type is an implementation of the EXAMPLE_SOLVER interface defined
+                  in solvers_abstract.h
+                - back_propagate_error() has been called.
+                - The given solvers have only ever been used with this network.  That is,
+                  if you want to call update_parameters() on some other neural network
+                  object then you must NOT reuse the same solvers object.
+                - solvers.size() &gt;= num_computational_layers
+                - 0 &lt; learning_rate &lt;= 1
+            ensures
+                - Updates all the parameters in the network.  In particular, we pass each
+                  layer's parameter gradient (i.e. the tensor returned by the layer's
+                  get_parameter_gradient() member) through that layer's corresponding
+                  solver object.  This produces a parameter delta vector which we add to
+                  the layer's parameters.
+                - The solvers use the given learning rate.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='clean'></a>clean</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Causes the network to forget about everything but its parameters.  
+                  That is, for each layer we will have:
+                    - get_output().num_samples() == 0
+                    - get_gradient_input().num_samples() == 0
+                  However, running new input data though this network will still produce
+                  the same output it would have produced regardless of any calls to
+                  clean().  The purpose of clean() is to compact the network object prior
+                  to saving it to disk so that it takes up less space and the IO is
+                  quicker.
+                - This also calls the .clean() method on any layer details objects that 
+                  define a .clean() method.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> add_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        prints the network architecture to the given output stream.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>add_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> no_label_type;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> LOSS_DETAILS, 
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='add_loss_layer'></a>add_loss_layer</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON LOSS_DETAILS 
+                - Must be a type that implements the EXAMPLE_LOSS_LAYER_ interface defined
+                  in loss_abstract.h
+
+            REQUIREMENTS ON SUBNET
+                - One of the following must be true:
+                    - SUBNET is an add_layer object.
+                    - SUBNET is an add_tag_layer object.
+                    - SUBNET is an add_skip_layer object.
+                    - SUBNET is a repeat object.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object represents a deep neural network.  In particular, it is a tool
+                for adding a loss layer on top of the neural network of type SUBNET, which
+                is specified as a template argument.  The specific layer added is defined
+                by the LOSS_DETAILS details template argument.  Importantly, a loss layer
+                is the last layer in a deep neural network.  So once it is added you can't
+                add any other layers of any type.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> LOSS_DETAILS loss_details_type;
+        <font color='#0000FF'>typedef</font> SUBNET subnet_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> subnet_type::input_type input_type;
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_computational_layers <font color='#5555FF'>=</font> subnet_type::num_computational_layers;
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_layers <font color='#5555FF'>=</font> subnet_type::num_layers <font color='#5555FF'>+</font> <font color='#979000'>1</font>;
+        <font color='#009900'>// If LOSS_DETAILS is an unsupervised loss then training_label_type==no_label_type.
+</font>        <font color='#009900'>// Otherwise it is defined as follows:
+</font>        <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> LOSS_DETAILS::training_label_type training_label_type;
+        <font color='#009900'>// Similarly, if LOSS_DETAILS doesn't provide any output conversion then
+</font>        <font color='#009900'>// output_label_type==no_label_type.
+</font>        <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> LOSS_DETAILS::output_label_type output_label_type;
+
+
+
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <font color='#009900'>/*!
+            ensures
+                - default constructs all the layers in this network.
+        !*/</font>
+
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_loss_layer<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font>add_loss_layer<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        add_loss_layer<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font>add_loss_layer<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        add_loss_layer<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_loss_layer<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <font color='#009900'>/*!
+            ensures
+                - this object is copyable and movable.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> add_loss_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This constructor allows you to copy neural network objects from one to
+                  another as long as their corresponding layers can be constructed from
+                  each other.
+                - #loss_details() == loss_details_type(item.loss_details())
+                - #subnet()       == subnet_type(item.subnet())
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> LOSS_DETAILS<font color='#5555FF'>&amp;</font> layer_det, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - #loss_details() == loss_details_type(layer_det)
+                - #subnet()       == subnet_type(args)
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font>
+            LOSS_DETAILS<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> layer_det, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #loss_details() == loss_details_type(layer_det)
+                - #subnet()       == subnet_type(args)
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <b><a name='add_loss_layer'></a>add_loss_layer</b><font face='Lucida Console'>(</font>
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - This version of the constructor is only called if loss_details_type can't
+                  be constructed from the first thing in args.  In this case, the args are
+                  simply passed on to the sub layers in their entirety.
+                - #loss_details() == loss_details_type()
+                - #subnet()       == subnet_type(args)
+        !*/</font>
+
+        <font color='#0000FF'>const</font> subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the immediate subnetwork of *this network.  
+        !*/</font>
+
+        subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the immediate subnetwork of *this network.  
+        !*/</font>
+
+        <font color='#0000FF'>const</font> loss_details_type<font color='#5555FF'>&amp;</font> <b><a name='loss_details'></a>loss_details</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the loss_details_type instance that defines the behavior of the
+                  loss layer used by this network.
+        !*/</font>
+
+        loss_details_type<font color='#5555FF'>&amp;</font> <b><a name='loss_details'></a>loss_details</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the loss_details_type instance that defines the behavior of the
+                  loss layer used by this network.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - Converts the iterator range into a tensor and stores it into #data.
+                - #data.num_samples()%distance(ibegin,iend) == 0. 
+                - #sample_expansion_factor() == #data.num_samples()/distance(ibegin,iend).
+                - #sample_expansion_factor() &gt; 0
+                - The data in the ith sample of #data corresponds to the input_type object
+                  *(ibegin+i/sample_expansion_factor()).
+                - Invokes data.async_copy_to_device() so that the data begins transferring
+                  to the GPU device, if present.
+                - This function is implemented by calling the to_tensor() routine defined
+                  at the input layer of this network.  
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> <b><a name='sample_expansion_factor'></a>sample_expansion_factor</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - When to_tensor() is invoked on this network's input layer it converts N
+                  input objects into M samples, all stored inside a resizable_tensor.  It
+                  is always the case that M is some integer multiple of N.
+                  sample_expansion_factor() returns the value of this multiplier.  To be
+                  very specific, it is always true that M==I*N where I is some integer.
+                  This integer I is what is returned by sample_expansion_factor().
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> output_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x, 
+            output_iterator obegin
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+                - obegin == iterator pointing to the start of a range of
+                  x.num_samples()/sample_expansion_factor() output_label_type elements.
+            ensures
+                - runs x through the network and writes the output to the range at obegin.
+                - loss_details().to_label() is used to write the network output into
+                  obegin.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator, <font color='#0000FF'>typename</font> label_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            label_iterator obegin
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - obegin == iterator pointing to the start of a range of
+                  std::distance(ibegin,iend) output_label_type elements.
+            ensures
+                - runs [ibegin,iend) through the network and writes the output to the range
+                  at obegin.
+                - loss_details().to_label() is used to write the network output into
+                  obegin.
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'>const</font> output_label_type<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> input_type<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - runs a single object, x, through the network and returns the output.
+                - loss_details().to_label() is used to convert the network output into a
+                  output_label_type.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> iterable_type<font color='#5555FF'>&gt;</font>
+        std::vector<font color='#5555FF'>&lt;</font>output_label_type<font color='#5555FF'>&gt;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> iterable_type<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>size_t</u></font> batch_size <font color='#5555FF'>=</font> <font color='#979000'>128</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - batch_size &gt; 0
+                - data must have a .begin() and .end() that supply iterators over a
+                  sequence of input_type elements.  E.g. data could have a type of
+                  std::vector&lt;input_type&gt;
+            ensures
+                - runs all the objects in data through the network and returns their
+                  predicted labels.  This means this function returns a vector V such that:
+                    - V.size() == data.size()
+                    - for all valid i: V[i] == the predicted label of data[i].
+                - Elements of data are run through the network in batches of batch_size
+                  items.  Using a batch_size &gt; 1 can be faster because it better exploits
+                  the available hardware parallelism.
+                - loss_details().to_label() is used to convert the network output into a
+                  output_label_type.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> output_label_type<font color='#5555FF'>&amp;</font> <b><a name='process'></a>process</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> input_type<font color='#5555FF'>&amp;</font> x, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This function is just like (*this)(x), i.e. it runs a single object, x,
+                  through the network and returns the output.  But we additionally pass the 
+                  given args to loss_details().to_label() as the 4th argument (or more,
+                  depending on how many things are in args) when converting the network
+                  output to an output_label_type.  This is useful, for instance, with loss
+                  layers like loss_mmod_ which has an optional adjust_threshold argument to
+                  to_label() that adjusts the detection threshold.  Therefore, for such
+                  networks you could call them like: net.process(some_image, -0.5), and -0.5
+                  would be passed so the adjust_threshold argument of to_tensor().
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> iterable_type, <font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        std::vector<font color='#5555FF'>&lt;</font>output_label_type<font color='#5555FF'>&gt;</font> <b><a name='process_batch'></a>process_batch</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> iterable_type<font color='#5555FF'>&amp;</font> data, 
+            <font color='#0000FF'><u>size_t</u></font> batch_size, 
+            T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - batch_size &gt; 0
+                - data must have a .begin() and .end() that supply iterators over a
+                  sequence of input_type elements.  E.g. data could have a type of
+                  std::vector&lt;input_type&gt;
+            ensures
+                - This function is just like (*this)(data,batch_size), i.e. it runs a
+                  bunch of objects through the network and returns the outputs.  But we
+                  additionally pass the given args to loss_details().to_label() as the 4th
+                  argument (or more, depending on how many things are in args) when
+                  converting the network output to output_label_types.  This is useful,
+                  for instance, with loss layers like loss_mmod_ which has an optional
+                  adjust_threshold argument to to_label() that adjusts the detection
+                  threshold.  Therefore, for such networks you could call them like:
+                  net.process_batch(std::vector&lt;image_type&gt;({some_image, another_image}), 128, -0.5), 
+                  and -0.5 would be passed so the adjust_threshold argument of to_tensor().
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> label_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss'></a>compute_loss</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x,
+            label_iterator lbegin 
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+                - lbegin == iterator pointing to the start of a range of
+                  x.num_samples()/sample_expansion_factor() training_label_type elements.
+            ensures
+                - runs x through the network, compares the output to the expected output
+                  pointed to by lbegin, and returns the resulting loss. 
+                - for all valid k:
+                    - the expected label of the kth sample in x is *(lbegin+k/sample_expansion_factor()).
+                - This function does not update the network parameters.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator, <font color='#0000FF'>typename</font> label_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss'></a>compute_loss</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            label_iterator lbegin 
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - lbegin == iterator pointing to the start of a range of
+                  std::distance(ibegin,iend) training_label_type elements.
+            ensures
+                - runs [ibegin,iend) through the network, compares the output to the
+                  expected output pointed to by lbegin, and returns the resulting loss. 
+                - for all valid k:
+                    - the expected label of *(ibegin+k) is *(lbegin+k).
+                - This function does not update the network parameters.
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss'></a>compute_loss</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - LOSS_DETAILS is an unsupervised loss.  i.e. training_label_type==no_label_type.
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+            ensures
+                - runs x through the network and returns the resulting loss. 
+                - This function does not update the network parameters.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_loss'></a>compute_loss</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - LOSS_DETAILS is an unsupervised loss.  i.e. training_label_type==no_label_type.
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - runs [ibegin,iend) through the network and returns the resulting loss. 
+                - This function does not update the network parameters.
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> label_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_parameter_gradients'></a>compute_parameter_gradients</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x,
+            label_iterator lbegin
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+                - lbegin == iterator pointing to the start of a range of
+                  x.num_samples()/sample_expansion_factor() training_label_type elements.
+            ensures
+                - runs x through the network, compares the output to the expected output
+                  pointed to by lbegin, and computes parameter and data gradients with
+                  respect to the loss, via backpropagation.  Specifically, this function
+                  updates get_final_data_gradient() and also, for each layer, the tensor
+                  returned by get_parameter_gradient().
+                - for all valid k:
+                    - the expected label of the kth sample in x is *(lbegin+k/sample_expansion_factor()).
+                - returns compute_loss(x,lbegin)
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator, <font color='#0000FF'>typename</font> label_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_parameter_gradients'></a>compute_parameter_gradients</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            label_iterator lbegin
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+                - lbegin == iterator pointing to the start of a range of
+                  std::distance(ibegin,iend) training_label_type elements.
+            ensures
+                - runs [ibegin,iend) through the network, compares the output to the
+                  expected output pointed to by lbegin, and computes parameter and data
+                  gradients with respect to the loss, via backpropagation.  Specifically,
+                  this function updates get_final_data_gradient() and also, for each layer,
+                  the tensor returned by get_parameter_gradient().
+                - for all valid k:
+                    - the expected label of *(ibegin+k) is *(lbegin+k).
+                - returns compute_loss(ibegin,iend,lbegin)
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_parameter_gradients'></a>compute_parameter_gradients</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> x
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - LOSS_DETAILS is an unsupervised loss.  i.e. training_label_type==no_label_type.
+                - sample_expansion_factor() != 0
+                  (i.e. to_tensor() must have been called to set sample_expansion_factor()
+                  to something non-zero.)
+                - x.num_samples()%sample_expansion_factor() == 0
+                - x.num_samples() &gt; 0
+            ensures
+                - runs x through the network and computes parameter and data gradients with
+                  respect to the loss, via backpropagation.  Specifically, this function
+                  updates get_final_data_gradient() and also, for each layer, the tensor
+                  returned by get_parameter_gradient().
+                - returns compute_loss(x)
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>double</u></font> <b><a name='compute_parameter_gradients'></a>compute_parameter_gradients</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - LOSS_DETAILS is an unsupervised loss.  i.e. training_label_type==no_label_type.
+                - [ibegin, iend) is an iterator range over input_type objects.
+                - std::distance(ibegin,iend) &gt; 0
+            ensures
+                - runs [ibegin,iend) through the network and computes parameter and data
+                  gradients with respect to the loss, via backpropagation.  Specifically,
+                  this function updates get_final_data_gradient() and also, for each layer,
+                  the tensor returned by get_parameter_gradient().
+                - returns compute_loss(ibegin,iend)
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> solver_type<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='update_parameters'></a>update_parameters</b> <font face='Lucida Console'>(</font>
+            sstack<font color='#5555FF'>&lt;</font>solver_type<font color='#5555FF'>&gt;</font> solvers,
+            <font color='#0000FF'><u>double</u></font> learning_rate
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - solver_type is an implementation of the EXAMPLE_SOLVER interface defined
+                  in solvers_abstract.h
+                - compute_parameter_gradients() has been called.
+                - The given solvers have only ever been used with this network.  That
+                  is, if you want to call update_parameters() on some other neural network
+                  object then you must NOT reuse the same solvers object.
+                - solvers.size() &gt;= num_computational_layers
+                - 0 &lt; learning_rate &lt;= 1
+            ensures
+                - Updates all the parameters in the network.  In particular, we pass each
+                  layer's parameter gradient (i.e. the tensor returned by the layer's
+                  get_parameter_gradient() member) through that layer's corresponding
+                  solver object.  This produces a parameter delta vector which we add to
+                  the layer's parameters.
+                - The solvers use the given learning rate.
+        !*/</font>
+
+    <font color='#009900'>// -------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='clean'></a>clean</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Causes the network to forget about everything but its parameters.  
+                - invokes subnet().clean()
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> add_loss_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        prints the network architecture to the given output stream.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_loss_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>add_loss_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+    decorator_repeat_group<font color='#5555FF'>&lt;</font>T...<font color='#5555FF'>&gt;</font> <b><a name='repeat_group'></a>repeat_group</b> <font face='Lucida Console'>(</font>
+        T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - Decorates a group of variables.  This is essentially like std::make_tuple()
+              except it's only purpose is to group variables together so they can be passed
+              to the repeat object's constructor.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>size_t</u></font> num,
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='REPEATED_LAYER'></a>REPEATED_LAYER</b>, 
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='repeat'></a>repeat</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON num
+                - num &gt; 0
+
+            REQUIREMENTS ON REPEATED_LAYER
+                - REPEATED_LAYER must be a template that stacks more layers onto a deep neural
+                  network.  For example, if net_type were a network without a loss layer,
+                  then it should be legal to create a deeper network with a type of
+                  REPEATED_LAYER&lt;net_type&gt;.
+
+            REQUIREMENTS ON SUBNET
+                - One of the following must be true:
+                    - SUBNET is an add_layer object.
+                    - SUBNET is an add_tag_layer object.
+                    - SUBNET is an add_skip_layer object.
+                    - SUBNET is a repeat object.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object adds more layers to a deep neural network.  In particular, it
+                adds REPEATED_LAYER on top of SUBNET num times.  So for example, if num were 2 then
+                repeat&lt;2,REPEATED_LAYER,SUBNET&gt; would create a network equivalent to REPEATED_LAYER&lt;REPEATED_LAYER&lt;SUBNET&gt;&gt;.
+
+                Also, this object provides an interface identical to the one defined by the
+                add_layer object except that we add the num_repetitions() and
+                get_repeated_layer() methods.  These additions are shown below along with
+                some additional explanatory comments.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>typedef</font> SUBNET subnet_type;
+        <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> SUBNET::input_type input_type;
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_computational_layers <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>REPEATED_LAYER<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font>::num_computational_layers<font color='#5555FF'>-</font>SUBNET::num_computational_layers<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num <font color='#5555FF'>+</font> SUBNET::num_computational_layers;
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>size_t</u></font> num_layers <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>REPEATED_LAYER<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font>::num_layers<font color='#5555FF'>-</font>SUBNET::num_layers<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num <font color='#5555FF'>+</font> SUBNET::num_layers;
+        <font color='#0000FF'>typedef</font> REPEATED_LAYER<font color='#5555FF'>&lt;</font>an_unspecified_input_type<font color='#5555FF'>&gt;</font> repeated_layer_type;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> ...U<font color='#5555FF'>&gt;</font>
+        <b><a name='repeat'></a>repeat</b><font face='Lucida Console'>(</font>
+            T arg1,
+            U ...args2
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - arg1 is used to initialize the num_repetitions() copies of REPEATED_LAYER inside
+                  this object.  That is, all the REPEATED_LAYER elements are initialized identically
+                  by being given copies of arg1.
+                - The rest of the arguments to the constructor, i.e. args2, are passed to
+                  SUBNET's constructor.  
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> ...T, <font color='#0000FF'>typename</font> ...U<font color='#5555FF'>&gt;</font>
+        <b><a name='repeat'></a>repeat</b><font face='Lucida Console'>(</font>
+            decorator_repeat_group<font color='#5555FF'>&lt;</font>T...<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> arg1,
+            U ...args2
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - arg1 is used to initialize the num_repetitions() copies of REPEATED_LAYER inside
+                  this object.  That is, all the REPEATED_LAYER elements are initialized identically
+                  by being given copies of an undecorated arg1.
+                - The rest of the arguments to the constructor, i.e. args2, are passed to
+                  SUBNET's constructor.  
+        !*/</font>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='num_repetitions'></a>num_repetitions</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns num (i.e. the number of times REPEATED_LAYER was stacked on top of SUBNET)
+        !*/</font>
+
+        <font color='#0000FF'>const</font> repeated_layer_type<font color='#5555FF'>&amp;</font> <b><a name='get_repeated_layer'></a>get_repeated_layer</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> i 
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - i &lt; num_repetitions()
+            ensures
+                - returns a reference to the i-th instance of REPEATED_LAYER.  For example,
+                  get_repeated_layer(0) returns the instance of REPEATED_LAYER that is on the top of
+                  the network while get_repeated_layer(num_repetitions()-1) returns the
+                  instance of REPEATED_LAYER that is stacked immediately on top of SUBNET.
+        !*/</font>
+
+        repeated_layer_type<font color='#5555FF'>&amp;</font> <b><a name='get_repeated_layer'></a>get_repeated_layer</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> i 
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - i &lt; num_repetitions()
+            ensures
+                - returns a reference to the i-th instance of REPEATED_LAYER.  For example,
+                  get_repeated_layer(0) returns the instance of REPEATED_LAYER that is on the top of
+                  the network while get_repeated_layer(num_repetitions()-1) returns the
+                  instance of REPEATED_LAYER that is stacked immediately on top of SUBNET.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the SUBNET base network that repeat sits on top of.  If you want
+                  to access the REPEATED_LAYER components then you must use get_repeated_layer(). 
+        !*/</font>
+
+        subnet_type<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the SUBNET base network that repeat sits on top of.  If you want
+                  to access the REPEATED_LAYER components then you must use get_repeated_layer(). 
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> <font color='#0000FF'><u>size_t</u></font> num, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U <font color='#5555FF'>&gt;</font>
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> repeat<font color='#5555FF'>&lt;</font>num,T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        prints the network architecture to the given output stream.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> <font color='#0000FF'><u>size_t</u></font> num, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> repeat<font color='#5555FF'>&lt;</font>num,T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> <font color='#0000FF'><u>size_t</u></font> num, <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>repeat<font color='#5555FF'>&lt;</font>num,T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> ID, 
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='add_tag_layer'></a>add_tag_layer</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON SUBNET
+                - One of the following must be true:
+                    - SUBNET implements the EXAMPLE_INPUT_LAYER interface defined in
+                      input_abstract.h.
+                    - SUBNET is an add_layer object.
+                    - SUBNET is an add_tag_layer object.
+                    - SUBNET is an add_skip_layer object.
+                    - SUBNET is a repeat object.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object adds a new layer to a deep neural network.  However, this layer
+                simply performs the identity transform.  This means it is a no-op and its
+                presence does not change the behavior of the network.  It exists solely to
+                be used by add_skip_layer to reference a particular part of a network.
+
+                Also, this object provides an interface identical to the one defined by the
+                add_layer object.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> ID, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> add_tag_layer<font color='#5555FF'>&lt;</font>ID,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        prints the network architecture to the given output stream.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> ID, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_tag_layer<font color='#5555FF'>&lt;</font>ID,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> ID, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font> 
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>add_tag_layer<font color='#5555FF'>&lt;</font>ID,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag1  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag2  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>2</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag3  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>3</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag4  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>4</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag5  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>5</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag6  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>6</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag7  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>7</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag8  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>8</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag9  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>9</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> tag10 <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font><font color='#979000'>10</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='tag'></a>tag</b><font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>struct</font> <b><a name='tag_id'></a>tag_id</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON tag
+                Tag should be an add_tag_layer template such as tag1, tag2, etc.
+
+            WHAT THIS OBJECT REPRESENTS
+                This is a tool for finding the numeric ID of a tag layer.  For example,
+                tag_id&lt;tag3&gt;::id == 3.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> id;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG_TYPE'></a>TAG_TYPE</b>, 
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='add_skip_layer'></a>add_skip_layer</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON SUBNET
+                - One of the following must be true:
+                    - SUBNET is an add_layer object.
+                    - SUBNET is an add_tag_layer object.
+                    - SUBNET is an add_skip_layer object.
+                    - SUBNET is a repeat object.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object adds a new layer to a deep neural network which draws its
+                inputs from layer&lt;TAG_TYPE&gt;(subnet()) and performs the identity transform.
+
+                Also, this object provides an interface identical to the one defined by the
+                add_layer object.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> add_skip_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        prints the network architecture to the given output stream.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> add_skip_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='T'></a>T</b>, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>add_skip_layer<font color='#5555FF'>&lt;</font>T,U<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip1  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag1, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip2  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag2, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip3  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag3, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip4  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag4, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip5  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag5, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip6  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag6, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip7  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag7, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip8  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag8, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip9  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> tag9, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> skip10 <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font>tag10, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> i, 
+        <font color='#0000FF'>typename</font> net_type
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> <b><a name='layer'></a>layer</b> <font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> n
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - i &lt; net_type::num_layers
+        ensures
+            - This function allows you to access any layer in a network by its layer index
+              i.  Therefore, it will walk i steps down the network and return the layer
+              object there.  Since networks can be big, the best way to find layer index
+              numbers is to print a network to the screen since the print out will include
+              indexes for each layer.
+            - In general, this function chains together i calls to n.subnet() and returns
+              the result.  So for example:
+                - if (i == 0)
+                    - returns n
+                - else if (i == 1)
+                    - returns n.subnet()
+                - else if (i == 2)
+                    - returns n.subnet().subnet()
+                - else if (i == 3)
+                    - returns n.subnet().subnet().subnet()
+                - else
+                    - etc.
+              Except that when it hits a repeat layer it recurses into the repeated layers
+              contained inside.  That is, if the layer index indicates a layer in a repeat
+              object this function will make the appropriate call to get_repeated_layer()
+              and do the right thing.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='Match'></a>Match</b>, 
+        <font color='#0000FF'>typename</font> net_type 
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> <b><a name='layer'></a>layer</b> <font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> n
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+        ensures
+            - returns the first layer in n that is of type Match.  E.g. if net_type is
+              fc&lt;relu&lt;fc&lt;input&lt;sample_type&gt;&gt;&gt;&gt; then calling layer&lt;relu&gt;(n) would return
+              layer&lt;1&gt;(n), that is, a reference to the relu layer.
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='Match'></a>Match</b>, 
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> i, 
+        <font color='#0000FF'>typename</font> net_type
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> <b><a name='layer'></a>layer</b> <font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> n
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+        ensures
+            - returns layer&lt;i&gt;(layer&lt;Match&gt;(n))
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> net_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font> <b><a name='input_layer'></a>input_layer</b> <font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+        ensures
+            - returns the input later of the given network object.  Specifically, this
+              function is equivalent to calling:
+                layer&lt;net_type::num_layers-1&gt;(net);
+              That is, you get the input layer details object for the network.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layer_parameters'></a>visit_layer_parameters</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, tensor&amp; t)
+        ensures
+            - Loops over all the computational layers (i.e. layers with parameters, as
+              opposed to loss, tag, or input layers) in net and passes their parameters to
+              v().  To be specific, this function essentially performs the following:
+
+                size_t computational_layer_idx = 0;
+                for (size_t i = 0; i &lt; net_type::num_layers; ++i)
+                {
+                    if (layer&lt;i&gt;(net) is a computational layer)
+                    {
+                        v(computational_layer_idx, layer&lt;i&gt;(net).layer_details().get_layer_params());
+                        ++computational_layer_idx;
+                    }
+                }
+            - When v() is called, the first argument is always &lt; net_type::num_computational_layers.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layer_parameter_gradients'></a>visit_layer_parameter_gradients</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, tensor&amp; t)
+        ensures
+            - Loops over all the computational layers (i.e. layers with parameters, as
+              opposed to loss, tag, or input layers) in net and passes their parameter
+              gradients to v().  To be specific, this function essentially performs the
+              following:
+
+                size_t computational_layer_idx = 0;
+                for (size_t i = 0; i &lt; net_type::num_layers; ++i)
+                {
+                    if (layer&lt;i&gt;(net) is a computational layer)
+                    {
+                        v(computational_layer_idx, layer&lt;i&gt;(net).get_parameter_gradient());
+                        ++computational_layer_idx;
+                    }
+                }
+            - When v() is called, the first argument is always &lt; net_type::num_computational_layers.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layers'></a>visit_layers</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, any_net_type&amp; t)
+              That is, it must take a size_t and then any of the network types such as
+              add_layer, add_loss_layer, etc.
+        ensures
+            - Loops over all the layers in net and calls v() on them.  To be specific, this
+              function essentially performs the following:
+
+                for (size_t i = 0; i &lt; net_type::num_layers; ++i)
+                    v(i, layer&lt;i&gt;(net));
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layers_backwards'></a>visit_layers_backwards</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, any_net_type&amp; t)
+              That is, it must take a size_t and then any of the network types such as
+              add_layer, add_loss_layer, etc.
+        ensures
+            - Loops over all the layers in net and calls v() on them.  The loop happens in
+              the reverse order of visit_layers().  To be specific, this function
+              essentially performs the following:
+
+                for (size_t i = net_type::num_layers; i != 0; --i)
+                    v(i-1, layer&lt;i-1&gt;(net));
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>size_t</u></font> begin,
+        <font color='#0000FF'><u>size_t</u></font> end,
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layers_range'></a>visit_layers_range</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, any_net_type&amp; t)
+              That is, it must take a size_t and then any of the network types such as
+              add_layer, add_loss_layer, etc.
+            - begin &lt;= end &lt;= net_type::num_layers
+        ensures
+            - Loops over the layers in the range [begin,end) in net and calls v() on them.
+              The loop happens in the reverse order of visit_layers().  To be specific,
+              this function essentially performs the following:
+
+                for (size_t i = begin; i &lt; end; ++i)
+                    v(i, layer&lt;i&gt;(net));
+    !*/</font>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>size_t</u></font> begin,
+        <font color='#0000FF'><u>size_t</u></font> end,
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layers_backwards_range'></a>visit_layers_backwards_range</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(size_t idx, any_net_type&amp; t)
+              That is, it must take a size_t and then any of the network types such as
+              add_layer, add_loss_layer, etc.
+            - begin &lt;= end &lt;= net_type::num_layers
+        ensures
+            - Loops over the layers in the range [begin,end) in net and calls v() on them.
+              The loop happens in the reverse order of visit_layers_range().  To be specific,
+              this function essentially performs the following:
+
+                for (size_t i = end; i != begin; --i)
+                    v(i-1, layer&lt;i-1&gt;(net));
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> tag_id,
+        <font color='#0000FF'>typename</font> net_type,
+        <font color='#0000FF'>typename</font> visitor
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='visit_layers_until_tag'></a>visit_layers_until_tag</b><font face='Lucida Console'>(</font>
+        net_type<font color='#5555FF'>&amp;</font> net,
+        visitor v
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+            - v is a function object with a signature equivalent to: 
+                v(any_net_type&amp; t)
+              That is, it must take any of the network types such as add_layer,
+              add_loss_layer, etc.
+        ensures
+            - Loops over all the layers in net beginning with layer&lt;0&gt;(net) and going until
+              a tag layer with an ID of tag_id is encountered.  To be specific, this
+              function essentially performs the following:
+
+                size_t i = 0;
+                while(layer&lt;i&gt;(net) isn't an add_tag_layer with ID == tag_id) {
+                    v(layer&lt;i&gt;(net));
+                    ++i;
+                }
+                v(layer&lt;i&gt;(net));  // also visits the tag layer itself at the very end.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>struct</font> <b><a name='layer_test_results'></a>layer_test_results</b>
+    <b>{</b>
+        std::string log;
+        <font color='#0000FF'><u>bool</u></font> was_good;
+
+        <b><a name='operator'></a>operator</b> <font color='#0000FF'><u>bool</u></font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> was_good; <b>}</b>
+    <b>}</b>;
+
+    <font color='#0000FF'>inline</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> layer_test_results<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+    <b>{</b>
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.log;
+        <font color='#0000FF'>return</font> out;
+    <b>}</b>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> layer_details_type
+        <font color='#5555FF'>&gt;</font>
+    layer_test_results <b><a name='test_layer'></a>test_layer</b> <font face='Lucida Console'>(</font>
+        layer_details_type l
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - Checks if l correctly implements the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+              defined in layers_abstract.h.  Importantly, it computes numerical approximations 
+              to the gradients and compares them to the outputs of the layer.  
+            - The results of the testing are returned.  In particular, if the returned object
+              is RESULT then we will have:
+                - RESULT.was_good == false if and only if the layer failed the testing.
+                - RESULT.log == a string describing why the testing failed if was_good==false.
+            - Note that this function is only capable of checking layers that take
+              arbitrary subnetworks as input.  So if you have designed a layer that expects
+              only a certain restricted type of subnetwork then you might get a compile or
+              runtime error when you call this function.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_CORE_ABSTRACT_H_ 
+</font>
+
+</pre></body></html>

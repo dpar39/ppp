@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <style type="text/css">
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+pre { line-height: 125%; }
+body .hll { background-color: #ffffcc }
+body  { background: #ffffff; }
+body .c { color: #008000 } /* Comment */
+body .err { border: 1px solid #FF0000 } /* Error */
+body .k { color: #0000ff } /* Keyword */
+body .ch { color: #008000 } /* Comment.Hashbang */
+body .cm { color: #008000 } /* Comment.Multiline */
+body .cp { color: #0000ff } /* Comment.Preproc */
+body .cpf { color: #008000 } /* Comment.PreprocFile */
+body .c1 { color: #008000 } /* Comment.Single */
+body .cs { color: #008000 } /* Comment.Special */
+body .ge { font-style: italic } /* Generic.Emph */
+body .gh { font-weight: bold } /* Generic.Heading */
+body .gp { font-weight: bold } /* Generic.Prompt */
+body .gs { font-weight: bold } /* Generic.Strong */
+body .gu { font-weight: bold } /* Generic.Subheading */
+body .kc { color: #0000ff } /* Keyword.Constant */
+body .kd { color: #0000ff } /* Keyword.Declaration */
+body .kn { color: #0000ff } /* Keyword.Namespace */
+body .kp { color: #0000ff } /* Keyword.Pseudo */
+body .kr { color: #0000ff } /* Keyword.Reserved */
+body .kt { color: #2b91af } /* Keyword.Type */
+body .s { color: #a31515 } /* Literal.String */
+body .nc { color: #2b91af } /* Name.Class */
+body .ow { color: #0000ff } /* Operator.Word */
+body .sb { color: #a31515 } /* Literal.String.Backtick */
+body .sc { color: #a31515 } /* Literal.String.Char */
+body .sd { color: #a31515 } /* Literal.String.Doc */
+body .s2 { color: #a31515 } /* Literal.String.Double */
+body .se { color: #a31515 } /* Literal.String.Escape */
+body .sh { color: #a31515 } /* Literal.String.Heredoc */
+body .si { color: #a31515 } /* Literal.String.Interpol */
+body .sx { color: #a31515 } /* Literal.String.Other */
+body .sr { color: #a31515 } /* Literal.String.Regex */
+body .s1 { color: #a31515 } /* Literal.String.Single */
+body .ss { color: #a31515 } /* Literal.String.Symbol */
+
+  </style>
+</head>
+<body>
+<h2></h2>
+
+<div class="highlight"><pre><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt</span>
+<span class="c1">#</span>
+<span class="c1">#   This example shows how to use dlib&#39;s face recognition tool.  This tool maps</span>
+<span class="c1">#   an image of a human face to a 128 dimensional vector space where images of</span>
+<span class="c1">#   the same person are near to each other and images from different people are</span>
+<span class="c1">#   far apart.  Therefore, you can perform face recognition by mapping faces to</span>
+<span class="c1">#   the 128D space and then checking if their Euclidean distance is small</span>
+<span class="c1">#   enough. </span>
+<span class="c1">#</span>
+<span class="c1">#   When using a distance threshold of 0.6, the dlib model obtains an accuracy</span>
+<span class="c1">#   of 99.38% on the standard LFW face recognition benchmark, which is</span>
+<span class="c1">#   comparable to other state-of-the-art methods for face recognition as of</span>
+<span class="c1">#   February 2017. This accuracy means that, when presented with a pair of face</span>
+<span class="c1">#   images, the tool will correctly identify if the pair belongs to the same</span>
+<span class="c1">#   person or is from different people 99.38% of the time.</span>
+<span class="c1">#</span>
+<span class="c1">#   Finally, for an in-depth discussion of how dlib&#39;s tool works you should</span>
+<span class="c1">#   refer to the C++ example program dnn_face_recognition_ex.cpp and the</span>
+<span class="c1">#   attendant documentation referenced therein.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># COMPILING/INSTALLING THE DLIB PYTHON INTERFACE</span>
+<span class="c1">#   You can install dlib using the command:</span>
+<span class="c1">#       pip install dlib</span>
+<span class="c1">#</span>
+<span class="c1">#   Alternatively, if you want to compile dlib yourself then go into the dlib</span>
+<span class="c1">#   root folder and run:</span>
+<span class="c1">#       python setup.py install</span>
+<span class="c1">#   or</span>
+<span class="c1">#       python setup.py install --yes USE_AVX_INSTRUCTIONS</span>
+<span class="c1">#   if you have a CPU that supports AVX instructions, since this makes some</span>
+<span class="c1">#   things run faster.  This code will also use CUDA if you have CUDA and cuDNN</span>
+<span class="c1">#   installed.</span>
+<span class="c1">#</span>
+<span class="c1">#   Compiling dlib should work on any operating system so long as you have</span>
+<span class="c1">#   CMake and boost-python installed.  On Ubuntu, this can be done easily by</span>
+<span class="c1">#   running the command:</span>
+<span class="c1">#       sudo apt-get install libboost-python-dev cmake</span>
+<span class="c1">#</span>
+<span class="c1">#   Also note that this example requires scikit-image which can be installed</span>
+<span class="c1">#   via the command:</span>
+<span class="c1">#       pip install scikit-image</span>
+<span class="c1">#   Or downloaded from http://scikit-image.org/download.html. </span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">dlib</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">io</span>
+
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span>
+        <span class="s2">&quot;Call this program like this:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   ./<a href="face_recognition.py.html">face_recognition.py</a> shape_predictor_68_face_landmarks.dat dlib_face_recognition_resnet_model_v1.dat ../examples/faces</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;You can download a trained facial shape predictor and recognition model from:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2&quot;</span><span class="p">)</span>
+    <span class="nb">exit</span><span class="p">()</span>
+
+<span class="n">predictor_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">face_rec_model_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">faces_folder_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="c1"># Load all the models we need: a detector to find the faces, a shape predictor</span>
+<span class="c1"># to find face landmarks so we can precisely localize the face, and finally the</span>
+<span class="c1"># face recognition model.</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">get_frontal_face_detector</span><span class="p">()</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">shape_predictor</span><span class="p">(</span><span class="n">predictor_path</span><span class="p">)</span>
+<span class="n">facerec</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">face_recognition_model_v1</span><span class="p">(</span><span class="n">face_rec_model_path</span><span class="p">)</span>
+
+<span class="n">win</span> <span class="o">=</span> <span class="n">dlib</span><span class="o">.</span><span class="n">image_window</span><span class="p">()</span>
+
+<span class="c1"># Now process all the images</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">faces_folder_path</span><span class="p">,</span> <span class="s2">&quot;*.jpg&quot;</span><span class="p">)):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Processing file: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">win</span><span class="o">.</span><span class="n">clear_overlay</span><span class="p">()</span>
+    <span class="n">win</span><span class="o">.</span><span class="n">set_image</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="c1"># Ask the detector to find the bounding boxes of each face. The 1 in the</span>
+    <span class="c1"># second argument indicates that we should upsample the image 1 time. This</span>
+    <span class="c1"># will make everything bigger and allow us to detect more faces.</span>
+    <span class="n">dets</span> <span class="o">=</span> <span class="n">detector</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of faces detected: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dets</span><span class="p">)))</span>
+
+    <span class="c1"># Now process each face we found.</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dets</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Detection {}: Left: {} Top: {} Right: {} Bottom: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">left</span><span class="p">(),</span> <span class="n">d</span><span class="o">.</span><span class="n">top</span><span class="p">(),</span> <span class="n">d</span><span class="o">.</span><span class="n">right</span><span class="p">(),</span> <span class="n">d</span><span class="o">.</span><span class="n">bottom</span><span class="p">()))</span>
+        <span class="c1"># Get the landmarks/parts for the face in box d.</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">sp</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="c1"># Draw the face landmarks on the screen so we can see what face is currently being processed.</span>
+        <span class="n">win</span><span class="o">.</span><span class="n">clear_overlay</span><span class="p">()</span>
+        <span class="n">win</span><span class="o">.</span><span class="n">add_overlay</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">win</span><span class="o">.</span><span class="n">add_overlay</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Compute the 128D vector that describes the face in img identified by</span>
+        <span class="c1"># shape.  In general, if two face descriptor vectors have a Euclidean</span>
+        <span class="c1"># distance between them less than 0.6 then they are from the same</span>
+        <span class="c1"># person, otherwise they are from different people. Here we just print</span>
+        <span class="c1"># the vector to the screen.</span>
+        <span class="n">face_descriptor</span> <span class="o">=</span> <span class="n">facerec</span><span class="o">.</span><span class="n">compute_face_descriptor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">face_descriptor</span><span class="p">)</span>
+        <span class="c1"># It should also be noted that you can also call this function like this:</span>
+        <span class="c1">#  face_descriptor = facerec.compute_face_descriptor(img, shape, 100)</span>
+        <span class="c1"># The version of the call without the 100 gets 99.13% accuracy on LFW</span>
+        <span class="c1"># while the version with 100 gets 99.38%.  However, the 100 makes the</span>
+        <span class="c1"># call 100x slower to execute, so choose whatever version you like.  To</span>
+        <span class="c1"># explain a little, the 3rd argument tells the code how many times to</span>
+        <span class="c1"># jitter/resample the image.  When you set it to 100 it executes the</span>
+        <span class="c1"># face descriptor extraction 100 times on slightly modified versions of</span>
+        <span class="c1"># the face and returns the average result.  You could also pick a more</span>
+        <span class="c1"># middle value, such as 10, which is only 10x slower but still gets an</span>
+        <span class="c1"># LFW accuracy of 99.3%.</span>
+
+
+        <span class="n">dlib</span><span class="o">.</span><span class="n">hit_enter_to_continue</span><span class="p">()</span>
+</pre></div>
+</body>
+</html>

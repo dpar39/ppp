@@ -1,0 +1,160 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - random_color_transform.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_RANDOM_cOLOR_TRANSFORM_Hh_
+<font color='#0000FF'>#define</font> DLIB_RANDOM_cOLOR_TRANSFORM_Hh_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='random_color_transform_abstract.h.html'>random_color_transform_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../image_processing/generic_image.h.html'>../image_processing/generic_image.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pixel.h.html'>../pixel.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../rand.h.html'>../rand.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='random_color_transform'></a>random_color_transform</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='random_color_transform'></a>random_color_transform</b> <font face='Lucida Console'>(</font>
+            dlib::rand<font color='#5555FF'>&amp;</font> rnd,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> gamma_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> color_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.2</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// pick a random gamma correction factor.  
+</font>            <font color='#0000FF'><u>double</u></font> gamma <font color='#5555FF'>=</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font><font color='#979000'>0.0</font>, <font color='#979000'>1</font> <font color='#5555FF'>+</font> gamma_magnitude<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>0.5</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// pick a random color balancing scheme.
+</font>            <font color='#0000FF'><u>double</u></font> red_scale <font color='#5555FF'>=</font> <font color='#979000'>1</font><font color='#5555FF'>-</font>rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>color_magnitude;
+            <font color='#0000FF'><u>double</u></font> green_scale <font color='#5555FF'>=</font> <font color='#979000'>1</font><font color='#5555FF'>-</font>rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>color_magnitude;
+            <font color='#0000FF'><u>double</u></font> blue_scale <font color='#5555FF'>=</font> <font color='#979000'>1</font><font color='#5555FF'>-</font>rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>color_magnitude;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> m <font color='#5555FF'>=</font> <font color='#979000'>255</font><font color='#5555FF'>*</font>std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>red_scale,green_scale<font face='Lucida Console'>)</font>,blue_scale<font face='Lucida Console'>)</font>;
+            red_scale <font color='#5555FF'>/</font><font color='#5555FF'>=</font> m;
+            green_scale <font color='#5555FF'>/</font><font color='#5555FF'>=</font> m;
+            blue_scale <font color='#5555FF'>/</font><font color='#5555FF'>=</font> m;
+
+            <font color='#009900'>// Now compute a lookup table for all the color channels.  The table tells us
+</font>            <font color='#009900'>// what the transform does.
+</font>            table.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font><font color='#979000'>256</font><font color='#5555FF'>*</font><font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>0</font>; k <font color='#5555FF'>&lt;</font> <font color='#979000'>256</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>k<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>double</u></font> v <font color='#5555FF'>=</font> <font color='#979000'>255</font><font color='#5555FF'>*</font>std::<font color='#BB00BB'>pow</font><font face='Lucida Console'>(</font>k<font color='#5555FF'>*</font>red_scale, gamma<font face='Lucida Console'>)</font>;
+                table[i<font color='#5555FF'>+</font><font color='#5555FF'>+</font>] <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>v <font color='#5555FF'>+</font> <font color='#979000'>0.5</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>0</font>; k <font color='#5555FF'>&lt;</font> <font color='#979000'>256</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>k<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>double</u></font> v <font color='#5555FF'>=</font> <font color='#979000'>255</font><font color='#5555FF'>*</font>std::<font color='#BB00BB'>pow</font><font face='Lucida Console'>(</font>k<font color='#5555FF'>*</font>green_scale, gamma<font face='Lucida Console'>)</font>;
+                table[i<font color='#5555FF'>+</font><font color='#5555FF'>+</font>] <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>v <font color='#5555FF'>+</font> <font color='#979000'>0.5</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>0</font>; k <font color='#5555FF'>&lt;</font> <font color='#979000'>256</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>k<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>double</u></font> v <font color='#5555FF'>=</font> <font color='#979000'>255</font><font color='#5555FF'>*</font>std::<font color='#BB00BB'>pow</font><font face='Lucida Console'>(</font>k<font color='#5555FF'>*</font>blue_scale, gamma<font face='Lucida Console'>)</font>;
+                table[i<font color='#5555FF'>+</font><font color='#5555FF'>+</font>] <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>v <font color='#5555FF'>+</font> <font color='#979000'>0.5</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        rgb_pixel <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>rgb_pixel p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            p.red <font color='#5555FF'>=</font> table[<font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font>p.red];
+            p.green <font color='#5555FF'>=</font> table[<font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font>p.green<font color='#5555FF'>+</font><font color='#979000'>256</font>];
+            p.blue <font color='#5555FF'>=</font> table[<font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font><font face='Lucida Console'>)</font>p.blue<font color='#5555FF'>+</font><font color='#979000'>512</font>];
+            <font color='#0000FF'>return</font> p;
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font> table;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='disturb_colors'></a>disturb_colors</b> <font face='Lucida Console'>(</font>
+        image_type<font color='#5555FF'>&amp;</font> img_,
+        dlib::rand<font color='#5555FF'>&amp;</font> rnd,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> gamma_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> color_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.2</font>
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        image_view<font color='#5555FF'>&lt;</font>image_type<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>img</font><font face='Lucida Console'>(</font>img_<font face='Lucida Console'>)</font>;
+        random_color_transform <font color='#BB00BB'>tform</font><font face='Lucida Console'>(</font>rnd, gamma_magnitude, color_magnitude<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+            <b>{</b>
+                rgb_pixel temp;
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>temp, img[r][c]<font face='Lucida Console'>)</font>;
+                temp <font color='#5555FF'>=</font> <font color='#BB00BB'>tform</font><font face='Lucida Console'>(</font>temp<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>img[r][c], temp<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='apply_random_color_offset'></a>apply_random_color_offset</b> <font face='Lucida Console'>(</font>
+        image_type<font color='#5555FF'>&amp;</font> img_,
+        dlib::rand<font color='#5555FF'>&amp;</font> rnd
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// Make a random color offset.  This tform matrix came from looking at the
+</font>        <font color='#009900'>// covariance matrix of RGB values in a bunch of images.  In particular, if you
+</font>        <font color='#009900'>// multiply Gaussian random vectors by tform it will result in vectors with the
+</font>        <font color='#009900'>// same covariance matrix as the original RGB data.  Also, this color transform is
+</font>        <font color='#009900'>// what is suggested by the paper:
+</font>        <font color='#009900'>//  Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet
+</font>        <font color='#009900'>//  classification with deep convolutional neural networks." Advances in neural
+</font>        <font color='#009900'>//  information processing systems. 2012.
+</font>        <font color='#009900'>// Except that we used the square root of the eigenvalues (which I'm pretty sure is
+</font>        <font color='#009900'>// what the authors intended).
+</font>        matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>,<font color='#979000'>3</font>,<font color='#979000'>3</font><font color='#5555FF'>&gt;</font> tform;
+        tform <font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>66.379</font>,    <font color='#979000'>25.094</font>,   <font color='#979000'>6.79698</font>, 
+                <font color='#5555FF'>-</font><font color='#979000'>68.0492</font>, <font color='#5555FF'>-</font><font color='#979000'>0.302309</font>,  <font color='#5555FF'>-</font><font color='#979000'>13.9539</font>,
+                <font color='#5555FF'>-</font><font color='#979000'>68.4907</font>,  <font color='#5555FF'>-</font><font color='#979000'>24.0199</font>,   <font color='#979000'>7.27653</font>; 
+        matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font>,<font color='#979000'>3</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font> v;
+        v <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_random_gaussian</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,rnd.<font color='#BB00BB'>get_random_gaussian</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,rnd.<font color='#BB00BB'>get_random_gaussian</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        v <font color='#5555FF'>=</font> <font color='#BB00BB'>round</font><font face='Lucida Console'>(</font>tform<font color='#5555FF'>*</font><font color='#979000'>0.1</font><font color='#5555FF'>*</font>v<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> roffset <font color='#5555FF'>=</font> <font color='#BB00BB'>v</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> goffset <font color='#5555FF'>=</font> <font color='#BB00BB'>v</font><font face='Lucida Console'>(</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> boffset <font color='#5555FF'>=</font> <font color='#BB00BB'>v</font><font face='Lucida Console'>(</font><font color='#979000'>2</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// Make up lookup tables that apply the color mapping so we don't have to put a
+</font>        <font color='#009900'>// bunch of complicated conditional branches in the loop below.
+</font>        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font> rtable[<font color='#979000'>256</font>];
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font> gtable[<font color='#979000'>256</font>];
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font> btable[<font color='#979000'>256</font>];
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> <font color='#979000'>256</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        <b>{</b>
+            rtable[i] <font color='#5555FF'>=</font> <font color='#BB00BB'>put_in_range</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, <font color='#979000'>255</font>, i<font color='#5555FF'>+</font>roffset<font face='Lucida Console'>)</font>;
+            gtable[i] <font color='#5555FF'>=</font> <font color='#BB00BB'>put_in_range</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, <font color='#979000'>255</font>, i<font color='#5555FF'>+</font>goffset<font face='Lucida Console'>)</font>;
+            btable[i] <font color='#5555FF'>=</font> <font color='#BB00BB'>put_in_range</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, <font color='#979000'>255</font>, i<font color='#5555FF'>+</font>boffset<font face='Lucida Console'>)</font>;
+        <b>}</b>
+        
+        <font color='#009900'>// now transform the image.
+</font>        image_view<font color='#5555FF'>&lt;</font>image_type<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>img</font><font face='Lucida Console'>(</font>img_<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+            <b>{</b>
+                rgb_pixel temp;
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>temp, img[r][c]<font face='Lucida Console'>)</font>;
+                temp.red   <font color='#5555FF'>=</font> rtable[temp.red];
+                temp.green <font color='#5555FF'>=</font> gtable[temp.green];
+                temp.blue  <font color='#5555FF'>=</font> btable[temp.blue];
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>img[r][c], temp<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_RANDOM_cOLOR_TRANSFORM_Hh_
+</font>
+
+</pre></body></html>

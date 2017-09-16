@@ -1,0 +1,128 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_dtrmm.c</title></head><body bgcolor='white'><pre>
+<font color='#009900'>/*
+ *
+ * cblas_dtrmm.c
+ * This program is a C interface to dtrmm.
+ * Written by Keita Teranishi
+ * 4/6/1998
+ *
+ */</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas.h.html'>cblas.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas_f77.h.html'>cblas_f77.h</a>"
+<font color='#0000FF'><u>void</u></font> <b><a name='cblas_dtrmm'></a>cblas_dtrmm</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_ORDER Order, <font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_SIDE Side,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_UPLO Uplo, <font color='#0000FF'>const</font>  <font color='#0000FF'>enum</font> CBLAS_TRANSPOSE TransA,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'>enum</font> CBLAS_DIAG Diag, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> M, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> N,
+                 <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> alpha, <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font>  <font color='#5555FF'>*</font>A, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> lda,
+                 <font color='#0000FF'><u>double</u></font>  <font color='#5555FF'>*</font>B, <font color='#0000FF'>const</font> <font color='#0000FF'><u>int</u></font> ldb<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#0000FF'><u>char</u></font> UL, TA, SD, DI;   
+<font color='#0000FF'>#ifdef</font> F77_CHAR
+   F77_CHAR F77_TA, F77_UL, F77_SD, F77_DI;
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> F77_TA <font color='#5555FF'>&amp;</font>TA  
+   <font color='#0000FF'>#define</font> F77_UL <font color='#5555FF'>&amp;</font>UL  
+   <font color='#0000FF'>#define</font> F77_SD <font color='#5555FF'>&amp;</font>SD
+   <font color='#0000FF'>#define</font> F77_DI <font color='#5555FF'>&amp;</font>DI
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#ifdef</font> F77_INT
+   F77_INT F77_M<font color='#5555FF'>=</font>M, F77_N<font color='#5555FF'>=</font>N, F77_lda<font color='#5555FF'>=</font>lda, F77_ldb<font color='#5555FF'>=</font>ldb;
+<font color='#0000FF'>#else</font>
+   <font color='#0000FF'>#define</font> F77_M M
+   <font color='#0000FF'>#define</font> F77_N N
+   <font color='#0000FF'>#define</font> F77_lda lda
+   <font color='#0000FF'>#define</font> F77_ldb ldb
+<font color='#0000FF'>#endif</font>
+
+
+   <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Order <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasColMajor <font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Side <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasRight<font face='Lucida Console'>)</font> SD<font color='#5555FF'>=</font>'<font color='#FF0000'>R</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Side <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLeft <font face='Lucida Console'>)</font> SD<font color='#5555FF'>=</font>'<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>2</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Side setting, %d\n</font>", Side<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUpper<font face='Lucida Console'>)</font> UL<font color='#5555FF'>=</font>'<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLower <font face='Lucida Console'>)</font> UL<font color='#5555FF'>=</font>'<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>3</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Uplo setting, %d\n</font>", Uplo<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasTrans<font face='Lucida Console'>)</font> TA <font color='#5555FF'>=</font>'<font color='#FF0000'>T</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasConjTrans <font face='Lucida Console'>)</font> TA<font color='#5555FF'>=</font>'<font color='#FF0000'>C</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasNoTrans <font face='Lucida Console'>)</font>   TA<font color='#5555FF'>=</font>'<font color='#FF0000'>N</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>4</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Trans setting, %d\n</font>", TransA<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Diag <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUnit <font face='Lucida Console'>)</font> DI<font color='#5555FF'>=</font>'<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Diag <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasNonUnit <font face='Lucida Console'>)</font> DI<font color='#5555FF'>=</font>'<font color='#FF0000'>N</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>5</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Diag setting, %d\n</font>", Diag<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>#ifdef</font> F77_CHAR
+         F77_UL <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>UL<font face='Lucida Console'>)</font>;
+         F77_TA <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>TA<font face='Lucida Console'>)</font>;
+         F77_SD <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>SD<font face='Lucida Console'>)</font>;
+         F77_DI <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>DI<font face='Lucida Console'>)</font>;
+      <font color='#0000FF'>#endif</font>
+
+      <font color='#BB00BB'>F77_dtrmm</font><font face='Lucida Console'>(</font>F77_SD, F77_UL, F77_TA, F77_DI, <font color='#5555FF'>&amp;</font>F77_M, <font color='#5555FF'>&amp;</font>F77_N, <font color='#5555FF'>&amp;</font>alpha, A, <font color='#5555FF'>&amp;</font>F77_lda, B, <font color='#5555FF'>&amp;</font>F77_ldb<font face='Lucida Console'>)</font>;
+   <b>}</b> <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>Order <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasRowMajor<font face='Lucida Console'>)</font>
+   <b>{</b>
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Side <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasRight<font face='Lucida Console'>)</font> SD<font color='#5555FF'>=</font>'<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Side <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLeft <font face='Lucida Console'>)</font> SD<font color='#5555FF'>=</font>'<font color='#FF0000'>R</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>2</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Side setting, %d\n</font>", Side<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUpper<font face='Lucida Console'>)</font> UL<font color='#5555FF'>=</font>'<font color='#FF0000'>L</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Uplo <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasLower <font face='Lucida Console'>)</font> UL<font color='#5555FF'>=</font>'<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>3</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Uplo setting, %d\n</font>", Uplo<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasTrans<font face='Lucida Console'>)</font> TA <font color='#5555FF'>=</font>'<font color='#FF0000'>T</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasConjTrans <font face='Lucida Console'>)</font> TA<font color='#5555FF'>=</font>'<font color='#FF0000'>C</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> TransA <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasNoTrans <font face='Lucida Console'>)</font>   TA<font color='#5555FF'>=</font>'<font color='#FF0000'>N</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>4</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Trans setting, %d\n</font>", TransA<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>if</font><font face='Lucida Console'>(</font> Diag <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasUnit <font face='Lucida Console'>)</font> DI<font color='#5555FF'>=</font>'<font color='#FF0000'>U</font>';
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> Diag <font color='#5555FF'>=</font><font color='#5555FF'>=</font> CblasNonUnit <font face='Lucida Console'>)</font> DI<font color='#5555FF'>=</font>'<font color='#FF0000'>N</font>';
+      <font color='#0000FF'>else</font> 
+      <b>{</b>
+         <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>5</font>, "<font color='#CC0000'>cblas_dtrmm</font>","<font color='#CC0000'>Illegal Diag setting, %d\n</font>", Diag<font face='Lucida Console'>)</font>;
+         <font color='#0000FF'>return</font>;
+      <b>}</b>
+
+      <font color='#0000FF'>#ifdef</font> F77_CHAR
+         F77_UL <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>UL<font face='Lucida Console'>)</font>;
+         F77_TA <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>TA<font face='Lucida Console'>)</font>;
+         F77_SD <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>SD<font face='Lucida Console'>)</font>;
+         F77_DI <font color='#5555FF'>=</font> <font color='#BB00BB'>C2F_CHAR</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>DI<font face='Lucida Console'>)</font>;
+      <font color='#0000FF'>#endif</font>
+      <font color='#BB00BB'>F77_dtrmm</font><font face='Lucida Console'>(</font>F77_SD, F77_UL, F77_TA, F77_DI, <font color='#5555FF'>&amp;</font>F77_N, <font color='#5555FF'>&amp;</font>F77_M, <font color='#5555FF'>&amp;</font>alpha, A, <font color='#5555FF'>&amp;</font>F77_lda, B, <font color='#5555FF'>&amp;</font>F77_ldb<font face='Lucida Console'>)</font>;
+   <b>}</b> 
+   <font color='#0000FF'>else</font> <font color='#BB00BB'>cblas_xerbla</font><font face='Lucida Console'>(</font><font color='#979000'>1</font>, "<font color='#CC0000'>cblas_dtrmm</font>", "<font color='#CC0000'>Illegal Order setting, %d\n</font>", Order<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'>return</font>;
+<b>}</b>
+
+</pre></body></html>

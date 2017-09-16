@@ -1,0 +1,227 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - gpu_data.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_GPU_DaTA_CPP_
+<font color='#0000FF'>#define</font> DLIB_GPU_DaTA_CPP_
+
+<font color='#009900'>// Only things that require CUDA are declared in this cpp file.  Everything else is in the
+</font><font color='#009900'>// gpu_data.h header so that it can operate as "header-only" code when using just the CPU.
+</font><font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='gpu_data.h.html'>gpu_data.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_utils.h.html'>cuda_utils.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cstring<font color='#5555FF'>&gt;</font>
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>
+        gpu_data<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font color='#5555FF'>&amp;</font>dest <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>&amp;</font>src<font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font>;
+
+        <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>dest,<font color='#979000'>0</font>, src, <font color='#979000'>0</font>, src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>
+        gpu_data<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'><u>size_t</u></font> dest_offset,
+        <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'><u>size_t</u></font> src_offset,
+        <font color='#0000FF'><u>size_t</u></font> num
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>+</font> num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>src_offset <font color='#5555FF'>+</font> num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font>;
+
+        <font color='#009900'>// if there is aliasing
+</font>        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>dest <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>&amp;</font>src <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>dest_offset, src_offset<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>dest_offset,src_offset<font face='Lucida Console'>)</font><font color='#5555FF'>+</font>num<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// if they perfectly alias each other then there is nothing to do
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>=</font><font color='#5555FF'>=</font> src_offset<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+            <font color='#0000FF'>else</font>
+                std::<font color='#BB00BB'>memmove</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num<font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>else</font>
+        <b>{</b>
+            <font color='#009900'>// if we write to the entire thing then we can use device_write_only()
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// copy the memory efficiently based on which copy is current in each object.
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>src.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device_write_only</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, src.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset,  num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyDeviceToDevice<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font> 
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device_write_only</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset,    num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyHostToDevice<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                <font color='#009900'>// copy the memory efficiently based on which copy is current in each object.
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> src.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset, num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyDeviceToDevice<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>dest.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> src.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset,   num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyDeviceToHost<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font color='#5555FF'>!</font>src.<font color='#BB00BB'>device_ready</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset,   num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyHostToDevice<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font> 
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset,     num<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyHostToHost<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+    <b>}</b>
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'><u>void</u></font> gpu_data::
+    <b><a name='wait_for_transfer_to_finish'></a>wait_for_transfer_to_finish</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>have_active_transfer<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaStreamSynchronize</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>cudaStream_t<font face='Lucida Console'>)</font>cuda_stream.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            have_active_transfer <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <font color='#009900'>// Check for errors.  These calls to cudaGetLastError() are what help us find
+</font>            <font color='#009900'>// out if our kernel launches have been failing.
+</font>            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaGetLastError</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> gpu_data::
+    <b><a name='copy_to_device'></a>copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+    <b>{</b>
+        <font color='#009900'>// We want transfers to the device to always be concurrent with any device
+</font>        <font color='#009900'>// computation.  So we use our non-default stream to do the transfer.
+</font>        <font color='#BB00BB'>async_copy_to_device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>wait_for_transfer_to_finish</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> gpu_data::
+    <b><a name='copy_to_host'></a>copy_to_host</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>host_current<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>wait_for_transfer_to_finish</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpy</font><font face='Lucida Console'>(</font>data_host.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, data_device.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, data_size<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyDeviceToHost<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <font color='#009900'>// At this point we know our RAM block isn't in use because cudaMemcpy()
+</font>            <font color='#009900'>// implicitly syncs with the device. 
+</font>            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <font color='#009900'>// Check for errors.  These calls to cudaGetLastError() are what help us find
+</font>            <font color='#009900'>// out if our kernel launches have been failing.
+</font>            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaGetLastError</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> gpu_data::
+    <b><a name='async_copy_to_device'></a>async_copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>device_current<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>device_in_use<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// Wait for any possible CUDA kernels that might be using our memory block to
+</font>                <font color='#009900'>// complete before we overwrite the memory.
+</font>                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaStreamSynchronize</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <b>}</b>
+            <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMemcpyAsync</font><font face='Lucida Console'>(</font>data_device.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, data_host.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, data_size<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font>, cudaMemcpyHostToDevice, <font face='Lucida Console'>(</font>cudaStream_t<font face='Lucida Console'>)</font>cuda_stream.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            have_active_transfer <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+        <b>}</b>
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> gpu_data::
+    <b><a name='set_size'></a>set_size</b><font face='Lucida Console'>(</font>
+        <font color='#0000FF'><u>size_t</u></font> new_size
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>new_size <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>device_in_use<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// Wait for any possible CUDA kernels that might be using our memory block to
+</font>                <font color='#009900'>// complete before we free the memory.
+</font>                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaStreamSynchronize</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <b>}</b>
+            <font color='#BB00BB'>wait_for_transfer_to_finish</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            data_size <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            data_host.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            data_device.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>new_size <font color='#5555FF'>!</font><font color='#5555FF'>=</font> data_size<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>device_in_use<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// Wait for any possible CUDA kernels that might be using our memory block to
+</font>                <font color='#009900'>// complete before we free the memory.
+</font>                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaStreamSynchronize</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <b>}</b>
+            <font color='#BB00BB'>wait_for_transfer_to_finish</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            data_size <font color='#5555FF'>=</font> new_size;
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+
+            <font color='#0000FF'>try</font>
+            <b>{</b>
+                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaGetDevice</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>the_device_id<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> data;
+                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMallocHost</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>data, new_size<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#009900'>// Note that we don't throw exceptions since the free calls are invariably
+</font>                <font color='#009900'>// called in destructors.  They also shouldn't fail anyway unless someone
+</font>                <font color='#009900'>// is resetting the GPU card in the middle of their program.
+</font>                data_host.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>data, []<font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> ptr<font face='Lucida Console'>)</font><b>{</b>
+                    <font color='#0000FF'>auto</font> err <font color='#5555FF'>=</font> <font color='#BB00BB'>cudaFreeHost</font><font face='Lucida Console'>(</font>ptr<font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>if</font><font face='Lucida Console'>(</font>err<font color='#5555FF'>!</font><font color='#5555FF'>=</font>cudaSuccess<font face='Lucida Console'>)</font>
+                        std::cerr <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>cudaFreeHost() failed. Reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>cudaGetErrorString</font><font face='Lucida Console'>(</font>err<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> std::endl;
+                <b>}</b><font face='Lucida Console'>)</font>;
+
+                <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaMalloc</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>data, new_size<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                data_device.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font>data, []<font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> ptr<font face='Lucida Console'>)</font><b>{</b>
+                    <font color='#0000FF'>auto</font> err <font color='#5555FF'>=</font> <font color='#BB00BB'>cudaFree</font><font face='Lucida Console'>(</font>ptr<font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>if</font><font face='Lucida Console'>(</font>err<font color='#5555FF'>!</font><font color='#5555FF'>=</font>cudaSuccess<font face='Lucida Console'>)</font>
+                        std::cerr <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>cudaFree() failed. Reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>cudaGetErrorString</font><font face='Lucida Console'>(</font>err<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> std::endl;
+                <b>}</b><font face='Lucida Console'>)</font>;
+
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>cuda_stream<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    cudaStream_t cstream;
+                    <font color='#BB00BB'>CHECK_CUDA</font><font face='Lucida Console'>(</font><font color='#BB00BB'>cudaStreamCreateWithFlags</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>cstream, cudaStreamNonBlocking<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                    cuda_stream.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font>cstream, []<font face='Lucida Console'>(</font><font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> ptr<font face='Lucida Console'>)</font><b>{</b>
+                        <font color='#0000FF'>auto</font> err <font color='#5555FF'>=</font> <font color='#BB00BB'>cudaStreamDestroy</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>cudaStream_t<font face='Lucida Console'>)</font>ptr<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>if</font><font face='Lucida Console'>(</font>err<font color='#5555FF'>!</font><font color='#5555FF'>=</font>cudaSuccess<font face='Lucida Console'>)</font>
+                            std::cerr <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>cudaStreamDestroy() failed. Reason: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font color='#BB00BB'>cudaGetErrorString</font><font face='Lucida Console'>(</font>err<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> std::endl;
+                    <b>}</b><font face='Lucida Console'>)</font>;
+                <b>}</b>
+
+            <b>}</b>
+            <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>throw</font>;
+            <b>}</b>
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_GPU_DaTA_CPP_
+</font>
+
+</pre></body></html>

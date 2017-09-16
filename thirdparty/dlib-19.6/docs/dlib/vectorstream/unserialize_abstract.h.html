@@ -1,0 +1,61 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - unserialize_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_uNSERIALIZE_ABSTRACT_Hh_
+<font color='#0000FF'>#ifdef</font> DLIB_uNSERIALIZE_ABSTRACT_Hh_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../serialize.h.html'>../serialize.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>class</font> <b><a name='unserialize'></a>unserialize</b> : <font color='#0000FF'>public</font> std::istream
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a tool that allows you to effectively put an object you just
+                deserialized from a stream back into the stream.  Its use is best
+                illustrated via an example.  
+
+                void example(std::istream&amp; in)
+                {
+                    // Suppose that in contains serialized copies of three "some_type"
+                    // objects.  You could read them as follows:
+                    some_type obj1, obj2, obj3;
+
+                    deserialize(obj1, in); // reads obj1 from stream.
+                    deserialize(obj2, in); // reads obj2 from stream.
+
+                    unserialize in2(obj2, in); // make the in2 stream that has obj2 at its front.
+                    deserialize(obj2, in2); // reads obj2 from stream again.
+                    deserialize(obj3, in2); // reads obj3 from stream.
+                }
+
+                The reason unserialize is useful is because it allows you to peek at the
+                next object in a stream and potentially do something different based on
+                what object is coming next, but still allowing subsequent deserialize()
+                statements to be undisturbed by the fact that you peeked at the data.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+        <b><a name='unserialize'></a>unserialize</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> item,
+            std::istream<font color='#5555FF'>&amp;</font> in 
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - T must be serializable 
+            ensures
+                - The bytes in this stream begin with a serialized copy of item followed
+                  immediately by the bytes in the given istream.
+        !*/</font>
+    <b>}</b>;
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_uNSERIALIZE_ABSTRACT_Hh_
+</font>
+
+
+</pre></body></html>

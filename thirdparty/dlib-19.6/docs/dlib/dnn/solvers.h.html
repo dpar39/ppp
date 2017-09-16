@@ -1,0 +1,408 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - solvers.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNn_SOLVERS_H_
+<font color='#0000FF'>#define</font> DLIB_DNn_SOLVERS_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='solvers_abstract.h.html'>solvers_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor.h.html'>tensor.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='layers.h.html'>layers.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>class</font> <b><a name='sgd'></a>sgd</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='sgd'></a>sgd</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> weight_decay_,
+            <font color='#0000FF'><u>float</u></font> momentum_ 
+        <font face='Lucida Console'>)</font> 
+        <b>{</b> 
+            weight_decay <font color='#5555FF'>=</font> weight_decay_;
+            momentum <font color='#5555FF'>=</font> momentum_;
+        <b>}</b>
+
+        <b><a name='sgd'></a>sgd</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : sgd<font face='Lucida Console'>(</font><font color='#979000'>0.0005</font>, <font color='#979000'>0.9</font><font face='Lucida Console'>)</font> 
+        <b>{</b> 
+        <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_momentum'></a>get_momentum</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> momentum; <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_weight_decay'></a>get_weight_decay</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> weight_decay; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> layer_type<font color='#5555FF'>&gt;</font> 
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> layer_type<font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params <font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_layer_params</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>v.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                v.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                v <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            <b>}</b>
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> lr <font color='#5555FF'>=</font> learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> wd <font color='#5555FF'>=</font> weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>;
+            
+            <font color='#009900'>//perform: v = momentum*mat(v) - wd*lr*mat(params) - lr*mat(params_grad);
+</font>            tt::<font color='#BB00BB'>affine_transform</font><font face='Lucida Console'>(</font>v, v, params, params_grad, momentum, <font color='#5555FF'>-</font>wd<font color='#5555FF'>*</font>lr, <font color='#5555FF'>-</font>lr<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>return</font> v;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> N<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> fc_<font color='#5555FF'>&lt;</font>N,FC_HAS_BIAS<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>get_num_outputs</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> v;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'><u>long</u></font> _num_filters,
+            <font color='#0000FF'><u>long</u></font> _nr,
+            <font color='#0000FF'><u>long</u></font> _nc,
+            <font color='#0000FF'><u>int</u></font> _stride_y,
+            <font color='#0000FF'><u>int</u></font> _stride_x,
+            <font color='#0000FF'><u>int</u></font> _padding_y,
+            <font color='#0000FF'><u>int</u></font> _padding_x
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> con_<font color='#5555FF'>&lt;</font>_num_filters,_nr,_nc,_stride_y,_stride_x,_padding_y,_padding_x<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>num_filters</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> v;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'><u>long</u></font> _num_filters,
+            <font color='#0000FF'><u>long</u></font> _nr,
+            <font color='#0000FF'><u>long</u></font> _nc,
+            <font color='#0000FF'><u>int</u></font> _stride_y,
+            <font color='#0000FF'><u>int</u></font> _stride_x,
+            <font color='#0000FF'><u>int</u></font> _padding_y,
+            <font color='#0000FF'><u>int</u></font> _padding_x
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> cont_<font color='#5555FF'>&lt;</font>_num_filters,_nr,_nc,_stride_y,_stride_x,_padding_y,_padding_x<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>num_filters</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> v;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> layer_mode mode <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> bn_<font color='#5555FF'>&lt;</font>mode<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>2</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> v;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> sgd<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>sgd2</font>", out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.v, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.weight_decay, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.momentum, out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>sgd<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>sgd2</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::sgd.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.v, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.weight_decay, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.momentum, in<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> sgd<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>sgd: weight_decay=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.<font color='#BB00BB'>get_weight_decay</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, momentum=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.<font color='#BB00BB'>get_momentum</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> layer_type<font color='#5555FF'>&gt;</font> 
+        <font color='#0000FF'><u>void</u></font> <b><a name='update_considering_bias'></a>update_considering_bias</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> layer_type<font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad,
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> bias_offset
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params <font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_layer_params</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>v.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                v.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                v <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            <b>}</b>
+
+            <font color='#0000FF'><u>double</u></font> lr <font color='#5555FF'>=</font> learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>double</u></font> wd <font color='#5555FF'>=</font> weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>;
+            
+            <font color='#009900'>//perform: v = momentum*mat(v) - wd*lr*mat(params) - lr*mat(params_grad);
+</font>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>l.<font color='#BB00BB'>get_bias_learning_rate_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> l.<font color='#BB00BB'>get_bias_weight_decay_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                tt::<font color='#BB00BB'>affine_transform</font><font face='Lucida Console'>(</font>v, v, params, params_grad, momentum, <font color='#5555FF'>-</font>wd<font color='#5555FF'>*</font>lr, <font color='#5555FF'>-</font>lr<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+
+                tt::<font color='#BB00BB'>affine_transform_range</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, bias_offset, v, v, params, params_grad, momentum, <font color='#5555FF'>-</font>wd<font color='#5555FF'>*</font>lr, <font color='#5555FF'>-</font>lr<font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// now update the biases but apply their multipliers
+</font>                lr <font color='#5555FF'>*</font><font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_bias_learning_rate_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                wd <font color='#5555FF'>*</font><font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_bias_weight_decay_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                tt::<font color='#BB00BB'>affine_transform_range</font><font face='Lucida Console'>(</font>bias_offset, v.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, v, v, params, params_grad, momentum, <font color='#5555FF'>-</font>wd<font color='#5555FF'>*</font>lr, <font color='#5555FF'>-</font>lr<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        resizable_tensor v;
+        <font color='#0000FF'><u>float</u></font> weight_decay;
+        <font color='#0000FF'><u>float</u></font> momentum;
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='adam'></a>adam</b> 
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='adam'></a>adam</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> weight_decay_,
+            <font color='#0000FF'><u>float</u></font> momentum1_, 
+            <font color='#0000FF'><u>float</u></font> momentum2_
+        <font face='Lucida Console'>)</font> 
+        <b>{</b> 
+            weight_decay <font color='#5555FF'>=</font> weight_decay_;
+            momentum1 <font color='#5555FF'>=</font> momentum1_;
+            momentum2 <font color='#5555FF'>=</font> momentum2_;
+            t <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <b>}</b>
+
+        <b><a name='adam'></a>adam</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : adam<font face='Lucida Console'>(</font><font color='#979000'>0.0005</font>, <font color='#979000'>0.9</font>, <font color='#979000'>0.999</font><font face='Lucida Console'>)</font> 
+        <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_momentum1'></a>get_momentum1</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> momentum1; <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_momentum2'></a>get_momentum2</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> momentum2; <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_weight_decay'></a>get_weight_decay</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> weight_decay; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> layer_type<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> layer_type<font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params <font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_layer_params</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>v.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                m.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                m <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                v.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                v <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                s.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>t;
+
+            
+            tt::<font color='#BB00BB'>compute_adam_update</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, s, m, v, t,
+                learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>,
+                weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>, 
+                momentum1, momentum2, params, params_grad<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>return</font> s;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> N<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> fc_<font color='#5555FF'>&lt;</font>N,FC_HAS_BIAS<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>get_num_outputs</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> s;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'><u>long</u></font> _num_filters,
+            <font color='#0000FF'><u>long</u></font> _nr,
+            <font color='#0000FF'><u>long</u></font> _nc,
+            <font color='#0000FF'><u>int</u></font> _stride_y,
+            <font color='#0000FF'><u>int</u></font> _stride_x,
+            <font color='#0000FF'><u>int</u></font> _padding_y,
+            <font color='#0000FF'><u>int</u></font> _padding_x
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> con_<font color='#5555FF'>&lt;</font>_num_filters,_nr,_nc,_stride_y,_stride_x,_padding_y,_padding_x<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>num_filters</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> s;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'><u>long</u></font> _num_filters,
+            <font color='#0000FF'><u>long</u></font> _nr,
+            <font color='#0000FF'><u>long</u></font> _nc,
+            <font color='#0000FF'><u>int</u></font> _stride_y,
+            <font color='#0000FF'><u>int</u></font> _stride_x,
+            <font color='#0000FF'><u>int</u></font> _padding_y,
+            <font color='#0000FF'><u>int</u></font> _padding_x
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> cont_<font color='#5555FF'>&lt;</font>_num_filters,_nr,_nc,_stride_y,_stride_x,_padding_y,_padding_x<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>l.<font color='#BB00BB'>num_filters</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> s;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> layer_mode mode <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> bn_<font color='#5555FF'>&lt;</font>mode<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>update_considering_bias</font><font face='Lucida Console'>(</font>learning_rate, l, params_grad, params_grad.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>2</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> s;
+        <b>}</b>
+
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> adam<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>adam2</font>", out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.m, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.v, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.s, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.weight_decay, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.momentum1, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.momentum2, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.t, out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>adam<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>adam2</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::adam.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.m, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.v, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.s, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.weight_decay, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.momentum1, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.momentum2, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.t, in<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> adam<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>adam: weight_decay=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.<font color='#BB00BB'>get_weight_decay</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, momentum1=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.<font color='#BB00BB'>get_momentum1</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>, momentum2=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.<font color='#BB00BB'>get_momentum2</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> layer_type<font color='#5555FF'>&gt;</font> 
+        <font color='#0000FF'><u>void</u></font> <b><a name='update_considering_bias'></a>update_considering_bias</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> layer_type<font color='#5555FF'>&amp;</font> l,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad,
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> bias_offset
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params <font color='#5555FF'>=</font> l.<font color='#BB00BB'>get_layer_params</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>v.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                m.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                m <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                v.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+                v <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                s.<font color='#BB00BB'>copy_size</font><font face='Lucida Console'>(</font>params_grad<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>t;
+
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>l.<font color='#BB00BB'>get_bias_learning_rate_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> l.<font color='#BB00BB'>get_bias_weight_decay_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                tt::<font color='#BB00BB'>compute_adam_update</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, s, m, v, t,
+                    learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>,
+                    weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>, 
+                    momentum1, momentum2, params, params_grad<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                tt::<font color='#BB00BB'>compute_adam_update</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, bias_offset, s, m, v, t,
+                    learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>,
+                    weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>, 
+                    momentum1, momentum2, params, params_grad<font face='Lucida Console'>)</font>;
+
+                tt::<font color='#BB00BB'>compute_adam_update</font><font face='Lucida Console'>(</font>bias_offset, params.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, s, m, v, t,
+                    learning_rate<font color='#5555FF'>*</font><font color='#BB00BB'>get_learning_rate_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>l.<font color='#BB00BB'>get_bias_learning_rate_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,
+                    weight_decay<font color='#5555FF'>*</font><font color='#BB00BB'>get_weight_decay_multiplier</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>l.<font color='#BB00BB'>get_bias_weight_decay_multiplier</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, 
+                    momentum1, momentum2, params, params_grad<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+        resizable_tensor m;
+        resizable_tensor v;
+        resizable_tensor s;
+        <font color='#0000FF'><u>float</u></font> weight_decay;
+        <font color='#0000FF'><u>float</u></font> momentum1;
+        <font color='#0000FF'><u>float</u></font> momentum2;
+        <font color='#0000FF'><u>float</u></font> t;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_SOLVERS_H_
+</font>
+
+</pre></body></html>

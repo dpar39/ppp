@@ -1,0 +1,2500 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Classes &#8212; dlib  documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">dlib  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="http://dlib.net"><img alt="Dlib C++ Library" src="_images/dlib-logo.png" /></a>
+<p>Dlib is principally a C++ library, however, you can use a number of its tools
+from python applications.  This page documents the python API for working with
+these dlib tools.  If you haven&#8217;t done so already, you should probably look at
+the python example programs first before consulting this reference.  These
+example programs are little mini-tutorials for using dlib from python.  They
+are listed on the left of the main dlib web page.</p>
+<div class="section" id="classes">
+<h1>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="#dlib.array" title="dlib.array"><code class="xref py py-class docutils literal"><span class="pre">dlib.array</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cca_outputs" title="dlib.cca_outputs"><code class="xref py py-class docutils literal"><span class="pre">dlib.cca_outputs</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cnn_face_detection_model_v1" title="dlib.cnn_face_detection_model_v1"><code class="xref py py-class docutils literal"><span class="pre">dlib.cnn_face_detection_model_v1</span></code></a></li>
+<li><a class="reference internal" href="#dlib.correlation_tracker" title="dlib.correlation_tracker"><code class="xref py py-class docutils literal"><span class="pre">dlib.correlation_tracker</span></code></a></li>
+<li><a class="reference internal" href="#dlib.drectangle" title="dlib.drectangle"><code class="xref py py-class docutils literal"><span class="pre">dlib.drectangle</span></code></a></li>
+<li><a class="reference internal" href="#dlib.face_recognition_model_v1" title="dlib.face_recognition_model_v1"><code class="xref py py-class docutils literal"><span class="pre">dlib.face_recognition_model_v1</span></code></a></li>
+<li><a class="reference internal" href="#dlib.fhog_object_detector" title="dlib.fhog_object_detector"><code class="xref py py-class docutils literal"><span class="pre">dlib.fhog_object_detector</span></code></a></li>
+<li><a class="reference internal" href="#dlib.full_object_detection" title="dlib.full_object_detection"><code class="xref py py-class docutils literal"><span class="pre">dlib.full_object_detection</span></code></a></li>
+<li><a class="reference internal" href="#dlib.full_object_detections" title="dlib.full_object_detections"><code class="xref py py-class docutils literal"><span class="pre">dlib.full_object_detections</span></code></a></li>
+<li><a class="reference internal" href="#dlib.image_window" title="dlib.image_window"><code class="xref py py-class docutils literal"><span class="pre">dlib.image_window</span></code></a></li>
+<li><a class="reference internal" href="#dlib.matrix" title="dlib.matrix"><code class="xref py py-class docutils literal"><span class="pre">dlib.matrix</span></code></a></li>
+<li><a class="reference internal" href="#dlib.mmod_rectangle" title="dlib.mmod_rectangle"><code class="xref py py-class docutils literal"><span class="pre">dlib.mmod_rectangle</span></code></a></li>
+<li><a class="reference internal" href="#dlib.mmod_rectangles" title="dlib.mmod_rectangles"><code class="xref py py-class docutils literal"><span class="pre">dlib.mmod_rectangles</span></code></a></li>
+<li><a class="reference internal" href="#dlib.mmod_rectangless" title="dlib.mmod_rectangless"><code class="xref py py-class docutils literal"><span class="pre">dlib.mmod_rectangless</span></code></a></li>
+<li><a class="reference internal" href="#dlib.pair" title="dlib.pair"><code class="xref py py-class docutils literal"><span class="pre">dlib.pair</span></code></a></li>
+<li><a class="reference internal" href="#dlib.point" title="dlib.point"><code class="xref py py-class docutils literal"><span class="pre">dlib.point</span></code></a></li>
+<li><a class="reference internal" href="#dlib.points" title="dlib.points"><code class="xref py py-class docutils literal"><span class="pre">dlib.points</span></code></a></li>
+<li><a class="reference internal" href="#dlib.range" title="dlib.range"><code class="xref py py-class docutils literal"><span class="pre">dlib.range</span></code></a></li>
+<li><a class="reference internal" href="#dlib.ranges" title="dlib.ranges"><code class="xref py py-class docutils literal"><span class="pre">dlib.ranges</span></code></a></li>
+<li><a class="reference internal" href="#dlib.rangess" title="dlib.rangess"><code class="xref py py-class docutils literal"><span class="pre">dlib.rangess</span></code></a></li>
+<li><a class="reference internal" href="#dlib.ranking_pair" title="dlib.ranking_pair"><code class="xref py py-class docutils literal"><span class="pre">dlib.ranking_pair</span></code></a></li>
+<li><a class="reference internal" href="#dlib.ranking_pairs" title="dlib.ranking_pairs"><code class="xref py py-class docutils literal"><span class="pre">dlib.ranking_pairs</span></code></a></li>
+<li><a class="reference internal" href="#dlib.rectangle" title="dlib.rectangle"><code class="xref py py-class docutils literal"><span class="pre">dlib.rectangle</span></code></a></li>
+<li><a class="reference internal" href="#dlib.rectangles" title="dlib.rectangles"><code class="xref py py-class docutils literal"><span class="pre">dlib.rectangles</span></code></a></li>
+<li><a class="reference internal" href="#dlib.rgb_pixel" title="dlib.rgb_pixel"><code class="xref py py-class docutils literal"><span class="pre">dlib.rgb_pixel</span></code></a></li>
+<li><a class="reference internal" href="#dlib.segmenter_params" title="dlib.segmenter_params"><code class="xref py py-class docutils literal"><span class="pre">dlib.segmenter_params</span></code></a></li>
+<li><a class="reference internal" href="#dlib.segmenter_test" title="dlib.segmenter_test"><code class="xref py py-class docutils literal"><span class="pre">dlib.segmenter_test</span></code></a></li>
+<li><a class="reference internal" href="#dlib.segmenter_type" title="dlib.segmenter_type"><code class="xref py py-class docutils literal"><span class="pre">dlib.segmenter_type</span></code></a></li>
+<li><a class="reference internal" href="#dlib.shape_predictor" title="dlib.shape_predictor"><code class="xref py py-class docutils literal"><span class="pre">dlib.shape_predictor</span></code></a></li>
+<li><a class="reference internal" href="#dlib.shape_predictor_training_options" title="dlib.shape_predictor_training_options"><code class="xref py py-class docutils literal"><span class="pre">dlib.shape_predictor_training_options</span></code></a></li>
+<li><a class="reference internal" href="#dlib.simple_object_detector" title="dlib.simple_object_detector"><code class="xref py py-class docutils literal"><span class="pre">dlib.simple_object_detector</span></code></a></li>
+<li><a class="reference internal" href="#dlib.simple_object_detector_training_options" title="dlib.simple_object_detector_training_options"><code class="xref py py-class docutils literal"><span class="pre">dlib.simple_object_detector_training_options</span></code></a></li>
+<li><a class="reference internal" href="#dlib.simple_test_results" title="dlib.simple_test_results"><code class="xref py py-class docutils literal"><span class="pre">dlib.simple_test_results</span></code></a></li>
+<li><a class="reference internal" href="#dlib.sparse_ranking_pair" title="dlib.sparse_ranking_pair"><code class="xref py py-class docutils literal"><span class="pre">dlib.sparse_ranking_pair</span></code></a></li>
+<li><a class="reference internal" href="#dlib.sparse_ranking_pairs" title="dlib.sparse_ranking_pairs"><code class="xref py py-class docutils literal"><span class="pre">dlib.sparse_ranking_pairs</span></code></a></li>
+<li><a class="reference internal" href="#dlib.sparse_vector" title="dlib.sparse_vector"><code class="xref py py-class docutils literal"><span class="pre">dlib.sparse_vector</span></code></a></li>
+<li><a class="reference internal" href="#dlib.sparse_vectors" title="dlib.sparse_vectors"><code class="xref py py-class docutils literal"><span class="pre">dlib.sparse_vectors</span></code></a></li>
+<li><a class="reference internal" href="#dlib.sparse_vectorss" title="dlib.sparse_vectorss"><code class="xref py py-class docutils literal"><span class="pre">dlib.sparse_vectorss</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_histogram_intersection" title="dlib.svm_c_trainer_histogram_intersection"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_histogram_intersection</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_linear" title="dlib.svm_c_trainer_linear"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_linear</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_radial_basis" title="dlib.svm_c_trainer_radial_basis"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_radial_basis</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_sparse_histogram_intersection" title="dlib.svm_c_trainer_sparse_histogram_intersection"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_sparse_histogram_intersection</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_sparse_linear" title="dlib.svm_c_trainer_sparse_linear"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_sparse_linear</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_c_trainer_sparse_radial_basis" title="dlib.svm_c_trainer_sparse_radial_basis"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_c_trainer_sparse_radial_basis</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_rank_trainer" title="dlib.svm_rank_trainer"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_rank_trainer</span></code></a></li>
+<li><a class="reference internal" href="#dlib.svm_rank_trainer_sparse" title="dlib.svm_rank_trainer_sparse"><code class="xref py py-class docutils literal"><span class="pre">dlib.svm_rank_trainer_sparse</span></code></a></li>
+<li><a class="reference internal" href="#dlib.vector" title="dlib.vector"><code class="xref py py-class docutils literal"><span class="pre">dlib.vector</span></code></a></li>
+<li><a class="reference internal" href="#dlib.vectors" title="dlib.vectors"><code class="xref py py-class docutils literal"><span class="pre">dlib.vectors</span></code></a></li>
+<li><a class="reference internal" href="#dlib.vectorss" title="dlib.vectorss"><code class="xref py py-class docutils literal"><span class="pre">dlib.vectorss</span></code></a></li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="#dlib.apply_cca_transform" title="dlib.apply_cca_transform"><code class="xref py py-func docutils literal"><span class="pre">dlib.apply_cca_transform()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.assignment_cost" title="dlib.assignment_cost"><code class="xref py py-func docutils literal"><span class="pre">dlib.assignment_cost()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cca" title="dlib.cca"><code class="xref py py-func docutils literal"><span class="pre">dlib.cca()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cross_validate_ranking_trainer" title="dlib.cross_validate_ranking_trainer"><code class="xref py py-func docutils literal"><span class="pre">dlib.cross_validate_ranking_trainer()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cross_validate_sequence_segmenter" title="dlib.cross_validate_sequence_segmenter"><code class="xref py py-func docutils literal"><span class="pre">dlib.cross_validate_sequence_segmenter()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cross_validate_trainer" title="dlib.cross_validate_trainer"><code class="xref py py-func docutils literal"><span class="pre">dlib.cross_validate_trainer()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.cross_validate_trainer_threaded" title="dlib.cross_validate_trainer_threaded"><code class="xref py py-func docutils literal"><span class="pre">dlib.cross_validate_trainer_threaded()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.dot" title="dlib.dot"><code class="xref py py-func docutils literal"><span class="pre">dlib.dot()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.find_candidate_object_locations" title="dlib.find_candidate_object_locations"><code class="xref py py-func docutils literal"><span class="pre">dlib.find_candidate_object_locations()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.get_frontal_face_detector" title="dlib.get_frontal_face_detector"><code class="xref py py-func docutils literal"><span class="pre">dlib.get_frontal_face_detector()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.hit_enter_to_continue" title="dlib.hit_enter_to_continue"><code class="xref py py-func docutils literal"><span class="pre">dlib.hit_enter_to_continue()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.load_libsvm_formatted_data" title="dlib.load_libsvm_formatted_data"><code class="xref py py-func docutils literal"><span class="pre">dlib.load_libsvm_formatted_data()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.make_sparse_vector" title="dlib.make_sparse_vector"><code class="xref py py-func docutils literal"><span class="pre">dlib.make_sparse_vector()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.max_cost_assignment" title="dlib.max_cost_assignment"><code class="xref py py-func docutils literal"><span class="pre">dlib.max_cost_assignment()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.max_index_plus_one" title="dlib.max_index_plus_one"><code class="xref py py-func docutils literal"><span class="pre">dlib.max_index_plus_one()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.save_libsvm_formatted_data" title="dlib.save_libsvm_formatted_data"><code class="xref py py-func docutils literal"><span class="pre">dlib.save_libsvm_formatted_data()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.solve_structural_svm_problem" title="dlib.solve_structural_svm_problem"><code class="xref py py-func docutils literal"><span class="pre">dlib.solve_structural_svm_problem()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_binary_decision_function" title="dlib.test_binary_decision_function"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_binary_decision_function()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_ranking_function" title="dlib.test_ranking_function"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_ranking_function()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_regression_function" title="dlib.test_regression_function"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_regression_function()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_sequence_segmenter" title="dlib.test_sequence_segmenter"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_sequence_segmenter()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_shape_predictor" title="dlib.test_shape_predictor"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_shape_predictor()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.test_simple_object_detector" title="dlib.test_simple_object_detector"><code class="xref py py-func docutils literal"><span class="pre">dlib.test_simple_object_detector()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.train_sequence_segmenter" title="dlib.train_sequence_segmenter"><code class="xref py py-func docutils literal"><span class="pre">dlib.train_sequence_segmenter()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.train_shape_predictor" title="dlib.train_shape_predictor"><code class="xref py py-func docutils literal"><span class="pre">dlib.train_shape_predictor()</span></code></a></li>
+<li><a class="reference internal" href="#dlib.train_simple_object_detector" title="dlib.train_simple_object_detector"><code class="xref py py-func docutils literal"><span class="pre">dlib.train_simple_object_detector()</span></code></a></li>
+</ul>
+</div>
+<div class="section" id="detailed-api-listing">
+<h1>Detailed API Listing<a class="headerlink" href="#detailed-api-listing" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-dlib"></span><dl class="function">
+<dt id="dlib.apply_cca_transform">
+<code class="descclassname">dlib.</code><code class="descname">apply_cca_transform</code><span class="sig-paren">(</span><em>(matrix)m</em>, <em>(sparse_vector)v</em><span class="sig-paren">)</span> &#x2192; vector :<a class="headerlink" href="#dlib.apply_cca_transform" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires    </dt>
+<dd><ul class="first last simple">
+<li>max_index_plus_one(v) &lt;= m.nr()</li>
+</ul>
+</dd>
+<dt>ensures    </dt>
+<dd><ul class="first last simple">
+<li>returns trans(m)*v    
+(i.e. multiply m by the vector v and return the result)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.array">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">array</code><a class="headerlink" href="#dlib.array" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a 1D array of floating point numbers. Moreover, it binds directly to the C++ type std::vector&lt;double&gt;.</p>
+<dl class="method">
+<dt id="dlib.array.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(array)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.array.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.array.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(array)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.array.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.array.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(array)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.array.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.array.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(array)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.array.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.assignment_cost">
+<code class="descclassname">dlib.</code><code class="descname">assignment_cost</code><span class="sig-paren">(</span><em>(matrix)cost</em>, <em>(list)assignment</em><span class="sig-paren">)</span> &#x2192; float :<a class="headerlink" href="#dlib.assignment_cost" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires    </dt>
+<dd><ul class="first last simple">
+<li>cost.nr() == cost.nc()    
+(i.e. the input must be a square matrix)</li>
+<li><dl class="first docutils">
+<dt>for all valid i:    </dt>
+<dd><ul class="first last">
+<li>0 &lt;= assignment[i] &lt; cost.nr()</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ensures    </dt>
+<dd><ul class="first last">
+<li><p class="first">Interprets cost as a cost assignment matrix. That is, cost[i][j]     
+represents the cost of assigning i to j.</p>
+</li>
+<li><p class="first">Interprets assignment as a particular set of assignments. That is,    
+i is assigned to assignment[i].</p>
+</li>
+<li><p class="first">returns the cost of the given assignment. That is, returns    
+a number which is:</p>
+<blockquote>
+<div><p>sum over i: cost[i][assignment[i]]</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.cca">
+<code class="descclassname">dlib.</code><code class="descname">cca</code><span class="sig-paren">(</span><em>(sparse_vectors)L</em>, <em>(sparse_vectors)R</em>, <em>(int)num_correlations</em><span class="optional">[</span>, <em>(int)extra_rank=5</em><span class="optional">[</span>, <em>(int)q=2</em><span class="optional">[</span>, <em>(float)regularization=0</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; cca_outputs :<a class="headerlink" href="#dlib.cca" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires    </dt>
+<dd><ul class="first last simple">
+<li>num_correlations &gt; 0</li>
+<li>len(L) &gt; 0</li>
+<li>len(R) &gt; 0</li>
+<li>len(L) == len(R)</li>
+<li>regularization &gt;= 0</li>
+<li>L and R must be properly sorted sparse vectors.  This means they must list their  
+elements in ascending index order and not contain duplicate index values.  You can use 
+make_sparse_vector() to ensure this is true.</li>
+</ul>
+</dd>
+<dt>ensures    </dt>
+<dd><ul class="first last">
+<li><p class="first">This function performs a canonical correlation analysis between the vectors    
+in L and R.  That is, it finds two transformation matrices, Ltrans and    
+Rtrans, such that row vectors in the transformed matrices L*Ltrans and    
+R*Rtrans are as correlated as possible (note that in this notation we    
+interpret L as a matrix with the input vectors in its rows).  Note also that    
+this function tries to find transformations which produce num_correlations    
+dimensional output vectors.</p>
+</li>
+<li><p class="first">Note that you can easily apply the transformation to a vector using     
+apply_cca_transform().  So for example, like this:</p>
+<blockquote>
+<div><ul class="simple">
+<li>apply_cca_transform(Ltrans, some_sparse_vector)</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">returns a structure containing the Ltrans and Rtrans transformation matrices    
+as well as the estimated correlations between elements of the transformed    
+vectors.</p>
+</li>
+<li><p class="first">This function assumes the data vectors in L and R have already been centered    
+(i.e. we assume the vectors have zero means).  However, in many cases it is    
+fine to use uncentered data with cca().  But if it is important for your    
+problem then you should center your data before passing it to cca().</p>
+</li>
+<li><p class="first">This function works with reduced rank approximations of the L and R matrices.    
+This makes it fast when working with large matrices.  In particular, we use    
+the dlib::svd_fast() routine to find reduced rank representations of the input    
+matrices by calling it as follows: svd_fast(L, U,D,V, num_correlations+extra_rank, q)     
+and similarly for R.  This means that you can use the extra_rank and q    
+arguments to cca() to influence the accuracy of the reduced rank    
+approximation.  However, the default values should work fine for most    
+problems.</p>
+</li>
+<li><p class="first">The dimensions of the output vectors produced by L*#Ltrans or R*#Rtrans are 
+ordered such that the dimensions with the highest correlations come first. 
+That is, after applying the transforms produced by cca() to a set of vectors 
+you will find that dimension 0 has the highest correlation, then dimension 1 
+has the next highest, and so on.  This also means that the list of estimated 
+correlations returned from cca() will always be listed in decreasing order.</p>
+</li>
+<li><p class="first">This function performs the ridge regression version of Canonical Correlation    
+Analysis when regularization is set to a value &gt; 0.  In particular, larger    
+values indicate the solution should be more heavily regularized.  This can be    
+useful when the dimensionality of the data is larger than the number of    
+samples.</p>
+</li>
+<li><p class="first">A good discussion of CCA can be found in the paper &#8220;Canonical Correlation    
+Analysis&#8221; by David Weenink.  In particular, this function is implemented    
+using equations 29 and 30 from his paper.  We also use the idea of doing CCA    
+on a reduced rank approximation of L and R as suggested by Paramveer S.    
+Dhillon in his paper &#8220;Two Step CCA: A new spectral method for estimating    
+vector models of words&#8221;.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.cca_outputs">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">cca_outputs</code><a class="headerlink" href="#dlib.cca_outputs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.cca_outputs.Ltrans">
+<code class="descname">Ltrans</code><a class="headerlink" href="#dlib.cca_outputs.Ltrans" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.cca_outputs.Rtrans">
+<code class="descname">Rtrans</code><a class="headerlink" href="#dlib.cca_outputs.Rtrans" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.cca_outputs.correlations">
+<code class="descname">correlations</code><a class="headerlink" href="#dlib.cca_outputs.correlations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.cnn_face_detection_model_v1">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">cnn_face_detection_model_v1</code><a class="headerlink" href="#dlib.cnn_face_detection_model_v1" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object detects human faces in an image.  The constructor loads the face detection model from a file. You can download a pre-trained model from <a class="reference external" href="http://dlib.net/files/mmod_human_face_detector.dat.bz2">http://dlib.net/files/mmod_human_face_detector.dat.bz2</a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.correlation_tracker">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">correlation_tracker</code><a class="headerlink" href="#dlib.correlation_tracker" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a tool for tracking moving objects in a video stream.  You give it 
+the bounding box of an object in the first frame and it attempts to track the 
+object in the box from frame to frame.  
+This tool is an implementation of the method described in the following paper:</p>
+<blockquote>
+<div>Danelljan, Martin, et al. &#8216;Accurate scale estimation for robust visual 
+tracking.&#8217; Proceedings of the British Machine Vision Conference BMVC. 2014.</div></blockquote>
+<dl class="method">
+<dt id="dlib.correlation_tracker.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>(correlation_tracker)arg1</em><span class="sig-paren">)</span> &#x2192; drectangle :<a class="headerlink" href="#dlib.correlation_tracker.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the predicted position of the object under track.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.correlation_tracker.start_track">
+<code class="descname">start_track</code><span class="sig-paren">(</span><em>(correlation_tracker)arg1</em>, <em>(object)image</em>, <em>(drectangle)bounding_box</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.correlation_tracker.start_track" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB image.</li>
+<li>bounding_box.is_empty() == false</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>This object will start tracking the thing inside the bounding box in the 
+given image.  That is, if you call update() with subsequent video frames 
+then it will try to keep track of the position of the object inside bounding_box.</li>
+<li>#get_position() == bounding_box</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>start_track( (correlation_tracker)arg1, (object)image, (rectangle)bounding_box) -&gt; None :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB image.</li>
+<li>bounding_box.is_empty() == false</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>This object will start tracking the thing inside the bounding box in the 
+given image.  That is, if you call update() with subsequent video frames 
+then it will try to keep track of the position of the object inside bounding_box.</li>
+<li>#get_position() == bounding_box</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.correlation_tracker.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>(correlation_tracker)arg1</em>, <em>(object)image</em><span class="sig-paren">)</span> &#x2192; float :<a class="headerlink" href="#dlib.correlation_tracker.update" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB image.</li>
+<li>get_position().is_empty() == false 
+(i.e. you must have started tracking by calling start_track())</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>performs: return update(img, get_position())</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>update( (correlation_tracker)arg1, (object)image, (drectangle)guess) -&gt; float :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB image.</li>
+<li>get_position().is_empty() == false 
+(i.e. you must have started tracking by calling start_track())</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>When searching for the object in img, we search in the area around the 
+provided guess.</li>
+<li>#get_position() == the new predicted location of the object in img.  This 
+location will be a copy of guess that has been translated and scaled 
+appropriately based on the content of img so that it, hopefully, bounds 
+the object in img.</li>
+<li>Returns the peak to side-lobe ratio.  This is a number that measures how 
+confident the tracker is that the object is inside #get_position(). 
+Larger values indicate higher confidence.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>update( (correlation_tracker)arg1, (object)image, (rectangle)guess) -&gt; float :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB image.</li>
+<li>get_position().is_empty() == false 
+(i.e. you must have started tracking by calling start_track())</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>When searching for the object in img, we search in the area around the 
+provided guess.</li>
+<li>#get_position() == the new predicted location of the object in img.  This 
+location will be a copy of guess that has been translated and scaled 
+appropriately based on the content of img so that it, hopefully, bounds 
+the object in img.</li>
+<li>Returns the peak to side-lobe ratio.  This is a number that measures how 
+confident the tracker is that the object is inside #get_position(). 
+Larger values indicate higher confidence.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.cross_validate_ranking_trainer">
+<code class="descclassname">dlib.</code><code class="descname">cross_validate_ranking_trainer</code><span class="sig-paren">(</span><em>(svm_rank_trainer)trainer</em>, <em>(ranking_pairs)samples</em>, <em>(int)folds</em><span class="sig-paren">)</span> &#x2192; _ranking_test<a class="headerlink" href="#dlib.cross_validate_ranking_trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>cross_validate_ranking_trainer( (svm_rank_trainer_sparse)trainer, (sparse_ranking_pairs)samples, (int)folds) -&gt; _ranking_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.cross_validate_sequence_segmenter">
+<code class="descclassname">dlib.</code><code class="descname">cross_validate_sequence_segmenter</code><span class="sig-paren">(</span><em>(vectorss)samples</em>, <em>(rangess)segments</em>, <em>(int)folds</em><span class="optional">[</span>, <em>(segmenter_params)params=&lt;BIO</em>, <em>highFeats</em>, <em>signed</em>, <em>win=5</em>, <em>threads=4</em>, <em>eps=0.1</em>, <em>cache=40</em>, <em>non-verbose</em>, <em>C=100&gt;</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; segmenter_test<a class="headerlink" href="#dlib.cross_validate_sequence_segmenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>cross_validate_sequence_segmenter( (sparse_vectorss)samples, (rangess)segments, (int)folds [, (segmenter_params)params=&lt;BIO,highFeats,signed,win=5,threads=4,eps=0.1,cache=40,non-verbose,C=100&gt;]) -&gt; segmenter_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.cross_validate_trainer">
+<code class="descclassname">dlib.</code><code class="descname">cross_validate_trainer</code><span class="sig-paren">(</span><em>(svm_c_trainer_radial_basis)trainer</em>, <em>(vectors)x</em>, <em>(array)y</em>, <em>(int)folds</em><span class="sig-paren">)</span> &#x2192; _binary_test<a class="headerlink" href="#dlib.cross_validate_trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>cross_validate_trainer( (svm_c_trainer_sparse_radial_basis)trainer, (sparse_vectors)x, (array)y, (int)folds) -&gt; _binary_test</p>
+<p>cross_validate_trainer( (svm_c_trainer_histogram_intersection)trainer, (vectors)x, (array)y, (int)folds) -&gt; _binary_test</p>
+<p>cross_validate_trainer( (svm_c_trainer_sparse_histogram_intersection)trainer, (sparse_vectors)x, (array)y, (int)folds) -&gt; _binary_test</p>
+<p>cross_validate_trainer( (svm_c_trainer_linear)trainer, (vectors)x, (array)y, (int)folds) -&gt; _binary_test</p>
+<p>cross_validate_trainer( (svm_c_trainer_sparse_linear)trainer, (sparse_vectors)x, (array)y, (int)folds) -&gt; _binary_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.cross_validate_trainer_threaded">
+<code class="descclassname">dlib.</code><code class="descname">cross_validate_trainer_threaded</code><span class="sig-paren">(</span><em>(svm_c_trainer_radial_basis)trainer</em>, <em>(vectors)x</em>, <em>(array)y</em>, <em>(int)folds</em>, <em>(int)num_threads</em><span class="sig-paren">)</span> &#x2192; _binary_test<a class="headerlink" href="#dlib.cross_validate_trainer_threaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>cross_validate_trainer_threaded( (svm_c_trainer_sparse_radial_basis)trainer, (sparse_vectors)x, (array)y, (int)folds, (int)num_threads) -&gt; _binary_test</p>
+<p>cross_validate_trainer_threaded( (svm_c_trainer_histogram_intersection)trainer, (vectors)x, (array)y, (int)folds, (int)num_threads) -&gt; _binary_test</p>
+<p>cross_validate_trainer_threaded( (svm_c_trainer_sparse_histogram_intersection)trainer, (sparse_vectors)x, (array)y, (int)folds, (int)num_threads) -&gt; _binary_test</p>
+<p>cross_validate_trainer_threaded( (svm_c_trainer_linear)trainer, (vectors)x, (array)y, (int)folds, (int)num_threads) -&gt; _binary_test</p>
+<p>cross_validate_trainer_threaded( (svm_c_trainer_sparse_linear)trainer, (sparse_vectors)x, (array)y, (int)folds, (int)num_threads) -&gt; _binary_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.dot">
+<code class="descclassname">dlib.</code><code class="descname">dot</code><span class="sig-paren">(</span><em>(vector)arg1</em>, <em>(vector)arg2</em><span class="sig-paren">)</span> &#x2192; float :<a class="headerlink" href="#dlib.dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the dot product between two dense column vectors.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.drectangle">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">drectangle</code><a class="headerlink" href="#dlib.drectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a rectangular area of an image with floating point coordinates.</p>
+<dl class="method">
+<dt id="dlib.drectangle.area">
+<code class="descname">area</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.area" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.bottom">
+<code class="descname">bottom</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.bottom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.center">
+<code class="descname">center</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; point<a class="headerlink" href="#dlib.drectangle.center" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.contains">
+<code class="descname">contains</code><span class="sig-paren">(</span><em>(drectangle)arg1</em>, <em>(point)point</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dlib.drectangle.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>contains( (drectangle)arg1, (int)x, (int)y) -&gt; bool</p>
+<p>contains( (drectangle)arg1, (drectangle)rectangle) -&gt; bool</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.dcenter">
+<code class="descname">dcenter</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; point<a class="headerlink" href="#dlib.drectangle.dcenter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.height">
+<code class="descname">height</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.intersect">
+<code class="descname">intersect</code><span class="sig-paren">(</span><em>(drectangle)arg1</em>, <em>(drectangle)rectangle</em><span class="sig-paren">)</span> &#x2192; drectangle<a class="headerlink" href="#dlib.drectangle.intersect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.is_empty">
+<code class="descname">is_empty</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dlib.drectangle.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.left">
+<code class="descname">left</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.left" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.right">
+<code class="descname">right</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.right" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.top">
+<code class="descname">top</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.top" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.drectangle.width">
+<code class="descname">width</code><span class="sig-paren">(</span><em>(drectangle)arg1</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#dlib.drectangle.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.face_recognition_model_v1">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">face_recognition_model_v1</code><a class="headerlink" href="#dlib.face_recognition_model_v1" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object maps human faces into 128D vectors where pictures of the same person are mapped near to each other and pictures of different people are mapped far apart.  The constructor loads the face recognition model from a file. The model file is available here: <a class="reference external" href="http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2">http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2</a></p>
+<dl class="method">
+<dt id="dlib.face_recognition_model_v1.compute_face_descriptor">
+<code class="descname">compute_face_descriptor</code><span class="sig-paren">(</span><em>(face_recognition_model_v1)arg1</em>, <em>(object)img</em>, <em>(full_object_detection)face</em><span class="optional">[</span>, <em>(int)num_jitters=0</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; vector :<a class="headerlink" href="#dlib.face_recognition_model_v1.compute_face_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an image and a full_object_detection that references a face in that image and converts it into a 128D face descriptor. If num_jitters&gt;1 then each face will be randomly jittered slightly num_jitters times, each run through the 128D projection, and the average used as the face descriptor.</p>
+<dl class="docutils">
+<dt>compute_face_descriptor( (face_recognition_model_v1)arg1, (object)img, (full_object_detections)faces [, (int)num_jitters=0]) -&gt; vectors :</dt>
+<dd>Takes an image and an array of full_object_detections that reference faces in that image and converts them into 128D face descriptors.  If num_jitters&gt;1 then each face will be randomly jittered slightly num_jitters times, each run through the 128D projection, and the average used as the face descriptor.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.fhog_object_detector">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">fhog_object_detector</code><a class="headerlink" href="#dlib.fhog_object_detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a sliding window histogram-of-oriented-gradients based object detector.</p>
+<dl class="method">
+<dt id="dlib.fhog_object_detector.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>(fhog_object_detector)arg1</em>, <em>(object)image</em><span class="optional">[</span>, <em>(int)upsample_num_times=0</em><span class="optional">[</span>, <em>(float)adjust_threshold=0.0</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#dlib.fhog_object_detector.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB 
+image.</li>
+<li>upsample_num_times &gt;= 0</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>This function runs the object detector on the input image and returns 
+a tuple of (list of detections, list of scores, list of weight_indices).</li>
+<li>Upsamples the image upsample_num_times before running the basic 
+detector.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="dlib.fhog_object_detector.run_multiple">
+<em class="property">static </em><code class="descname">run_multiple</code><span class="sig-paren">(</span><em>(list)detectors</em>, <em>(object)image</em><span class="optional">[</span>, <em>(int)upsample_num_times=0</em><span class="optional">[</span>, <em>(float)adjust_threshold=0.0</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#dlib.fhog_object_detector.run_multiple" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>detectors is a list of detectors.</li>
+<li>image is a numpy ndarray containing either an 8bit grayscale or RGB 
+image.</li>
+<li>upsample_num_times &gt;= 0</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>This function runs the list of object detectors at once on the input image and returns 
+a tuple of (list of detections, list of scores, list of weight_indices).</li>
+<li>Upsamples the image upsample_num_times before running the basic 
+detector.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.fhog_object_detector.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>(fhog_object_detector)arg1</em>, <em>(str)detector_output_filename</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.fhog_object_detector.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a simple_object_detector to the provided path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.find_candidate_object_locations">
+<code class="descclassname">dlib.</code><code class="descname">find_candidate_object_locations</code><span class="sig-paren">(</span><em>(object)image</em>, <em>(list)rects</em><span class="optional">[</span>, <em>(tuple)kvals=(50</em>, <em>200</em>, <em>3)</em><span class="optional">[</span>, <em>(int)min_size=20</em><span class="optional">[</span>, <em>(int)max_merging_iterations=50</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.find_candidate_object_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns found candidate objects
+requires</p>
+<blockquote>
+<div><ul class="simple">
+<li>image == an image object which is a numpy ndarray</li>
+<li>len(kvals) == 3</li>
+<li>kvals should be a tuple that specifies the range of k values to use.  In
+particular, it should take the form (start, end, num) where num &gt; 0.</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>ensures</dt>
+<dd><ul class="first last">
+<li><p class="first">This function takes an input image and generates a set of candidate
+rectangles which are expected to bound any objects in the image.  It does
+this by running a version of the segment_image() routine on the image and
+then reports rectangles containing each of the segments as well as rectangles
+containing unions of adjacent segments.  The basic idea is described in the
+paper:</p>
+<blockquote>
+<div><p>Segmentation as Selective Search for Object Recognition by Koen E. A. van de Sande, et al.</p>
+</div></blockquote>
+<p>Note that this function deviates from what is described in the paper slightly. 
+See the code for details.</p>
+</li>
+<li><p class="first">The basic segmentation is performed kvals[2] times, each time with the k parameter
+(see segment_image() and the Felzenszwalb paper for details on k) set to a different
+value from the range of numbers linearly spaced between kvals[0] to kvals[1].</p>
+</li>
+<li><p class="first">When doing the basic segmentations prior to any box merging, we discard all
+rectangles that have an area &lt; min_size.  Therefore, all outputs and
+subsequent merged rectangles are built out of rectangles that contain at
+least min_size pixels.  Note that setting min_size to a smaller value than
+you might otherwise be interested in using can be useful since it allows a
+larger number of possible merged boxes to be created.</p>
+</li>
+<li><p class="first">There are max_merging_iterations rounds of neighboring blob merging.
+Therefore, this parameter has some effect on the number of output rectangles
+you get, with larger values of the parameter giving more output rectangles.</p>
+</li>
+<li><p class="first">This function appends the output rectangles into #rects.  This means that any
+rectangles in rects before this function was called will still be in there
+after it terminates.  Note further that #rects will not contain any duplicate
+rectangles.  That is, for all valid i and j where i != j it will be true
+that:</p>
+<blockquote>
+<div><ul class="simple">
+<li>#rects[i] != rects[j]</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.full_object_detection">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">full_object_detection</code><a class="headerlink" href="#dlib.full_object_detection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents the location of an object in an image along with the     positions of each of its constituent parts.</p>
+<dl class="attribute">
+<dt id="dlib.full_object_detection.num_parts">
+<code class="descname">num_parts</code><a class="headerlink" href="#dlib.full_object_detection.num_parts" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of parts of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.full_object_detection.part">
+<code class="descname">part</code><span class="sig-paren">(</span><em>(full_object_detection)arg1</em>, <em>(int)idx</em><span class="sig-paren">)</span> &#x2192; point :<a class="headerlink" href="#dlib.full_object_detection.part" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single part of the object as a dlib point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.full_object_detection.parts">
+<code class="descname">parts</code><span class="sig-paren">(</span><em>(full_object_detection)arg1</em><span class="sig-paren">)</span> &#x2192; points :<a class="headerlink" href="#dlib.full_object_detection.parts" title="Permalink to this definition">¶</a></dt>
+<dd><p>A vector of dlib points representing all of the parts.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.full_object_detection.rect">
+<code class="descname">rect</code><a class="headerlink" href="#dlib.full_object_detection.rect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bounding box from the underlying detector. Parts can be outside box if appropriate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.full_object_detections">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">full_object_detections</code><a class="headerlink" href="#dlib.full_object_detections" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array of full_object_detection objects.</p>
+<dl class="method">
+<dt id="dlib.full_object_detections.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(full_object_detections)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.full_object_detections.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.full_object_detections.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(full_object_detections)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.full_object_detections.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.full_object_detections.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(full_object_detections)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.full_object_detections.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.full_object_detections.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(full_object_detections)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.full_object_detections.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.get_frontal_face_detector">
+<code class="descclassname">dlib.</code><code class="descname">get_frontal_face_detector</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; fhog_object_detector :<a class="headerlink" href="#dlib.get_frontal_face_detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the default face detector</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.hit_enter_to_continue">
+<code class="descclassname">dlib.</code><code class="descname">hit_enter_to_continue</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.hit_enter_to_continue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks the user to hit enter to continue and pauses until they do so.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.image_window">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">image_window</code><a class="headerlink" href="#dlib.image_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a GUI window capable of showing images on the screen.</p>
+<dl class="method">
+<dt id="dlib.image_window.add_overlay">
+<code class="descname">add_overlay</code><span class="sig-paren">(</span><em>(image_window)arg1</em>, <em>(rectangles)rectangles</em><span class="optional">[</span>, <em>(rgb_pixel)color=rgb_pixel(ÿ</em>, <em> </em>, <em> )</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.image_window.add_overlay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a list of rectangles to the image_window. They will be displayed as red boxes by default, but the color can be passed.</p>
+<dl class="docutils">
+<dt>add_overlay( (image_window)arg1, (rectangle)rectangle [, (rgb_pixel)color=rgb_pixel(ÿ,,)]) -&gt; None :</dt>
+<dd>Add a rectangle to the image_window.  It will be displayed as a red box by default, but the color can be passed.</dd>
+<dt>add_overlay( (image_window)arg1, (drectangle)rectangle [, (rgb_pixel)color=rgb_pixel(ÿ,,)]) -&gt; None :</dt>
+<dd>Add a rectangle to the image_window.  It will be displayed as a red box by default, but the color can be passed.</dd>
+<dt>add_overlay( (image_window)arg1, (full_object_detection)detection [, (rgb_pixel)color=rgb_pixel(,,ÿ)]) -&gt; None :</dt>
+<dd>Add full_object_detection parts to the image window. They will be displayed as blue lines by default, but the color can be passed.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.image_window.clear_overlay">
+<code class="descname">clear_overlay</code><span class="sig-paren">(</span><em>(image_window)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.image_window.clear_overlay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all overlays from the image_window.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.image_window.set_image">
+<code class="descname">set_image</code><span class="sig-paren">(</span><em>(image_window)arg1</em>, <em>(object)image</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.image_window.set_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the image_window display the given image.</p>
+<dl class="docutils">
+<dt>set_image( (image_window)arg1, (fhog_object_detector)detector) -&gt; None :</dt>
+<dd>Make the image_window display the given HOG detector&#8217;s filters.</dd>
+<dt>set_image( (image_window)arg1, (simple_object_detector)detector) -&gt; None :</dt>
+<dd>Make the image_window display the given HOG detector&#8217;s filters.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.image_window.set_title">
+<code class="descname">set_title</code><span class="sig-paren">(</span><em>(image_window)arg1</em>, <em>(str)title</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.image_window.set_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the title of the window to the given value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.image_window.wait_until_closed">
+<code class="descname">wait_until_closed</code><span class="sig-paren">(</span><em>(image_window)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.image_window.wait_until_closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function blocks until the window is closed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.load_libsvm_formatted_data">
+<code class="descclassname">dlib.</code><code class="descname">load_libsvm_formatted_data</code><span class="sig-paren">(</span><em>(str)file_name</em><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#dlib.load_libsvm_formatted_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>ensures    
+- Attempts to read a file of the given name that should contain libsvm</p>
+<blockquote>
+<div>formatted data.  The data is returned as a tuple where the first tuple    
+element is an array of sparse vectors and the second element is an array of    
+labels.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.make_sparse_vector">
+<code class="descclassname">dlib.</code><code class="descname">make_sparse_vector</code><span class="sig-paren">(</span><em>(sparse_vector)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.make_sparse_vector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This function modifies its argument so that it is a properly sorted sparse vector.    </dt>
+<dd>This means that the elements of the sparse vector will be ordered so that pairs    
+with smaller indices come first.  Additionally, there won&#8217;t be any pairs with    
+identical indices.  If such pairs were present in the input sparse vector then    
+their values will be added together and only one pair with their index will be    
+present in the output.</dd>
+<dt>make_sparse_vector( (sparse_vectors)arg1) -&gt; None :</dt>
+<dd>This function modifies a sparse_vectors object so that all elements it contains are properly sorted sparse vectors.</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.matrix">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">matrix</code><a class="headerlink" href="#dlib.matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a dense 2D matrix of floating point numbers.Moreover, it binds directly to the C++ type dlib::matrix&lt;double&gt;.</p>
+<dl class="method">
+<dt id="dlib.matrix.nc">
+<code class="descname">nc</code><span class="sig-paren">(</span><em>(matrix)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#dlib.matrix.nc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of columns in the matrix.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.matrix.nr">
+<code class="descname">nr</code><span class="sig-paren">(</span><em>(matrix)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#dlib.matrix.nr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of rows in the matrix.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.matrix.set_size">
+<code class="descname">set_size</code><span class="sig-paren">(</span><em>(matrix)arg1</em>, <em>(int)rows</em>, <em>(int)cols</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.matrix.set_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the size of the matrix to the given number of rows and columns.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.matrix.shape">
+<code class="descname">shape</code><a class="headerlink" href="#dlib.matrix.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.max_cost_assignment">
+<code class="descclassname">dlib.</code><code class="descname">max_cost_assignment</code><span class="sig-paren">(</span><em>(matrix)cost</em><span class="sig-paren">)</span> &#x2192; list :<a class="headerlink" href="#dlib.max_cost_assignment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires    </dt>
+<dd><ul class="first last simple">
+<li>cost.nr() == cost.nc()    
+(i.e. the input must be a square matrix)</li>
+</ul>
+</dd>
+<dt>ensures    </dt>
+<dd><ul class="first last">
+<li><p class="first">Finds and returns the solution to the following optimization problem:</p>
+<blockquote>
+<div><p>Maximize: f(A) == assignment_cost(cost, A)    
+Subject to the following constraints:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The elements of A are unique. That is, there aren&#8217;t any     
+elements of A which are equal.</li>
+<li>len(A) == cost.nr()</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p class="first">Note that this function converts the input cost matrix into a 64bit fixed    
+point representation.  Therefore, you should make sure that the values in    
+your cost matrix can be accurately represented by 64bit fixed point values.    
+If this is not the case then the solution my become inaccurate due to    
+rounding error.  In general, this function will work properly when the ratio    
+of the largest to the smallest value in cost is no more than about 1e16.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.max_index_plus_one">
+<code class="descclassname">dlib.</code><code class="descname">max_index_plus_one</code><span class="sig-paren">(</span><em>(sparse_vector)v</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#dlib.max_index_plus_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>ensures    
+- returns the dimensionality of the given sparse vector.  That is, returns a</p>
+<blockquote>
+<div>number one larger than the maximum index value in the vector.  If the vector    
+is empty then returns 0.</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.mmod_rectangle">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">mmod_rectangle</code><a class="headerlink" href="#dlib.mmod_rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around a rectangle object and a detection confidence score.</p>
+<dl class="attribute">
+<dt id="dlib.mmod_rectangle.confidence">
+<code class="descname">confidence</code><a class="headerlink" href="#dlib.mmod_rectangle.confidence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.mmod_rectangle.rect">
+<code class="descname">rect</code><a class="headerlink" href="#dlib.mmod_rectangle.rect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.mmod_rectangles">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">mmod_rectangles</code><a class="headerlink" href="#dlib.mmod_rectangles" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array of mmod rectangle objects.</p>
+<dl class="method">
+<dt id="dlib.mmod_rectangles.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(mmod_rectangles)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.mmod_rectangles.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.mmod_rectangles.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(mmod_rectangles)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.mmod_rectangles.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.mmod_rectangless">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">mmod_rectangless</code><a class="headerlink" href="#dlib.mmod_rectangless" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 2D array of mmod rectangle objects.</p>
+<dl class="method">
+<dt id="dlib.mmod_rectangless.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(mmod_rectangless)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.mmod_rectangless.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.mmod_rectangless.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(mmod_rectangless)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.mmod_rectangless.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.pair">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">pair</code><a class="headerlink" href="#dlib.pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is used to represent the elements of a sparse_vector.</p>
+<dl class="attribute">
+<dt id="dlib.pair.first">
+<code class="descname">first</code><a class="headerlink" href="#dlib.pair.first" title="Permalink to this definition">¶</a></dt>
+<dd><p>This field represents the index/dimension number.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.pair.second">
+<code class="descname">second</code><a class="headerlink" href="#dlib.pair.second" title="Permalink to this definition">¶</a></dt>
+<dd><p>This field contains the value in a vector at dimension specified by the first field.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.point">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">point</code><a class="headerlink" href="#dlib.point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a single point of integer coordinates that maps directly to a dlib::point.</p>
+<dl class="attribute">
+<dt id="dlib.point.x">
+<code class="descname">x</code><a class="headerlink" href="#dlib.point.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>The x-coordinate of the point.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.point.y">
+<code class="descname">y</code><a class="headerlink" href="#dlib.point.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>The y-coordinate of the point.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.points">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">points</code><a class="headerlink" href="#dlib.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array of point objects.</p>
+<dl class="method">
+<dt id="dlib.points.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(points)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.points.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.points.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(points)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.points.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.points.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(points)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.points.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.points.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(points)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.points.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.range">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">range</code><a class="headerlink" href="#dlib.range" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is used to represent a range of elements in an array.</p>
+<dl class="attribute">
+<dt id="dlib.range.begin">
+<code class="descname">begin</code><a class="headerlink" href="#dlib.range.begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the first element in the range.  This is represented using an unsigned integer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.range.end">
+<code class="descname">end</code><a class="headerlink" href="#dlib.range.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>One past the index of the last element in the range.  This is represented using an unsigned integer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.ranges">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">ranges</code><a class="headerlink" href="#dlib.ranges" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of range objects.</p>
+<dl class="method">
+<dt id="dlib.ranges.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(ranges)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranges.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranges.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(ranges)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranges.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranges.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(ranges)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranges.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranges.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(ranges)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranges.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.rangess">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">rangess</code><a class="headerlink" href="#dlib.rangess" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of arrays of range objects.</p>
+<dl class="method">
+<dt id="dlib.rangess.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(rangess)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rangess.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rangess.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(rangess)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rangess.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rangess.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(rangess)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rangess.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rangess.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(rangess)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rangess.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.ranking_pair">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">ranking_pair</code><a class="headerlink" href="#dlib.ranking_pair" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.ranking_pair.nonrelevant">
+<code class="descname">nonrelevant</code><a class="headerlink" href="#dlib.ranking_pair.nonrelevant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.ranking_pair.relevant">
+<code class="descname">relevant</code><a class="headerlink" href="#dlib.ranking_pair.relevant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.ranking_pairs">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">ranking_pairs</code><a class="headerlink" href="#dlib.ranking_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.ranking_pairs.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(ranking_pairs)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranking_pairs.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranking_pairs.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(ranking_pairs)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranking_pairs.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranking_pairs.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(ranking_pairs)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranking_pairs.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.ranking_pairs.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(ranking_pairs)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.ranking_pairs.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.rectangle">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">rectangle</code><a class="headerlink" href="#dlib.rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a rectangular area of an image.</p>
+<dl class="method">
+<dt id="dlib.rectangle.area">
+<code class="descname">area</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.area" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.bottom">
+<code class="descname">bottom</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.bottom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.center">
+<code class="descname">center</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; point<a class="headerlink" href="#dlib.rectangle.center" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.contains">
+<code class="descname">contains</code><span class="sig-paren">(</span><em>(rectangle)arg1</em>, <em>(point)point</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dlib.rectangle.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>contains( (rectangle)arg1, (int)x, (int)y) -&gt; bool</p>
+<p>contains( (rectangle)arg1, (rectangle)rectangle) -&gt; bool</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.dcenter">
+<code class="descname">dcenter</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; point<a class="headerlink" href="#dlib.rectangle.dcenter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.height">
+<code class="descname">height</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.intersect">
+<code class="descname">intersect</code><span class="sig-paren">(</span><em>(rectangle)arg1</em>, <em>(rectangle)rectangle</em><span class="sig-paren">)</span> &#x2192; rectangle<a class="headerlink" href="#dlib.rectangle.intersect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.is_empty">
+<code class="descname">is_empty</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dlib.rectangle.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.left">
+<code class="descname">left</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.left" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.right">
+<code class="descname">right</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.right" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.top">
+<code class="descname">top</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.top" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangle.width">
+<code class="descname">width</code><span class="sig-paren">(</span><em>(rectangle)arg1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dlib.rectangle.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.rectangles">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">rectangles</code><a class="headerlink" href="#dlib.rectangles" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array of rectangle objects.</p>
+<dl class="method">
+<dt id="dlib.rectangles.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(rectangles)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rectangles.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangles.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(rectangles)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rectangles.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangles.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(rectangles)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rectangles.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.rectangles.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(rectangles)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.rectangles.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.rgb_pixel">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">rgb_pixel</code><a class="headerlink" href="#dlib.rgb_pixel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.rgb_pixel.blue">
+<code class="descname">blue</code><a class="headerlink" href="#dlib.rgb_pixel.blue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.rgb_pixel.green">
+<code class="descname">green</code><a class="headerlink" href="#dlib.rgb_pixel.green" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.rgb_pixel.red">
+<code class="descname">red</code><a class="headerlink" href="#dlib.rgb_pixel.red" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.save_libsvm_formatted_data">
+<code class="descclassname">dlib.</code><code class="descname">save_libsvm_formatted_data</code><span class="sig-paren">(</span><em>(str)file_name</em>, <em>(sparse_vectors)samples</em>, <em>(array)labels</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.save_libsvm_formatted_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires    </dt>
+<dd><ul class="first last simple">
+<li>len(samples) == len(labels)</li>
+</ul>
+</dd>
+<dt>ensures    </dt>
+<dd><ul class="first last simple">
+<li>saves the data to the given file in libsvm format</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.segmenter_params">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">segmenter_params</code><a class="headerlink" href="#dlib.segmenter_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is used to define all the optional parameters to the    
+train_sequence_segmenter() and cross_validate_sequence_segmenter() routines.</p>
+<dl class="attribute">
+<dt id="dlib.segmenter_params.C">
+<code class="descname">C</code><a class="headerlink" href="#dlib.segmenter_params.C" title="Permalink to this definition">¶</a></dt>
+<dd><p>SVM C parameter</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.allow_negative_weights">
+<code class="descname">allow_negative_weights</code><a class="headerlink" href="#dlib.segmenter_params.allow_negative_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.be_verbose">
+<code class="descname">be_verbose</code><a class="headerlink" href="#dlib.segmenter_params.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.segmenter_params.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.max_cache_size">
+<code class="descname">max_cache_size</code><a class="headerlink" href="#dlib.segmenter_params.max_cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.num_threads">
+<code class="descname">num_threads</code><a class="headerlink" href="#dlib.segmenter_params.num_threads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.use_BIO_model">
+<code class="descname">use_BIO_model</code><a class="headerlink" href="#dlib.segmenter_params.use_BIO_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.use_high_order_features">
+<code class="descname">use_high_order_features</code><a class="headerlink" href="#dlib.segmenter_params.use_high_order_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_params.window_size">
+<code class="descname">window_size</code><a class="headerlink" href="#dlib.segmenter_params.window_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.segmenter_test">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">segmenter_test</code><a class="headerlink" href="#dlib.segmenter_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is the output of the dlib.test_sequence_segmenter() and dlib.cross_validate_sequence_segmenter() routines.</p>
+<dl class="attribute">
+<dt id="dlib.segmenter_test.f1">
+<code class="descname">f1</code><a class="headerlink" href="#dlib.segmenter_test.f1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_test.precision">
+<code class="descname">precision</code><a class="headerlink" href="#dlib.segmenter_test.precision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.segmenter_test.recall">
+<code class="descname">recall</code><a class="headerlink" href="#dlib.segmenter_test.recall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.segmenter_type">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">segmenter_type</code><a class="headerlink" href="#dlib.segmenter_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a sequence segmenter and is the type of object returned by the dlib.train_sequence_segmenter() routine.</p>
+<dl class="attribute">
+<dt id="dlib.segmenter_type.weights">
+<code class="descname">weights</code><a class="headerlink" href="#dlib.segmenter_type.weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.shape_predictor">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">shape_predictor</code><a class="headerlink" href="#dlib.shape_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is a tool that takes in an image region containing some object and outputs a set of point locations that define the pose of the object. The classic example of this is human face pose prediction, where you take an image of a human face as input and are expected to identify the locations of important facial landmarks such as the corners of the mouth and eyes, tip of the nose, and so forth.</p>
+<dl class="method">
+<dt id="dlib.shape_predictor.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>(shape_predictor)arg1</em>, <em>(str)predictor_output_filename</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.shape_predictor.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a shape_predictor to the provided path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.shape_predictor_training_options">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">shape_predictor_training_options</code><a class="headerlink" href="#dlib.shape_predictor_training_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is a container for the options to the train_shape_predictor() routine.</p>
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.be_verbose">
+<code class="descname">be_verbose</code><a class="headerlink" href="#dlib.shape_predictor_training_options.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, train_shape_predictor() will print out a lot of information to stdout while training.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.cascade_depth">
+<code class="descname">cascade_depth</code><a class="headerlink" href="#dlib.shape_predictor_training_options.cascade_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of cascades created to train the model with.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.feature_pool_region_padding">
+<code class="descname">feature_pool_region_padding</code><a class="headerlink" href="#dlib.shape_predictor_training_options.feature_pool_region_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of region within which to sample features for the feature pool,                       e.g a padding of 0.5 would cause the algorithm to sample pixels from a box that was 2x2 pixels</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.feature_pool_size">
+<code class="descname">feature_pool_size</code><a class="headerlink" href="#dlib.shape_predictor_training_options.feature_pool_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of pixels used to generate features for the random trees.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.lambda_param">
+<code class="descname">lambda_param</code><a class="headerlink" href="#dlib.shape_predictor_training_options.lambda_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Controls how tight the feature sampling should be. Lower values enforce closer features.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.nu">
+<code class="descname">nu</code><a class="headerlink" href="#dlib.shape_predictor_training_options.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p>The regularization parameter.  Larger values of this parameter                        will cause the algorithm to fit the training data better but may also                        cause overfitting.  The value must be in the range (0, 1].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.num_test_splits">
+<code class="descname">num_test_splits</code><a class="headerlink" href="#dlib.shape_predictor_training_options.num_test_splits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of split features at each node to sample. The one that gives the best split is chosen.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.num_trees_per_cascade_level">
+<code class="descname">num_trees_per_cascade_level</code><a class="headerlink" href="#dlib.shape_predictor_training_options.num_trees_per_cascade_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of trees created for each cascade.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.oversampling_amount">
+<code class="descname">oversampling_amount</code><a class="headerlink" href="#dlib.shape_predictor_training_options.oversampling_amount" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of randomly selected initial starting points sampled for each training example</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.random_seed">
+<code class="descname">random_seed</code><a class="headerlink" href="#dlib.shape_predictor_training_options.random_seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>The random seed used by the internal random number generator</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.shape_predictor_training_options.tree_depth">
+<code class="descname">tree_depth</code><a class="headerlink" href="#dlib.shape_predictor_training_options.tree_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>The depth of the trees used in each cascade. There are pow(2, get_tree_depth()) leaves in each tree</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.simple_object_detector">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">simple_object_detector</code><a class="headerlink" href="#dlib.simple_object_detector" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a sliding window histogram-of-oriented-gradients based object detector.</p>
+<dl class="method">
+<dt id="dlib.simple_object_detector.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>(simple_object_detector)arg1</em>, <em>(str)detector_output_filename</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.simple_object_detector.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a simple_object_detector to the provided path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.simple_object_detector_training_options">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">simple_object_detector_training_options</code><a class="headerlink" href="#dlib.simple_object_detector_training_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is a container for the options to the train_simple_object_detector() routine.</p>
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.C">
+<code class="descname">C</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.C" title="Permalink to this definition">¶</a></dt>
+<dd><p>C is the usual SVM C regularization parameter.  So it is passed to 
+structural_object_detection_trainer::set_c().  Larger values of C 
+will encourage the trainer to fit the data better but might lead to 
+overfitting.  Therefore, you must determine the proper setting of 
+this parameter experimentally.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.add_left_right_image_flips">
+<code class="descname">add_left_right_image_flips</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.add_left_right_image_flips" title="Permalink to this definition">¶</a></dt>
+<dd><p>if true, train_simple_object_detector() will assume the objects are 
+left/right symmetric and add in left right flips of the training 
+images.  This doubles the size of the training dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.be_verbose">
+<code class="descname">be_verbose</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, train_simple_object_detector() will print out a lot of information to the screen while training.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.detection_window_size">
+<code class="descname">detection_window_size</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.detection_window_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sliding window used will have about this many pixels inside it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd><p>epsilon is the stopping epsilon.  Smaller values make the trainer&#8217;s 
+solver more accurate but might take longer to train.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.num_threads">
+<code class="descname">num_threads</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.num_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>train_simple_object_detector() will use this many threads of 
+execution.  Set this to the number of CPU cores on your machine to 
+obtain the fastest training speed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_object_detector_training_options.upsample_limit">
+<code class="descname">upsample_limit</code><a class="headerlink" href="#dlib.simple_object_detector_training_options.upsample_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>train_simple_object_detector() will upsample images if needed 
+no more than upsample_limit times. Value 0 will forbid trainer to 
+upsample any images. If trainer is unable to fit all boxes with 
+required upsample_limit, exception will be thrown. Higher values 
+of upsample_limit exponentially increases memory requiremens. 
+Values higher than 2 (default) are not recommended.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.simple_test_results">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">simple_test_results</code><a class="headerlink" href="#dlib.simple_test_results" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.simple_test_results.average_precision">
+<code class="descname">average_precision</code><a class="headerlink" href="#dlib.simple_test_results.average_precision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_test_results.precision">
+<code class="descname">precision</code><a class="headerlink" href="#dlib.simple_test_results.precision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.simple_test_results.recall">
+<code class="descname">recall</code><a class="headerlink" href="#dlib.simple_test_results.recall" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.solve_structural_svm_problem">
+<code class="descclassname">dlib.</code><code class="descname">solve_structural_svm_problem</code><span class="sig-paren">(</span><em>(object)problem</em><span class="sig-paren">)</span> &#x2192; vector :<a class="headerlink" href="#dlib.solve_structural_svm_problem" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function solves a structural SVM problem and returns the weight vector    
+that defines the solution.  See the example program python_examples/svm_struct.py    
+for documentation about how to create a proper problem object.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.sparse_ranking_pair">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">sparse_ranking_pair</code><a class="headerlink" href="#dlib.sparse_ranking_pair" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.sparse_ranking_pair.nonrelevant">
+<code class="descname">nonrelevant</code><a class="headerlink" href="#dlib.sparse_ranking_pair.nonrelevant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.sparse_ranking_pair.relevant">
+<code class="descname">relevant</code><a class="headerlink" href="#dlib.sparse_ranking_pair.relevant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.sparse_ranking_pairs">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">sparse_ranking_pairs</code><a class="headerlink" href="#dlib.sparse_ranking_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.sparse_ranking_pairs.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(sparse_ranking_pairs)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_ranking_pairs.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_ranking_pairs.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(sparse_ranking_pairs)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_ranking_pairs.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_ranking_pairs.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(sparse_ranking_pairs)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_ranking_pairs.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_ranking_pairs.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(sparse_ranking_pairs)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_ranking_pairs.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.sparse_vector">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">sparse_vector</code><a class="headerlink" href="#dlib.sparse_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents the mathematical idea of a sparse column vector.  It is    
+simply an array of dlib.pair objects, each representing an index/value pair in    
+the vector.  Any elements of the vector which are missing are implicitly set to    
+zero.</p>
+<p>Unless otherwise noted, any routines taking a sparse_vector assume the sparse    
+vector is sorted and has unique elements.  That is, the index values of the    
+pairs in a sparse_vector should be listed in increasing order and there should    
+not be duplicates.  However, some functions work with &#8220;unsorted&#8221; sparse    
+vectors.  These are dlib.sparse_vector objects that have either duplicate    
+entries or non-sorted index values.  Note further that you can convert an    
+&#8220;unsorted&#8221; sparse_vector into a properly sorted sparse vector by calling    
+dlib.make_sparse_vector() on it.</p>
+<dl class="method">
+<dt id="dlib.sparse_vector.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(sparse_vector)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vector.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vector.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(sparse_vector)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vector.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vector.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(sparse_vector)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vector.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vector.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(sparse_vector)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vector.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.sparse_vectors">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">sparse_vectors</code><a class="headerlink" href="#dlib.sparse_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of sparse_vector objects.</p>
+<dl class="method">
+<dt id="dlib.sparse_vectors.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(sparse_vectors)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectors.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectors.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(sparse_vectors)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectors.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectors.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(sparse_vectors)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectors.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectors.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(sparse_vectors)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectors.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.sparse_vectorss">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">sparse_vectorss</code><a class="headerlink" href="#dlib.sparse_vectorss" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of arrays of sparse_vector objects.</p>
+<dl class="method">
+<dt id="dlib.sparse_vectorss.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(sparse_vectorss)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectorss.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectorss.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(sparse_vectorss)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectorss.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectorss.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(sparse_vectorss)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectorss.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.sparse_vectorss.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(sparse_vectorss)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.sparse_vectorss.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_histogram_intersection">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_histogram_intersection</code><a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.svm_c_trainer_histogram_intersection.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_histogram_intersection.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_histogram_intersection.cache_size">
+<code class="descname">cache_size</code><a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_histogram_intersection.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_histogram_intersection.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_histogram_intersection)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_histogram_intersection.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_histogram_intersection)arg1</em>, <em>(vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_histogram_intersection<a class="headerlink" href="#dlib.svm_c_trainer_histogram_intersection.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_linear">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_linear</code><a class="headerlink" href="#dlib.svm_c_trainer_linear" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.svm_c_trainer_linear.be_quiet">
+<code class="descname">be_quiet</code><span class="sig-paren">(</span><em>(svm_c_trainer_linear)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_linear.be_quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_linear.be_verbose">
+<code class="descname">be_verbose</code><span class="sig-paren">(</span><em>(svm_c_trainer_linear)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_linear.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.force_last_weight_to_1">
+<code class="descname">force_last_weight_to_1</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.force_last_weight_to_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.has_prior">
+<code class="descname">has_prior</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.has_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.learns_nonnegative_weights">
+<code class="descname">learns_nonnegative_weights</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.learns_nonnegative_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_linear.max_iterations">
+<code class="descname">max_iterations</code><a class="headerlink" href="#dlib.svm_c_trainer_linear.max_iterations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_linear.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_linear)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_linear.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_linear.set_prior">
+<code class="descname">set_prior</code><span class="sig-paren">(</span><em>(svm_c_trainer_linear)arg1</em>, <em>(_decision_function_linear)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_linear.set_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_linear.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_linear)arg1</em>, <em>(vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_linear<a class="headerlink" href="#dlib.svm_c_trainer_linear.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_radial_basis">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_radial_basis</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.svm_c_trainer_radial_basis.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_radial_basis.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_radial_basis.cache_size">
+<code class="descname">cache_size</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_radial_basis.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_radial_basis.gamma">
+<code class="descname">gamma</code><a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.gamma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_radial_basis.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_radial_basis)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_radial_basis.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_radial_basis)arg1</em>, <em>(vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_radial_basis<a class="headerlink" href="#dlib.svm_c_trainer_radial_basis.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_sparse_histogram_intersection</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.cache_size">
+<code class="descname">cache_size</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_histogram_intersection)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_histogram_intersection.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_histogram_intersection)arg1</em>, <em>(sparse_vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_sparse_histogram_intersection<a class="headerlink" href="#dlib.svm_c_trainer_sparse_histogram_intersection.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_sparse_linear">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_sparse_linear</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_linear.be_quiet">
+<code class="descname">be_quiet</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_linear)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.be_quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_linear.be_verbose">
+<code class="descname">be_verbose</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_linear)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.force_last_weight_to_1">
+<code class="descname">force_last_weight_to_1</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.force_last_weight_to_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.has_prior">
+<code class="descname">has_prior</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.has_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.learns_nonnegative_weights">
+<code class="descname">learns_nonnegative_weights</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.learns_nonnegative_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_linear.max_iterations">
+<code class="descname">max_iterations</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.max_iterations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_linear.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_linear)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_linear.set_prior">
+<code class="descname">set_prior</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_linear)arg1</em>, <em>(_decision_function_sparse_linear)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.set_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_linear.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_linear)arg1</em>, <em>(sparse_vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_sparse_linear<a class="headerlink" href="#dlib.svm_c_trainer_sparse_linear.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_c_trainer_sparse_radial_basis</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.c_class1">
+<code class="descname">c_class1</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.c_class1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.c_class2">
+<code class="descname">c_class2</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.c_class2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.cache_size">
+<code class="descname">cache_size</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.gamma">
+<code class="descname">gamma</code><a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.gamma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.set_c">
+<code class="descname">set_c</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_radial_basis)arg1</em>, <em>(float)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.set_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_c_trainer_sparse_radial_basis.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_c_trainer_sparse_radial_basis)arg1</em>, <em>(sparse_vectors)arg2</em>, <em>(array)arg3</em><span class="sig-paren">)</span> &#x2192; _decision_function_sparse_radial_basis<a class="headerlink" href="#dlib.svm_c_trainer_sparse_radial_basis.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_rank_trainer">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_rank_trainer</code><a class="headerlink" href="#dlib.svm_rank_trainer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.svm_rank_trainer.be_quiet">
+<code class="descname">be_quiet</code><span class="sig-paren">(</span><em>(svm_rank_trainer)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer.be_quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer.be_verbose">
+<code class="descname">be_verbose</code><span class="sig-paren">(</span><em>(svm_rank_trainer)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.c">
+<code class="descname">c</code><a class="headerlink" href="#dlib.svm_rank_trainer.c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_rank_trainer.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.force_last_weight_to_1">
+<code class="descname">force_last_weight_to_1</code><a class="headerlink" href="#dlib.svm_rank_trainer.force_last_weight_to_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.has_prior">
+<code class="descname">has_prior</code><a class="headerlink" href="#dlib.svm_rank_trainer.has_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.learns_nonnegative_weights">
+<code class="descname">learns_nonnegative_weights</code><a class="headerlink" href="#dlib.svm_rank_trainer.learns_nonnegative_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer.max_iterations">
+<code class="descname">max_iterations</code><a class="headerlink" href="#dlib.svm_rank_trainer.max_iterations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer.set_prior">
+<code class="descname">set_prior</code><span class="sig-paren">(</span><em>(svm_rank_trainer)arg1</em>, <em>(_decision_function_linear)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer.set_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_rank_trainer)arg1</em>, <em>(ranking_pair)arg2</em><span class="sig-paren">)</span> &#x2192; _decision_function_linear<a class="headerlink" href="#dlib.svm_rank_trainer.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>train( (svm_rank_trainer)arg1, (ranking_pairs)arg2) -&gt; _decision_function_linear</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.svm_rank_trainer_sparse">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">svm_rank_trainer_sparse</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="dlib.svm_rank_trainer_sparse.be_quiet">
+<code class="descname">be_quiet</code><span class="sig-paren">(</span><em>(svm_rank_trainer_sparse)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer_sparse.be_quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer_sparse.be_verbose">
+<code class="descname">be_verbose</code><span class="sig-paren">(</span><em>(svm_rank_trainer_sparse)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer_sparse.be_verbose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.c">
+<code class="descname">c</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.force_last_weight_to_1">
+<code class="descname">force_last_weight_to_1</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.force_last_weight_to_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.has_prior">
+<code class="descname">has_prior</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.has_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.learns_nonnegative_weights">
+<code class="descname">learns_nonnegative_weights</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.learns_nonnegative_weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.svm_rank_trainer_sparse.max_iterations">
+<code class="descname">max_iterations</code><a class="headerlink" href="#dlib.svm_rank_trainer_sparse.max_iterations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer_sparse.set_prior">
+<code class="descname">set_prior</code><span class="sig-paren">(</span><em>(svm_rank_trainer_sparse)arg1</em>, <em>(_decision_function_sparse_linear)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.svm_rank_trainer_sparse.set_prior" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.svm_rank_trainer_sparse.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>(svm_rank_trainer_sparse)arg1</em>, <em>(sparse_ranking_pair)arg2</em><span class="sig-paren">)</span> &#x2192; _decision_function_sparse_linear<a class="headerlink" href="#dlib.svm_rank_trainer_sparse.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>train( (svm_rank_trainer_sparse)arg1, (sparse_ranking_pairs)arg2) -&gt; _decision_function_sparse_linear</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_binary_decision_function">
+<code class="descclassname">dlib.</code><code class="descname">test_binary_decision_function</code><span class="sig-paren">(</span><em>(_decision_function_linear)function</em>, <em>(vectors)samples</em>, <em>(array)labels</em><span class="sig-paren">)</span> &#x2192; _binary_test<a class="headerlink" href="#dlib.test_binary_decision_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>test_binary_decision_function( (_decision_function_sparse_linear)function, (sparse_vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_radial_basis)function, (vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_sparse_radial_basis)function, (sparse_vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_polynomial)function, (vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_sparse_polynomial)function, (sparse_vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_histogram_intersection)function, (vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_sparse_histogram_intersection)function, (sparse_vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_sigmoid)function, (vectors)samples, (array)labels) -&gt; _binary_test</p>
+<p>test_binary_decision_function( (_decision_function_sparse_sigmoid)function, (sparse_vectors)samples, (array)labels) -&gt; _binary_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_ranking_function">
+<code class="descclassname">dlib.</code><code class="descname">test_ranking_function</code><span class="sig-paren">(</span><em>(_decision_function_linear)function</em>, <em>(ranking_pairs)samples</em><span class="sig-paren">)</span> &#x2192; _ranking_test<a class="headerlink" href="#dlib.test_ranking_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>test_ranking_function( (_decision_function_sparse_linear)function, (sparse_ranking_pairs)samples) -&gt; _ranking_test</p>
+<p>test_ranking_function( (_decision_function_linear)function, (ranking_pair)sample) -&gt; _ranking_test</p>
+<p>test_ranking_function( (_decision_function_sparse_linear)function, (sparse_ranking_pair)sample) -&gt; _ranking_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_regression_function">
+<code class="descclassname">dlib.</code><code class="descname">test_regression_function</code><span class="sig-paren">(</span><em>(_decision_function_linear)function</em>, <em>(vectors)samples</em>, <em>(array)targets</em><span class="sig-paren">)</span> &#x2192; _regression_test<a class="headerlink" href="#dlib.test_regression_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>test_regression_function( (_decision_function_sparse_linear)function, (sparse_vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_radial_basis)function, (vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_sparse_radial_basis)function, (sparse_vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_histogram_intersection)function, (vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_sparse_histogram_intersection)function, (sparse_vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_sigmoid)function, (vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_sparse_sigmoid)function, (sparse_vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_polynomial)function, (vectors)samples, (array)targets) -&gt; _regression_test</p>
+<p>test_regression_function( (_decision_function_sparse_polynomial)function, (sparse_vectors)samples, (array)targets) -&gt; _regression_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_sequence_segmenter">
+<code class="descclassname">dlib.</code><code class="descname">test_sequence_segmenter</code><span class="sig-paren">(</span><em>(segmenter_type)arg1</em>, <em>(vectorss)arg2</em>, <em>(rangess)arg3</em><span class="sig-paren">)</span> &#x2192; segmenter_test<a class="headerlink" href="#dlib.test_sequence_segmenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>test_sequence_segmenter( (segmenter_type)arg1, (sparse_vectorss)arg2, (rangess)arg3) -&gt; segmenter_test</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_shape_predictor">
+<code class="descclassname">dlib.</code><code class="descname">test_shape_predictor</code><span class="sig-paren">(</span><em>(str)dataset_filename</em>, <em>(str)predictor_filename</em><span class="sig-paren">)</span> &#x2192; float :<a class="headerlink" href="#dlib.test_shape_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Loads an image dataset from dataset_filename.  We assume dataset_filename is 
+a file using the XML format written by save_image_dataset_metadata().</li>
+<li>Loads a shape_predictor from the file predictor_filename.  This means 
+predictor_filename should be a file produced by the train_shape_predictor() 
+routine.</li>
+<li>This function tests the predictor against the dataset and returns the 
+mean average error of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+shape_predictor_trainer() routine.  Therefore, see the documentation 
+for shape_predictor_trainer() for a detailed definition of the mean average error.</li>
+</ul>
+</dd>
+<dt>test_shape_predictor( (list)images, (list)detections, (shape_predictor)shape_predictor) -&gt; float :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>len(images) == len(object_detections)</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>object_detections should be a list of lists of dlib.full_object_detection objects.       Each dlib.full_object_detection contains the bounding box and the lists of points that make up the object parts.</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>shape_predictor should be a file produced by the train_shape_predictor()  
+routine.</li>
+<li>This function tests the predictor against the dataset and returns the 
+mean average error of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+shape_predictor_trainer() routine.  Therefore, see the documentation 
+for shape_predictor_trainer() for a detailed definition of the mean average error.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>test_shape_predictor( (list)images, (list)detections, (list)scales, (shape_predictor)shape_predictor) -&gt; float :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>len(images) == len(object_detections)</li>
+<li>len(object_detections) == len(scales)</li>
+<li>for every sublist in object_detections: len(object_detections[i]) == len(scales[i])</li>
+<li>scales is a list of floating point scales that each predicted part location       should be divided by. Useful for normalization.</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>object_detections should be a list of lists of dlib.full_object_detection objects.       Each dlib.full_object_detection contains the bounding box and the lists of points that make up the object parts.</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>shape_predictor should be a file produced by the train_shape_predictor()  
+routine.</li>
+<li>This function tests the predictor against the dataset and returns the 
+mean average error of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+shape_predictor_trainer() routine.  Therefore, see the documentation 
+for shape_predictor_trainer() for a detailed definition of the mean average error.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.test_simple_object_detector">
+<code class="descclassname">dlib.</code><code class="descname">test_simple_object_detector</code><span class="sig-paren">(</span><em>(str)dataset_filename</em>, <em>(str)detector_filename</em><span class="optional">[</span>, <em>(int)upsampling_amount=-1</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; simple_test_results :<a class="headerlink" href="#dlib.test_simple_object_detector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>Optionally, take the number of times to upsample the testing images (upsampling_amount &gt;= 0).</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Loads an image dataset from dataset_filename.  We assume dataset_filename is 
+a file using the XML format written by save_image_dataset_metadata().</li>
+<li>Loads a simple_object_detector from the file detector_filename.  This means 
+detector_filename should be a file produced by the train_simple_object_detector()  
+routine.</li>
+<li>This function tests the detector against the dataset and returns the 
+precision, recall, and average precision of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+test_object_detection_function() routine.  Therefore, see the documentation 
+for test_object_detection_function() for a detailed definition of these 
+metrics.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>test_simple_object_detector( (list)images, (list)boxes, (fhog_object_detector)detector [, (int)upsampling_amount=0]) -&gt; simple_test_results :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>len(images) == len(boxes)</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>boxes should be a list of lists of dlib.rectangle object.</li>
+<li>Optionally, take the number of times to upsample the testing images (upsampling_amount &gt;= 0).</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Loads a simple_object_detector from the file detector_filename.  This means 
+detector_filename should be a file produced by the train_simple_object_detector() 
+routine.</li>
+<li>This function tests the detector against the dataset and returns the 
+precision, recall, and average precision of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+test_object_detection_function() routine.  Therefore, see the documentation 
+for test_object_detection_function() for a detailed definition of these 
+metrics.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>test_simple_object_detector( (list)images, (list)boxes, (simple_object_detector)detector [, (int)upsampling_amount=-1]) -&gt; simple_test_results :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>len(images) == len(boxes)</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>boxes should be a list of lists of dlib.rectangle object.</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Loads a simple_object_detector from the file detector_filename.  This means 
+detector_filename should be a file produced by the train_simple_object_detector() 
+routine.</li>
+<li>This function tests the detector against the dataset and returns the 
+precision, recall, and average precision of the detector.  In fact, The 
+return value of this function is identical to that of dlib&#8217;s 
+test_object_detection_function() routine.  Therefore, see the documentation 
+for test_object_detection_function() for a detailed definition of these 
+metrics.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.train_sequence_segmenter">
+<code class="descclassname">dlib.</code><code class="descname">train_sequence_segmenter</code><span class="sig-paren">(</span><em>(vectorss)samples</em>, <em>(rangess)segments</em><span class="optional">[</span>, <em>(segmenter_params)params=&lt;BIO</em>, <em>highFeats</em>, <em>signed</em>, <em>win=5</em>, <em>threads=4</em>, <em>eps=0.1</em>, <em>cache=40</em>, <em>non-verbose</em>, <em>C=100&gt;</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; segmenter_type<a class="headerlink" href="#dlib.train_sequence_segmenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>train_sequence_segmenter( (sparse_vectorss)samples, (rangess)segments [, (segmenter_params)params=&lt;BIO,highFeats,signed,win=5,threads=4,eps=0.1,cache=40,non-verbose,C=100&gt;]) -&gt; segmenter_type</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.train_shape_predictor">
+<code class="descclassname">dlib.</code><code class="descname">train_shape_predictor</code><span class="sig-paren">(</span><em>(list)images</em>, <em>(list)object_detections</em>, <em>(shape_predictor_training_options)options</em><span class="sig-paren">)</span> &#x2192; shape_predictor :<a class="headerlink" href="#dlib.train_shape_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>options.lambda_param &gt; 0</li>
+<li>0 &lt; options.nu &lt;= 1</li>
+<li>options.feature_pool_region_padding &gt;= 0</li>
+<li>len(images) == len(object_detections)</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>object_detections should be a list of lists of dlib.full_object_detection objects.       Each dlib.full_object_detection contains the bounding box and the lists of points that make up the object parts.</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Uses dlib&#8217;s shape_predictor_trainer object to train a 
+shape_predictor based on the provided labeled images, full_object_detections, and options.</li>
+<li>The trained shape_predictor is returned</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>train_shape_predictor( (str)dataset_filename, (str)predictor_output_filename, (shape_predictor_training_options)options) -&gt; None :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>options.lambda_param &gt; 0</li>
+<li>0 &lt; options.nu &lt;= 1</li>
+<li>options.feature_pool_region_padding &gt;= 0</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Uses dlib&#8217;s shape_predictor_trainer to train a 
+shape_predictor based on the labeled images in the XML file 
+dataset_filename and the provided options.  This function assumes the file dataset_filename is in the 
+XML format produced by dlib&#8217;s save_image_dataset_metadata() routine.</li>
+<li>The trained shape predictor is serialized to the file predictor_output_filename.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="dlib.train_simple_object_detector">
+<code class="descclassname">dlib.</code><code class="descname">train_simple_object_detector</code><span class="sig-paren">(</span><em>(str)dataset_filename</em>, <em>(str)detector_output_filename</em>, <em>(simple_object_detector_training_options)options</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#dlib.train_simple_object_detector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>requires </dt>
+<dd><blockquote class="first">
+<div><ul class="simple">
+<li>options.C &gt; 0</li>
+</ul>
+</div></blockquote>
+<dl class="last docutils">
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Uses the structural_object_detection_trainer to train a 
+simple_object_detector based on the labeled images in the XML file 
+dataset_filename.  This function assumes the file dataset_filename is in the 
+XML format produced by dlib&#8217;s save_image_dataset_metadata() routine.</li>
+<li>This function will apply a reasonable set of default parameters and 
+preprocessing techniques to the training procedure for simple_object_detector 
+objects.  So the point of this function is to provide you with a very easy 
+way to train a basic object detector.</li>
+<li>The trained object detector is serialized to the file detector_output_filename.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>train_simple_object_detector( (list)images, (list)boxes, (simple_object_detector_training_options)options) -&gt; simple_object_detector :</dt>
+<dd><dl class="first last docutils">
+<dt>requires </dt>
+<dd><ul class="first last simple">
+<li>options.C &gt; 0</li>
+<li>len(images) == len(boxes)</li>
+<li>images should be a list of numpy matrices that represent images, either RGB or grayscale.</li>
+<li>boxes should be a list of lists of dlib.rectangle object.</li>
+</ul>
+</dd>
+<dt>ensures </dt>
+<dd><ul class="first last simple">
+<li>Uses the structural_object_detection_trainer to train a 
+simple_object_detector based on the labeled images and bounding boxes.</li>
+<li>This function will apply a reasonable set of default parameters and 
+preprocessing techniques to the training procedure for simple_object_detector 
+objects.  So the point of this function is to provide you with a very easy 
+way to train a basic object detector.</li>
+<li>The trained object detector is returned.</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.vector">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">vector</code><a class="headerlink" href="#dlib.vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents the mathematical idea of a column vector.</p>
+<dl class="method">
+<dt id="dlib.vector.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(vector)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vector.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vector.set_size">
+<code class="descname">set_size</code><span class="sig-paren">(</span><em>(vector)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vector.set_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dlib.vector.shape">
+<code class="descname">shape</code><a class="headerlink" href="#dlib.vector.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.vectors">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">vectors</code><a class="headerlink" href="#dlib.vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of vector objects.</p>
+<dl class="method">
+<dt id="dlib.vectors.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(vectors)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectors.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectors.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(vectors)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectors.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectors.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(vectors)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectors.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectors.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(vectors)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectors.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dlib.vectorss">
+<em class="property">class </em><code class="descclassname">dlib.</code><code class="descname">vectorss</code><a class="headerlink" href="#dlib.vectorss" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object is an array of arrays of vector objects.</p>
+<dl class="method">
+<dt id="dlib.vectorss.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>(vectorss)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectorss.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectorss.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>(vectorss)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectorss.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectorss.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>(vectorss)arg1</em>, <em>(object)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectorss.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dlib.vectorss.resize">
+<code class="descname">resize</code><span class="sig-paren">(</span><em>(vectorss)arg1</em>, <em>(int)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dlib.vectorss.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#detailed-api-listing">Detailed API Listing</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">dlib  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2013, Davis E. King.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.5.
+    </div>
+  </body>
+</html>

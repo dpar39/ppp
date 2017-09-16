@@ -1,0 +1,187 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cuda_data_ptr.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2017  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuDA_DATA_PTR_H_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuDA_DATA_PTR_H_
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>vector<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda
+    <b>{</b>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='cuda_data_void_ptr'></a>cuda_data_void_ptr</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This is a block of memory on a CUDA device.  
+            !*/</font>
+        <font color='#0000FF'>public</font>:
+
+            <b><a name='cuda_data_void_ptr'></a>cuda_data_void_ptr</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+
+            <b><a name='cuda_data_void_ptr'></a>cuda_data_void_ptr</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> n<font face='Lucida Console'>)</font>; 
+            <font color='#009900'>/*!
+                ensures
+                    - This object will allocate a device memory buffer of n bytes.
+                    - #size() == n
+            !*/</font>
+
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='data'></a>data</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> pdata.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='data'></a>data</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> pdata.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <b><a name='operator'></a>operator</b> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> pdata.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <b><a name='operator'></a>operator</b> <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> pdata.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='reset'></a>reset</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> pdata.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+            <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> num; <b>}</b>
+            <font color='#009900'>/*!
+                ensures
+                    - returns the length of this buffer, in bytes.
+            !*/</font>
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>size_t</u></font> num <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            std::shared_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>void</u></font><font color='#5555FF'>&gt;</font> pdata;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> dest,
+            <font color='#0000FF'>const</font> cuda_data_void_ptr<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - dest == a pointer to at least src.size() bytes on the host machine.
+            ensures
+                - copies the GPU data from src into dest.
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b><font face='Lucida Console'>(</font>
+            cuda_data_void_ptr<font color='#5555FF'>&amp;</font> dest, 
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - dest == a pointer to at least src.size() bytes on the host machine.
+            ensures
+                - copies the host data from src to the GPU memory buffer dest.
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>class</font> <b><a name='cuda_data_ptr'></a>cuda_data_ptr</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This is a block of memory on a CUDA device.   It is just a type safe
+                    version of cuda_data_void_ptr.
+            !*/</font>
+
+        <font color='#0000FF'>public</font>:
+
+            <b><a name='static_assert'></a>static_assert</b><font face='Lucida Console'>(</font>std::is_standard_layout<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::value, "<font color='#CC0000'>You can only create basic standard layout types on the GPU</font>"<font face='Lucida Console'>)</font>;
+
+            <b><a name='cuda_data_ptr'></a>cuda_data_ptr</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+            <b><a name='cuda_data_ptr'></a>cuda_data_ptr</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> n<font face='Lucida Console'>)</font> : num<font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font>
+            <font color='#009900'>/*!
+                ensures
+                    - This object will allocate a device memory buffer of n T objects.
+                    - #size() == n
+            !*/</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>n <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font>;
+
+                pdata <font color='#5555FF'>=</font> <font color='#BB00BB'>cuda_data_void_ptr</font><font face='Lucida Console'>(</font>n<font color='#5555FF'>*</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>T<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            T<font color='#5555FF'>*</font> <b><a name='data'></a>data</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font>T<font color='#5555FF'>*</font><font face='Lucida Console'>)</font>pdata.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <font color='#0000FF'>const</font> T<font color='#5555FF'>*</font> <b><a name='data'></a>data</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font>T<font color='#5555FF'>*</font><font face='Lucida Console'>)</font>pdata.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+            <b><a name='operator'></a>operator</b> T<font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font>T<font color='#5555FF'>*</font><font face='Lucida Console'>)</font>pdata.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <b><a name='operator'></a>operator</b> <font color='#0000FF'>const</font> T<font color='#5555FF'>*</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font face='Lucida Console'>(</font>T<font color='#5555FF'>*</font><font face='Lucida Console'>)</font>pdata.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='reset'></a>reset</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> pdata.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+            <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> num; <b>}</b>
+
+
+            <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b><font face='Lucida Console'>(</font>
+                std::vector<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> dest,
+                <font color='#0000FF'>const</font> cuda_data_ptr<font color='#5555FF'>&amp;</font> src
+            <font face='Lucida Console'>)</font>
+            <b>{</b>
+                dest.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, src.pdata<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b><font face='Lucida Console'>(</font>
+                cuda_data_ptr<font color='#5555FF'>&amp;</font> src,
+                <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> dest
+            <font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    dest <font color='#5555FF'>=</font> cuda_data_ptr<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    <font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>src.pdata, dest.<font color='#BB00BB'>data</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>size_t</u></font> num <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+            cuda_data_void_ptr pdata;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='resizable_cuda_buffer'></a>resizable_cuda_buffer</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                WHAT THIS OBJECT REPRESENTS
+                    This is a block of memory on a CUDA device that will be automatically
+                    resized if requested size is larger than allocated.
+            !*/</font>
+        <font color='#0000FF'>public</font>:
+            cuda_data_void_ptr <b><a name='get'></a>get</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> size<font face='Lucida Console'>)</font>
+            <font color='#009900'>/*!
+                ensures
+                    - This object will return the buffer of requested size of larger
+                    - buffer.size() &gt;= size
+            !*/</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>buffer.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> size<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    buffer.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                    buffer <font color='#5555FF'>=</font> <font color='#BB00BB'>cuda_data_void_ptr</font><font face='Lucida Console'>(</font>size<font face='Lucida Console'>)</font>;
+                <b>}</b>
+                <font color='#0000FF'>return</font> buffer;
+            <b>}</b>
+        <font color='#0000FF'>private</font>:
+            cuda_data_void_ptr buffer;
+        <b>}</b>;
+
+    <b>}</b>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuDA_DATA_PTR_H_
+</font>
+
+</pre></body></html>

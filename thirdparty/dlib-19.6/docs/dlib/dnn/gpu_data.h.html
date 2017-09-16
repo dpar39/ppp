@@ -1,0 +1,269 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - gpu_data.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_GPU_DaTA_H_
+<font color='#0000FF'>#define</font> DLIB_GPU_DaTA_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='gpu_data_abstract.h.html'>gpu_data_abstract.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>cstring<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_errors.h.html'>cuda_errors.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../serialize.h.html'>../serialize.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='gpu_data'></a>gpu_data</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            CONVENTION
+                - if (size() != 0) then
+                    - data_host == a pointer to size() floats in CPU memory.
+                - if (data_device) then 
+                    - data_device == a pointer to size() floats in device memory.
+
+                - if (there might be an active async transfer from host to device) then
+                    - have_active_transfer == true
+
+                - We use the host_current and device_current bools to keep track of which
+                  copy of the data (or both) are most current.  e.g. if the CPU has
+                  modified the data and it hasn't been copied to the device yet then
+                  host_current==true and device_current==false.
+
+                  Similarly, we use device_in_use==true to indicate that device() has been
+                  called and no operation to wait for all CUDA kernel completion has been
+                  executed.  So if device_in_use==true then there might be a CUDA kernel
+                  executing that is using the device memory block contained in this object.
+
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='gpu_data'></a>gpu_data</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : data_size<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>, host_current<font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>, device_current<font face='Lucida Console'>(</font><font color='#979000'>true</font><font face='Lucida Console'>)</font>,have_active_transfer<font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>,device_in_use<font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>, the_device_id<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+        <b>}</b>
+
+        <font color='#009900'>// Not copyable
+</font>        <b><a name='gpu_data'></a>gpu_data</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        gpu_data<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <font color='#009900'>// but is movable
+</font>        <b><a name='gpu_data'></a>gpu_data</b><font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> : gpu_data<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <b>}</b>
+        gpu_data<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <font color='#0000FF'>return</font> <font color='#5555FF'>*</font><font color='#0000FF'>this</font>; <b>}</b>
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='device_id'></a>device_id</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> the_device_id; <b>}</b>
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        <font color='#0000FF'><u>void</u></font> <b><a name='async_copy_to_device'></a>async_copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_size'></a>set_size</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> new_size<font face='Lucida Console'>)</font>;
+<font color='#0000FF'>#else</font>
+        <font color='#009900'>// Note that calls to host() or device() will block until any async transfers are complete.
+</font>        <font color='#0000FF'><u>void</u></font> <b><a name='async_copy_to_device'></a>async_copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font><b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_size'></a>set_size</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> new_size<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>new_size <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                data_size <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+                host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+                device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+                device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+                data_host.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                data_device.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>new_size <font color='#5555FF'>!</font><font color='#5555FF'>=</font> data_size<font face='Lucida Console'>)</font>
+            <b>{</b>
+                data_size <font color='#5555FF'>=</font> new_size;
+                host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+                device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+                device_in_use <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+                data_host.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font color='#0000FF'>new</font> <font color='#0000FF'><u>float</u></font>[new_size], std::default_delete<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font>[]<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                data_device.<font color='#BB00BB'>reset</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+<font color='#0000FF'>#endif</font>
+
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host'></a>host</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> 
+        <b>{</b> 
+            <font color='#BB00BB'>copy_to_host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> data_host.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host'></a>host</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+            <font color='#BB00BB'>copy_to_host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <font color='#0000FF'>return</font> data_host.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='host_write_only'></a>host_write_only</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            <font color='#0000FF'>return</font> data_host.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device'></a>device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> 
+        <b>{</b> 
+<font color='#0000FF'>#ifndef</font> DLIB_USE_CUDA
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>false</font>, "<font color='#CC0000'>CUDA NOT ENABLED</font>"<font face='Lucida Console'>)</font>;
+<font color='#0000FF'>#endif</font>
+            <font color='#BB00BB'>copy_to_device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <font color='#0000FF'>return</font> data_device.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device'></a>device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+<font color='#0000FF'>#ifndef</font> DLIB_USE_CUDA
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>false</font>, "<font color='#CC0000'>CUDA NOT ENABLED</font>"<font face='Lucida Console'>)</font>;
+<font color='#0000FF'>#endif</font>
+            <font color='#BB00BB'>copy_to_device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <font color='#0000FF'>return</font> data_device.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>float</u></font><font color='#5555FF'>*</font> <b><a name='device_write_only'></a>device_write_only</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+<font color='#0000FF'>#ifndef</font> DLIB_USE_CUDA
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>false</font>, "<font color='#CC0000'>CUDA NOT ENABLED</font>"<font face='Lucida Console'>)</font>;
+<font color='#0000FF'>#endif</font>
+            <font color='#BB00BB'>wait_for_transfer_to_finish</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            host_current <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+            device_current <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            device_in_use <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <font color='#0000FF'>return</font> data_device.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='host_ready'></a>host_ready</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> host_current; <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='device_ready'></a>device_ready</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> device_current <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font color='#5555FF'>!</font>have_active_transfer; <b>}</b>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='size'></a>size</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> data_size; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='swap'></a>swap</b> <font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>data_size, item.data_size<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>host_current, item.host_current<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>device_current, item.device_current<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>have_active_transfer, item.have_active_transfer<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>data_host, item.data_host<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>data_device, item.data_device<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>cuda_stream, item.cuda_stream<font face='Lucida Console'>)</font>;
+            std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>the_device_id, item.the_device_id<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_to_device'></a>copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_to_host'></a>copy_to_host</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='wait_for_transfer_to_finish'></a>wait_for_transfer_to_finish</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+<font color='#0000FF'>#else</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_to_device'></a>copy_to_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font><b>{</b><b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_to_host'></a>copy_to_host</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font><b>{</b><b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='wait_for_transfer_to_finish'></a>wait_for_transfer_to_finish</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font><b>{</b><b>}</b>
+<font color='#0000FF'>#endif</font>
+
+
+        <font color='#0000FF'><u>size_t</u></font> data_size;
+        <font color='#0000FF'>mutable</font> <font color='#0000FF'><u>bool</u></font> host_current;
+        <font color='#0000FF'>mutable</font> <font color='#0000FF'><u>bool</u></font> device_current;
+        <font color='#0000FF'>mutable</font> <font color='#0000FF'><u>bool</u></font> have_active_transfer;
+        <font color='#0000FF'>mutable</font> <font color='#0000FF'><u>bool</u></font> device_in_use;
+
+        std::shared_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> data_host;
+        std::shared_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> data_device;
+        std::shared_ptr<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>void</u></font><font color='#5555FF'>&gt;</font> cuda_stream;
+        <font color='#0000FF'><u>int</u></font> the_device_id;
+    <b>}</b>;
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'><u>int</u></font> version <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+        <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>version, out<font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, out<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>auto</font> data <font color='#5555FF'>=</font> item.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>data[i], out<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'><u>int</u></font> version;
+        <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::gpu_data.</font>"<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>size_t</u></font> s;
+        <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>s, in<font face='Lucida Console'>)</font>;
+        item.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>s<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>auto</font> data <font color='#5555FF'>=</font> item.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>data[i], in<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+    <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font> dest, <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src<font face='Lucida Console'>)</font>;
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>
+        gpu_data<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'><u>size_t</u></font> dest_offset,
+        <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'><u>size_t</u></font> src_offset,
+        <font color='#0000FF'><u>size_t</u></font> num
+    <font face='Lucida Console'>)</font>;
+
+<font color='#0000FF'>#else</font>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>gpu_data<font color='#5555FF'>&amp;</font> dest, <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font color='#5555FF'>&amp;</font>dest <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>&amp;</font>src<font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font>;
+        std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host_write_only</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='memcpy'></a>memcpy</b> <font face='Lucida Console'>(</font>
+        gpu_data<font color='#5555FF'>&amp;</font> dest, 
+        <font color='#0000FF'><u>size_t</u></font> dest_offset,
+        <font color='#0000FF'>const</font> gpu_data<font color='#5555FF'>&amp;</font> src,
+        <font color='#0000FF'><u>size_t</u></font> src_offset,
+        <font color='#0000FF'><u>size_t</u></font> num
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>+</font> num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>src_offset <font color='#5555FF'>+</font> num <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> src.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>dest <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#5555FF'>&amp;</font>src <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>dest_offset, src_offset<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>dest_offset,src_offset<font face='Lucida Console'>)</font><font color='#5555FF'>+</font>num<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// if they perfectly alias each other then there is nothing to do
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>=</font><font color='#5555FF'>=</font> src_offset<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>return</font>;
+            <font color='#0000FF'>else</font>
+                std::<font color='#BB00BB'>memmove</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num<font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>else</font>
+        <b>{</b>
+            <font color='#009900'>// if we write to the entire thing then we can use host_write_only()
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>dest_offset <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> num <font color='#5555FF'>=</font><font color='#5555FF'>=</font> dest.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host_write_only</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>else</font>
+                std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>dest.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>dest_offset, src.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>src_offset, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>float</u></font><font face='Lucida Console'>)</font><font color='#5555FF'>*</font>num<font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+<font color='#0000FF'>#endif</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_GPU_DaTA_H_
+</font>
+
+</pre></body></html>

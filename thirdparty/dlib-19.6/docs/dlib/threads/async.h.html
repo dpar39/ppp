@@ -1,0 +1,108 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - async.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_AsYNC_Hh_
+<font color='#0000FF'>#define</font> DLIB_AsYNC_Hh_ 
+
+<font color='#009900'>// C++11 things don't work in old versions of visual studio 
+</font><font color='#0000FF'>#if</font> <font color='#5555FF'>!</font>defined<font face='Lucida Console'>(</font> _MSC_VER<font face='Lucida Console'>)</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font>  _MSC_VER <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>1900</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='async_abstract.h.html'>async_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='thread_pool_extension.h.html'>thread_pool_extension.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>future<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>functional<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>namespace</font> impl
+    <b>{</b>
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'>struct</font> <b><a name='selector'></a>selector</b> <b>{</b><b>}</b>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U, <font color='#0000FF'>typename</font> V<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='call_prom_set_value'></a>call_prom_set_value</b><font face='Lucida Console'>(</font>
+            T<font color='#5555FF'>&amp;</font> prom,
+            U<font color='#5555FF'>&amp;</font> fun,
+            selector<font color='#5555FF'>&lt;</font>V<font color='#5555FF'>&gt;</font> 
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            prom.<font color='#BB00BB'>set_value</font><font face='Lucida Console'>(</font><font color='#BB00BB'>fun</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> U<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='call_prom_set_value'></a>call_prom_set_value</b><font face='Lucida Console'>(</font>
+            T<font color='#5555FF'>&amp;</font> prom,
+            U<font color='#5555FF'>&amp;</font> fun,
+            selector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>void</u></font><font color='#5555FF'>&gt;</font>
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>fun</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            prom.<font color='#BB00BB'>set_value</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    thread_pool<font color='#5555FF'>&amp;</font> <b><a name='default_thread_pool'></a>default_thread_pool</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> 
+        <font color='#0000FF'>typename</font> Function, 
+        <font color='#0000FF'>typename</font> ...Args
+        <font color='#5555FF'>&gt;</font>
+    std::future<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><b><a name='Function'></a>Function</b><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font> <b><a name='async'></a>async</b><font face='Lucida Console'>(</font>
+        thread_pool<font color='#5555FF'>&amp;</font> tp, 
+        Function<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> f, 
+        Args<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>... args 
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>auto</font> prom <font color='#5555FF'>=</font> std::make_shared<font color='#5555FF'>&lt;</font>std::promise<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><font color='#BB00BB'>Function</font><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        std::future<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><font color='#BB00BB'>Function</font><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font> ret <font color='#5555FF'>=</font> prom<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>get_future</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>using</font> bind_t <font color='#5555FF'>=</font> <font color='#BB00BB'>decltype</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>bind</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>Function<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>f<font face='Lucida Console'>)</font>, std::forward<font color='#5555FF'>&lt;</font>Args<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>auto</font> fun <font color='#5555FF'>=</font> std::make_shared<font color='#5555FF'>&lt;</font>bind_t<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>bind</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>Function<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>f<font face='Lucida Console'>)</font>, std::forward<font color='#5555FF'>&lt;</font>Args<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        tp.<font color='#BB00BB'>add_task_by_value</font><font face='Lucida Console'>(</font>[fun, prom]<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+        <b>{</b> 
+            <font color='#0000FF'>try</font>
+            <b>{</b>
+                impl::<font color='#BB00BB'>call_prom_set_value</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>prom, <font color='#5555FF'>*</font>fun, impl::selector<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><font color='#BB00BB'>Function</font><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>...<font face='Lucida Console'>)</font>
+            <b>{</b>
+                prom<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>set_exception</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>current_exception</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>return</font> std::<font color='#BB00BB'>move</font><font face='Lucida Console'>(</font>ret<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font> 
+        <font color='#0000FF'>typename</font> Function, 
+        <font color='#0000FF'>typename</font> ...Args
+        <font color='#5555FF'>&gt;</font>
+    std::future<font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> std::result_of<font color='#5555FF'>&lt;</font><b><a name='Function'></a>Function</b><font face='Lucida Console'>(</font>Args...<font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type<font color='#5555FF'>&gt;</font> <b><a name='async'></a>async</b><font face='Lucida Console'>(</font>
+        Function<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> f, 
+        Args<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font>... args 
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>return</font> <font color='#BB00BB'>async</font><font face='Lucida Console'>(</font><font color='#BB00BB'>default_thread_pool</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, std::forward<font color='#5555FF'>&lt;</font>Function<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>f<font face='Lucida Console'>)</font>, std::forward<font color='#5555FF'>&lt;</font>Args<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#ifdef</font> NO_MAKEFILE
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='async.cpp.html'>async.cpp</a>"
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#endif</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_AsYNC_Hh_
+</font>
+
+
+
+</pre></body></html>

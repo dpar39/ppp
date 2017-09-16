@@ -1,0 +1,440 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cuda_dlib.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuDA_H_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuDA_H_
+
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor.h.html'>tensor.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../geometry/rectangle.h.html'>../geometry/rectangle.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>namespace</font> cuda 
+    <b>{</b>
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_device'></a>set_device</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> dev
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='get_device'></a>get_device</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='get_num_devices'></a>get_num_devices</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        std::string <b><a name='get_device_name'></a>get_device_name</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> device
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_current_device_blocking_sync'></a>set_current_device_blocking_sync</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='can_access_peer'></a>can_access_peer</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> device_id, <font color='#0000FF'><u>int</u></font> peer_device_id<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>bool</u></font> <b><a name='can_access_peer'></a>can_access_peer</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> device, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> peer_device<font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='device_synchronize'></a>device_synchronize</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> dev<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='device_synchronize'></a>device_synchronize</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dev<font face='Lucida Console'>)</font>;
+
+
+        <font color='#0000FF'>class</font> <b><a name='raii_set_device'></a>raii_set_device</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+            <b><a name='raii_set_device'></a>raii_set_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            <b><a name='raii_set_device'></a>raii_set_device</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> raii_set_device<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            raii_set_device<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> raii_set_device<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='raii_set_device'></a>raii_set_device</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> dev<font face='Lucida Console'>)</font>
+            <b>{</b>
+                prev_dev <font color='#5555FF'>=</font> <font color='#BB00BB'>get_device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>set_device</font><font face='Lucida Console'>(</font>dev<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <b><a name='raii_set_device'></a>raii_set_device</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dev<font face='Lucida Console'>)</font>
+            <b>{</b>
+                prev_dev <font color='#5555FF'>=</font> <font color='#BB00BB'>get_device</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>set_device</font><font face='Lucida Console'>(</font>dev.<font color='#BB00BB'>device_id</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> dev<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>set_device</font><font face='Lucida Console'>(</font>dev<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dev<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>set_device</font><font face='Lucida Console'>(</font>dev.<font color='#BB00BB'>device_id</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            ~<b><a name='raii_set_device'></a>raii_set_device</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b><a name='noexcept'></a>noexcept</b><font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>set_device</font><font face='Lucida Console'>(</font>prev_dev<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <font color='#0000FF'>private</font>:
+            <font color='#0000FF'><u>int</u></font> prev_dev;
+        <b>}</b>;
+
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+        <font color='#0000FF'>class</font> <b><a name='enable_peer_access'></a>enable_peer_access</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> enable_peer_access<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            enable_peer_access<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> enable_peer_access<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font> device_id,
+                <font color='#0000FF'><u>int</u></font> peer_device_id
+            <font face='Lucida Console'>)</font>;
+
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> device,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> peer_device
+            <font face='Lucida Console'>)</font> : enable_peer_access<font face='Lucida Console'>(</font>device.device_id<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, peer_device.device_id<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <b>{</b><b>}</b>
+
+            ~<b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b><a name='noexcept'></a>noexcept</b><font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>bool</u></font> call_disable;
+            <font color='#0000FF'><u>int</u></font> device_id;
+            <font color='#0000FF'><u>int</u></font> peer_device_id;
+        <b>}</b>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='inverse_norms'></a>inverse_norms</b> <font face='Lucida Console'>(</font>
+            resizable_tensor<font color='#5555FF'>&amp;</font> invnorms,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='dot_prods'></a>dot_prods</b> <font face='Lucida Console'>(</font>
+            resizable_tensor<font color='#5555FF'>&amp;</font> out,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> lhs,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> rhs
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='scale_columns'></a>scale_columns</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> out,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='scale_rows'></a>scale_rows</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> out,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='scale_rows2'></a>scale_rows2</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> beta, 
+            tensor<font color='#5555FF'>&amp;</font> out,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> m2,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> v2
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='exp'></a>exp</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='log'></a>log</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='log10'></a>log10</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_tensor'></a>set_tensor</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> t,
+            <font color='#0000FF'><u>float</u></font> value
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='scale_tensor'></a>scale_tensor</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> t,
+            <font color='#0000FF'><u>float</u></font> value
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='multiply'></a>multiply</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> add_to,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='multiply_conv'></a>multiply_conv</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> add_to,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='multiply_zero_padded'></a>multiply_zero_padded</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> add_to,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='add'></a>add</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> D
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform_range'></a>affine_transform_range</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> begin,
+            <font color='#0000FF'><u>size_t</u></font> end,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> A,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> B,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> C
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> rectangle<font color='#5555FF'>&amp;</font> rect,
+            tensor<font color='#5555FF'>&amp;</font> dest, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src1, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src2, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src3, 
+            <font color='#0000FF'><u>float</u></font> A, 
+            <font color='#0000FF'><u>float</u></font> B,
+            <font color='#0000FF'><u>float</u></font> C
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// Note that this function isn't in the tt:: namespace because add_scaled() is
+</font>        <font color='#009900'>// called by cuda::add() so we don't need a tt:: version of add_scaled().  
+</font>        <font color='#0000FF'><u>void</u></font> <b><a name='add_scaled'></a>add_scaled</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> scale,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='add_cv_to_all_columns'></a>add_cv_to_all_columns</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> beta, 
+            tensor<font color='#5555FF'>&amp;</font> dest, 
+            <font color='#0000FF'><u>float</u></font> alpha, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform'></a>affine_transform</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> A,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> B
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='affine_transform_conv'></a>affine_transform_conv</b><font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> A,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> B
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='compute_adam_update'></a>compute_adam_update</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> begin,
+            <font color='#0000FF'><u>size_t</u></font> end,
+            tensor<font color='#5555FF'>&amp;</font> s,
+            tensor<font color='#5555FF'>&amp;</font> m,
+            tensor<font color='#5555FF'>&amp;</font> v,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> t,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> learning_rate,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> weight_decay,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> momentum1,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> momentum2,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='assign_bias_gradient'></a>assign_bias_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='threshold'></a>threshold</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>float</u></font> thresh
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='dot'></a>dot</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> a,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> b,
+            tensor<font color='#5555FF'>&amp;</font> result,
+            <font color='#0000FF'><u>size_t</u></font> idx
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='prelu'></a>prelu</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> param
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='prelu_gradient'></a>prelu_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> param,
+            tensor<font color='#5555FF'>&amp;</font> params_grad 
+        <font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='resize_bilinear'></a>resize_bilinear</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='resize_bilinear_gradient'></a>resize_bilinear_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='copy_tensor'></a>copy_tensor</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> add_to,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'><u>size_t</u></font> dest_k_offset,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'><u>size_t</u></font> src_k_offset,
+            <font color='#0000FF'><u>size_t</u></font> count_k
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#else</font> <font color='#009900'>// if DLIB_USE_CUDA NOT DEFINED
+</font>
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='set_device'></a>set_device</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> id
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>id <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>, "<font color='#CC0000'>dlib::cuda::set_device(id) called with an invalid device id.</font>"<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='get_device'></a>get_device</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font><b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>0</font>; <b>}</b>
+
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>int</u></font> <b><a name='get_num_devices'></a>get_num_devices</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>1</font>; <b>}</b>
+
+        <font color='#0000FF'>inline</font> std::string <b><a name='get_device_name'></a>get_device_name</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>int</u></font> device
+        <font face='Lucida Console'>)</font> 
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>device <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>, "<font color='#CC0000'>dlib::cuda::set_device(id) called with an invalid device id.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> "<font color='#CC0000'>CUDA_DISABLED</font>";
+        <b>}</b>
+
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='set_current_device_blocking_sync'></a>set_current_device_blocking_sync</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>bool</u></font> <b><a name='can_access_peer'></a>can_access_peer</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> , <font color='#0000FF'><u>int</u></font> <font face='Lucida Console'>)</font>
+        <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>false</font>; <b>}</b>
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>bool</u></font> <b><a name='can_access_peer'></a>can_access_peer</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> , <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font face='Lucida Console'>)</font>
+        <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>false</font>; <b>}</b>
+
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='device_synchronize'></a>device_synchronize</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> <font face='Lucida Console'>)</font><b>{</b><b>}</b>
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='device_synchronize'></a>device_synchronize</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font face='Lucida Console'>)</font><b>{</b><b>}</b>
+
+        <font color='#0000FF'>class</font> <b><a name='enable_peer_access'></a>enable_peer_access</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> enable_peer_access<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            enable_peer_access<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> enable_peer_access<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font> <font color='#0000FF'><u>int</u></font>, <font color='#0000FF'><u>int</u></font> <font face='Lucida Console'>)</font><b>{</b><b>}</b>
+            <b><a name='enable_peer_access'></a>enable_peer_access</b><font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font>, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <b>}</b>;
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+    <b>}</b> 
+<b>}</b>
+
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuDA_H_
+</font>
+
+</pre></body></html>

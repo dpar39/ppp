@@ -1,0 +1,226 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - subprocess_stream.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_SUBPROCeSS_STREAM_H_
+<font color='#0000FF'>#define</font> DLIB_SUBPROCeSS_STREAM_H_
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>utility<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>unistd.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>matrix.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>types.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sys<font color='#5555FF'>/</font>socket.h<font color='#5555FF'>&gt;</font>
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// --------------------------------------------------------------------------------------
+</font>
+    <font color='#009900'>// Call dlib's serialize and deserialize by default.   The point of this version of
+</font>    <font color='#009900'>// serialize is to do something fast that normally we wouldn't do, like directly copy
+</font>    <font color='#009900'>// memory.  This is safe since this is an interprocess communication happening the same
+</font>    <font color='#009900'>// machine.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='interprocess_serialize'></a>interprocess_serialize</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item, out<font face='Lucida Console'>)</font>; <b>}</b> 
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='interprocess_deserialize'></a>interprocess_deserialize</b> <font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item, in<font face='Lucida Console'>)</font>; <b>}</b> 
+
+    <font color='#009900'>// But have overloads for direct memory copies for some types since this is faster than
+</font>    <font color='#009900'>// their default serialization.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='interprocess_serialize'></a>interprocess_serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> dlib::matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+    <b>{</b>
+        dlib::<font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, out<font face='Lucida Console'>)</font>;
+        dlib::<font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, out<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            out.<font color='#BB00BB'>write</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font><font color='#5555FF'>&amp;</font><font color='#BB00BB'>item</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font>, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>T<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>out<font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error writing matrix to interprocess iostream.</font>"<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='interprocess_deserialize'></a>interprocess_deserialize</b><font face='Lucida Console'>(</font>dlib::matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'><u>long</u></font> nr, nc;
+        dlib::<font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nr, in<font face='Lucida Console'>)</font>;
+        dlib::<font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nc, in<font face='Lucida Console'>)</font>;
+        item.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>nr,nc<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            in.<font color='#BB00BB'>read</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font face='Lucida Console'>)</font><font color='#5555FF'>&amp;</font><font color='#BB00BB'>item</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font>, <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>T<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>item.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>in<font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error reading matrix from interprocess iostream.</font>"<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>namespace</font> impl<b>{</b> std::iostream<font color='#5555FF'>&amp;</font> <b><a name='get_data_iostream'></a>get_data_iostream</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='send_to_parent_process'></a>send_to_parent_process</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b>impl::<font color='#BB00BB'>get_data_iostream</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>flush</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> U, <font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='send_to_parent_process'></a>send_to_parent_process</b><font face='Lucida Console'>(</font>U<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> arg1, T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args<font face='Lucida Console'>)</font>
+    <font color='#009900'>/*!
+        ensures
+            - sends all the arguments to send_to_parent_process() to the parent process by
+              serializing them with interprocess_serialize().
+    !*/</font>
+    <b>{</b>
+        <font color='#BB00BB'>interprocess_serialize</font><font face='Lucida Console'>(</font>arg1, impl::<font color='#BB00BB'>get_data_iostream</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>send_to_parent_process</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>impl::<font color='#BB00BB'>get_data_iostream</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error sending object to parent process.</font>"<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='receive_from_parent_process'></a>receive_from_parent_process</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> U, <font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='receive_from_parent_process'></a>receive_from_parent_process</b><font face='Lucida Console'>(</font>U<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> arg1, T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args<font face='Lucida Console'>)</font>
+    <font color='#009900'>/*!
+        ensures
+            - receives all the arguments to receive_from_parent_process() from the parent
+              process by deserializing them from interprocess_serialize().
+    !*/</font>
+    <b>{</b>
+        <font color='#BB00BB'>interprocess_deserialize</font><font face='Lucida Console'>(</font>arg1, impl::<font color='#BB00BB'>get_data_iostream</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#BB00BB'>receive_from_parent_process</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>impl::<font color='#BB00BB'>get_data_iostream</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error receiving object from parent process.</font>"<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> filestreambuf;
+
+    <font color='#0000FF'>class</font> <b><a name='subprocess_stream'></a>subprocess_stream</b> : noncopyable
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is a tool for spawning a subprocess and communicating with it.  Here
+                is an example: 
+
+                    subprocess_stream s("/usr/bin/some_program");
+                    s.send(obj1, obj2, obj3);
+                    s.receive(obj4, obj5);
+                    s.wait(); // wait for sub process to terminate 
+
+                Then in the sub process you would have:
+
+                    receive_from_parent_process(obj1, obj2, obj3);
+                    // do stuff
+                    cout &lt;&lt; "echo this text to parent cout" &lt;&lt; endl;
+                    send_to_parent_process(obj4, obj5);
+
+
+                Additionally, if the sub process writes to its standard out then that will
+                be echoed to std::cout in the parent process.  Writing to std::cerr or
+                returning a non-zero value from main will also be noted by the parent
+                process and an appropriate exception will be thrown.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>explicit</font> <b><a name='subprocess_stream'></a>subprocess_stream</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> program_name
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - spawns a sub process by executing the file with the given program_name.
+        !*/</font>
+
+        ~<b><a name='subprocess_stream'></a>subprocess_stream</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - calls wait().  Note that the destructor never throws even though wait() can. 
+                  If an exception is thrown by wait() it is just logged to std::cerr.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='wait'></a>wait</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - closes the input stream to the child process and then waits for the child
+                  to terminate.  
+                - If the child returns an error (by returning != 0 from its main) or
+                  outputs to its standard error then wait() throws a dlib::error() with the
+                  standard error output in it.
+        !*/</font>
+
+        <font color='#0000FF'><u>int</u></font> <b><a name='get_child_pid'></a>get_child_pid</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> child_pid; <b>}</b>
+        <font color='#009900'>/*!
+            ensures
+                - returns the PID of the child process
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> U, <font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='send'></a>send</b><font face='Lucida Console'>(</font>U<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> arg1, T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args<font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - sends all the arguments to send() to the subprocess by serializing them
+                  with interprocess_serialize().
+        !*/</font>
+        <b>{</b>
+            <font color='#BB00BB'>interprocess_serialize</font><font face='Lucida Console'>(</font>arg1, iosub<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>send</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>iosub<font face='Lucida Console'>)</font>
+            <b>{</b>
+                std::ostringstream sout;
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> stderr.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error sending object to child process.\n</font>" <font color='#5555FF'>+</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='send'></a>send</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b>iosub.<font color='#BB00BB'>flush</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;<b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> U, <font color='#0000FF'>typename</font> ...T<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='receive'></a>receive</b><font face='Lucida Console'>(</font>U<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> arg1, T<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> ...args<font face='Lucida Console'>)</font>
+        <font color='#009900'>/*!
+            ensures
+                - receives all the arguments to receive() to the subprocess by deserializing
+                  them with interprocess_deserialize().
+        !*/</font>
+        <b>{</b>
+            <font color='#BB00BB'>interprocess_deserialize</font><font face='Lucida Console'>(</font>arg1, iosub<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>receive</font><font face='Lucida Console'>(</font>std::forward<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>args<font face='Lucida Console'>)</font>...<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>iosub<font face='Lucida Console'>)</font>
+            <b>{</b>
+                std::ostringstream sout;
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> stderr.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Error receiving object from child process.\n</font>" <font color='#5555FF'>+</font> sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='receive'></a>receive</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+
+    <font color='#0000FF'>private</font>:
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='send_eof'></a>send_eof</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+
+        <font color='#0000FF'>class</font> <b><a name='cpipe'></a>cpipe</b> : noncopyable
+        <b>{</b>
+        <font color='#0000FF'>private</font>:
+            <font color='#0000FF'><u>int</u></font> fd[<font color='#979000'>2</font>];
+        <font color='#0000FF'>public</font>:
+            <b><a name='cpipe'></a>cpipe</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>socketpair</font><font face='Lucida Console'>(</font>AF_LOCAL, SOCK_STREAM, <font color='#979000'>0</font>, fd<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <font color='#0000FF'>throw</font> dlib::<font color='#BB00BB'>error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Failed to create pipe</font>"<font face='Lucida Console'>)</font>; <b>}</b>
+            ~<b><a name='cpipe'></a>cpipe</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>close</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <b>}</b>
+            <font color='#0000FF'><u>int</u></font> <b><a name='parent_fd'></a>parent_fd</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> fd[<font color='#979000'>0</font>]; <b>}</b>
+            <font color='#0000FF'><u>int</u></font> <b><a name='child_fd'></a>child_fd</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> fd[<font color='#979000'>1</font>]; <b>}</b>
+            <font color='#0000FF'><u>void</u></font> <b><a name='close'></a>close</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> ::<font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>fd[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>; ::<font color='#BB00BB'>close</font><font face='Lucida Console'>(</font>fd[<font color='#979000'>1</font>]<font face='Lucida Console'>)</font>; <b>}</b>
+        <b>}</b>;
+
+        cpipe data_pipe;
+        cpipe stdout_pipe;
+        cpipe stderr_pipe;
+        <font color='#0000FF'><u>bool</u></font> wait_called <font color='#5555FF'>=</font> <font color='#979000'>false</font>;
+        std::unique_ptr<font color='#5555FF'>&lt;</font>filestreambuf<font color='#5555FF'>&gt;</font> inout_buf; 
+        std::unique_ptr<font color='#5555FF'>&lt;</font>filestreambuf<font color='#5555FF'>&gt;</font> err_buf;
+        <font color='#0000FF'><u>int</u></font> child_pid <font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1</font>;
+        std::istream stderr;
+        std::iostream iosub;
+    <b>}</b>;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_SUBPROCeSS_STREAM_H_
+</font>
+
+</pre></body></html>

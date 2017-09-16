@@ -1,0 +1,319 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - random_cropper.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_RaNDOM_CROPPER_H_
+<font color='#0000FF'>#define</font> DLIB_RaNDOM_CROPPER_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='random_cropper_abstract.h.html'>random_cropper_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../threads.h.html'>../threads.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>mutex<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>vector<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='interpolation.h.html'>interpolation.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../image_processing/full_object_detection.h.html'>../image_processing/full_object_detection.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../rand.h.html'>../rand.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>class</font> <b><a name='random_cropper'></a>random_cropper</b>
+    <b>{</b>
+        chip_dims dims <font color='#5555FF'>=</font> <b><a name='chip_dims'></a>chip_dims</b><font face='Lucida Console'>(</font><font color='#979000'>300</font>,<font color='#979000'>300</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>bool</u></font> randomly_flip <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+        <font color='#0000FF'><u>double</u></font> max_rotation_degrees <font color='#5555FF'>=</font> <font color='#979000'>30</font>;
+        <font color='#0000FF'><u>double</u></font> min_object_size <font color='#5555FF'>=</font> <font color='#979000'>0.25</font>; <font color='#009900'>// cropped object will be at least this fraction of the size of the image.
+</font>        <font color='#0000FF'><u>double</u></font> max_object_size <font color='#5555FF'>=</font> <font color='#979000'>0.7</font>; <font color='#009900'>// cropped object will be at most this fraction of the size of the image.
+</font>        <font color='#0000FF'><u>double</u></font> background_crops_fraction <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>;
+        <font color='#0000FF'><u>double</u></font> translate_amount <font color='#5555FF'>=</font> <font color='#979000'>0.10</font>;
+
+        std::mutex rnd_mutex;
+        dlib::rand rnd;
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_seed'></a>set_seed</b> <font face='Lucida Console'>(</font>
+            time_t seed
+        <font face='Lucida Console'>)</font> <b>{</b> rnd <font color='#5555FF'>=</font> dlib::<font color='#BB00BB'>rand</font><font face='Lucida Console'>(</font>seed<font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_translate_amount'></a>get_translate_amount</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> translate_amount; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_translate_amount'></a>set_translate_amount</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> value
+        <font face='Lucida Console'>)</font>  
+        <b>{</b> 
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>0</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> value<font face='Lucida Console'>)</font>;
+            translate_amount <font color='#5555FF'>=</font> value;
+        <b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_background_crops_fraction'></a>get_background_crops_fraction</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> background_crops_fraction; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_background_crops_fraction'></a>set_background_crops_fraction</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> value
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>0</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> value <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> value <font color='#5555FF'>&lt;</font> <font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            background_crops_fraction <font color='#5555FF'>=</font> value;
+        <b>}</b>
+
+        <font color='#0000FF'>const</font> chip_dims<font color='#5555FF'>&amp;</font> <b><a name='get_chip_dims'></a>get_chip_dims</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> dims; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_chip_dims'></a>set_chip_dims</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> chip_dims<font color='#5555FF'>&amp;</font> dims_
+        <font face='Lucida Console'>)</font> <b>{</b> dims <font color='#5555FF'>=</font> dims_; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_chip_dims'></a>set_chip_dims</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> rows,
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> cols
+        <font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>set_chip_dims</font><font face='Lucida Console'>(</font><font color='#BB00BB'>chip_dims</font><font face='Lucida Console'>(</font>rows,cols<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='get_randomly_flip'></a>get_randomly_flip</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> randomly_flip; <b>}</b>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_randomly_flip'></a>set_randomly_flip</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>bool</u></font> value
+        <font face='Lucida Console'>)</font> <b>{</b> randomly_flip <font color='#5555FF'>=</font> value; <b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_max_rotation_degrees'></a>get_max_rotation_degrees</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> max_rotation_degrees; <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_max_rotation_degrees'></a>set_max_rotation_degrees</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> value
+        <font face='Lucida Console'>)</font> <b>{</b> max_rotation_degrees <font color='#5555FF'>=</font> std::<font color='#BB00BB'>abs</font><font face='Lucida Console'>(</font>value<font face='Lucida Console'>)</font>; <b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_min_object_size'></a>get_min_object_size</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> min_object_size; <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_min_object_size'></a>set_min_object_size</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> value
+        <font face='Lucida Console'>)</font> 
+        <b>{</b> 
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>0</font> <font color='#5555FF'>&lt;</font> value<font face='Lucida Console'>)</font>;
+            min_object_size <font color='#5555FF'>=</font> value; 
+        <b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_max_object_size'></a>get_max_object_size</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> max_object_size; <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_max_object_size'></a>set_max_object_size</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> value
+        <font face='Lucida Console'>)</font> 
+        <b>{</b> 
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>0</font> <font color='#5555FF'>&lt;</font> value<font face='Lucida Console'>)</font>;
+            max_object_size <font color='#5555FF'>=</font> value; 
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> array_type
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> num_crops,
+            <font color='#0000FF'>const</font> array_type<font color='#5555FF'>&amp;</font> images,
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects,
+            array_type<font color='#5555FF'>&amp;</font> crops,
+            std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> crop_rects
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            crops.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            crop_rects.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>append</font><font face='Lucida Console'>(</font>num_crops, images, rects, crops, crop_rects<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> array_type
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='append'></a>append</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>size_t</u></font> num_crops,
+            <font color='#0000FF'>const</font> array_type<font color='#5555FF'>&amp;</font> images,
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects,
+            array_type<font color='#5555FF'>&amp;</font> crops,
+            std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> crop_rects
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>crops.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> crop_rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>auto</font> original_size <font color='#5555FF'>=</font> crops.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            crops.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font>crops.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>num_crops<font face='Lucida Console'>)</font>;
+            crop_rects.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font>crop_rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>+</font>num_crops<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>parallel_for</font><font face='Lucida Console'>(</font>original_size, original_size<font color='#5555FF'>+</font>num_crops, [<font color='#5555FF'>&amp;</font>]<font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> i<font face='Lucida Console'>)</font> <b>{</b>
+                <font face='Lucida Console'>(</font><font color='#5555FF'>*</font><font color='#0000FF'>this</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>images, rects, crops[i], crop_rects[i]<font face='Lucida Console'>)</font>;
+            <b>}</b><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> array_type,
+            <font color='#0000FF'>typename</font> image_type
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> array_type<font color='#5555FF'>&amp;</font> images,
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects,
+            image_type<font color='#5555FF'>&amp;</font> crop,
+            std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> crop_rects
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>size_t</u></font> idx;
+            <b>{</b> std::lock_guard<font color='#5555FF'>&lt;</font>std::mutex<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>lock</font><font face='Lucida Console'>(</font>rnd_mutex<font face='Lucida Console'>)</font>;
+                idx <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_random_64bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font>images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font face='Lucida Console'>(</font><font color='#5555FF'>*</font><font color='#0000FF'>this</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>images[idx], rects[idx], crop, crop_rects<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            <font color='#0000FF'>typename</font> image_type1,
+            <font color='#0000FF'>typename</font> image_type2
+            <font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> image_type1<font color='#5555FF'>&amp;</font> img,
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects,
+            image_type2<font color='#5555FF'>&amp;</font> crop,
+            std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> crop_rects
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#BB00BB'>num_rows</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font><font color='#5555FF'>*</font><font color='#BB00BB'>num_columns</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            chip_details crop_plan;
+            <font color='#0000FF'><u>bool</u></font> should_flip_crop;
+            <font color='#BB00BB'>make_crop_plan</font><font face='Lucida Console'>(</font>img, rects, crop_plan, should_flip_crop<font face='Lucida Console'>)</font>;
+
+            <font color='#BB00BB'>extract_image_chip</font><font face='Lucida Console'>(</font>img, crop_plan, crop<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> rectangle_transform tform <font color='#5555FF'>=</font> <font color='#BB00BB'>get_mapping_to_chip</font><font face='Lucida Console'>(</font>crop_plan<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> min_object_size_absolute_rows <font color='#5555FF'>=</font> std::<font color='#BB00BB'>round</font><font face='Lucida Console'>(</font>min_object_size<font color='#5555FF'>*</font>crop_plan.rows<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> min_object_size_absolute_cols <font color='#5555FF'>=</font> std::<font color='#BB00BB'>round</font><font face='Lucida Console'>(</font>min_object_size<font color='#5555FF'>*</font>crop_plan.cols<font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// copy rects into crop_rects and set ones that are outside the crop to ignore or
+</font>            <font color='#009900'>// drop entirely as appropriate.
+</font>            crop_rects.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> rect : rects<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// map to crop
+</font>                rect.rect <font color='#5555FF'>=</font> <font color='#BB00BB'>tform</font><font face='Lucida Console'>(</font>rect.rect<font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// if the rect is at least partly in the crop
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>crop<font face='Lucida Console'>)</font>.<font color='#BB00BB'>intersect</font><font face='Lucida Console'>(</font>rect.rect<font face='Lucida Console'>)</font>.<font color='#BB00BB'>area</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#009900'>// set to ignore if not totally in the crop or if too small.
+</font>                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font><font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>crop<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>rect.rect<font face='Lucida Console'>)</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font face='Lucida Console'>(</font>rect.rect.<font color='#BB00BB'>height</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> min_object_size_absolute_rows <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rect.rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> min_object_size_absolute_cols<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                        rect.ignore <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+
+                    crop_rects.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>rect<font face='Lucida Console'>)</font>;
+                <b>}</b>
+            <b>}</b>
+
+            <font color='#009900'>// Also randomly flip the image
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>should_flip_crop<font face='Lucida Console'>)</font>
+            <b>{</b>
+                image_type2 temp;
+                <font color='#BB00BB'>flip_image_left_right</font><font face='Lucida Console'>(</font>crop, temp<font face='Lucida Console'>)</font>; 
+                <font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>crop,temp<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rect : crop_rects<font face='Lucida Console'>)</font>
+                    rect.rect <font color='#5555FF'>=</font> impl::<font color='#BB00BB'>flip_rect_left_right</font><font face='Lucida Console'>(</font>rect.rect, <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>crop<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type1<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='make_crop_plan'></a>make_crop_plan</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> image_type1<font color='#5555FF'>&amp;</font> img,
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects,
+            chip_details<font color='#5555FF'>&amp;</font> crop_plan,
+            <font color='#0000FF'><u>bool</u></font><font color='#5555FF'>&amp;</font> should_flip_crop
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::lock_guard<font color='#5555FF'>&lt;</font>std::mutex<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>lock</font><font face='Lucida Console'>(</font>rnd_mutex<font face='Lucida Console'>)</font>;
+            rectangle crop_rect;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>has_non_ignored_box</font><font face='Lucida Console'>(</font>rects<font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> background_crops_fraction<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>auto</font> rect <font color='#5555FF'>=</font> rects[<font color='#BB00BB'>randomly_pick_rect</font><font face='Lucida Console'>(</font>rects<font face='Lucida Console'>)</font>].rect;
+                <font color='#009900'>// perturb the location of the crop by a small fraction of the object's size.
+</font>                <font color='#0000FF'>const</font> point rand_translate <font color='#5555FF'>=</font> <font color='#BB00BB'>dpoint</font><font face='Lucida Console'>(</font>rnd.<font color='#BB00BB'>get_double_in_range</font><font face='Lucida Console'>(</font><font color='#5555FF'>-</font>translate_amount,translate_amount<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, 
+                    rnd.<font color='#BB00BB'>get_double_in_range</font><font face='Lucida Console'>(</font><font color='#5555FF'>-</font>translate_amount,translate_amount<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>rect.<font color='#BB00BB'>height</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                <font color='#009900'>// perturb the scale of the crop by a fraction of the object's size
+</font>                <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> rand_scale_perturb <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_double_in_range</font><font face='Lucida Console'>(</font>min_object_size, max_object_size<font face='Lucida Console'>)</font>; 
+
+                <font color='#0000FF'>const</font> <font color='#0000FF'><u>long</u></font> box_size <font color='#5555FF'>=</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>rect.<font color='#BB00BB'>height</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font>rand_scale_perturb;
+                crop_rect <font color='#5555FF'>=</font> <font color='#BB00BB'>centered_rect</font><font face='Lucida Console'>(</font><font color='#BB00BB'>center</font><font face='Lucida Console'>(</font>rect<font face='Lucida Console'>)</font><font color='#5555FF'>+</font>rand_translate, box_size, box_size<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                crop_rect <font color='#5555FF'>=</font> <font color='#BB00BB'>make_random_cropping_rect</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            should_flip_crop <font color='#5555FF'>=</font> randomly_flip <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rnd.<font color='#BB00BB'>get_random_double</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0.5</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> angle <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_double_in_range</font><font face='Lucida Console'>(</font><font color='#5555FF'>-</font>max_rotation_degrees, max_rotation_degrees<font face='Lucida Console'>)</font><font color='#5555FF'>*</font>pi<font color='#5555FF'>/</font><font color='#979000'>180</font>;
+            crop_plan <font color='#5555FF'>=</font> <font color='#BB00BB'>chip_details</font><font face='Lucida Console'>(</font>crop_rect, dims, angle<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='has_non_ignored_box'></a>has_non_ignored_box</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> b : rects<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>b.ignore<font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font> <font color='#979000'>true</font>;
+            <b>}</b>
+            <font color='#0000FF'>return</font> <font color='#979000'>false</font>;
+        <b>}</b>
+
+        <font color='#0000FF'><u>size_t</u></font> <b><a name='randomly_pick_rect'></a>randomly_pick_rect</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font>mmod_rect<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> rects
+        <font face='Lucida Console'>)</font> 
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#BB00BB'>has_non_ignored_box</font><font face='Lucida Console'>(</font>rects<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>size_t</u></font> idx <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_random_64bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font>rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>rects[idx].ignore<font face='Lucida Console'>)</font>
+                idx <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_random_64bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font>rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> idx;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+        rectangle <b><a name='make_random_cropping_rect'></a>make_random_cropping_rect</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> image_type<font color='#5555FF'>&amp;</font> img_
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            const_image_view<font color='#5555FF'>&lt;</font>image_type<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>img</font><font face='Lucida Console'>(</font>img_<font face='Lucida Console'>)</font>;
+            <font color='#009900'>// Figure out what rectangle we want to crop from the image.  We are going to
+</font>            <font color='#009900'>// crop out an image of size this-&gt;dims, so we pick a random scale factor that
+</font>            <font color='#009900'>// lets this random box be either as big as it can be while still fitting in
+</font>            <font color='#009900'>// the image or as small as a 3x zoomed in box randomly somewhere in the image. 
+</font>            <font color='#0000FF'><u>double</u></font> mins <font color='#5555FF'>=</font> <font color='#979000'>1.0</font><font color='#5555FF'>/</font><font color='#979000'>3.0</font>, maxs <font color='#5555FF'>=</font> std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font><font face='Lucida Console'>)</font>dims.rows, img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font><font face='Lucida Console'>)</font>dims.cols<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>auto</font> scale <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_double_in_range</font><font face='Lucida Console'>(</font>mins, maxs<font face='Lucida Console'>)</font>;
+            rectangle <font color='#BB00BB'>rect</font><font face='Lucida Console'>(</font>scale<font color='#5555FF'>*</font>dims.cols, scale<font color='#5555FF'>*</font>dims.rows<font face='Lucida Console'>)</font>;
+            <font color='#009900'>// randomly shift the box around
+</font>            point <font color='#BB00BB'>offset</font><font face='Lucida Console'>(</font>rnd.<font color='#BB00BB'>get_random_32bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>rect.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+                rnd.<font color='#BB00BB'>get_random_32bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>rect.<font color='#BB00BB'>height</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> <font color='#BB00BB'>move_rect</font><font face='Lucida Console'>(</font>rect, offset<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>inline</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font face='Lucida Console'>(</font>
+        std::ostream<font color='#5555FF'>&amp;</font> out,
+        <font color='#0000FF'>const</font> random_cropper<font color='#5555FF'>&amp;</font> item
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>using</font> std::endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>random_cropper details: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  chip_dims.rows:            </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_chip_dims</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.rows <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  chip_dims.cols:            </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_chip_dims</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.cols <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  randomly_flip:             </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> std::boolalpha <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_randomly_flip</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  max_rotation_degrees:      </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_max_rotation_degrees</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  min_object_size:           </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_min_object_size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  max_object_size:           </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_max_object_size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  background_crops_fraction: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_background_crops_fraction</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  translate_amount:          </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> item.<font color='#BB00BB'>get_translate_amount</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> out;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_RaNDOM_CROPPER_H_
+</font>
+
+</pre></body></html>

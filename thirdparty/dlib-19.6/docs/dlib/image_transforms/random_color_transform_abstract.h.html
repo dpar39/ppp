@@ -1,0 +1,97 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - random_color_transform_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_RANDOM_cOLOR_TRANSFORM_ABSTRACT_Hh_
+<font color='#0000FF'>#ifdef</font> DLIB_RANDOM_cOLOR_TRANSFORM_ABSTRACT_Hh_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../image_processing/generic_image.h.html'>../image_processing/generic_image.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pixel.h.html'>../pixel.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../rand.h.html'>../rand.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='random_color_transform'></a>random_color_transform</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object generates a random color balancing and gamma correction
+                transform.  It then allows you to apply that specific transform to as many
+                rgb_pixel objects as you like.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='random_color_transform'></a>random_color_transform</b> <font face='Lucida Console'>(</font>
+            dlib::rand<font color='#5555FF'>&amp;</font> rnd,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> gamma_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> color_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.2</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - 0 &lt;= gamma_magnitude 
+                - 0 &lt;= color_magnitude &lt;= 1
+            ensures
+                - This constructor generates a random color transform which can be applied
+                  by calling this object's operator() method.
+                - The color transform is a gamma correction and color rebalancing.  If
+                  gamma_magnitude == 0 and color_magnitude == 0 then the transform doesn't
+                  change any colors at all.  However, the larger these parameters the more
+                  noticeable the resulting transform.
+        !*/</font>
+
+        rgb_pixel <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>
+            rgb_pixel p
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the color transformed version of p. 
+        !*/</font>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='disturb_colors'></a>disturb_colors</b> <font face='Lucida Console'>(</font>
+        image_type<font color='#5555FF'>&amp;</font> img,
+        dlib::rand<font color='#5555FF'>&amp;</font> rnd,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> gamma_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> color_magnitude <font color='#5555FF'>=</font> <font color='#979000'>0.2</font>
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - image_type == an image object that implements the interface defined in
+              dlib/image_processing/generic_image.h 
+        ensures
+            - Applies a random color transform to the given image.  This is done by
+              creating a random_color_transform with the given parameters and then
+              transforming each pixel in the image with the resulting transform.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> image_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='apply_random_color_offset'></a>apply_random_color_offset</b> <font face='Lucida Console'>(</font>
+        image_type<font color='#5555FF'>&amp;</font> img,
+        dlib::rand<font color='#5555FF'>&amp;</font> rnd
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        ensures
+            - Picks a random color offset vector and adds it to the given image.  The offset
+              vector is selected using the method described in the paper:
+                Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet
+                classification with deep convolutional neural networks." Advances in neural
+                information processing systems. 2012.
+              In particular, we sample an RGB value from the typical distribution of RGB
+              values, assuming it has a Gaussian distribution, and then divide it by 10.
+              This sampled RGB vector is added to each pixel of img.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_RANDOM_cOLOR_TRANSFORM_ABSTRACT_Hh_
+</font>
+
+</pre></body></html>

@@ -1,0 +1,75 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - example_mex_class.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This mex file will create a MATLAB function called example_mex_class.  If you call it
+    with no arguments it will output the MATLAB .m code to create a MATLAB wrapper class.
+    Paste that code into a .m file.  Then you will be able to work with this C++ class
+    directly in MATLAB.
+*/</font>
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>matrix.h<font color='#5555FF'>&gt;</font>
+
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+
+<font color='#0000FF'>class</font> <b><a name='example_class'></a>example_class</b> 
+<b>{</b>
+<font color='#0000FF'>public</font>:
+
+    <font color='#009900'>// The class must have a default constructor.  It's also the only kind of constructor
+</font>    <font color='#009900'>// you can call from MATLAB.
+</font>    <b><a name='example_class'></a>example_class</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        xx.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font><font color='#979000'>3</font>,<font color='#979000'>2</font><font face='Lucida Console'>)</font>;
+        xx <font color='#5555FF'>=</font> <font color='#979000'>1</font>;
+    <b>}</b>
+
+    <font color='#009900'>// The rest of the member functions that you want to bind have to return void and
+</font>    <font color='#009900'>// generally have the same syntax limitations as regular mex funcitons.
+</font>    <font color='#0000FF'><u>void</u></font> <b><a name='do_stuff'></a>do_stuff</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matrix_colmajor<font color='#5555FF'>&amp;</font> x<font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>in do_stuff</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> x <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        xx <font color='#5555FF'>=</font> x;
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='do_other_stuff'></a>do_other_stuff</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> x<font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>in do_other_stuff</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>x: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> x <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <b>}</b>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='print_state'></a>print_state</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> xx <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <b>}</b>
+
+    <font color='#009900'>// saveobj() and load_obj() are special functions. If you provide these then you will
+</font>    <font color='#009900'>// be able to save() and load() your objects using MATLAB's built in object
+</font>    <font color='#009900'>// serialization.
+</font>    <font color='#0000FF'><u>void</u></font> <b><a name='saveobj'></a>saveobj</b><font face='Lucida Console'>(</font>matrix_colmajor<font color='#5555FF'>&amp;</font> state<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// save this object's state to state.
+</font>        state <font color='#5555FF'>=</font> xx;
+    <b>}</b>
+    <font color='#0000FF'><u>void</u></font> <b><a name='load_obj'></a>load_obj</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matrix_colmajor<font color='#5555FF'>&amp;</font> state<font face='Lucida Console'>)</font>
+    <b>{</b>
+        xx <font color='#5555FF'>=</font> state;
+    <b>}</b>
+
+<font color='#0000FF'>private</font>:
+    matrix_colmajor xx;
+<b>}</b>;
+
+<font color='#009900'>// Just tell the mex wrapper the name of your class and list the methods you want to bind.
+</font><font color='#0000FF'>#define</font> MEX_CLASS_NAME example_class 
+<font color='#0000FF'>#define</font> MEX_CLASS_METHODS do_stuff, do_other_stuff, print_state, saveobj, load_obj
+
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='mex_wrapper.cpp.html'>mex_wrapper.cpp</a>"
+
+
+
+</pre></body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html xmlns:gcse="googleCustomSearch"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="shortcut icon" href="dlib-icon.ico"><meta name="verify-v1" content="02MiiaFNVzS5/u0eQhsy3/knioFHsia1X3DXRpHkE6I="><meta name="google-site-verification" content="DGSSJMKDomaDaDTIRJ8jDkv0YMx9Cz7OESbXHjjr6Jw"><title>dlib C++ Library
+               - How to compile</title><script type="text/javascript" src="dlib.js"></script><link rel="stylesheet" type="text/css" href="dlib.css"></head><body><a name="top"></a><div id="page_header"><a href="http://dlib.net"><img src="dlib-logo.png"></a></div><div id="top_content"><div id="main_menu" class="menu"><div class="menu_top"><b>The Library</b><ul class="tree"><li><a href="algorithms.html" class="menu">Algorithms</a></li><li><a href="api.html" class="menu">API Wrappers</a></li><li><a href="bayes.html" class="menu">Bayesian Nets</a></li><li><a href="compression.html" class="menu">Compression</a></li><li><a href="containers.html" class="menu">Containers</a></li><li><a href="graph_tools.html" class="menu">Graph Tools</a></li><li><a href="imaging.html" class="menu">Image Processing</a></li><li><a href="linear_algebra.html" class="menu">Linear Algebra</a></li><li><a href="ml.html" class="menu">Machine Learning</a></li><li><a href="metaprogramming.html" class="menu">Metaprogramming</a></li><li><a href="other.html" class="menu">Miscellaneous</a></li><li><a href="network.html" class="menu">Networking</a></li><li><a href="optimization.html" class="menu">Optimization</a></li><li><a href="parsing.html" class="menu">Parsing</a></li></ul><br><b>Help/Info</b><ul class="tree"><li><a href="http://blog.dlib.net" class="menu">Dlib Blog</a></li><li><a onclick="Toggle(this)" class="sub menu"><img src="plus.gif">Examples: C++</a><ul style="display:none;"><li><a href="3d_point_cloud_ex.cpp.html" class="menu">3D Point Cloud</a></li><li><a href="assignment_learning_ex.cpp.html" class="menu">Assignment Learning</a></li><li><a href="file_to_code_ex.cpp.html" class="menu">Base64 Encoder</a></li><li><a href="bayes_net_from_disk_ex.cpp.html" class="menu">Bayesian Network From Disk</a></li><li><a href="bayes_net_gui_ex.cpp.html" class="menu">Bayesian Network GUI</a></li><li><a href="bayes_net_ex.cpp.html" class="menu">Bayesian Network</a></li><li><a href="bridge_ex.cpp.html" class="menu">Bridge</a></li><li><a href="bsp_ex.cpp.html" class="menu">BSP</a></li><li><a href="svm_c_ex.cpp.html" class="menu">C-Support Vector Machine</a></li><li><a href="compress_stream_ex.cpp.html#_top" class="menu">Cmd Line Parser</a></li><li><a href="compress_stream_ex.cpp.html" class="menu">Compress Stream</a></li><li><a href="config_reader_ex.cpp.html" class="menu">Config File Reader</a></li><li><a href="custom_trainer_ex.cpp.html" class="menu">Custom Trainers</a></li><li><a href="dnn_face_recognition_ex.cpp.html" class="menu">Deep Face Recognition</a></li><li><a href="dnn_mmod_dog_hipsterizer.cpp.html" class="menu">Deep Learning Dog Hipsterizer</a></li><li><a href="dnn_mmod_face_detection_ex.cpp.html" class="menu">Deep Learning Face Detection</a></li><li><a href="dnn_imagenet_ex.cpp.html" class="menu">Deep Learning Imagenet Classifier</a></li><li><a href="dnn_imagenet_train_ex.cpp.html" class="menu">Deep Learning Imagenet Trainer </a></li><li><a href="dnn_inception_ex.cpp.html" class="menu">Deep Learning Inception</a></li><li><a href="dnn_introduction_ex.cpp.html" class="menu">Deep Learning Introduction Part 1</a></li><li><a href="dnn_introduction2_ex.cpp.html" class="menu">Deep Learning Introduction Part 2</a></li><li><a href="dnn_mmod_ex.cpp.html" class="menu">Deep Learning Max-Margin Object Detection</a></li><li><a href="dnn_mmod_train_find_cars_ex.cpp.html" class="menu">Deep Learning Vehicle Detection Trainer</a></li><li><a href="dnn_mmod_find_cars_ex.cpp.html" class="menu">Deep Learning Vehicle Detection</a></li><li><a href="dnn_metric_learning_ex.cpp.html" class="menu">Deep Metric Learning Introduction</a></li><li><a href="dnn_metric_learning_on_images_ex.cpp.html" class="menu">Deep Metric Learning on Images</a></li><li><a href="dir_nav_ex.cpp.html" class="menu">Directory Navigation</a></li><li><a href="empirical_kernel_map_ex.cpp.html" class="menu">Empirical Kernel Map</a></li><li><a href="face_detection_ex.cpp.html" class="menu">Face Detection</a></li><li><a href="face_landmark_detection_ex.cpp.html" class="menu">Face Landmark Detection</a></li><li><a href="fhog_ex.cpp.html" class="menu">FHOG Feature Extraction</a></li><li><a href="fhog_object_detector_ex.cpp.html" class="menu">FHOG Object Detection</a></li><li><a href="graph_labeling_ex.cpp.html" class="menu">Graph Labeling</a></li><li><a href="gui_api_ex.cpp.html" class="menu">GUI</a></li><li><a href="hough_transform_ex.cpp.html" class="menu">Hough Transform</a></li><li><a href="server_http_ex.cpp.html" class="menu">HTTP Server</a></li><li><a href="image_ex.cpp.html" class="menu">Image</a></li><li><a href="iosockstream_ex.cpp.html" class="menu">IO Socket Streams</a></li><li><a href="server_iostream_ex.cpp.html" class="menu">IO Streams Server</a></li><li><a href="kcentroid_ex.cpp.html" class="menu">Kernel Centroid</a></li><li><a href="kkmeans_ex.cpp.html" class="menu">Kernel K-Means Clustering</a></li><li><a href="krr_regression_ex.cpp.html" class="menu">Kernel Ridge Regression</a></li><li><a href="krls_filter_ex.cpp.html" class="menu">Kernel RLS Filtering</a></li><li><a href="krls_ex.cpp.html" class="menu">Kernel RLS Regression</a></li><li><a href="krr_classification_ex.cpp.html" class="menu">KRR Classification</a></li><li><a href="learning_to_track_ex.cpp.html" class="menu">Learning to Track</a></li><li><a href="max_cost_assignment_ex.cpp.html" class="menu">Linear Assignment Problems</a></li><li><a href="linear_manifold_regularizer_ex.cpp.html" class="menu">Linear Manifold Regularizer</a></li><li><a href="mpc_ex.cpp.html" class="menu">Linear Model Predictive Control</a></li><li><a href="logger_ex_2.cpp.html" class="menu">Logger Advanced</a></li><li><a href="logger_custom_output_ex.cpp.html" class="menu">Logger Custom Output</a></li><li><a href="logger_ex.cpp.html" class="menu">Logger</a></li><li><a href="matrix_expressions_ex.cpp.html" class="menu">Matrix Expressions</a></li><li><a href="matrix_ex.cpp.html" class="menu">Matrix</a></li><li><a href="member_function_pointer_ex.cpp.html" class="menu">Member Function Pointer</a></li><li><a href="model_selection_ex.cpp.html" class="menu">Model Selection</a></li><li><a href="multiclass_classification_ex.cpp.html" class="menu">Multiclass Classification</a></li><li><a href="multithreaded_object_ex.cpp.html" class="menu">Multithreaded Object</a></li><li><a href="mlp_ex.cpp.html" class="menu">Neural Network</a></li><li><a href="least_squares_ex.cpp.html" class="menu">Non-Linear Least Squares</a></li><li><a href="svm_ex.cpp.html" class="menu">Nu-Support Vector Machine</a></li><li><a href="integrate_function_adapt_simp_ex.cpp.html" class="menu">Numerical Integration</a></li><li><a href="object_detector_advanced_ex.cpp.html" class="menu">Object Detector Advanced</a></li><li><a href="object_detector_ex.cpp.html" class="menu">Object Detector</a></li><li><a href="one_class_classifiers_ex.cpp.html" class="menu">One Class Classifiers</a></li><li><a href="svm_pegasos_ex.cpp.html" class="menu">Online SVM</a></li><li><a href="optimization_ex.cpp.html" class="menu">Optimization</a></li><li><a href="parallel_for_ex.cpp.html" class="menu">Parallel For Loops</a></li><li><a href="pipe_ex_2.cpp.html" class="menu">Pipe 2</a></li><li><a href="pipe_ex.cpp.html" class="menu">Pipe</a></li><li><a href="quantum_computing_ex.cpp.html" class="menu">Quantum Computing</a></li><li><a href="queue_ex.cpp.html" class="menu">Queue</a></li><li><a href="random_cropper_ex.cpp.html" class="menu">Random Cropper</a></li><li><a href="rank_features_ex.cpp.html" class="menu">Rank Features</a></li><li><a href="rvm_ex.cpp.html" class="menu">Relevance Vector Classification</a></li><li><a href="rvm_regression_ex.cpp.html" class="menu">Relevance Vector Regression</a></li><li><a href="running_stats_ex.cpp.html" class="menu">Running Stats</a></li><li><a href="sequence_labeler_ex.cpp.html" class="menu">Sequence Labeling</a></li><li><a href="sequence_segmenter_ex.cpp.html" class="menu">Sequence Segmentation</a></li><li><a href="sockets_ex.cpp.html" class="menu">Sockets</a></li><li><a href="sockstreambuf_ex.cpp.html" class="menu">Sockstreambuf</a></li><li><a href="svm_sparse_ex.cpp.html" class="menu">Sparse Vectors</a></li><li><a href="sqlite_ex.cpp.html" class="menu">SQLite</a></li><li><a href="std_allocator_ex.cpp.html" class="menu">Std C++ Allocator</a></li><li><a href="svm_struct_ex.cpp.html" class="menu">Structural Support Vector Machines</a></li><li><a href="svr_ex.cpp.html" class="menu">Support Vector Regression</a></li><li><a href="surf_ex.cpp.html" class="menu">SURF</a></li><li><a href="svm_rank_ex.cpp.html" class="menu">SVM-Rank</a></li><li><a href="thread_function_ex.cpp.html" class="menu">Thread Function</a></li><li><a href="thread_pool_ex.cpp.html" class="menu">Thread Pool</a></li><li><a href="threaded_object_ex.cpp.html" class="menu">Threaded Object</a></li><li><a href="threads_ex.cpp.html" class="menu">Threads</a></li><li><a href="timer_ex.cpp.html" class="menu">Timer</a></li><li><a href="train_object_detector.cpp.html" class="menu">Train Object Detector</a></li><li><a href="train_shape_predictor_ex.cpp.html" class="menu">Train Shape Predictor</a></li><li><a href="using_custom_kernels_ex.cpp.html" class="menu">Using Custom Kernels</a></li><li><a href="video_tracking_ex.cpp.html" class="menu">Video Object Tracking</a></li><li><a href="webcam_face_pose_ex.cpp.html" class="menu">Webcam Face Pose Estimation</a></li><li><a href="xml_parser_ex.cpp.html" class="menu">XML Parser</a></li></ul></li><li><a onclick="Toggle(this)" class="sub menu"><img src="plus.gif">Examples: Python</a><ul style="display:none;"><li><a href="cnn_face_detector.py.html" class="menu">CNN Face Detector</a></li><li><a href="face_detector.py.html" class="menu">Face Detector</a></li><li><a href="face_landmark_detection.py.html" class="menu">Face Landmark Detection</a></li><li><a href="face_recognition.py.html" class="menu">Face Recognition</a></li><li><a href="find_candidate_object_locations.py.html" class="menu">Find Candidate Object Locations</a></li><li><a href="max_cost_assignment.py.html" class="menu">Linear Assignment Problems</a></li><li><a href="sequence_segmenter.py.html" class="menu">Sequence Segmenter</a></li><li><a href="svm_struct.py.html" class="menu">Structural Support Vector Machines</a></li><li><a href="svm_rank.py.html" class="menu">SVM-Rank</a></li><li><a href="train_object_detector.py.html" class="menu">Train Object Detector</a></li><li><a href="train_shape_predictor.py.html" class="menu">Train Shape Predictor</a></li><li><a href="correlation_tracker.py.html" class="menu">Video Object Tracking</a></li></ul></li><li><a href="faq.html" class="menu">FAQ</a></li><li><a href="index.html" class="menu">Home</a></li><li><a href="compile.html" class="menu">How to compile</a></li><li><a href="howto_contribute.html" class="menu">How to contribute</a></li><li><a href="term_index.html" class="menu">Index</a></li><li><a href="intro.html" class="menu">Introduction</a></li><li><a href="license.html" class="menu">License</a></li><li><a href="python/index.html" class="menu">Python API</a></li><li><a href="books.html" class="menu">Suggested Books</a></li><li><a href="http://sourceforge.net/p/dclib/wiki/Known_users/" class="menu">Who uses dlib?</a></li></ul><br><b>Current Release</b><ul class="tree"><li><a href="change_log.html" class="menu">Change Log</a></li><li><a href="release_notes.html" class="menu">Release Notes</a></li><li>Version: 19.6</li></ul><br></div><div class="menu_footer">
+      Last Modified:<br>Oct 09, 2016</div></div><div id="main_text"><div id="main_text_title">How to compile</div><div id="main_text_body"><a name="Compiling%20C++%20Example%20Programs%20on%20Any%20Operating%20System%20Using%20CMake"></a><h2>Compiling C++ Example Programs on Any Operating System Using CMake</h2>
+        The best way to compile a program that uses dlib is to use <a href="http://www.cmake.org">CMake</a>.  For
+        example, the following commands will compile the example programs on any operating
+        system:
+<pre class="code_box">
+cd examples
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+</pre>
+Note that you also need to have a C++11 compiler installed on your system.  There are free C++11 compilers
+for most operating systems.  For example, Visual Studio is free on Windows and GCC is free and
+works well on Mac OS X and Linux systems.  If you have multiple compilers/IDEs installed then you can
+tell CMake which one you want it to use via the -G option.
+<p>
+   The <a href="examples/CMakeLists.txt.html">examples/CMakeLists.txt</a> file tells CMake how to build
+   the examples.  You can create your own projects by starting with this file and editing it however you like.
+   You can also perform additional configuration of a cmake project using the cmake-gui or ccmake tool.  For example,
+   if you are using dlib's face detector then you should turn on either SSE4 or AVX instructions since this
+   makes it run much faster (also see <a href="faq.html#Whyisdlibslow">this FAQ</a>). 
+</p><p>
+   Finally, note that when using Visual Studio, CMake will by default generate a 32bit executable.  
+   This means the programs you compile will only be able to use 2GB of RAM.  To avoid this, you need
+   to tell CMake to generate a 64bit executable.  You do this by using a command like 
+   <pre class="code_box">cmake -G "Visual Studio 14 2015 Win64" ..</pre> instead of <pre class="code_box">cmake ..</pre>  
+   You can see the list of valid arguments to <tt>-G</tt> by running <tt>cmake</tt> with no options. 
+</p><br><a name="Compiling%20Dlib's%20Python%20Interface"></a><h2>Compiling Dlib's Python Interface</h2><p>
+           Go to the base folder of the dlib repository and run <tt>python setup.py install</tt>.  That
+           should compile and install the dlib python API on your system. 
+        </p><p>
+           Alternatively, if you want to add more python bindings to dlib's
+           python interface then you probably want to avoid the setup.py file
+           and work directly using CMake.  In particular, dlib's python API is
+           built by the CMake project in the tools/python folder.  You build
+           this project using the usual CMake commands and when compiled it
+           outputs the dlib shared library that defines the python API for dlib.
+        </p><br><a name="Compiling%20C++%20Examples%20Without%20CMake"></a><h2>Compiling C++ Examples Without CMake</h2><p>
+           In most cases, to use this library all you have to do is extract it somewhere, make
+           sure the folder <i>containing</i> the dlib folder is in your include path, and
+           finally add dlib/all/source.cpp to your
+           project.  It is worth noting that most of dlib is "header-only" which means that, in
+           many cases, you don't actually have to build dlib/all/source.cpp into your
+           application.  So if you don't get linker errors when you exclude dlib/all/source.cpp
+           from your project then you don't need it.
+        </p><p>
+            An example makefile that uses this library can be found here: <a href="dlib/test/makefile">dlib/test/makefile</a>.  It is the makefile used to build
+            the regression test suite for this library.  
+        </p><p>
+           Again, note that you should <b><i>not</i></b> add the dlib folder itself to your compiler's include path.  
+           Doing so will cause the
+           build to fail because of name collisions (e.g. dlib/string.h with string.h from the standard library).  
+           Instead you should add the folder that contains the dlib folder to your include search path and then use 
+           include statements of the form <tt>#include &lt;dlib/queue.h&gt;</tt>.  This will ensure that everything 
+           builds correctly.
+        </p><p>
+           Note also that if you want to work with jpeg/png/gif files using dlib then you will
+           need to link your program with libjpeg, libpng, and/or libgif.  You also need to tell dlib 
+           about this by defining the DLIB_JPEG_SUPPORT, DLIB_PNG_SUPPORT, and DLIB_GIF_SUPPORT preprocessor directives.
+           How you "link to libjpeg/libpng/libgif" varies from platform to platform.  On UNIX machines you
+           usually just add a -ljpeg, -lpng, or -lgif switch to your compiler (after installing the libraries).
+           On windows it's less well defined.  So dlib comes with a copy of libjpeg and libpng in the dlib/external
+           folder so you can statically compile them into your application if no system wide version 
+           is available on your machine.  If all this talk about linking is confusing to you then
+           just use CMake.  It will set this all up for you.
+        </p><p>
+           Dlib is also capable of using any optimized BLAS or LAPACK libraries that are
+           installed on your system.  Linking to these libraries will make many things run
+           faster.  To do this you define the DLIB_USE_BLAS and/or DLIB_USE_LAPACK preprocessor
+           directives and then link your program with whatever BLAS or LAPACK libraries you
+           have.  If you use CMake it will set this up automatically.
+        </p><a name="Compiling%20on%20Linux%20From%20Command%20Line"></a><h3>Compiling on Linux From Command Line</h3>
+        From within the examples folder, you can compile nearly all of the examples with a single command like so:
+<pre class="code_box">
+g++ -std=c++11 -O3 -I.. ../dlib/all/source.cpp -lpthread -lX11 example_program_name.cpp
+</pre>
+        Note that not all examples require this much work.  For example, the svm_ex.cpp example
+        can be compiled with just:
+<pre class="code_box">
+g++ -std=c++11 -O3 -I.. svm_ex.cpp
+</pre>
+
+On non-Linux systems like Solaris, you might have to link to other libraries.  For example, I have seen systems
+where it was also necessary to supply -lnsl or -lsocket options to g++.  Additionally, the X11 development
+library isn't installed on Ubuntu by default.  So if you require it and are using Ubuntu you can install
+it by typing:
+<pre class="code_box">
+sudo apt-get install libx11-dev
+</pre><a name="Compiling%20on%20Windows%20Using%20GCC"></a><h3>Compiling on Windows Using GCC</h3><p>
+            The commands for gcc on windows are the same as above but you may also have to link 
+            (via the -l option) to the following libraries: gdi32, comctl32, user32, winmm, ws2_32, or imm32.
+        </p><a name="Compiling%20on%20Windows%20Using%20Visual%20Studio%202015%20or%20Newer"></a><h3>Compiling on Windows Using Visual Studio 2015 or Newer</h3><p>
+           All you need to do is create an empty console project. Then add dlib/all/source.cpp to it and add the
+           folder containing the dlib folder to the #include search path.  Then you can compile any example program 
+           by adding it to your project.  
+        </p><p>
+           Again, note that dlib will only be able to work with jpeg and png files if you link
+           in libjpeg and libpng.  In Visual Studio, the easiest way to do this is to add all the
+           libjpeg, libpng, and zlib source files in the dlib/external folder into your project and also define the
+           DLIB_PNG_SUPPORT and DLIB_JPEG_SUPPORT preprocessor directives.  If you don't know
+           how to configure Visual Studio then you should use CMake as shown above since it will
+           take care of everything automatically.
+        </p><br><center><a name="Miscellaneous%20Preprocessor%20Directives"></a><h1>Miscellaneous Preprocessor Directives</h1></center><p>
+            In addition to the preprocessor directives mentioned above, there
+            are a few more you can supply during the build process to cause the
+            library to build in various optional ways.  By default, the library
+            will always do something reasonable, but they are listed here in
+            the event that you need to use them.
+         </p><a name="ENABLE_ASSERTS"></a><a name="#define%20ENABLE_ASSERTS"></a><h3>#define ENABLE_ASSERTS</h3><p>
+           Defining this directive causes all the <a href="metaprogramming.html#DLIB_ASSERT">DLIB_ASSERT</a> macros to
+           be active.  If you are using Visual Studio or CMake then ENABLE_ASSERTS will be automatically enabled
+           for you when you compile in debug mode.  However, if you are using a different build system then you
+           might have to manually enable it if you want to turn the asserts on.
+        </p><a name="DLIB_ISO_CPP_ONLY"></a><a name="#define%20DLIB_ISO_CPP_ONLY"></a><h3>#define DLIB_ISO_CPP_ONLY</h3><p>
+           This is a #define directive that you can set to cause the library to exclude all non ISO C++ code (The things in the <a href="api.html">API wrappers</a> section and any objects that depend on those wrappers).
+           This is useful if you are trying to build on a system that isn't fully supported by the library or if you 
+           just decide you don't want any of that stuff compiled into your program for your own reasons.
+        </p><a name="DLIB_NO_GUI_SUPPORT"></a><a name="#define%20DLIB_NO_GUI_SUPPORT"></a><h3>#define DLIB_NO_GUI_SUPPORT</h3><p>
+           This is just like the DLIB_ISO_CPP_ONLY option except that it excludes only the GUI part of the library.
+           An example of when you might want to use this would be if you don't need GUI support and you are building
+           on a UNIX platform that doesn't have the X11 headers installed.
+        </p><a name="NO_MAKEFILE"></a><a name="#define%20NO_MAKEFILE"></a><h3>#define NO_MAKEFILE</h3><p>
+           This preprocessor directive causes the dlib headers to pull in all the 
+           code that would normally be built in dlib/all/source.cpp.  Thus if you #define NO_MAKEFILE you won't 
+           have to add dlib/all/source.cpp to your project.  The <i>only</i> time this is useful is when your 
+           project consists of a single translation unit (i.e. a single cpp file).  In this instance NO_MAKEFILE
+           allows you to easily build your project on the command line by saying something like <tt>g++ -DNO_MAKEFILE
+           project.cpp</tt>.  But again, this is only for single cpp file projects.  If you use NO_MAKEFILE with projects 
+           that contain more than one cpp file you will get linker errors about multiply defined symbols.
+        </p><p>
+           Also note that if you use this macro then the <a href="metaprogramming.html#DLIB_STACK_TRACE">stack trace</a>
+           functionality in the library will be disabled.   
+        </p><a name="DLIB_THREAD_POOL_TIMEOUT"></a><a name="#define%20DLIB_THREAD_POOL_TIMEOUT%20&lt;time-in-milliseconds&gt;"></a><h3>#define DLIB_THREAD_POOL_TIMEOUT &lt;time-in-milliseconds&gt;</h3><p>
+           If you use dlib to create your threads then you receive the benefit of the dlib dynamic thread pool (Note that the 
+           dlib::<a href="api.html#thread_pool">thread_pool</a> object is something else unrelated to this so don't confuse
+           the two).  This pool 
+           enables dlib to spawn new threads very rapidly since it draws threads back out of its thread pool when 
+           the pool isn't empty. 
+        </p><p>
+           Thus, when a thread that was created by dlib ends it actually goes back into the dlib thread pool
+           and waits DLIB_THREAD_POOL_TIMEOUT milliseconds before totally terminating and releasing its resources back
+           to the operating system.  The default timeout used by this library is 30,000 milliseconds (30 seconds).  You
+           may however change this to whatever you like by defining DLIB_THREAD_POOL_TIMEOUT to some new value.  
+        </p></div></div></div><div id="bottom_content"></div></body></html>

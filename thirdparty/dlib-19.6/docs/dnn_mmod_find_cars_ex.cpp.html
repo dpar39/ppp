@@ -1,0 +1,239 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn_mmod_find_cars_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This example shows how to run a CNN based vehicle detector using dlib.  The
+    example loads a pretrained model and uses it to find the rear ends of cars in
+    an image.  We will also visualize some of the detector's processing steps by
+    plotting various intermediate images on the screen.  Viewing these can help
+    you understand how the detector works.
+    
+    The model used by this example was trained by the <a href="dnn_mmod_train_find_cars_ex.cpp.html">dnn_mmod_train_find_cars_ex.cpp</a> 
+    example.  Also, since this is a CNN, you really should use a GPU to get the
+    best execution speed.  For instance, when run on a NVIDIA 1080ti, this
+    detector runs at 39fps when run on the provided test image.  That's about an 
+    order of magnitude faster than when run on the CPU.
+
+    Users who are just learning about dlib's deep learning API should read
+    the <a href="dnn_introduction_ex.cpp.html">dnn_introduction_ex.cpp</a> and <a href="dnn_introduction2_ex.cpp.html">dnn_introduction2_ex.cpp</a> examples to learn
+    how the API works.  For an introduction to the object detection method you
+    should read <a href="dnn_mmod_ex.cpp.html">dnn_mmod_ex.cpp</a>.
+
+    You can also see some videos of this vehicle detector running on YouTube:
+        https://www.youtube.com/watch?v=4B3bzmxMAZU
+        https://www.youtube.com/watch?v=bP2SUo5vSlc
+*/</font>
+
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>dnn.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_io.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>gui_widgets.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>image_processing.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+
+
+
+<font color='#009900'>// The rear view vehicle detector network
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>long</u></font> num_filters, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> con5d <font color='#5555FF'>=</font> con<font color='#5555FF'>&lt;</font>num_filters,<font color='#979000'>5</font>,<font color='#979000'>5</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,SUBNET<font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>long</u></font> num_filters, <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> con5  <font color='#5555FF'>=</font> con<font color='#5555FF'>&lt;</font>num_filters,<font color='#979000'>5</font>,<font color='#979000'>5</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,SUBNET<font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> downsampler  <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>, relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>32</font>, relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con5d<font color='#5555FF'>&lt;</font><font color='#979000'>16</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> rcon5  <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>affine<font color='#5555FF'>&lt;</font>con5<font color='#5555FF'>&lt;</font><font color='#979000'>55</font>,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>using</font> net_type <font color='#5555FF'>=</font> loss_mmod<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>1</font>,<font color='#979000'>9</font>,<font color='#979000'>9</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,rcon5<font color='#5555FF'>&lt;</font>rcon5<font color='#5555FF'>&lt;</font>rcon5<font color='#5555FF'>&lt;</font>downsampler<font color='#5555FF'>&lt;</font>input_rgb_image_pyramid<font color='#5555FF'>&lt;</font>pyramid_down<font color='#5555FF'>&lt;</font><font color='#979000'>6</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    net_type net;
+    shape_predictor sp;
+    <font color='#009900'>// You can get this file from http://dlib.net/files/mmod_rear_end_vehicle_detector.dat.bz2
+</font>    <font color='#009900'>// This network was produced by the <a href="dnn_mmod_train_find_cars_ex.cpp.html">dnn_mmod_train_find_cars_ex.cpp</a> example program.
+</font>    <font color='#009900'>// As you can see, it also includes a shape_predictor.  To see a generic example of how
+</font>    <font color='#009900'>// to train those refer to <a href="train_shape_predictor_ex.cpp.html">train_shape_predictor_ex.cpp</a>.
+</font>    <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mmod_rear_end_vehicle_detector.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> net <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> sp;
+
+    matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> img;
+    <font color='#BB00BB'>load_image</font><font face='Lucida Console'>(</font>img, "<font color='#CC0000'>../mmod_cars_test_image.jpg</font>"<font face='Lucida Console'>)</font>;
+
+    image_window win;
+    win.<font color='#BB00BB'>set_image</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// Run the detector on the image and show us the output.
+</font>    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> d : <font color='#BB00BB'>net</font><font face='Lucida Console'>(</font>img<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#009900'>// We use a shape_predictor to refine the exact shape and location of the detection
+</font>        <font color='#009900'>// box.  This shape_predictor is trained to simply output the 4 corner points of
+</font>        <font color='#009900'>// the box.  So all we do is make a rectangle that tightly contains those 4 points
+</font>        <font color='#009900'>// and that rectangle is our refined detection position.
+</font>        <font color='#0000FF'>auto</font> fd <font color='#5555FF'>=</font> <font color='#BB00BB'>sp</font><font face='Lucida Console'>(</font>img,d<font face='Lucida Console'>)</font>;
+        rectangle rect;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> j <font color='#5555FF'>=</font> <font color='#979000'>0</font>; j <font color='#5555FF'>&lt;</font> fd.<font color='#BB00BB'>num_parts</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>j<font face='Lucida Console'>)</font>
+            rect <font color='#5555FF'>+</font><font color='#5555FF'>=</font> fd.<font color='#BB00BB'>part</font><font face='Lucida Console'>(</font>j<font face='Lucida Console'>)</font>;
+        win.<font color='#BB00BB'>add_overlay</font><font face='Lucida Console'>(</font>rect, <font color='#BB00BB'>rgb_pixel</font><font face='Lucida Console'>(</font><font color='#979000'>255</font>,<font color='#979000'>0</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+
+
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Hit enter to view the intermediate processing steps</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Now let's look at how the detector works.  The high level processing steps look like:
+</font>    <font color='#009900'>//   1. Create an image pyramid and pack the pyramid into one big image.  We call this
+</font>    <font color='#009900'>//      image the "tiled pyramid".
+</font>    <font color='#009900'>//   2. Run the tiled pyramid image through the CNN.  The CNN outputs a new image where
+</font>    <font color='#009900'>//      bright pixels in the output image indicate the presence of cars.  
+</font>    <font color='#009900'>//   3. Find pixels in the CNN's output image with a value &gt; 0.  Those locations are your
+</font>    <font color='#009900'>//      preliminary car detections.  
+</font>    <font color='#009900'>//   4. Perform non-maximum suppression on the preliminary detections to produce the
+</font>    <font color='#009900'>//      final output.
+</font>    <font color='#009900'>//
+</font>    <font color='#009900'>// We will be plotting the images from steps 1 and 2 so you can visualize what's
+</font>    <font color='#009900'>// happening.  For the CNN's output image, we will use the jet colormap so that "bright"
+</font>    <font color='#009900'>// outputs, i.e. pixels with big values, appear in red and "dim" outputs appear as a
+</font>    <font color='#009900'>// cold blue color.  To do this we pick a range of CNN output values for the color
+</font>    <font color='#009900'>// mapping.  The specific values don't matter.  They are just selected to give a nice
+</font>    <font color='#009900'>// looking output image.
+</font>    <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> lower <font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>2.5</font>;
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>float</u></font> upper <font color='#5555FF'>=</font> <font color='#979000'>0.0</font>;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>jet color mapping range:  lower=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> lower <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>  upper=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> upper <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+
+
+    <font color='#009900'>// Create a tiled pyramid image and display it on the screen. 
+</font>    std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font> rects;
+    matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> tiled_img;
+    <font color='#009900'>// Get the type of pyramid the CNN used
+</font>    <font color='#0000FF'>using</font> pyramid_type <font color='#5555FF'>=</font> std::remove_reference<font color='#5555FF'>&lt;</font><font color='#BB00BB'>decltype</font><font face='Lucida Console'>(</font><font color='#BB00BB'>input_layer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font color='#5555FF'>&gt;</font>::type::pyramid_type;
+    <font color='#009900'>// And tell create_tiled_pyramid to create the pyramid using that pyramid type.
+</font>    create_tiled_pyramid<font color='#5555FF'>&lt;</font>pyramid_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>img, tiled_img, rects, 
+                                       <font color='#BB00BB'>input_layer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_pyramid_padding</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, 
+                                       <font color='#BB00BB'>input_layer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_pyramid_outer_padding</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    image_window <font color='#BB00BB'>winpyr</font><font face='Lucida Console'>(</font>tiled_img, "<font color='#CC0000'>Tiled pyramid</font>"<font face='Lucida Console'>)</font>;
+
+
+
+    <font color='#009900'>// This CNN detector represents a sliding window detector with 3 sliding windows.  Each
+</font>    <font color='#009900'>// of the 3 windows has a different aspect ratio, allowing it to find vehicles which
+</font>    <font color='#009900'>// are either tall and skinny, squarish, or short and wide.  The aspect ratio of a
+</font>    <font color='#009900'>// detection is determined by which channel in the output image triggers the detection.
+</font>    <font color='#009900'>// Here we are just going to max pool the channels together to get one final image for
+</font>    <font color='#009900'>// our display.  In this image, a pixel will be bright if any of the sliding window
+</font>    <font color='#009900'>// detectors thinks there is a car at that location.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Number of channels in final tensor image: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_output</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> network_output <font color='#5555FF'>=</font> <font color='#BB00BB'>image_plane</font><font face='Lucida Console'>(</font>net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_output</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,<font color='#979000'>0</font>,<font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> k <font color='#5555FF'>=</font> <font color='#979000'>1</font>; k <font color='#5555FF'>&lt;</font> net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_output</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>k<font face='Lucida Console'>)</font>
+        network_output <font color='#5555FF'>=</font> <font color='#BB00BB'>max_pointwise</font><font face='Lucida Console'>(</font>network_output, <font color='#BB00BB'>image_plane</font><font face='Lucida Console'>(</font>net.<font color='#BB00BB'>subnet</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_output</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,<font color='#979000'>0</font>,k<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// We will also upsample the CNN's output image.  The CNN we defined has an 8x
+</font>    <font color='#009900'>// downsampling layer at the beginning. In the code below we are going to overlay this
+</font>    <font color='#009900'>// CNN output image on top of the raw input image.  To make that look nice it helps to
+</font>    <font color='#009900'>// upsample the CNN output image back to the same resolution as the input image, which
+</font>    <font color='#009900'>// we do here.
+</font>    <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> network_output_scale <font color='#5555FF'>=</font> img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font><font face='Lucida Console'>)</font>network_output.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#BB00BB'>resize_image</font><font face='Lucida Console'>(</font>network_output_scale, network_output<font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Display the network's output as a color image.   
+</font>    image_window <font color='#BB00BB'>win_output</font><font face='Lucida Console'>(</font><font color='#BB00BB'>jet</font><font face='Lucida Console'>(</font>network_output, upper, lower<font face='Lucida Console'>)</font>, "<font color='#CC0000'>Output tensor from the network</font>"<font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Also, overlay network_output on top of the tiled image pyramid and display it.
+</font>    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> tiled_img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> tiled_img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+        <b>{</b>
+            dpoint <font color='#BB00BB'>tmp</font><font face='Lucida Console'>(</font>c,r<font face='Lucida Console'>)</font>;
+            tmp <font color='#5555FF'>=</font> <font color='#BB00BB'>input_tensor_to_output_tensor</font><font face='Lucida Console'>(</font>net, tmp<font face='Lucida Console'>)</font>;
+            tmp <font color='#5555FF'>=</font> <font color='#BB00BB'>point</font><font face='Lucida Console'>(</font>network_output_scale<font color='#5555FF'>*</font>tmp<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>network_output<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>tmp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>float</u></font> val <font color='#5555FF'>=</font> <font color='#BB00BB'>network_output</font><font face='Lucida Console'>(</font>tmp.<font color='#BB00BB'>y</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,tmp.<font color='#BB00BB'>x</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#009900'>// alpha blend the network output pixel with the RGB image to make our
+</font>                <font color='#009900'>// overlay.
+</font>                rgb_alpha_pixel p;
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>p , <font color='#BB00BB'>colormap_jet</font><font face='Lucida Console'>(</font>val,lower,upper<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                p.alpha <font color='#5555FF'>=</font> <font color='#979000'>120</font>;
+                <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font><font color='#BB00BB'>tiled_img</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font>, p<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+    <b>}</b>
+    <font color='#009900'>// If you look at this image you can see that the vehicles have bright red blobs on
+</font>    <font color='#009900'>// them.  That's the CNN saying "there is a car here!".  You will also notice there is
+</font>    <font color='#009900'>// a certain scale at which it finds cars.  They have to be not too big or too small,
+</font>    <font color='#009900'>// which is why we have an image pyramid.  The pyramid allows us to find cars of all
+</font>    <font color='#009900'>// scales.
+</font>    image_window <font color='#BB00BB'>win_pyr_overlay</font><font face='Lucida Console'>(</font>tiled_img, "<font color='#CC0000'>Detection scores on image pyramid</font>"<font face='Lucida Console'>)</font>;
+
+
+
+
+    <font color='#009900'>// Finally, we can collapse the pyramid back into the original image.  The CNN doesn't
+</font>    <font color='#009900'>// actually do this step, since it's enough to threshold the tiled pyramid image to get
+</font>    <font color='#009900'>// the detections.  However, it makes a nice visualization and clearly indicates that
+</font>    <font color='#009900'>// the detector is firing for all the cars.
+</font>    matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>collapsed</font><font face='Lucida Console'>(</font>img.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, img.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    resizable_tensor input_tensor;
+    <font color='#BB00BB'>input_layer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font>.<font color='#BB00BB'>to_tensor</font><font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>img, <font color='#5555FF'>&amp;</font>img<font color='#5555FF'>+</font><font color='#979000'>1</font>, input_tensor<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> collapsed.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> collapsed.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// Loop over a bunch of scale values and look up what part of network_output
+</font>            <font color='#009900'>// corresponds to the point(c,r) in the original image, then take the max
+</font>            <font color='#009900'>// detection score over all the scales and save it at pixel point(c,r).
+</font>            <font color='#0000FF'><u>float</u></font> max_score <font color='#5555FF'>=</font> <font color='#5555FF'>-</font><font color='#979000'>1e30</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font> scale <font color='#5555FF'>=</font> <font color='#979000'>1</font>; scale <font color='#5555FF'>&gt;</font> <font color='#979000'>0.2</font>; scale <font color='#5555FF'>*</font><font color='#5555FF'>=</font> <font color='#979000'>5.0</font><font color='#5555FF'>/</font><font color='#979000'>6.0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// Map from input image coordinates to tiled pyramid coordinates.
+</font>                dpoint tmp <font color='#5555FF'>=</font> <font color='#BB00BB'>center</font><font face='Lucida Console'>(</font><font color='#BB00BB'>input_layer</font><font face='Lucida Console'>(</font>net<font face='Lucida Console'>)</font>.<font color='#BB00BB'>image_space_to_tensor_space</font><font face='Lucida Console'>(</font>input_tensor,scale, <font color='#BB00BB'>drectangle</font><font face='Lucida Console'>(</font><font color='#BB00BB'>dpoint</font><font face='Lucida Console'>(</font>c,r<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                <font color='#009900'>// Now map from pyramid coordinates to network_output coordinates.
+</font>                tmp <font color='#5555FF'>=</font> <font color='#BB00BB'>point</font><font face='Lucida Console'>(</font>network_output_scale<font color='#5555FF'>*</font><font color='#BB00BB'>input_tensor_to_output_tensor</font><font face='Lucida Console'>(</font>net, tmp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>network_output<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>tmp<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'><u>float</u></font> val <font color='#5555FF'>=</font> <font color='#BB00BB'>network_output</font><font face='Lucida Console'>(</font>tmp.<font color='#BB00BB'>y</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>,tmp.<font color='#BB00BB'>x</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>val <font color='#5555FF'>&gt;</font> max_score<font face='Lucida Console'>)</font>
+                        max_score <font color='#5555FF'>=</font> val;
+                <b>}</b>
+            <b>}</b>
+
+            <font color='#BB00BB'>collapsed</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> max_score;
+
+            <font color='#009900'>// Also blend the scores into the original input image so we can view it as
+</font>            <font color='#009900'>// an overlay on the cars.
+</font>            rgb_alpha_pixel p;
+            <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font>p , <font color='#BB00BB'>colormap_jet</font><font face='Lucida Console'>(</font>max_score,lower,upper<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            p.alpha <font color='#5555FF'>=</font> <font color='#979000'>120</font>;
+            <font color='#BB00BB'>assign_pixel</font><font face='Lucida Console'>(</font><font color='#BB00BB'>img</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font>, p<font face='Lucida Console'>)</font>;
+        <b>}</b>
+    <b>}</b>
+
+    image_window <font color='#BB00BB'>win_collapsed</font><font face='Lucida Console'>(</font><font color='#BB00BB'>jet</font><font face='Lucida Console'>(</font>collapsed, upper, lower<font face='Lucida Console'>)</font>, "<font color='#CC0000'>Collapsed output tensor from the network</font>"<font face='Lucida Console'>)</font>;
+    image_window <font color='#BB00BB'>win_img_and_sal</font><font face='Lucida Console'>(</font>img, "<font color='#CC0000'>Collapsed detection scores on raw image</font>"<font face='Lucida Console'>)</font>;
+
+
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Hit enter to end program</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cin.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>image_load_error<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>The test image is located in the examples folder.  So you should run this program from a sub folder so that the relative path is correct.</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>serialization_error<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>The model file can be obtained from: http://dlib.net/files/mmod_rear_end_vehicle_detector.dat.bz2   Don't forget to unzip the file.</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+
+
+
+
+</pre></body></html>

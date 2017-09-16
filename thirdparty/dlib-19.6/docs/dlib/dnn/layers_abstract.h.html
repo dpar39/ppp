@@ -1,0 +1,2446 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - layers_abstract.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#undef</font> DLIB_DNn_LAYERS_ABSTRACT_H_
+<font color='#0000FF'>#ifdef</font> DLIB_DNn_LAYERS_ABSTRACT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='tensor_abstract.h.html'>tensor_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='core_abstract.h.html'>core_abstract.h</a>"
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='SUBNET'></a>SUBNET</b> 
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This object represents a deep neural network.  In particular, it is
+                the simplified interface through which layer objects interact with their
+                subnetworks.  A layer's two important tasks are to (1) take outputs from its
+                subnetwork and forward propagate them through itself and (2) to backwards
+                propagate an error gradient through itself and onto its subnetwork.
+                The idea of a subnetwork is illustrated in the following diagram:
+
+                  +---------------------------------------------------------+
+                  | loss &lt;-- layer1 &lt;-- layer2 &lt;-- ... &lt;-- layern &lt;-- input |
+                  +---------------------------------------------------------+
+                                      ^                            ^
+                                      \__ subnetwork for layer1 __/
+
+                Therefore, by "subnetwork" we mean the part of the network closer to the
+                input.
+
+                Note that there is no dlib::SUBNET type.  It is shown here purely to
+                document the interface layer objects expect to see when they interact
+                with a network.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#009900'>// You aren't allowed to copy subnetworks from inside a layer.
+</font>        <b><a name='SUBNET'></a>SUBNET</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+        SUBNET<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_output'></a>get_output</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the output of this subnetwork.  This is the data that the next
+                  layer in the network will take as input.
+                - have_same_dimensions(#get_gradient_input(), get_output()) == true
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_gradient_input'></a>get_gradient_input</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the error gradient for this subnetwork.  That is, this is the
+                  error gradient that this network will use to update itself.  Therefore,
+                  when performing back propagation, layers that sit on top of this
+                  subnetwork write their back propagated error gradients into
+                  get_gradient_input().  Or to put it another way, during back propagation,
+                  layers take the contents of their get_gradient_input() and back propagate
+                  it through themselves and store the results into their subnetwork's
+                  get_gradient_input().
+        !*/</font>
+
+        <font color='#0000FF'>const</font> NEXT_SUBNET<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the subnetwork of *this network.  With respect to the diagram
+                  above, if *this was layer1 then subnet() would return the network that
+                  begins with layer2.
+        !*/</font>
+
+        NEXT_SUBNET<font color='#5555FF'>&amp;</font> <b><a name='subnet'></a>subnet</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the subnetwork of *this network.  With respect to the diagram
+                  above, if *this was layer1 then subnet() would return the network that
+                  begins with layer2.
+        !*/</font>
+
+        <font color='#0000FF'>const</font> layer_details_type<font color='#5555FF'>&amp;</font> <b><a name='layer_details'></a>layer_details</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the layer_details_type instance that defines the behavior of the
+                  layer at the top of this network.  I.e. returns the layer details that
+                  defines the behavior of the layer nearest to the network output rather
+                  than the input layer.  For computational layers, this is the object
+                  implementing the EXAMPLE_COMPUTATIONAL_LAYER_ interface that defines the
+                  layer's behavior.
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>int</u></font> <b><a name='sample_expansion_factor'></a>sample_expansion_factor</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - When to_tensor() is invoked on this network's input layer it converts N
+                  input objects into M samples, all stored inside a resizable_tensor.  It
+                  is always the case that M is some integer multiple of N.
+                  sample_expansion_factor() returns the value of this multiplier.  To be
+                  very specific, it is always true that M==I*N where I is some integer.
+                  This integer I is what is returned by sample_expansion_factor().
+
+                  It should be noted that computational layers likely do not care about the
+                  sample expansion factor.  It is only really of concern inside a loss
+                  layer where you need to know its value so that tensor samples can be
+                  matched against truth objects.  Moreover, in most cases the sample
+                  expansion factor is 1.
+        !*/</font>
+
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='EXAMPLE_COMPUTATIONAL_LAYER_'></a>EXAMPLE_COMPUTATIONAL_LAYER_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                Each computational layer in a deep neural network can be thought of as a
+                function, f(data,parameters), that takes in a data tensor, some parameters,
+                and produces an output tensor.  You create an entire deep network by
+                composing these functions.  Importantly, you are able to use a wide range
+                of different functions to accommodate the task you are trying to
+                accomplish.  Therefore, dlib includes a number of common layer types but if
+                you want to define your own then you simply implement a class with the same
+                interface as EXAMPLE_COMPUTATIONAL_LAYER_.
+
+                Note that there is no dlib::EXAMPLE_COMPUTATIONAL_LAYER_ type.  It is shown
+                here purely to document the interface that a layer object must implement.
+
+                The central work of defining a layer is implementing the forward and backward
+                methods.  When you do this you have four options:
+                    - Implement the forward() and backward() methods according to the
+                      specification shown below.  Do not implement forward_inplace() and
+                      backward_inplace().
+                    - Implement the forward() and backward() methods according to the
+                      specification shown below, except exclude the computed_output
+                      parameter from backward().  Doing this will allow dlib to make some
+                      layers execute in-place and therefore run a little faster and use
+                      less memory. Do not implement forward_inplace() and
+                      backward_inplace().
+                    - Implement the forward_inplace() and backward_inplace() methods
+                      according to the specification shown below.  Do not implement
+                      forward() and backward().  These in-place methods allow some types of
+                      layers to be implemented more efficiently.
+                    - Implement the forward_inplace() and backward_inplace() methods
+                      according to the specification shown below, except exclude the
+                      computed_output parameter from backward_inplace().  Doing this will
+                      allow dlib to make some layers execute in-place and therefore run a
+                      little faster and use less memory.  Do not implement forward() and
+                      backward().
+
+
+                It should also be noted that layers may define additional layer specific
+                fields and the solvers can use these fields as they see fit.  For example,
+                some layers define get_learning_rate_multiplier() and
+                get_weight_decay_multiplier() methods.  The solvers that come with dlib
+                look at these methods, if they exist, and adjust the learning rate or
+                weight decay for that layer according to the multiplier.  Therefore, you
+                can add these methods to your layer types if you want, or even define new
+                fields and new solvers that use those fields in some way.  
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='EXAMPLE_COMPUTATIONAL_LAYER_'></a>EXAMPLE_COMPUTATIONAL_LAYER_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Default constructs this object.  This function is not required to do
+                  anything in particular but it must exist, that is, it is required that
+                  layer objects be default constructable. 
+        !*/</font>
+
+        <b><a name='EXAMPLE_COMPUTATIONAL_LAYER_'></a>EXAMPLE_COMPUTATIONAL_LAYER_</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> EXAMPLE_COMPUTATIONAL_LAYER_<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - EXAMPLE_COMPUTATIONAL_LAYER_ objects are copy constructable
+        !*/</font>
+
+        <b><a name='EXAMPLE_COMPUTATIONAL_LAYER_'></a>EXAMPLE_COMPUTATIONAL_LAYER_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> some_other_layer_type<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Constructs this object from item.  This form of constructor is optional
+                  but it allows you to provide a conversion from one layer type to another.
+                  For example, the following code is valid only if my_layer2 can be
+                  constructed from my_layer1:
+                    relu&lt;fc&lt;my_layer1&lt;fc&lt;input&lt;matrix&lt;float&gt;&gt;&gt;&gt;&gt;&gt; my_dnn1;
+                    relu&lt;fc&lt;my_layer2&lt;fc&lt;input&lt;matrix&lt;float&gt;&gt;&gt;&gt;&gt;&gt; my_dnn2(my_dnn1);
+                  This kind of pattern is useful if you want to use one type of layer
+                  during training but a different type of layer during testing since it
+                  allows you to easily convert between related deep neural network types.  
+
+                  Additionally, if you provide a constructor to build a layer from another
+                  layer type you should also write your layer's deserialize() routine such
+                  that it can read that other layer's serialized data in addition to your
+                  own serialized data.  
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+            ensures
+                - performs any necessary initial memory allocations and/or sets parameters
+                  to their initial values prior to learning.  Therefore, calling setup
+                  destroys any previously learned parameters.  Also, typically setup()
+                  would look at the dimensions of the outputs of sub and configure the
+                  number of parameters in *this accordingly.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, 
+            resizable_tensor<font color='#5555FF'>&amp;</font> data_output
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+                - setup() has been called.
+            ensures
+                - Runs the output of the subnetwork through this layer and stores the
+                  results into #data_output.  In particular, forward() can use any of the
+                  outputs in sub (e.g. sub.get_output(), sub.subnet().get_output(), etc.)
+                  to compute whatever it wants.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#009900'>// this parameter is optional
+</font>            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+            SUBNET<font color='#5555FF'>&amp;</font> sub, 
+            tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+                - setup() has been called.
+                - computed_output is the tensor resulting from calling forward(sub,computed_output).  
+                  Moreover, this was the most recent call to forward().  This means that
+                  forward() is allowed to cache intermediate results so they can be used
+                  during the backward computation.
+                - have_same_dimensions(gradient_input, computed_output) == true
+                - have_same_dimensions(sub.get_gradient_input(), sub.get_output()) == true
+                - have_same_dimensions(params_grad, get_layer_params()) == true
+            ensures
+                - This function outputs the gradients of this layer with respect to the
+                  input data from sub and also with respect to this layer's parameters.
+                  These gradients are stored into #sub and #params_grad, respectively. To be
+                  precise, the gradients are taken of a function f(sub,get_layer_params())
+                  which is defined thusly:   
+                    - Recalling that computed_output is a function of both sub and get_layer_params(), 
+                      since it is the result of calling forward(sub,computed_output):
+                      let f(sub,get_layer_params()) == dot(computed_output, gradient_input)
+                  Then we define the following gradient vectors: 
+                    - PARAMETER_GRADIENT == gradient of f(sub,get_layer_params()) with
+                      respect to get_layer_params(). 
+                    - for all valid I:
+                        - DATA_GRADIENT_I == gradient of f(sub,get_layer_params()) with
+                          respect to layer&lt;I&gt;(sub).get_output() (recall that forward() can
+                          draw inputs from the immediate sub layer, sub.subnet(), or
+                          any earlier layer.  So you must consider the gradients with
+                          respect to all inputs drawn from sub)
+                  Finally, backward() outputs these gradients by performing:
+                    - params_grad = PARAMETER_GRADIENT 
+                    - for all valid I:
+                        - layer&lt;I&gt;(sub).get_gradient_input() += DATA_GRADIENT_I
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data_input, 
+            tensor<font color='#5555FF'>&amp;</font> data_output
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(data_input,data_output) == true
+                - setup() has been called.
+            ensures
+                - Runs the data_input tensor through this layer and stores the output into
+                  #data_output.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(data_input, data_output)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#009900'>// this parameter is optional
+</font>            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+            tensor<font color='#5555FF'>&amp;</font> data_grad,
+            tensor<font color='#5555FF'>&amp;</font> params_grad
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - setup() has been called.
+                - computed_output is the tensor resulting from the most recent call to
+                  forward_inplace().  This means that forward_inplace() is allowed to cache
+                  intermediate results so they can be used during the backward computation.
+                - have_same_dimensions(gradient_input, data_grad) == true
+                - have_same_dimensions(gradient_input, computed_output) == true
+                - have_same_dimensions(params_grad, get_layer_params()) == true
+            ensures
+                - This function supports in-place operation, i.e. having
+                  is_same_object(gradient_input, data_grad)==true
+                - This function outputs the gradients of this layer with respect to the
+                  input data from a sublayer and also with respect to this layer's parameters.
+                  These gradients are stored into #data_grad and #params_grad, respectively. To be
+                  precise, the gradients are taken of a function f(data_input,get_layer_params())
+                  which is defined thusly:   
+                    - Recalling that computed_output is a function of both the input to
+                      forward_inplace() and get_layer_params(), since it is the result of
+                      calling forward_inplace(data_input,computed_output):
+                      let f(data_input,get_layer_params()) == dot(computed_output, gradient_input)
+                  Then we define the following gradient vectors: 
+                    - PARAMETER_GRADIENT == gradient of f(data_input,get_layer_params()) with
+                      respect to get_layer_params(). 
+                    - DATA_GRADIENT == gradient of f(data_input,get_layer_params()) with respect
+                      to data_input. 
+                  Finally, backward_inplace() outputs these gradients by performing:
+                    - params_grad = PARAMETER_GRADIENT 
+                    - if (is_same_object(gradient_input, data_grad)) then
+                        - data_grad = DATA_GRADIENT
+                    - else
+                        - data_grad += DATA_GRADIENT
+        !*/</font>
+
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the parameters that define the behavior of forward().
+        !*/</font>
+
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the parameters that define the behavior of forward().
+        !*/</font>
+
+
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            These two functions are optional.  If provided, they should map between
+            (column,row) coordinates in input and output tensors of forward().  Providing
+            these functions allows you to use global utility functions like
+            input_tensor_to_output_tensor().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='clean'></a>clean</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            Implementing this function is optional.  If you don't need it then you don't
+            have to provide a clean().  But if you do provide it then it must behave as
+            follows:
+
+            ensures
+                - calling clean() Causes this object to forget about everything except its
+                  parameters.  This is useful if your layer caches information between
+                  forward and backward passes and you want to clean out that cache
+                  information before saving the network to disk.  
+        !*/</font>
+
+    <b>}</b>;
+
+    std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> EXAMPLE_COMPUTATIONAL_LAYER_<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        print a string describing this layer.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_COMPUTATIONAL_LAYER_<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        This function is optional, but required if you want to print your networks with
+        net_to_xml().  Therefore, to_xml() prints a layer as XML.
+    !*/</font>
+
+    <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> EXAMPLE_COMPUTATIONAL_LAYER_<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>EXAMPLE_COMPUTATIONAL_LAYER_<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        provides serialization support  
+    !*/</font>
+
+    <font color='#009900'>// For each layer you define, always define an add_layer template so that layers can be
+</font>    <font color='#009900'>// easily composed.  Moreover, the convention is that the layer class ends with an _
+</font>    <font color='#009900'>// while the add_layer template has the same name but without the trailing _.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> EXAMPLE_COMPUTATIONAL_LAYER <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>EXAMPLE_COMPUTATIONAL_LAYER_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>enum</font> <b><a name='fc_bias_mode'></a>fc_bias_mode</b>
+    <b>{</b>
+        FC_HAS_BIAS <font color='#5555FF'>=</font> <font color='#979000'>0</font>,
+        FC_NO_BIAS <font color='#5555FF'>=</font> <font color='#979000'>1</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>struct</font> <b><a name='num_fc_outputs'></a>num_fc_outputs</b>
+    <b>{</b>
+        <b><a name='num_fc_outputs'></a>num_fc_outputs</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> n<font face='Lucida Console'>)</font> : num_outputs<font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> num_outputs;
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> num_outputs,
+        fc_bias_mode bias_mode
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='fc_'></a>fc_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON num_outputs
+                num_outputs &gt; 0
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a fully connected layer that
+                takes an input tensor and multiplies it by a weight matrix and outputs the
+                results.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='fc_'></a>fc_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_num_outputs() == num_outputs
+                - #get_bias_mode() == bias_mode 
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 1
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 0
+        !*/</font>
+
+        <b><a name='fc_'></a>fc_</b><font face='Lucida Console'>(</font>
+            num_fc_outputs o
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_num_outputs() == o.num_outputs 
+                - #get_bias_mode() == bias_mode 
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 1
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 0
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_num_outputs'></a>get_num_outputs</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - This layer outputs column vectors that contain get_num_outputs()
+                  elements. That is, the output tensor T from forward() will be such that:
+                    - T.num_samples() == however many samples were given to forward().
+                    - T.k() == get_num_outputs()
+                    - The rest of the dimensions of T will be 1.
+        !*/</font>
+
+        fc_bias_mode <b><a name='get_bias_mode'></a>get_bias_mode</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the bias mode which determines if this layer includes bias terms.
+                  That is, if the bias mode is FC_HAS_BIAS then a different constant scalar
+                  is added to each of the outputs of this layer. 
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_learning_rate_multiplier'></a>get_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;  
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its parameters be
+                  multiplied by get_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_weight_decay_multiplier'></a>get_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its parameters be
+                  multiplied by get_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_learning_rate_multiplier'></a>set_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_weight_decay_multiplier'></a>set_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_learning_rate_multiplier'></a>get_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its bias parameters be
+                  multiplied by get_learning_rate_multiplier()*get_bias_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_weight_decay_multiplier'></a>get_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its bias parameters be
+                  multiplied by get_weight_decay_multiplier()*get_bias_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_learning_rate_multiplier'></a>set_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_weight_decay_multiplier'></a>set_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_weight_decay_multiplier() == val
+        !*/</font>
+
+        alias_tensor_const_instance <b><a name='get_weights'></a>get_weights</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns an alias of get_layer_params(), containing the weights matrix of
+                  the fully connected layer.
+                - #get_weights().num_samples() is the number of elements in input sample,
+                  i.e. sublayer's output's k * nc * nr.
+                - #get_bias().k() == #get_num_outputs()
+                - if get_bias_mode() == FC_HAS_BIAS:
+                    - #get_layer_params().size() == (#get_weights().size() + #get_biases().size())
+                - else:
+                    - #get_layer_params().size() == #get_weights().size()
+        !*/</font>
+
+        alias_tensor_instance <b><a name='get_weights'></a>get_weights</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns an alias of get_layer_params(), containing the weights matrix of
+                  the fully connected layer.
+                - #get_weights().num_samples() is the number of elements in input sample,
+                  i.e. sublayer's output's k * nc * nr.
+                - #get_bias().k() == #get_num_outputs()
+                - if get_bias_mode() == FC_HAS_BIAS:
+                    - #get_layer_params().size() == (#get_weights().size() + #get_biases().size())
+                - else:
+                    - #get_layer_params().size() == #get_weights().size()
+        !*/</font>
+
+        alias_tensor_const_instance <b><a name='get_biases'></a>get_biases</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            requires
+                - #get_bias_mode() == FC_HAS_BIAS
+            ensures
+                - returns an alias of get_layer_params(), containing the bias vector of
+                  the fully connected layer.
+                - #get_bias().num_samples() == 1
+                - #get_bias().k() == #get_num_outputs()
+                - #get_layer_params().size() == (#get_weights().size() + #get_biases().size())
+        !*/</font>
+
+        alias_tensor_instance <b><a name='get_biases'></a>get_biases</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - #get_bias_mode() == FC_HAS_BIAS
+            ensures
+                - returns an alias of get_layer_params(), containing the bias vector of
+                  the fully connected layer.
+                - #get_bias().num_samples() == 1
+                - #get_bias().k() == #get_num_outputs()
+                - #get_layer_params().size() == (#get_weights().size() + #get_biases().size())
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> num_outputs,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> fc <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>fc_<font color='#5555FF'>&lt;</font>num_outputs,FC_HAS_BIAS<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> num_outputs,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> fc_no_bias <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>fc_<font color='#5555FF'>&lt;</font>num_outputs,FC_NO_BIAS<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>struct</font> <b><a name='num_con_outputs'></a>num_con_outputs</b>
+    <b>{</b>
+        <b><a name='num_con_outputs'></a>num_con_outputs</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> n<font face='Lucida Console'>)</font> : num_outputs<font face='Lucida Console'>(</font>n<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> num_outputs;
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> _num_filters,
+        <font color='#0000FF'><u>long</u></font> _nr,
+        <font color='#0000FF'><u>long</u></font> _nc,
+        <font color='#0000FF'><u>int</u></font> _stride_y,
+        <font color='#0000FF'><u>int</u></font> _stride_x,
+        <font color='#0000FF'><u>int</u></font> _padding_y <font color='#5555FF'>=</font> _stride_y<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nr<font color='#5555FF'>/</font><font color='#979000'>2</font>,
+        <font color='#0000FF'><u>int</u></font> _padding_x <font color='#5555FF'>=</font> _stride_x<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nc<font color='#5555FF'>/</font><font color='#979000'>2</font>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='con_'></a>con_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                All of them must be &gt; 0.
+                Also, we require that:
+                    - 0 &lt;= _padding_y &amp;&amp; _padding_y &lt; _nr
+                    - 0 &lt;= _padding_x &amp;&amp; _padding_x &lt; _nc
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a convolution layer that takes an
+                input tensor (nominally representing an image) and convolves it with a set
+                of filters and then outputs the results. 
+
+                The dimensions of the tensors output by this layer are as follows (letting
+                IN be the input tensor and OUT the output tensor):
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == num_filters()
+                    - OUT.nr() == 1+(IN.nr() + 2*padding_y() - nr())/stride_y()
+                    - OUT.nc() == 1+(IN.nc() + 2*padding_x() - nc())/stride_x()
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='con_'></a>con_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #num_filters() == _num_filters
+                - #nr() == _nr
+                - #nc() == _nc
+                - #stride_y() == _stride_y
+                - #stride_x() == _stride_x
+                - #padding_y() == _padding_y
+                - #padding_x() == _padding_x
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 1
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 0
+        !*/</font>
+
+        <b><a name='con_'></a>con_</b><font face='Lucida Console'>(</font>
+            num_con_outputs o
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #num_filters() == o.num_outputs 
+                - #nr() == _nr
+                - #nc() == _nc
+                - #stride_y() == _stride_y
+                - #stride_x() == _stride_x
+                - #padding_y() == _padding_y
+                - #padding_x() == _padding_x
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 1
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 0
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='num_filters'></a>num_filters</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of filters contained in this layer.  The k dimension
+                  of the output tensors produced by this layer will be equal to the number
+                  of filters.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_num_filters'></a>set_num_filters</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>long</u></font> num
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - num &gt; 0
+                - get_layer_params().size() == 0
+                  (i.e. You can't change the number of filters in con_ if the parameter
+                  tensor has already been allocated.)
+            ensures
+                - #num_filters() == num
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the filters in this layer.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of columns in the filters in this layer.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_y'></a>stride_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the vertical stride used when convolving the filters over an
+                  image.  That is, each filter will be moved stride_y() pixels down at a
+                  time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_x'></a>stride_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the horizontal stride used when convolving the filters over an
+                  image.  That is, each filter will be moved stride_x() pixels right at a
+                  time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_y'></a>padding_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the top and bottom
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_x'></a>padding_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the left and right 
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_learning_rate_multiplier'></a>get_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;  
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its parameters be
+                  multiplied by get_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_weight_decay_multiplier'></a>get_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its parameters be
+                  multiplied by get_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_learning_rate_multiplier'></a>set_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_weight_decay_multiplier'></a>set_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_learning_rate_multiplier'></a>get_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its bias parameters be
+                  multiplied by get_learning_rate_multiplier()*get_bias_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_weight_decay_multiplier'></a>get_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its bias parameters be
+                  multiplied by get_weight_decay_multiplier()*get_bias_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_learning_rate_multiplier'></a>set_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_weight_decay_multiplier'></a>set_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> num_filters,
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc,
+        <font color='#0000FF'><u>int</u></font> stride_y,
+        <font color='#0000FF'><u>int</u></font> stride_x,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> con <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>con_<font color='#5555FF'>&lt;</font>num_filters,nr,nc,stride_y,stride_x<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> _num_filters,
+        <font color='#0000FF'><u>long</u></font> _nr,
+        <font color='#0000FF'><u>long</u></font> _nc,
+        <font color='#0000FF'><u>int</u></font> _stride_y,
+        <font color='#0000FF'><u>int</u></font> _stride_x,
+        <font color='#0000FF'><u>int</u></font> _padding_y <font color='#5555FF'>=</font> _stride_y<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nr<font color='#5555FF'>/</font><font color='#979000'>2</font>,
+        <font color='#0000FF'><u>int</u></font> _padding_x <font color='#5555FF'>=</font> _stride_x<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nc<font color='#5555FF'>/</font><font color='#979000'>2</font>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='cont_'></a>cont_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                All of them must be &gt; 0.
+                Also, we require that:
+                    - 0 &lt;= _padding_y &amp;&amp; _padding_y &lt; _nr
+                    - 0 &lt;= _padding_x &amp;&amp; _padding_x &lt; _nc
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a transposed convolution layer
+                that takes an input tensor and transpose convolves (sometimes called
+                "deconvolution") it with a set of filters and then outputs the results. 
+
+                This is essentially a convolutional layer that allows fractional strides.
+                Therefore, you can make output tensors that are larger than the input
+                tensors using this layer type. 
+
+                
+                The dimensions of the tensors output by this layer are as follows (letting
+                IN be the input tensor and OUT the output tensor):
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == num_filters()
+                    - OUT.nr() == stride_y()*(IN.nr()-1) + nr() - 2*padding_y()
+                    - OUT.nc() == stride_x()*(IN.nc()-1) + nc() - 2*padding_x()
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='cont_'></a>cont_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #num_filters() == _num_filters
+                - #nr() == _nr
+                - #nc() == _nc
+                - #stride_y() == _stride_y
+                - #stride_x() == _stride_x
+                - #padding_y() == _padding_y
+                - #padding_x() == _padding_x
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 1
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 0
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='num_filters'></a>num_filters</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of filters contained in this layer.  The k dimension
+                  of the output tensors produced by this layer will be equal to the number
+                  of filters.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the filters in this layer.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of columns in the filters in this layer.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_y'></a>stride_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the vertical stride used when convolving the filters over an
+                  image.  That is, each filter will be moved 1.0/stride_y() pixels down at
+                  a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_x'></a>stride_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the horizontal stride used when convolving the filters over an
+                  image.  That is, each filter will be moved 1.0/stride_x() pixels right at
+                  a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_y'></a>padding_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the top and bottom
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_x'></a>padding_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the left and right 
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_learning_rate_multiplier'></a>get_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;  
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its parameters be
+                  multiplied by get_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_weight_decay_multiplier'></a>get_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its parameters be
+                  multiplied by get_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_learning_rate_multiplier'></a>set_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_weight_decay_multiplier'></a>set_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_learning_rate_multiplier'></a>get_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its bias parameters be
+                  multiplied by get_learning_rate_multiplier()*get_bias_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_weight_decay_multiplier'></a>get_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its bias parameters be
+                  multiplied by get_weight_decay_multiplier()*get_bias_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_learning_rate_multiplier'></a>set_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_weight_decay_multiplier'></a>set_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> num_filters,
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc,
+        <font color='#0000FF'><u>int</u></font> stride_y,
+        <font color='#0000FF'><u>int</u></font> stride_x,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> cont <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>cont_<font color='#5555FF'>&lt;</font>num_filters,nr,nc,stride_y,stride_x<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>int</u></font> scale_y, 
+        <font color='#0000FF'><u>int</u></font> scale_x 
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='upsample_'></a>upsample_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                All of them must be &gt;= 1.
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it allows you to upsample a layer using
+                bilinear interpolation.  To be very specific, it upsamples each of the
+                channels in an input tensor.  Therefore, if IN is the input tensor to this
+                layer and OUT the output tensor, then we will have:
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == IN.k() 
+                    - OUT.nr() == IN.nr()*scale_y
+                    - OUT.nc() == IN.nr()*scale_x
+                    - for all valid i,k:  image_plane(OUT,i,k) is a copy of
+                      image_plane(IN,i,k) that has been bilinearly interpolated to fit into
+                      the shape of image_plane(OUT,i,k).
+        !*/</font>
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='upsample_'></a>upsample_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - This object has no state, so the constructor does nothing, aside from
+                  providing default constructability.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>int</u></font> scale,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> upsample <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>upsample_<font color='#5555FF'>&lt;</font>scale,scale<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='dropout_'></a>dropout_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a dropout layer.  Therefore, it
+                passes its inputs through the stochastic function f(x) which outputs either
+                0 or x.  The probability of 0 being output is given by the drop_rate
+                argument to this object's constructor.
+
+                Note that, after you finish training a network with dropout, it is a good
+                idea to replace each dropout_ layer with a multiply_ layer because the
+                multiply_ layer is faster and deterministic. 
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>explicit</font> <b><a name='dropout_'></a>dropout_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> drop_rate <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - 0 &lt;= drop_rate &lt;= 1
+            ensures
+                - #get_drop_rate() == drop_rate
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_drop_rate'></a>get_drop_rate</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the probability that an individual input value to this layer will
+                  be replaced with 0.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> dropout <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>dropout_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='multiply_'></a>multiply_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a basic layer that just
+                multiplies its input tensor with a constant value and returns the result.
+                It therefore has no learnable parameters.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>explicit</font> <b><a name='multiply_'></a>multiply_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> val <font color='#5555FF'>=</font> <font color='#979000'>0.5</font>
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - #get_multiply_value() == val
+        !*/</font>
+
+        <b><a name='multiply_'></a>multiply_</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> dropout_<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - #get_multiply_value() == 1-item.get_drop_rate()
+                  (i.e. We construct the multiply_ layer so that it is essentially a
+                  deterministic version of the given dropout_ layer)
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_multiply_value'></a>get_multiply_value</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - this layer simply multiplies its input tensor by get_multiply_value() and
+                  produces the result as output.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> multiply <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>multiply_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>enum</font> <b><a name='layer_mode'></a>layer_mode</b>
+    <b>{</b>
+        CONV_MODE <font color='#5555FF'>=</font> <font color='#979000'>0</font>, <font color='#009900'>// convolutional mode
+</font>        FC_MODE <font color='#5555FF'>=</font> <font color='#979000'>1</font>    <font color='#009900'>// fully connected mode
+</font>    <b>}</b>;
+
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> DEFAULT_BATCH_NORM_EPS <font color='#5555FF'>=</font> <font color='#979000'>0.0001</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        layer_mode mode
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='bn_'></a>bn_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a batch normalization layer that
+                implements the method described in the paper: 
+                    Batch Normalization: Accelerating Deep Network Training by Reducing
+                    Internal Covariate Shift by Sergey Ioffe and Christian Szegedy
+                
+                In particular, this layer produces output tensors with the same
+                dimensionality as the input tensors, except that the mean and variances of
+                the elements have been standardized to 0 and 1 respectively. 
+
+                It should also be noted that when tensors with a num_samples() dimension of
+                1 are passed to this layer it doesn't perform batch normalization.
+                Instead, it runs in "inference mode" where the learned linear normalizing
+                transformation is used to transform the tensor. 
+
+                Finally, after you finish training a batch normalized network, it is a good
+                idea to replace each bn_ layer with an affine_ layer because the affine_
+                layer is faster and will never surprise you by performing batch
+                normalization on tensors that have a num_samples() dimension &gt; 1.  This allows
+                you to run large mini-batches of samples through your final network without
+                batch normalization executing at all. 
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='bn_'></a>bn_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_mode() == mode
+                - #get_running_stats_window_size()      == 100
+                - #get_learning_rate_multiplier()       == 1
+                - #get_weight_decay_multiplier()        == 0
+                - #get_bias_learning_rate_multiplier()  == 1
+                - #get_bias_weight_decay_multiplier()   == 1
+                - #get_eps() == tt::DEFAULT_BATCH_NORM_EPS
+        !*/</font>
+
+        <font color='#0000FF'>explicit</font> <b><a name='bn_'></a>bn_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> window_size,
+            <font color='#0000FF'><u>double</u></font> eps <font color='#5555FF'>=</font> tt::DEFAULT_BATCH_NORM_EPS
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - eps &gt; 0
+                - window_size &gt; 0
+            ensures
+                - #get_mode() == mode 
+                - #get_running_stats_window_size()     == window_size
+                - #get_learning_rate_multiplier()      == 1
+                - #get_weight_decay_multiplier()       == 0
+                - #get_bias_learning_rate_multiplier() == 1
+                - #get_bias_weight_decay_multiplier()  == 1
+                - #get_eps() == eps
+        !*/</font>
+
+        layer_mode <b><a name='get_mode'></a>get_mode</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the mode of this layer, either CONV_MODE or FC_MODE.
+                  If the mode is FC_MODE then the normalization is applied across the
+                  samples in a tensor (i.e. k()*nr()*nc() different things will be
+                  normalized).  Otherwise, normalization is applied across everything
+                  except for the k() dimension, resulting in there being only k()
+                  normalization equations that are applied spatially over the tensor.
+
+                  Therefore, if you are putting batch normalization after a fully connected
+                  layer you should use FC_MODE.  Otherwise, if you are putting batch
+                  normalization after a convolutional layer you should use CONV_MODE.
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_eps'></a>get_eps</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - When doing batch normalization, we are dividing by the standard
+                  deviation.  This epsilon value returned by this function is added to the
+                  variance to prevent the division from dividing by zero.
+        !*/</font>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_running_stats_window_size'></a>get_running_stats_window_size</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - Just as recommended in the batch normalization paper, this object keeps a
+                  running average of the mean and standard deviations of the features.
+                  These averages are used during "inference mode" so you can run a single
+                  object through a batch normalized network.  They are also what is used to
+                  initialize an affine_ layer that is constructed from a bn_ layer.  This
+                  function returns the effective number of recent samples used to compute
+                  the running average.
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_running_stats_window_size'></a>set_running_stats_window_size</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> new_window_size
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - new_window_size &gt; 0
+            ensures
+                - #get_running_stats_window_size() == new_window_size
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_learning_rate_multiplier'></a>get_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;  
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its parameters be
+                  multiplied by get_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_weight_decay_multiplier'></a>get_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its parameters be
+                  multiplied by get_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_learning_rate_multiplier'></a>set_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_weight_decay_multiplier'></a>set_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_learning_rate_multiplier'></a>get_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the learning rate used to optimize its bias parameters be
+                  multiplied by get_learning_rate_multiplier()*get_bias_learning_rate_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_bias_weight_decay_multiplier'></a>get_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                  requesting that the weight decay used to optimize its bias parameters be
+                  multiplied by get_weight_decay_multiplier()*get_bias_weight_decay_multiplier().
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_learning_rate_multiplier'></a>set_bias_learning_rate_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_learning_rate_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_bias_weight_decay_multiplier'></a>set_bias_weight_decay_multiplier</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> val
+        <font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            requires
+                - val &gt;= 0
+            ensures
+                - #get_bias_weight_decay_multiplier() == val
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> bn_con <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>bn_<font color='#5555FF'>&lt;</font>CONV_MODE<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> bn_fc <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>bn_<font color='#5555FF'>&lt;</font>FC_MODE<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> net_type<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_all_bn_running_stats_window_sizes'></a>set_all_bn_running_stats_window_sizes</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> net_type<font color='#5555FF'>&amp;</font> net,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> new_window_size
+    <font face='Lucida Console'>)</font>;
+    <font color='#009900'>/*!
+        requires
+            - new_window_size &gt; 0
+            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
+              add_tag_layer.
+        ensures
+            - Sets the get_running_stats_window_size() field of all bn_ layers in net to
+              new_window_size.
+    !*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='affine_'></a>affine_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it applies a simple pointwise linear
+                transformation to an input tensor.  You can think of it as having two
+                parameter tensors, A and B.  If the input tensor is called INPUT then the
+                output of this layer is:
+                    A*INPUT+B
+                where all operations are performed element wise and each sample in the
+                INPUT tensor is processed separately.
+
+                Moreover, this object has two modes that effect the dimensionalities of A
+                and B and how they are applied to compute A*INPUT+B.  If
+                get_mode()==FC_MODE then A and B each have the same dimensionality as the
+                input tensor, except their num_samples() dimensions are 1.  If
+                get_mode()==CONV_MODE then A and B have all their dimensions set to 1
+                except for k(), which is equal to INPUT.k().
+
+                In either case, the computation of A*INPUT+B is performed pointwise over all
+                the elements of INPUT using either:
+                    OUTPUT(n,k,r,c) == A(1,k,r,c)*INPUT(n,k,r,c)+B(1,k,r,c)
+                or
+                    OUTPUT(n,k,r,c) == A(1,k,1,1)*INPUT(n,k,r,c)+B(1,k,1,1)
+                as appropriate.
+
+
+                Finally, note that the parameters of this layer are not learnable and
+                therefore not modified during network updates.  Instead, the layer will
+                perform the identity transformation unless it is initialized with a bn_
+                layer, in which case it will perform whatever transformation the bn_ layer
+                has learned.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='affine_'></a>affine_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_mode() == FC_MODE 
+        !*/</font>
+
+        <b><a name='affine_'></a>affine_</b><font face='Lucida Console'>(</font>
+            layer_mode mode
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #get_mode() == mode
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+            layer_mode mode
+            <font color='#5555FF'>&gt;</font>
+        <b><a name='affine_'></a>affine_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> bn_<font color='#5555FF'>&lt;</font>mode<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> layer
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - Constructs affine_ so that it performs the same transformation as the
+                  supplied batch normalization layer.  You would want to do this after you
+                  finish training a network with bn_ layers because the affine_ layer will
+                  execute faster.  
+                - #get_mode() == layer.get_mode()
+        !*/</font>
+
+        layer_mode <b><a name='get_mode'></a>get_mode</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the mode of this layer, either CONV_MODE or FC_MODE.  
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the
+            EXAMPLE_COMPUTATIONAL_LAYER_ interface.  Also note that get_layer_params()
+            always returns an empty tensor since there are no learnable parameters in this
+            object.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> affine <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>affine_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> _nr,
+        <font color='#0000FF'><u>long</u></font> _nc,
+        <font color='#0000FF'><u>int</u></font> _stride_y,
+        <font color='#0000FF'><u>int</u></font> _stride_x,
+        <font color='#0000FF'><u>int</u></font> _padding_y <font color='#5555FF'>=</font> _stride_y<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nr<font color='#5555FF'>/</font><font color='#979000'>2</font>,
+        <font color='#0000FF'><u>int</u></font> _padding_x <font color='#5555FF'>=</font> _stride_x<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nc<font color='#5555FF'>/</font><font color='#979000'>2</font>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='max_pool_'></a>max_pool_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                - _nr &gt;= 0
+                - _nc &gt;= 0
+                - _stride_y &gt; 0
+                - _stride_x &gt; 0
+                - _padding_y &gt;= 0
+                - _padding_x &gt;= 0
+                - if (_nr != 0) then
+                    - _padding_y &lt; _nr
+                - else
+                    - _padding_y == 0
+                - if (_nc != 0) then
+                    - _padding_x &lt; _nr
+                - else
+                    - _padding_x == 0
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a max pooling layer that takes an
+                input tensor and downsamples it.  It does this by sliding a window over the
+                images in an input tensor and outputting, for each channel, the maximum
+                element within the window.  
+
+                If _nr == 0 then it means the filter size covers all the rows in the input
+                tensor, similarly for the _nc parameter.  To be precise, if we call the
+                input tensor IN and the output tensor OUT, then OUT is defined as follows:
+                    - let FILT_NR == (nr()==0) ? IN.nr() : nr()
+                    - let FILT_NC == (nc()==0) ? IN.nc() : nc()
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == IN.k()
+                    - OUT.nr() == 1+(IN.nr() + 2*padding_y() - FILT_NR)/stride_y()
+                    - OUT.nc() == 1+(IN.nc() + 2*padding_x() - FILT_NC)/stride_x()
+                    - for all valid s, k, r, and c:
+                        - image_plane(OUT,s,k)(r,c) == max(subm_clipped(image_plane(IN,s,k),
+                                                                  centered_rect(x*stride_x() + FILT_NC/2 - padding_x(),
+                                                                                y*stride_y() + FILT_NR/2 - padding_y(),
+                                                                                FILT_NC,
+                                                                                FILT_NR)))
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='max_pool_'></a>max_pool_</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #nr() == _nr
+                - #nc() == _nc
+                - #stride_y() == _stride_y
+                - #stride_x() == _stride_x
+                - #padding_y() == _padding_y
+                - #padding_x() == _padding_x
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the pooling window or 0 if the window size
+                  is "the entire input tensor".
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the pooling window or 0 if the window size
+                  is "the entire input tensor".
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_y'></a>stride_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the vertical stride used when scanning the max pooling window
+                  over an image.  That is, each window will be moved stride_y() pixels down
+                  at a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_x'></a>stride_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the horizontal stride used when scanning the max pooling window
+                  over an image.  That is, each window will be moved stride_x() pixels down
+                  at a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_y'></a>padding_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the top and bottom
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_x'></a>padding_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the left and right 
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc,
+        <font color='#0000FF'><u>int</u></font> stride_y,
+        <font color='#0000FF'><u>int</u></font> stride_x,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> max_pool <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>max_pool_<font color='#5555FF'>&lt;</font>nr,nc,stride_y,stride_x<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> max_pool_everything <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>max_pool_<font color='#5555FF'>&lt;</font><font color='#979000'>0</font>,<font color='#979000'>0</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> _nr,
+        <font color='#0000FF'><u>long</u></font> _nc,
+        <font color='#0000FF'><u>int</u></font> _stride_y,
+        <font color='#0000FF'><u>int</u></font> _stride_x,
+        <font color='#0000FF'><u>int</u></font> _padding_y <font color='#5555FF'>=</font> _stride_y<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nr<font color='#5555FF'>/</font><font color='#979000'>2</font>,
+        <font color='#0000FF'><u>int</u></font> _padding_x <font color='#5555FF'>=</font> _stride_x<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>1</font>? <font color='#979000'>0</font> : _nc<font color='#5555FF'>/</font><font color='#979000'>2</font>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='avg_pool_'></a>avg_pool_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                - _nr &gt;= 0
+                - _nc &gt;= 0
+                - _stride_y &gt; 0
+                - _stride_x &gt; 0
+                - _padding_y &gt;= 0
+                - _padding_x &gt;= 0
+                - if (_nr != 0) then
+                    - _padding_y &lt; _nr
+                - else
+                    - _padding_y == 0
+                - if (_nc != 0) then
+                    - _padding_x &lt; _nr
+                - else
+                    - _padding_x == 0
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines an average pooling layer that
+                takes an input tensor and downsamples it.  It does this by sliding a window
+                over the images in an input tensor and outputting, for each channel, the
+                average element within the window.  
+
+                If _nr == 0 then it means the filter size covers all the rows in the input
+                tensor, similarly for the _nc parameter.  To be precise, if we call the
+                input tensor IN and the output tensor OUT, then OUT is defined as follows:
+                    - let FILT_NR == (nr()==0) ? IN.nr() : nr()
+                    - let FILT_NC == (nc()==0) ? IN.nc() : nc()
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == IN.k()
+                    - OUT.nr() == 1+(IN.nr() + 2*padding_y() - FILT_NR)/stride_y()
+                    - OUT.nc() == 1+(IN.nc() + 2*padding_x() - FILT_NC)/stride_x()
+                    - for all valid s, k, r, and c:
+                        - image_plane(OUT,s,k)(r,c) == mean(subm_clipped(image_plane(IN,s,k),
+                                                                  centered_rect(x*stride_x() + FILT_NC/2 - padding_x(),
+                                                                                y*stride_y() + FILT_NR/2 - padding_y(),
+                                                                                FILT_NC,
+                                                                                FILT_NR)))
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='avg_pool_'></a>avg_pool_</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - #nr() == _nr
+                - #nc() == _nc
+                - #stride_y() == _stride_y
+                - #stride_x() == _stride_x
+                - #padding_y() == _padding_y
+                - #padding_x() == _padding_x
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nr'></a>nr</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the pooling window or 0 if the window size
+                  is "the entire input tensor".
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='nc'></a>nc</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of rows in the pooling window or 0 if the window size
+                  is "the entire input tensor".
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_y'></a>stride_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the vertical stride used when scanning the pooling window
+                  over an image.  That is, each window will be moved stride_y() pixels down
+                  at a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='stride_x'></a>stride_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the horizontal stride used when scanning the pooling window
+                  over an image.  That is, each window will be moved stride_x() pixels down
+                  at a time when it moves over the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_y'></a>padding_y</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the top and bottom
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'><u>long</u></font> <b><a name='padding_x'></a>padding_x</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - returns the number of pixels of zero padding added to the left and right 
+                  sides of the image.
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc,
+        <font color='#0000FF'><u>int</u></font> stride_y,
+        <font color='#0000FF'><u>int</u></font> stride_x,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> avg_pool <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>avg_pool_<font color='#5555FF'>&lt;</font>nr,nc,stride_y,stride_x<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> avg_pool_everything <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>avg_pool_<font color='#5555FF'>&lt;</font><font color='#979000'>0</font>,<font color='#979000'>0</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='relu_'></a>relu_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a rectified linear layer.
+                Therefore, it passes its inputs through the function 
+                    f(x)=max(x,0) 
+                where f() is applied pointwise across the input tensor.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='relu_'></a>relu_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> relu <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>relu_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='prelu_'></a>prelu_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a parametric rectified linear
+                layer.  Therefore, it passes its inputs through the function 
+                    f(x) = x&gt;0 ? x : p*x 
+                where f() is applied pointwise across the input tensor and p is a scalar
+                parameter learned by this layer.
+
+
+                This is the layer type introduced in the paper:
+                    He, Kaiming, et al. "Delving deep into rectifiers: Surpassing
+                    human-level performance on imagenet classification." Proceedings of the
+                    IEEE International Conference on Computer Vision. 2015.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>explicit</font> <b><a name='prelu_'></a>prelu_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> initial_param_value <font color='#5555FF'>=</font> <font color='#979000'>0.25</font>
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            ensures
+                - The p parameter will be initialized with initial_param_value.
+                - #get_initial_param_value() == initial_param_value.
+        !*/</font>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_initial_param_value'></a>get_initial_param_value</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#009900'>/*!
+            ensures
+                - returns the initial value of the prelu parameter. 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> prelu <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>prelu_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='sig_'></a>sig_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a sigmoid layer.  Therefore, it
+                passes its inputs through the function 
+                    f(x)=1/(1+exp(-x)) 
+                where f() is applied pointwise across the input tensor.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='sig_'></a>sig_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> sig <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>sig_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='htan_'></a>htan_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a hyperbolic tangent layer.
+                Therefore, it passes its inputs through the function 
+                    f(x)=std::tanh(x)
+                where f() is applied pointwise across the input tensor.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='htan_'></a>htan_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> htan <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>htan_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>class</font> <b><a name='softmax_'></a>softmax_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, it defines a softmax layer.  To be precise,
+                we define the softmax function s(x) as:
+                    s(x) == exp(x)/sum(exp(x)) 
+                where x is a vector.  Then this layer treats its input tensor as a
+                collection of multi-channel images and applies s() to each spatial location
+                in each image.  In each application, the tensor::k() channel elements at
+                each position are input to s() and then replaced by the outputs of s().   
+
+                This means that, for example, if you collapsed each output image to a 1
+                channel image by adding the channels then you would end up with images
+                where each pixel value was 1.  This is because the sum of the outputs of
+                s() will always be equal to 1.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <b><a name='softmax_'></a>softmax_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ 
+            interface.  Note that this layer doesn't have any parameters, so the tensor
+            returned by get_layer_params() is always empty.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> softmax <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>softmax_, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='tag'></a>tag</b>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='add_prev_'></a>add_prev_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  This layer simply adds the output of two previous layers.
+                In particular, it adds the tensor from its immediate predecessor layer,
+                sub.get_output(), with the tensor from a deeper layer,
+                layer&lt;tag&gt;(sub).get_output().
+
+                Therefore, you supply a tag via add_prev_'s template argument that tells it
+                what layer to add to the output of the previous layer.  The result of this
+                addition is output by add_prev_.  Finally, the addition happens pointwise
+                according to 4D tensor arithmetic.  If the dimensions don't match then
+                missing elements are presumed to be equal to 0.  Moreover, each dimension
+                of the output tensor is equal to the maximum dimension of either of the
+                inputs.  That is, if the tensors A and B are being added to produce C then:
+                    - C.num_samples() == max(A.num_samples(), B.num_samples())
+                    - C.k()  == max(A.k(), B.k())
+                    - C.nr() == max(A.nr(), B.nr())
+                    - C.nc() == max(A.nc(), B.nc())
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='add_prev_'></a>add_prev_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='tag'></a>tag</b>,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> add_prev <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>add_prev_<font color='#5555FF'>&lt;</font>tag<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#009900'>// Here we add some convenient aliases for using add_prev_ with the tag layers. 
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev1  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag1, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev2  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag2, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev3  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag3, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev4  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag4, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev5  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag5, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev6  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag6, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev7  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag7, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev8  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag8, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev9  <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag9, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> add_prev10 <font color='#5555FF'>=</font> add_prev<font color='#5555FF'>&lt;</font>tag10, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev1_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag1<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev2_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag2<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev3_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag3<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev4_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag4<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev5_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag5<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev6_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag6<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev7_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag7<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev8_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag8<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev9_  <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag9<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> add_prev10_ <font color='#5555FF'>=</font> add_prev_<font color='#5555FF'>&lt;</font>tag10<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='tag'></a>tag</b>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='mult_prev_'></a>mult_prev_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  This layer simply multiplies the output of two previous
+                layers.  In particular, it multiplies the tensor from its immediate
+                predecessor layer, sub.get_output(), with the tensor from a deeper layer,
+                layer&lt;tag&gt;(sub).get_output().
+
+                Therefore, you supply a tag via mult_prev_'s template argument that tells
+                it what layer to multiply with the output of the previous layer.  The
+                result of this multiplication is output by mult_prev_.  Finally, the
+                multiplication happens pointwise according to 4D tensor arithmetic.  If the
+                dimensions don't match then missing elements are presumed to be equal to 0.
+                Moreover, each dimension of the output tensor is equal to the maximum
+                dimension of either of the inputs.  That is, if the tensors A and B are
+                being multiplied to produce C then:
+                    - C.num_samples() == max(A.num_samples(), B.num_samples())
+                    - C.k()  == max(A.k(), B.k())
+                    - C.nr() == max(A.nr(), B.nr())
+                    - C.nc() == max(A.nc(), B.nc())
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <b><a name='mult_prev_'></a>mult_prev_</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font>; 
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='tag'></a>tag</b>,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> mult_prev <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>mult_prev_<font color='#5555FF'>&lt;</font>tag<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#009900'>// Here we add some convenient aliases for using mult_prev_ with the tag layers. 
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev1  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag1, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev2  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag2, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev3  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag3, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev4  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag4, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev5  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag5, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev6  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag6, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev7  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag7, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev8  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag8, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev9  <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag9, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> mult_prev10 <font color='#5555FF'>=</font> mult_prev<font color='#5555FF'>&lt;</font>tag10, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev1_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag1<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev2_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag2<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev3_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag3<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev4_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag4<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev5_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag5<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev6_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag6<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev7_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag7<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev8_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag8<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev9_  <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag9<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>using</font> mult_prev10_ <font color='#5555FF'>=</font> mult_prev_<font color='#5555FF'>&lt;</font>tag10<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font>... <b><a name='TAG_TYPES'></a>TAG_TYPES</b>
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='concat_'></a>concat_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  This layer simply concatenates the output of tagged layers.
+                Importantly, each input layer must have the same dimensions (i.e.
+                num_samples, nr, and nc) except for the k channel, which may vary.  This is
+                because the concatenation happens along the k dimension.  That is, the
+                output of this network is a tensor, OUT, that is the concatenation of the
+                tensors:
+                    for each (tag in TAG_TYPES)
+                        layer&lt;tag&gt;(subnet).get_output()
+                Therefore, out.num_samples(), out.nr(), and out.nc() match the dimensions
+                of the input tensors while OUT.k() is the sum of the input layer's k()
+                dimensions.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        dpoint <b><a name='map_input_to_output'></a>map_input_to_output</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        dpoint <b><a name='map_output_to_input'></a>map_output_to_input</b><font face='Lucida Console'>(</font>dpoint p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+
+    <font color='#009900'>// concat layer definitions
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG1'></a>TAG1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG2'></a>TAG2</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> concat2 <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>concat_<font color='#5555FF'>&lt;</font>TAG1, TAG2<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG1'></a>TAG1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG2'></a>TAG2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG3'></a>TAG3</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> concat3 <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>concat_<font color='#5555FF'>&lt;</font>TAG1, TAG2, TAG3<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG1'></a>TAG1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG2'></a>TAG2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG3'></a>TAG3</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG4'></a>TAG4</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> concat4 <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>concat_<font color='#5555FF'>&lt;</font>TAG1, TAG2, TAG3, TAG4<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG1'></a>TAG1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG2'></a>TAG2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG3'></a>TAG3</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG4'></a>TAG4</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='TAG5'></a>TAG5</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> concat5 <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>concat_<font color='#5555FF'>&lt;</font>TAG1, TAG2, TAG3, TAG4, TAG5<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>    
+    <a name='inception'/><font color='#009900'>/*!A inception layer definitions !*/</font>
+
+    <font color='#009900'>// Now define inception layer tag types.  These layer aliases allow creating
+</font>    <font color='#009900'>// the networks described in the paper: 
+</font>    <font color='#009900'>//   Szegedy, Christian, et al. "Going deeper with convolutions." Proceedings of
+</font>    <font color='#009900'>//   the IEEE Conference on Computer Vision and Pattern Recognition. 2015.
+</font>    <font color='#009900'>// See the dnn_inception_ex.cpp example for a complete example of their use.  Note also
+</font>    <font color='#009900'>// that we use tag ID numbers &gt;= 1000 to avoid conflict with user's tag layers.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag0  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>0</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag1  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>1</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag2  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>2</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag3  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>3</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag4  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>4</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> itag5  <font color='#5555FF'>=</font> add_tag_layer<font color='#5555FF'>&lt;</font> <font color='#979000'>1000</font> <font color='#5555FF'>+</font> <font color='#979000'>5</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+    <font color='#009900'>// skip to inception input
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> iskip  <font color='#5555FF'>=</font> add_skip_layer<font color='#5555FF'>&lt;</font> itag0, SUBNET<font color='#5555FF'>&gt;</font>;
+
+    <font color='#009900'>// here are some templates to be used for creating inception layer groups
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B1'></a>B1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B2'></a>B2</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> inception2 <font color='#5555FF'>=</font> concat2<font color='#5555FF'>&lt;</font>itag1, itag2, itag1<font color='#5555FF'>&lt;</font>B1<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag2<font color='#5555FF'>&lt;</font>B2<font color='#5555FF'>&lt;</font> itag0<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B1'></a>B1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B2'></a>B2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B3'></a>B3</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> inception3 <font color='#5555FF'>=</font> concat3<font color='#5555FF'>&lt;</font>itag1, itag2, itag3, itag1<font color='#5555FF'>&lt;</font>B1<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag2<font color='#5555FF'>&lt;</font>B2<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag3<font color='#5555FF'>&lt;</font>B3<font color='#5555FF'>&lt;</font>  itag0<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B1'></a>B1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B2'></a>B2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B3'></a>B3</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B4'></a>B4</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> inception4 <font color='#5555FF'>=</font> concat4<font color='#5555FF'>&lt;</font>itag1, itag2, itag3, itag4,
+                itag1<font color='#5555FF'>&lt;</font>B1<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag2<font color='#5555FF'>&lt;</font>B2<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag3<font color='#5555FF'>&lt;</font>B3<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font>  itag4<font color='#5555FF'>&lt;</font>B4<font color='#5555FF'>&lt;</font>  itag0<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B1'></a>B1</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B2'></a>B2</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B3'></a>B3</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B4'></a>B4</b>,
+              <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='B5'></a>B5</b>,
+              <font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> inception5 <font color='#5555FF'>=</font> concat5<font color='#5555FF'>&lt;</font>itag1, itag2, itag3, itag4, itag5,
+                itag1<font color='#5555FF'>&lt;</font>B1<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag2<font color='#5555FF'>&lt;</font>B2<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font> itag3<font color='#5555FF'>&lt;</font>B3<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font>  itag4<font color='#5555FF'>&lt;</font>B4<font color='#5555FF'>&lt;</font>iskip<font color='#5555FF'>&lt;</font>  itag5<font color='#5555FF'>&lt;</font>B5<font color='#5555FF'>&lt;</font>  itag0<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> DEFAULT_L2_NORM_EPS <font color='#5555FF'>=</font> <font color='#979000'>1e</font><font color='#5555FF'>-</font><font color='#979000'>5</font>;
+
+    <font color='#0000FF'>class</font> <b><a name='l2normalize_'></a>l2normalize_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  It takes tensors as input and L2 normalizes them.  In particular,
+                it has the following properties:
+                    - The output tensors from this layer have the same dimensions as the
+                      input tensors.
+                    - If you think of each input tensor as a set of tensor::num_samples()
+                      vectors, then the output tensor contains the same vectors except they
+                      have been length normalized so that their L2 norms are all 1.  I.e. 
+                      for each vector v we will have ||v||==1.
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>explicit</font> <b><a name='l2normalize_'></a>l2normalize_</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>double</u></font> eps <font color='#5555FF'>=</font> tt::DEFAULT_L2_NORM_EPS
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - eps &gt; 0
+            ensures
+                - #get_eps() == eps
+        !*/</font>
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='get_eps'></a>get_eps</b><font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#009900'>/*!
+            ensures
+                - When we normalize a vector we divide it by its L2 norm.  However, the
+                  get_eps() value is added to the squared norm prior to division to avoid
+                  ever dividing by zero. 
+        !*/</font>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='forward_inplace'></a>forward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> input, tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>void</u></font> <b><a name='backward_inplace'></a>backward_inplace</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> computed_output, <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, tensor<font color='#5555FF'>&amp;</font> data_grad, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> _offset,
+        <font color='#0000FF'><u>long</u></font> _k,
+        <font color='#0000FF'><u>long</u></font> _nr,
+        <font color='#0000FF'><u>long</u></font> _nc
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='extract_'></a>extract_</b>
+    <b>{</b>
+        <font color='#009900'>/*!
+            REQUIREMENTS ON TEMPLATE ARGUMENTS
+                - 0 &lt;= _offset
+                - 0 &lt; _k
+                - 0 &lt; _nr
+                - 0 &lt; _nc
+
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above.  In particular, the output of this layer is simply a copy of
+                the input tensor.  However, you can configure the extract layer to output
+                only some subset of the input tensor and also to reshape it.  Therefore,
+                the dimensions of the tensor output by this layer are as follows (letting
+                IN be the input tensor and OUT the output tensor):
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == _k 
+                    - OUT.nr() == _nr 
+                    - OUT.nc() == _nc 
+
+                So the output will always have the same number of samples as the input, but
+                within each sample (the k,nr,nc part) we will copy only a subset of the
+                values.  Moreover, the _offset parameter controls which part of each sample
+                we take.  To be very precise, we will have:
+                    - let IN_SIZE   = IN.k()*IN.nr()*IN.nc()
+                    - let OUT_SIZE  = _k*_nr*_nc 
+                    - for i in range[0,IN.num_samples()) and j in range[0,OUT_SIZE):
+                        - OUT.host()[i*OUT_SIZE+j] == IN.host()[i*IN_SIZE+_offset+j]
+
+
+                Finally, all this means that the input tensor to this layer must have a big
+                enough size to accommodate taking a _k*_nr*_nc slice from each of its
+                samples.  
+        !*/</font>
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='forward'></a>forward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> SUBNET<font color='#5555FF'>&amp;</font> sub, resizable_tensor<font color='#5555FF'>&amp;</font> output<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='backward'></a>backward</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, SUBNET<font color='#5555FF'>&amp;</font> sub, tensor<font color='#5555FF'>&amp;</font> params_grad<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        tensor<font color='#5555FF'>&amp;</font> <b><a name='get_layer_params'></a>get_layer_params</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; 
+        <font color='#009900'>/*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/</font>
+    <b>}</b>;
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'><u>long</u></font> offset,
+        <font color='#0000FF'><u>long</u></font> k,
+        <font color='#0000FF'><u>long</u></font> nr,
+        <font color='#0000FF'><u>long</u></font> nc,
+        <font color='#0000FF'>typename</font> SUBNET
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>using</font> extract <font color='#5555FF'>=</font> add_layer<font color='#5555FF'>&lt;</font>extract_<font color='#5555FF'>&lt;</font>offset,k,nr,nc<font color='#5555FF'>&gt;</font>, SUBNET<font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_LAYERS_ABSTRACT_H_
+</font>
+
+</pre></body></html>

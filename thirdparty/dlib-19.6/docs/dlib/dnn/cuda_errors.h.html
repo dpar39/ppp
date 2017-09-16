@@ -1,0 +1,73 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cuda_errors.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_CUDA_ERRORs_H_
+<font color='#0000FF'>#define</font> DLIB_CUDA_ERRORs_H_
+
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../error.h.html'>../error.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>struct</font> <b><a name='cuda_error'></a>cuda_error</b> : <font color='#0000FF'>public</font> error
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is the exception thrown if any calls to the NVIDIA CUDA runtime
+                returns an error.  
+        !*/</font>
+
+        <b><a name='cuda_error'></a>cuda_error</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> message<font face='Lucida Console'>)</font>: error<font face='Lucida Console'>(</font>message<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b>}</b>;
+
+
+    <font color='#0000FF'>struct</font> <b><a name='cudnn_error'></a>cudnn_error</b> : <font color='#0000FF'>public</font> cuda_error
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is the exception thrown if any calls to the NVIDIA cuDNN library
+                returns an error.  
+        !*/</font>
+
+        <b><a name='cudnn_error'></a>cudnn_error</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> message<font face='Lucida Console'>)</font>: cuda_error<font face='Lucida Console'>(</font>message<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b>}</b>;
+
+    <font color='#0000FF'>struct</font> <b><a name='curand_error'></a>curand_error</b> : <font color='#0000FF'>public</font> cuda_error
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is the exception thrown if any calls to the NVIDIA cuRAND library
+                returns an error.  
+        !*/</font>
+
+        <b><a name='curand_error'></a>curand_error</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> message<font face='Lucida Console'>)</font>: cuda_error<font face='Lucida Console'>(</font>message<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b>}</b>;
+
+    <font color='#0000FF'>struct</font> <b><a name='cublas_error'></a>cublas_error</b> : <font color='#0000FF'>public</font> cuda_error
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is the exception thrown if any calls to the NVIDIA cuBLAS library
+                returns an error.  
+        !*/</font>
+
+        <b><a name='cublas_error'></a>cublas_error</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> message<font face='Lucida Console'>)</font>: cuda_error<font face='Lucida Console'>(</font>message<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b>}</b>;
+
+    <font color='#0000FF'>struct</font> <b><a name='cusolver_error'></a>cusolver_error</b> : <font color='#0000FF'>public</font> cuda_error
+    <b>{</b>
+        <font color='#009900'>/*!
+            WHAT THIS OBJECT REPRESENTS
+                This is the exception thrown if any calls to the NVIDIA cuSolver library
+                returns an error.  
+        !*/</font>
+
+        <b><a name='cusolver_error'></a>cusolver_error</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> message<font face='Lucida Console'>)</font>: cuda_error<font face='Lucida Console'>(</font>message<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b>}</b>;
+<b>}</b>
+
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_CUDA_ERRORs_H_
+</font>
+
+</pre></body></html>

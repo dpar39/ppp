@@ -1,0 +1,508 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cudnn_dlibapi.h</title></head><body bgcolor='white'><pre>
+﻿<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNN_CuDNN_H_
+<font color='#0000FF'>#define</font> DLIB_DNN_CuDNN_H_
+
+<font color='#0000FF'>#ifdef</font> DLIB_USE_CUDA
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_errors.h.html'>cuda_errors.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>memory<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cuda_data_ptr.h.html'>cuda_data_ptr.h</a>"
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>class</font> tensor;
+    <font color='#0000FF'>class</font> resizable_tensor;
+
+    <font color='#0000FF'>namespace</font> cuda 
+    <b>{</b>
+
+    <font color='#009900'>// -----------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='tensor_descriptor'></a>tensor_descriptor</b>
+        <b>{</b>
+            <font color='#009900'>/*!
+                Each tensor object will carry a tensor_descriptor in it when compiled with
+                CUDA.
+            !*/</font>
+
+        <font color='#0000FF'>public</font>:
+            <font color='#009900'>// not copyable
+</font>            <b><a name='tensor_descriptor'></a>tensor_descriptor</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_descriptor<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            tensor_descriptor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_descriptor<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            <font color='#009900'>// but is movable
+</font>            <b><a name='tensor_descriptor'></a>tensor_descriptor</b><font face='Lucida Console'>(</font>tensor_descriptor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> : tensor_descriptor<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <b>}</b>
+            tensor_descriptor<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font>tensor_descriptor<font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <font color='#0000FF'>return</font> <font color='#5555FF'>*</font><font color='#0000FF'>this</font>; <b>}</b>
+
+            <b><a name='tensor_descriptor'></a>tensor_descriptor</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            ~<b><a name='tensor_descriptor'></a>tensor_descriptor</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='set_size'></a>set_size</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font> n, 
+                <font color='#0000FF'><u>int</u></font> k,
+                <font color='#0000FF'><u>int</u></font> nr, 
+                <font color='#0000FF'><u>int</u></font> nc 
+            <font face='Lucida Console'>)</font>;
+            <font color='#009900'>/*!
+                ensures
+                    - if any of the arguments are 0 then they are all set to 0 in the tensor.
+            !*/</font>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='get_size'></a>get_size</b> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&amp;</font> n, 
+                <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&amp;</font> k,
+                <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&amp;</font> nr,
+                <font color='#0000FF'><u>int</u></font><font color='#5555FF'>&amp;</font> nc 
+            <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='get_handle'></a>get_handle</b> <font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> handle; <b>}</b>
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='swap'></a>swap</b><font face='Lucida Console'>(</font>tensor_descriptor<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <b>{</b> std::<font color='#BB00BB'>swap</font><font face='Lucida Console'>(</font>handle, item.handle<font face='Lucida Console'>)</font>; <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> handle;
+        <b>}</b>;
+
+        <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='add'></a>add</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> beta,
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'><u>float</u></font> alpha,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - One of the following is true: 
+                    - have_same_dimensions(src, dest)
+                    - src.num_samples()==1 &amp;&amp; src.k()==dest.k() &amp;&amp; src.nr()==1 &amp;&amp; src.nc()==1
+                    - src.num_samples()==1 &amp;&amp; src.k()==dest.k() &amp;&amp; src.nr()==dest.nr() &amp;&amp; src.nc()==dest.nc()
+                    - src.num_samples()==1 &amp;&amp; src.k()==1 &amp;&amp; src.nr()==dest.nr() &amp;&amp; src.nc()==dest.nc()
+                - is_same_object(src,dest) == false
+            ensures
+                - performs: dest = beta*dest + alpha*src
+                  However, how the addition happens depends on the dimensions of src.  In
+                  particular, this function adds the scaled values of one src tensor to
+                  dest. Each dimension of the src tensor must match the corresponding
+                  dimension of the dest tensor or must be equal to 1. In the latter case,
+                  the same value from the src tensor, for those dimensions, will be used to
+                  add into the dest tensor.
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='assign_conv_bias_gradient'></a>assign_conv_bias_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - grad.num_samples() == 1
+                - grad.k()  &gt;= 1
+                - grad.nr() == 1
+                - grad.nc() == 1
+                - gradient_input.k() == grad.k()
+                - gradient_input.size() &gt; 0
+                - is_same_object(grad,gradient_input) == false
+            ensures
+                - let BIAS be a tensor with all dimensions equal to 1 except for k which is &gt;= 1.
+                - let OUT be the output of add(1,OUT,1,BIAS)
+                - let f(gradient_input,BIAS) == dot(gradient_input,OUT)
+                - Then this function computes the gradient of f() with respect to BIAS and
+                  assigns it to grad.
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_inference'></a>batch_normalize_inference</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_means,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_variances
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize'></a>batch_normalize</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+            resizable_tensor<font color='#5555FF'>&amp;</font> means,
+            resizable_tensor<font color='#5555FF'>&amp;</font> invstds,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> averaging_factor,
+            resizable_tensor<font color='#5555FF'>&amp;</font> running_means,
+            resizable_tensor<font color='#5555FF'>&amp;</font> running_variances,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta 
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_gradient'></a>batch_normalize_gradient</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> means,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> invstds,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma,
+            tensor<font color='#5555FF'>&amp;</font> src_grad,
+            tensor<font color='#5555FF'>&amp;</font> gamma_grad, 
+            tensor<font color='#5555FF'>&amp;</font> beta_grad 
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv_inference'></a>batch_normalize_conv_inference</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_means,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> running_variances
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv'></a>batch_normalize_conv</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+            resizable_tensor<font color='#5555FF'>&amp;</font> means,
+            resizable_tensor<font color='#5555FF'>&amp;</font> invstds,
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> averaging_factor,
+            resizable_tensor<font color='#5555FF'>&amp;</font> running_means,
+            resizable_tensor<font color='#5555FF'>&amp;</font> running_variances,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma, 
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> beta 
+        <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='batch_normalize_conv_gradient'></a>batch_normalize_conv_gradient</b><font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> eps,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> means,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> invstds,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gamma,
+            tensor<font color='#5555FF'>&amp;</font> src_grad,
+            tensor<font color='#5555FF'>&amp;</font> gamma_grad, 
+            tensor<font color='#5555FF'>&amp;</font> beta_grad 
+        <font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='tensor_conv'></a>tensor_conv</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+            <b><a name='tensor_conv'></a>tensor_conv</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_conv<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            tensor_conv<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> tensor_conv<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='tensor_conv'></a>tensor_conv</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='clear'></a>clear</b><font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>;
+
+            ~<b><a name='tensor_conv'></a>tensor_conv</b> <font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+                tensor<font color='#5555FF'>&amp;</font> output,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+                resizable_tensor<font color='#5555FF'>&amp;</font> output,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient_for_data'></a>get_gradient_for_data</b> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters,
+                tensor<font color='#5555FF'>&amp;</font> data_gradient
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient_for_filters'></a>get_gradient_for_filters</b> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> <font color='#0000FF'><u>bool</u></font> add_to_output,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+                tensor<font color='#5555FF'>&amp;</font> filters_gradient
+            <font face='Lucida Console'>)</font>;
+
+           <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> filters,
+                <font color='#0000FF'><u>int</u></font> stride_y,
+                <font color='#0000FF'><u>int</u></font> stride_x,
+                <font color='#0000FF'><u>int</u></font> padding_y,
+                <font color='#0000FF'><u>int</u></font> padding_x
+            <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#009900'>// These variables record the type of data given to the last call to setup().
+</font>            <font color='#0000FF'><u>int</u></font> stride_y;
+            <font color='#0000FF'><u>int</u></font> stride_x;
+            <font color='#0000FF'><u>int</u></font> padding_y;
+            <font color='#0000FF'><u>int</u></font> padding_x;
+            <font color='#0000FF'><u>long</u></font> data_num_samples, data_k, data_nr, data_nc;
+            <font color='#0000FF'><u>long</u></font> filters_num_samples, filters_k, filters_nr, filters_nc;
+
+
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> filter_handle;
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> conv_handle;
+
+            <font color='#009900'>// dimensions of the output tensor from operator()
+</font>            <font color='#0000FF'><u>int</u></font> out_num_samples;
+            <font color='#0000FF'><u>int</u></font> out_k;
+            <font color='#0000FF'><u>int</u></font> out_nr;
+            <font color='#0000FF'><u>int</u></font> out_nc;
+
+            <font color='#0000FF'><u>int</u></font> forward_algo;
+            <font color='#0000FF'><u>int</u></font> backward_data_algo;
+            <font color='#0000FF'><u>int</u></font> backward_filters_algo;
+
+            <font color='#0000FF'><u>size_t</u></font> forward_workspace_size_in_bytes;
+            <font color='#0000FF'><u>size_t</u></font> backward_data_workspace_size_in_bytes;
+            <font color='#0000FF'><u>size_t</u></font> backward_filters_workspace_size_in_bytes;
+            std::shared_ptr<font color='#5555FF'>&lt;</font>resizable_cuda_buffer<font color='#5555FF'>&gt;</font> workspace;
+            cuda_data_void_ptr forward_workspace;
+            cuda_data_void_ptr backward_data_workspace;
+            cuda_data_void_ptr backward_filters_workspace;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'>class</font> <b><a name='pooling'></a>pooling</b>
+        <b>{</b>
+        <font color='#0000FF'>public</font>:
+
+            <b><a name='pooling'></a>pooling</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> pooling<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+            pooling<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> pooling<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+            <b><a name='pooling'></a>pooling</b> <font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>;
+
+            ~<b><a name='pooling'></a>pooling</b><font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='clear'></a>clear</b><font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='setup_max_pooling'></a>setup_max_pooling</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font> window_height,
+                <font color='#0000FF'><u>int</u></font> window_width,
+                <font color='#0000FF'><u>int</u></font> stride_y,
+                <font color='#0000FF'><u>int</u></font> stride_x,
+                <font color='#0000FF'><u>int</u></font> padding_y,
+                <font color='#0000FF'><u>int</u></font> padding_x
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='setup_avg_pooling'></a>setup_avg_pooling</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font> window_height,
+                <font color='#0000FF'><u>int</u></font> window_width,
+                <font color='#0000FF'><u>int</u></font> stride_y,
+                <font color='#0000FF'><u>int</u></font> stride_x,
+                <font color='#0000FF'><u>int</u></font> padding_y,
+                <font color='#0000FF'><u>int</u></font> padding_x
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>bool</u></font> <b><a name='does_max_pooling'></a>does_max_pooling</b><font face='Lucida Console'>(</font>
+            <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> do_max_pooling; <b>}</b>
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+                resizable_tensor<font color='#5555FF'>&amp;</font> dest,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='get_gradient'></a>get_gradient</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input, 
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+                <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src,
+                tensor<font color='#5555FF'>&amp;</font> grad 
+            <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>private</font>:
+
+            <font color='#0000FF'><u>void</u></font> <b><a name='setup'></a>setup</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>int</u></font> window_height,
+                <font color='#0000FF'><u>int</u></font> window_width,
+                <font color='#0000FF'><u>int</u></font> stride_y,
+                <font color='#0000FF'><u>int</u></font> stride_x,
+                <font color='#0000FF'><u>int</u></font> padding_y,
+                <font color='#0000FF'><u>int</u></font> padding_x,
+                <font color='#0000FF'><u>int</u></font> pooling_mode
+            <font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> handle;
+            <font color='#0000FF'><u>int</u></font> window_height;
+            <font color='#0000FF'><u>int</u></font> window_width;
+            <font color='#0000FF'><u>int</u></font> stride_y;
+            <font color='#0000FF'><u>int</u></font> stride_x;
+            <font color='#0000FF'><u>int</u></font> padding_y;
+            <font color='#0000FF'><u>int</u></font> padding_x;
+            <font color='#0000FF'><u>bool</u></font> do_max_pooling;
+        <b>}</b>;
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='softmax'></a>softmax</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest, src) == true
+            ensures
+                - Note that the softmax function is a vector valued function: 
+                    s(x) == exp(x)/sum(exp(x)) 
+                - Computes the softmax function on src and writes the results to dest.  The
+                  softmax is computed per spatial location across the different channels at
+                  each location.  That is, softmax() outputs a new tensor, #dest, where
+                  each of the spatial locations in dest (i.e. image idx, row idx, and
+                  column idx) contains the output of s() evaluated over the channel values
+                  at each location.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(dest, src)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='softmax_gradient'></a>softmax_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest,gradient_input) == true 
+                - have_same_dimensions(dest,grad) == true 
+                - is_same_object(grad, dest)==false
+            ensures
+                - We interpret dest as the output of softmax(dest,SRC) for some SRC tensor.
+                  Then let f(SRC) == dot(gradient_input,dest) Then this function computes
+                  the gradient of f() with respect to SRC and assigns it to grad.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(grad, gradient_input)==true
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='sigmoid'></a>sigmoid</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest, src) == true
+            ensures
+                - for all valid i:
+                    - #dest.host()[i] == 1/(1+std::exp(-src.host()[i])) 
+                - This function supports in-place operation, i.e. having
+                  is_same_object(dest, src)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='sigmoid_gradient'></a>sigmoid_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest,gradient_input) == true 
+                - have_same_dimensions(dest,grad) == true 
+                - is_same_object(grad,dest) == false
+            ensures
+                - Recalling that dest is the output of sigmoid(dest,SRC) for some SRC tensor,
+                  let f(SRC) == dot(gradient_input,dest)
+                - Then this function computes the gradient of f() with respect to SRC and
+                  assigns it to grad.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(grad, gradient_input)==true
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='relu'></a>relu</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest, src) == true
+            ensures
+                - for all valid i:
+                    - #dest.host()[i] == std::max(0,src.host()[i]) 
+                - This function supports in-place operation, i.e. having
+                  is_same_object(dest, src)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='relu_gradient'></a>relu_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest,gradient_input) == true 
+                - have_same_dimensions(dest,grad) == true 
+                - is_same_object(grad,dest) == false
+            ensures
+                - Recalling that dest is the output of relu(dest,SRC) for some SRC tensor,
+                  let f(SRC) == dot(gradient_input,dest)
+                - Then this function computes the gradient of f() with respect to SRC and
+                  assigns it to grad.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(grad, gradient_input)==true
+        !*/</font>
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='tanh'></a>tanh</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> src
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest, src) == true
+            ensures
+                - for all valid i:
+                    - #dest.host()[i] == std::tanh(src.host()[i]) 
+                - This function supports in-place operation, i.e. having
+                  is_same_object(dest, src)==true
+        !*/</font>
+
+        <font color='#0000FF'><u>void</u></font> <b><a name='tanh_gradient'></a>tanh_gradient</b> <font face='Lucida Console'>(</font>
+            tensor<font color='#5555FF'>&amp;</font> grad,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> dest,
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> gradient_input
+        <font face='Lucida Console'>)</font>;
+        <font color='#009900'>/*!
+            requires
+                - have_same_dimensions(dest,gradient_input) == true 
+                - have_same_dimensions(dest,grad) == true 
+                - is_same_object(grad,dest) == false
+            ensures
+                - Recalling that dest is the output of tanh(dest,SRC) for some SRC tensor,
+                  let f(SRC) == dot(gradient_input,dest)
+                - Then this function computes the gradient of f() with respect to SRC and
+                  assigns it to grad.
+                - This function supports in-place operation, i.e. having
+                  is_same_object(grad, gradient_input)==true
+        !*/</font>
+
+
+
+    <font color='#009900'>// ------------------------------------------------------------------------------------
+</font>
+    <b>}</b> 
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_USE_CUDA
+</font>
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNN_CuDNN_H_
+</font>
+
+</pre></body></html>

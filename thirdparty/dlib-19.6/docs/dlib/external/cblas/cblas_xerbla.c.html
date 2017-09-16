@@ -1,0 +1,69 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - cblas_xerbla.c</title></head><body bgcolor='white'><pre>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>stdio.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>stdlib.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>string.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>stdarg.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas.h.html'>cblas.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='cblas_f77.h.html'>cblas_f77.h</a>"
+
+<font color='#0000FF'><u>void</u></font> <b><a name='cblas_xerbla'></a>cblas_xerbla</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> info, <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font> <font color='#5555FF'>*</font>rout, <font color='#0000FF'>const</font> <font color='#0000FF'><u>char</u></font> <font color='#5555FF'>*</font>form, ...<font face='Lucida Console'>)</font>
+<b>{</b>
+   <font color='#0000FF'><u>char</u></font> empty[<font color='#979000'>1</font>] <font color='#5555FF'>=</font> "<font color='#CC0000'></font>";
+   va_list argptr;
+
+   <font color='#BB00BB'>va_start</font><font face='Lucida Console'>(</font>argptr, form<font face='Lucida Console'>)</font>;
+
+   <b>{</b>
+      <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>gemm</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>5</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>4</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>4</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>5</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>11</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>9</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>9</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>11</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>symm</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>hemm</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>5</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>4</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>4</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>5</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>trmm</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>trsm</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>7</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>6</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>6</font> <font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font>  <font color='#979000'>7</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>gemv</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>4</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>3</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>4</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>gbmv</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>4</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>3</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>4</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>6</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>5</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>5</font><font face='Lucida Console'>)</font>  info <font color='#5555FF'>=</font> <font color='#979000'>6</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>ger</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>3</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>2</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>3</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>8</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>6</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>6</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>8</font>;
+      <b>}</b>
+      <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font> <font face='Lucida Console'>(</font><font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>her2</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>hpr2</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                 <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font color='#BB00BB'>strstr</font><font face='Lucida Console'>(</font>rout,"<font color='#CC0000'>her2k</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font face='Lucida Console'>)</font>
+      <b>{</b>
+         <font color='#0000FF'>if</font>      <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>8</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>6</font>;
+         <font color='#0000FF'>else</font> <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>6</font><font face='Lucida Console'>)</font> info <font color='#5555FF'>=</font> <font color='#979000'>8</font>;
+      <b>}</b>
+   <b>}</b>
+   <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info<font face='Lucida Console'>)</font>
+      <font color='#BB00BB'>fprintf</font><font face='Lucida Console'>(</font>stderr, "<font color='#CC0000'>Parameter %d to routine %s was incorrect\n</font>", info, rout<font face='Lucida Console'>)</font>;
+   <font color='#BB00BB'>vfprintf</font><font face='Lucida Console'>(</font>stderr, form, argptr<font face='Lucida Console'>)</font>;
+   <font color='#BB00BB'>va_end</font><font face='Lucida Console'>(</font>argptr<font face='Lucida Console'>)</font>;
+   <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>info <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font color='#5555FF'>!</font>info<font face='Lucida Console'>)</font> 
+      <font color='#BB00BB'>F77_xerbla</font><font face='Lucida Console'>(</font>empty, <font color='#5555FF'>&amp;</font>info<font face='Lucida Console'>)</font>; <font color='#009900'>/* Force link of our F77 error handler */</font>
+   <font color='#BB00BB'>exit</font><font face='Lucida Console'>(</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+<b>}</b>
+
+</pre></body></html>

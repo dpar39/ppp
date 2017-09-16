@@ -1,0 +1,256 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - bottom_up_cluster.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_BOTTOM_uP_CLUSTER_Hh_
+<font color='#0000FF'>#define</font> DLIB_BOTTOM_uP_CLUSTER_Hh_
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>queue<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>map<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='bottom_up_cluster_abstract.h.html'>bottom_up_cluster_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../algs.h.html'>../algs.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../disjoint_subsets.h.html'>../disjoint_subsets.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../graph_utils.h.html'>../graph_utils.h</a>"
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>namespace</font> buc_impl
+    <b>{</b>
+        <font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='merge_sets'></a>merge_sets</b> <font face='Lucida Console'>(</font>
+            matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> dists,
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> dest,
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> src
+        <font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>dest,r<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>r,dest<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font><font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>r,dest<font face='Lucida Console'>)</font>, <font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>r,src<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>struct</font> <b><a name='compare_dist'></a>compare_dist</b>
+        <b>{</b>
+            <font color='#0000FF'><u>bool</u></font> <b><a name='operator'></a>operator</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> sample_pair<font color='#5555FF'>&amp;</font> a,
+                <font color='#0000FF'>const</font> sample_pair<font color='#5555FF'>&amp;</font> b
+            <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+            <b>{</b>
+                <font color='#0000FF'>return</font> a.<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> b.<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+        <font color='#0000FF'>typename</font> EXP
+        <font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='bottom_up_cluster'></a>bottom_up_cluster</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> matrix_exp<font color='#5555FF'>&lt;</font>EXP<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> dists_,
+        std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> labels,
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> min_num_clusters,
+        <font color='#0000FF'><u>double</u></font> max_dist <font color='#5555FF'>=</font> std::numeric_limits<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font>::<font color='#BB00BB'>infinity</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font> dists <font color='#5555FF'>=</font> matrix_cast<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>dists_<font face='Lucida Console'>)</font>;
+        <font color='#009900'>// make sure requires clause is not broken
+</font>        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> dists.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> min_num_clusters <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font>, 
+            "<font color='#CC0000'>\t unsigned long bottom_up_cluster()</font>"
+            <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t Invalid inputs were given to this function.</font>"
+            <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t dists.nr(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+            <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t dists.nc(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> dists.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> 
+            <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t min_num_clusters: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> min_num_clusters 
+            <font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> buc_impl;
+
+        labels.<font color='#BB00BB'>resize</font><font face='Lucida Console'>(</font>dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        disjoint_subsets sets;
+        sets.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>labels.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+
+        <font color='#009900'>// push all the edges in the graph into a priority queue so the best edges to merge
+</font>        <font color='#009900'>// come first.
+</font>        std::priority_queue<font color='#5555FF'>&lt;</font>sample_pair, std::vector<font color='#5555FF'>&lt;</font>sample_pair<font color='#5555FF'>&gt;</font>, compare_dist<font color='#5555FF'>&gt;</font> que;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> dists.<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> r<font color='#5555FF'>+</font><font color='#979000'>1</font>; c <font color='#5555FF'>&lt;</font> dists.<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                que.<font color='#BB00BB'>push</font><font face='Lucida Console'>(</font><font color='#BB00BB'>sample_pair</font><font face='Lucida Console'>(</font>r,c,<font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// Now start merging nodes.
+</font>        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> iter <font color='#5555FF'>=</font> min_num_clusters; iter <font color='#5555FF'>&lt;</font> sets.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>iter<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// find the next best thing to merge.
+</font>            <font color='#0000FF'><u>double</u></font> best_dist <font color='#5555FF'>=</font> que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> a <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>index1</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> b <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>index2</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            que.<font color='#BB00BB'>pop</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// we have been merging and modifying the distances, so make sure this distance
+</font>            <font color='#009900'>// is still valid and these guys haven't been merged already.
+</font>            <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>a <font color='#5555FF'>=</font><font color='#5555FF'>=</font> b <font color='#5555FF'>|</font><font color='#5555FF'>|</font> best_dist <font color='#5555FF'>&lt;</font> <font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>a,b<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#009900'>// Haven't merged it yet, so put it back in with updated distance for
+</font>                <font color='#009900'>// reconsideration later.
+</font>                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>a <font color='#5555FF'>!</font><font color='#5555FF'>=</font> b<font face='Lucida Console'>)</font>
+                    que.<font color='#BB00BB'>push</font><font face='Lucida Console'>(</font><font color='#BB00BB'>sample_pair</font><font face='Lucida Console'>(</font>a, b, <font color='#BB00BB'>dists</font><font face='Lucida Console'>(</font>a, b<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+                best_dist <font color='#5555FF'>=</font> que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                a <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>index1</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                b <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>que.<font color='#BB00BB'>top</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>index2</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                que.<font color='#BB00BB'>pop</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+
+            <font color='#009900'>// now merge these sets if the best distance is small enough
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>best_dist <font color='#5555FF'>&gt;</font> max_dist<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>break</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> news <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>merge_sets</font><font face='Lucida Console'>(</font>a,b<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> olds <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>news<font color='#5555FF'>=</font><font color='#5555FF'>=</font>a<font face='Lucida Console'>)</font>?b:a;
+            <font color='#BB00BB'>merge_sets</font><font face='Lucida Console'>(</font>dists, news, olds<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#009900'>// figure out which cluster each element is in.  Also make sure the labels are
+</font>        <font color='#009900'>// contiguous.
+</font>        std::map<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font>, <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> relabel;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> labels.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> l <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>r<font face='Lucida Console'>)</font>;
+            <font color='#009900'>// relabel to make contiguous
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>relabel.<font color='#BB00BB'>count</font><font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> next <font color='#5555FF'>=</font> relabel.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+                relabel[l] <font color='#5555FF'>=</font> next;
+            <b>}</b>
+            labels[r] <font color='#5555FF'>=</font> relabel[l];
+        <b>}</b>
+
+
+        <font color='#0000FF'>return</font> relabel.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>struct</font> <b><a name='snl_range'></a>snl_range</b>
+    <b>{</b>
+        <b><a name='snl_range'></a>snl_range</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>default</font>;
+        <b><a name='snl_range'></a>snl_range</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font> val<font face='Lucida Console'>)</font> : lower<font face='Lucida Console'>(</font>val<font face='Lucida Console'>)</font>, upper<font face='Lucida Console'>(</font>val<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <b><a name='snl_range'></a>snl_range</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font> l, <font color='#0000FF'><u>double</u></font> u<font face='Lucida Console'>)</font> : lower<font face='Lucida Console'>(</font>l<font face='Lucida Console'>)</font>, upper<font face='Lucida Console'>(</font>u<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>DLIB_ASSERT</font><font face='Lucida Console'>(</font>lower <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> upper<font face='Lucida Console'>)</font><b>}</b>
+
+        <font color='#0000FF'><u>double</u></font> lower <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+        <font color='#0000FF'><u>double</u></font> upper <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+
+        <font color='#0000FF'><u>double</u></font> <b><a name='width'></a>width</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> upper<font color='#5555FF'>-</font>lower; <b>}</b>
+        <font color='#0000FF'><u>bool</u></font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> lower <font color='#5555FF'>&lt;</font> item.lower; <b>}</b>
+    <b>}</b>;
+
+    <font color='#0000FF'>inline</font> snl_range <b><a name='merge'></a>merge</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> a, <font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> b<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>return</font> <font color='#BB00BB'>snl_range</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>a.lower, b.lower<font face='Lucida Console'>)</font>, std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>a.upper, b.upper<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>inline</font> <font color='#0000FF'><u>double</u></font> <b><a name='distance'></a>distance</b> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> a, <font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> b<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>return</font> std::<font color='#BB00BB'>max</font><font face='Lucida Console'>(</font>a.lower,b.lower<font face='Lucida Console'>)</font> <font color='#5555FF'>-</font> std::<font color='#BB00BB'>min</font><font face='Lucida Console'>(</font>a.upper,b.upper<font face='Lucida Console'>)</font>;
+    <b>}</b>
+
+    <font color='#0000FF'>inline</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> <font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> snl_range<font color='#5555FF'>&amp;</font> item <font face='Lucida Console'>)</font>
+    <b>{</b>
+        out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>[</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.lower<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.upper<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>]</font>";
+        <font color='#0000FF'>return</font> out;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>inline</font> std::vector<font color='#5555FF'>&lt;</font>snl_range<font color='#5555FF'>&gt;</font> <b><a name='segment_number_line'></a>segment_number_line</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>double</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> x,
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>double</u></font> max_range_width
+    <font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>max_range_width <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// create initial ranges, one for each value in x.  So initially, all the ranges have
+</font>        <font color='#009900'>// width of 0.
+</font>        std::vector<font color='#5555FF'>&lt;</font>snl_range<font color='#5555FF'>&gt;</font> ranges;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> v : x<font face='Lucida Console'>)</font>
+            ranges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>v<font face='Lucida Console'>)</font>;
+        std::<font color='#BB00BB'>sort</font><font face='Lucida Console'>(</font>ranges.<font color='#BB00BB'>begin</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, ranges.<font color='#BB00BB'>end</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+        std::vector<font color='#5555FF'>&lt;</font>snl_range<font color='#5555FF'>&gt;</font> greedy_final_ranges;
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font> greedy_final_ranges;
+        <font color='#009900'>// We will try two different clustering strategies.  One that does a simple greedy left
+</font>        <font color='#009900'>// to right sweep and another that does a bottom up agglomerative clustering.  This
+</font>        <font color='#009900'>// first loop runs the greedy left to right sweep.  Then at the end of this routine we
+</font>        <font color='#009900'>// will return the results that produced the tightest clustering.
+</font>        greedy_final_ranges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>ranges[<font color='#979000'>0</font>]<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>auto</font> m <font color='#5555FF'>=</font> <font color='#BB00BB'>merge</font><font face='Lucida Console'>(</font>greedy_final_ranges.<font color='#BB00BB'>back</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, ranges[i]<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>m.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> max_range_width<font face='Lucida Console'>)</font>
+                greedy_final_ranges.<font color='#BB00BB'>back</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> m;
+            <font color='#0000FF'>else</font>
+                greedy_final_ranges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>ranges[i]<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+
+        <font color='#009900'>// Here we do the bottom up clustering.  So compute the edges connecting our ranges.
+</font>        <font color='#009900'>// We will simply say there are edges between ranges if and only if they are
+</font>        <font color='#009900'>// immediately adjacent on the number line.
+</font>        std::vector<font color='#5555FF'>&lt;</font>sample_pair<font color='#5555FF'>&gt;</font> edges;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>1</font>; i <font color='#5555FF'>&lt;</font> ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            edges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font><font color='#BB00BB'>sample_pair</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#979000'>1</font>,i, <font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ranges[i<font color='#5555FF'>-</font><font color='#979000'>1</font>],ranges[i]<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+        std::<font color='#BB00BB'>sort</font><font face='Lucida Console'>(</font>edges.<font color='#BB00BB'>begin</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, edges.<font color='#BB00BB'>end</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, order_by_distance<font color='#5555FF'>&lt;</font>sample_pair<font color='#5555FF'>&gt;</font><font face='Lucida Console'>)</font>;
+
+        disjoint_subsets sets;
+        sets.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// Now start merging nodes.
+</font>        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> edge : edges<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#009900'>// find the next best thing to merge.
+</font>            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> a <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>edge.<font color='#BB00BB'>index1</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> b <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>edge.<font color='#BB00BB'>index2</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// merge it if it doesn't result in an interval that's too big.
+</font>            <font color='#0000FF'>auto</font> m <font color='#5555FF'>=</font> <font color='#BB00BB'>merge</font><font face='Lucida Console'>(</font>ranges[a], ranges[b]<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>m.<font color='#BB00BB'>width</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> max_range_width<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> news <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>merge_sets</font><font face='Lucida Console'>(</font>a,b<font face='Lucida Console'>)</font>;
+                ranges[news] <font color='#5555FF'>=</font> m;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#009900'>// Now create a list of the final ranges.  We will do this by keeping track of which
+</font>        <font color='#009900'>// range we already added to final_ranges.
+</font>        std::vector<font color='#5555FF'>&lt;</font>snl_range<font color='#5555FF'>&gt;</font> final_ranges;
+        std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>bool</u></font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>already_output</font><font face='Lucida Console'>(</font>ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#979000'>false</font><font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> sets.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>auto</font> s <font color='#5555FF'>=</font> sets.<font color='#BB00BB'>find_set</font><font face='Lucida Console'>(</font>i<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font><font color='#5555FF'>!</font>already_output[s]<font face='Lucida Console'>)</font>
+            <b>{</b>
+                final_ranges.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>ranges[s]<font face='Lucida Console'>)</font>;
+                already_output[s] <font color='#5555FF'>=</font> <font color='#979000'>true</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#009900'>// only use the greedy clusters if they found a clustering with fewer clusters.
+</font>        <font color='#009900'>// Otherwise, the bottom up clustering probably produced a more sensible clustering.
+</font>        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>final_ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> greedy_final_ranges.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+            <font color='#0000FF'>return</font> final_ranges;
+        <font color='#0000FF'>else</font>
+            <font color='#0000FF'>return</font> greedy_final_ranges;
+    <b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_BOTTOM_uP_CLUSTER_Hh_
+</font>
+
+</pre></body></html>

@@ -1,0 +1,24 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - smart_pointers_thread_safe.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2008  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_SMART_POINTERs_THREAD_SAFE_H_
+<font color='#0000FF'>#define</font> DLIB_SMART_POINTERs_THREAD_SAFE_H_ 
+
+<font color='#009900'>// This is legacy smart pointer code that will likely to stop working under default
+</font><font color='#009900'>// compiler flags when C++17 becomes the default standard in the compilers.
+</font><font color='#009900'>// Please consider migrating your code to contemporary smart pointers from C++
+</font><font color='#009900'>// standard library. The warning below will help to detect if the deprecated code
+</font><font color='#009900'>// was included from library's clients.
+</font><font color='#0000FF'>#if</font> <font face='Lucida Console'>(</font>defined<font face='Lucida Console'>(</font>__GNUC__<font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>__GNUC__ <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>4</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> __GNUC_MINOR__ <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>8</font><font face='Lucida Console'>)</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> <font face='Lucida Console'>(</font>__GNUC__ <font color='#5555FF'>&gt;</font> <font color='#979000'>4</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <font color='#5555FF'>|</font><font color='#5555FF'>|</font> \
+  <font face='Lucida Console'>(</font><font color='#BB00BB'>defined</font><font face='Lucida Console'>(</font>__clang__<font face='Lucida Console'>)</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> <font face='Lucida Console'>(</font><font face='Lucida Console'>(</font>__clang_major__ <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>3</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> __clang_minor__ <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>4</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+<font color='#0000FF'>#pragma</font> GCC warning "<font color='#CC0000'>smart_pointers_thread_safe.h is included which will fail to compile under C++17</font>"
+<font color='#0000FF'>#endif</font>
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='smart_pointers/shared_ptr_thread_safe.h.html'>smart_pointers/shared_ptr_thread_safe.h</a>"
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_SMART_POINTERs_THREAD_SAFE_H_ 
+</font>
+
+
+
+</pre></body></html>

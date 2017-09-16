@@ -1,0 +1,391 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - dnn_introduction2_ex.cpp</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
+</font><font color='#009900'>/*
+    This is an example illustrating the use of the deep learning tools from the
+    dlib C++ Library.  I'm assuming you have already read the <a href="dnn_introduction_ex.cpp.html">dnn_introduction_ex.cpp</a> 
+    example.  So in this example program I'm going to go over a number of more
+    advanced parts of the API, including:
+        - Using multiple GPUs
+        - Training on large datasets that don't fit in memory 
+        - Defining large networks
+        - Accessing and configuring layers in a network
+*/</font>
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>dnn.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>iostream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>data_io.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> std;
+<font color='#0000FF'>using</font> <font color='#0000FF'>namespace</font> dlib;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#009900'>// Let's start by showing how you can conveniently define large and complex
+</font><font color='#009900'>// networks.  The most important tool for doing this are C++'s alias templates.
+</font><font color='#009900'>// These let us define new layer types that are combinations of a bunch of other
+</font><font color='#009900'>// layers.  These will form the building blocks for more complex networks.
+</font>
+<font color='#009900'>// So let's begin by defining the building block of a residual network (see
+</font><font color='#009900'>// Figure 2 in Deep Residual Learning for Image Recognition by He, Zhang, Ren,
+</font><font color='#009900'>// and Sun).  We are going to decompose the residual block into a few alias
+</font><font color='#009900'>// statements.  First, we define the core block.
+</font>
+<font color='#009900'>// Here we have parameterized the "block" layer on a BN layer (nominally some
+</font><font color='#009900'>// kind of batch normalization), the number of filter outputs N, and the stride
+</font><font color='#009900'>// the block operates at.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'><u>int</u></font> N, 
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, 
+    <font color='#0000FF'><u>int</u></font> stride, 
+    <font color='#0000FF'>typename</font> SUBNET
+    <font color='#5555FF'>&gt;</font> 
+<font color='#0000FF'>using</font> block  <font color='#5555FF'>=</font> BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,relu<font color='#5555FF'>&lt;</font>BN<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font>N,<font color='#979000'>3</font>,<font color='#979000'>3</font>,stride,stride,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// Next, we need to define the skip layer mechanism used in the residual network
+</font><font color='#009900'>// paper.  They create their blocks by adding the input tensor to the output of
+</font><font color='#009900'>// each block.  So we define an alias statement that takes a block and wraps it
+</font><font color='#009900'>// with this skip/add structure.
+</font>
+<font color='#009900'>// Note the tag layer.  This layer doesn't do any computation.  It exists solely
+</font><font color='#009900'>// so other layers can refer to it.  In this case, the add_prev1 layer looks for
+</font><font color='#009900'>// the tag1 layer and will take the tag1 output and add it to the input of the
+</font><font color='#009900'>// add_prev1 layer.  This combination allows us to implement skip and residual
+</font><font color='#009900'>// style networks.  We have also set the block stride to 1 in this statement.
+</font><font color='#009900'>// The significance of that is explained next.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, 
+    <font color='#0000FF'><u>int</u></font> N, 
+    <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, 
+    <font color='#0000FF'>typename</font> SUBNET
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual <font color='#5555FF'>=</font> add_prev1<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>1</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// Some residual blocks do downsampling.  They do this by using a stride of 2
+</font><font color='#009900'>// instead of 1.  However, when downsampling we need to also take care to
+</font><font color='#009900'>// downsample the part of the network that adds the original input to the output
+</font><font color='#009900'>// or the sizes won't make sense (the network will still run, but the results
+</font><font color='#009900'>// aren't as good).  So here we define a downsampling version of residual.  In
+</font><font color='#009900'>// it, we make use of the skip1 layer.  This layer simply outputs whatever is
+</font><font color='#009900'>// output by the tag1 layer.  Therefore, the skip1 layer (there are also skip2,
+</font><font color='#009900'>// skip3, etc. in dlib) allows you to create branching network structures.
+</font>
+<font color='#009900'>// residual_down creates a network structure like this:
+</font><font color='#009900'>/*
+         input from SUBNET
+             /     \
+            /       \
+         block     downsample(using avg_pool)
+            \       /
+             \     /
+           add tensors (using add_prev2 which adds the output of tag2 with avg_pool's output)
+                |
+              output
+*/</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font>,<font color='#0000FF'><u>int</u></font>,<font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font> <font color='#0000FF'>class</font> <b><a name='block'></a>block</b>, 
+    <font color='#0000FF'><u>int</u></font> N, 
+    <font color='#0000FF'>template</font><font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font><font color='#5555FF'>&gt;</font><font color='#0000FF'>class</font> <b><a name='BN'></a>BN</b>, 
+    <font color='#0000FF'>typename</font> SUBNET
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>using</font> residual_down <font color='#5555FF'>=</font> add_prev2<font color='#5555FF'>&lt;</font>avg_pool<font color='#5555FF'>&lt;</font><font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,<font color='#979000'>2</font>,skip1<font color='#5555FF'>&lt;</font>tag2<font color='#5555FF'>&lt;</font>block<font color='#5555FF'>&lt;</font>N,BN,<font color='#979000'>2</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+
+
+<font color='#009900'>// Now we can define 4 different residual blocks we will use in this example.
+</font><font color='#009900'>// The first two are non-downsampling residual blocks while the last two
+</font><font color='#009900'>// downsample.  Also, res and res_down use batch normalization while ares and
+</font><font color='#009900'>// ares_down have had the batch normalization replaced with simple affine
+</font><font color='#009900'>// layers.  We will use the affine version of the layers when testing our
+</font><font color='#009900'>// networks.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> res       <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual<font color='#5555FF'>&lt;</font>block,<font color='#979000'>8</font>,bn_con,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares      <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual<font color='#5555FF'>&lt;</font>block,<font color='#979000'>8</font>,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> res_down  <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual_down<font color='#5555FF'>&lt;</font>block,<font color='#979000'>8</font>,bn_con,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> <font color='#0000FF'>using</font> ares_down <font color='#5555FF'>=</font> relu<font color='#5555FF'>&lt;</font>residual_down<font color='#5555FF'>&lt;</font>block,<font color='#979000'>8</font>,affine,SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+
+
+<font color='#009900'>// Now that we have these convenient aliases, we can define a residual network
+</font><font color='#009900'>// without a lot of typing.  Note the use of a repeat layer.  This special layer
+</font><font color='#009900'>// type allows us to type repeat&lt;9,res,SUBNET&gt; instead of
+</font><font color='#009900'>// res&lt;res&lt;res&lt;res&lt;res&lt;res&lt;res&lt;res&lt;res&lt;SUBNET&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;.  It will also prevent
+</font><font color='#009900'>// the compiler from complaining about super deep template nesting when creating
+</font><font color='#009900'>// large networks.
+</font><font color='#0000FF'>const</font> <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> number_of_classes <font color='#5555FF'>=</font> <font color='#979000'>10</font>;
+<font color='#0000FF'>using</font> net_type <font color='#5555FF'>=</font> loss_multiclass_log<font color='#5555FF'>&lt;</font>fc<font color='#5555FF'>&lt;</font>number_of_classes,
+                            avg_pool_everything<font color='#5555FF'>&lt;</font>
+                            res<font color='#5555FF'>&lt;</font>res<font color='#5555FF'>&lt;</font>res<font color='#5555FF'>&lt;</font>res_down<font color='#5555FF'>&lt;</font>
+                            repeat<font color='#5555FF'>&lt;</font><font color='#979000'>9</font>,res, <font color='#009900'>// repeat this layer 9 times
+</font>                            res_down<font color='#5555FF'>&lt;</font>
+                            res<font color='#5555FF'>&lt;</font>
+                            input<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>
+                            <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+
+<font color='#009900'>// And finally, let's define a residual network building block that uses
+</font><font color='#009900'>// parametric ReLU units instead of regular ReLU.
+</font><font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> SUBNET<font color='#5555FF'>&gt;</font> 
+<font color='#0000FF'>using</font> pres  <font color='#5555FF'>=</font> prelu<font color='#5555FF'>&lt;</font>add_prev1<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>8</font>,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,prelu<font color='#5555FF'>&lt;</font>bn_con<font color='#5555FF'>&lt;</font>con<font color='#5555FF'>&lt;</font><font color='#979000'>8</font>,<font color='#979000'>3</font>,<font color='#979000'>3</font>,<font color='#979000'>1</font>,<font color='#979000'>1</font>,tag1<font color='#5555FF'>&lt;</font>SUBNET<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>int</u></font> <b><a name='main'></a>main</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> argc, <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font><font color='#5555FF'>*</font> argv<font face='Lucida Console'>)</font> <font color='#0000FF'>try</font>
+<b>{</b>
+    <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>argc <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>2</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>This example needs the MNIST dataset to run!</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>You can get MNIST from http://yann.lecun.com/exdb/mnist/</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Download the 4 files that comprise the dataset, decompress them, and</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>put them in a folder.  Then give that folder as input to this program.</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+        <font color='#0000FF'>return</font> <font color='#979000'>1</font>;
+    <b>}</b>
+
+    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> training_images;
+    std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> training_labels;
+    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> testing_images;
+    std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> testing_labels;
+    <font color='#BB00BB'>load_mnist_dataset</font><font face='Lucida Console'>(</font>argv[<font color='#979000'>1</font>], training_images, training_labels, testing_images, testing_labels<font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// dlib uses cuDNN under the covers.  One of the features of cuDNN is the
+</font>    <font color='#009900'>// option to use slower methods that use less RAM or faster methods that use
+</font>    <font color='#009900'>// a lot of RAM.  If you find that you run out of RAM on your graphics card
+</font>    <font color='#009900'>// then you can call this function and we will request the slower but more
+</font>    <font color='#009900'>// RAM frugal cuDNN algorithms.
+</font>    <font color='#BB00BB'>set_dnn_prefer_smallest_algorithms</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Create a network as defined above.  This network will produce 10 outputs
+</font>    <font color='#009900'>// because that's how we defined net_type.  However, fc layers can have the
+</font>    <font color='#009900'>// number of outputs they produce changed at runtime.  
+</font>    net_type net;
+    <font color='#009900'>// So if you wanted to use the same network but override the number of
+</font>    <font color='#009900'>// outputs at runtime you can do so like this:
+</font>    net_type <font color='#BB00BB'>net2</font><font face='Lucida Console'>(</font><font color='#BB00BB'>num_fc_outputs</font><font face='Lucida Console'>(</font><font color='#979000'>15</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+    <font color='#009900'>// Now, let's imagine we wanted to replace some of the relu layers with
+</font>    <font color='#009900'>// prelu layers.  We might do it like this:
+</font>    <font color='#0000FF'>using</font> net_type2 <font color='#5555FF'>=</font> loss_multiclass_log<font color='#5555FF'>&lt;</font>fc<font color='#5555FF'>&lt;</font>number_of_classes,
+                                avg_pool_everything<font color='#5555FF'>&lt;</font>
+                                pres<font color='#5555FF'>&lt;</font>res<font color='#5555FF'>&lt;</font>res<font color='#5555FF'>&lt;</font>res_down<font color='#5555FF'>&lt;</font> <font color='#009900'>// 2 prelu layers here
+</font>                                tag4<font color='#5555FF'>&lt;</font>repeat<font color='#5555FF'>&lt;</font><font color='#979000'>9</font>,pres,    <font color='#009900'>// 9 groups, each containing 2 prelu layers  
+</font>                                res_down<font color='#5555FF'>&lt;</font>
+                                res<font color='#5555FF'>&lt;</font>
+                                input<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>
+                                <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+
+    <font color='#009900'>// prelu layers have a floating point parameter.  If you want to set it to
+</font>    <font color='#009900'>// something other than its default value you can do so like this:
+</font>    net_type2 <font color='#BB00BB'>pnet</font><font face='Lucida Console'>(</font><font color='#BB00BB'>prelu_</font><font face='Lucida Console'>(</font><font color='#979000'>0.2</font><font face='Lucida Console'>)</font>,  
+                   <font color='#BB00BB'>prelu_</font><font face='Lucida Console'>(</font><font color='#979000'>0.25</font><font face='Lucida Console'>)</font>,
+                   <font color='#BB00BB'>repeat_group</font><font face='Lucida Console'>(</font><font color='#BB00BB'>prelu_</font><font face='Lucida Console'>(</font><font color='#979000'>0.3</font><font face='Lucida Console'>)</font>,<font color='#BB00BB'>prelu_</font><font face='Lucida Console'>(</font><font color='#979000'>0.4</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <font color='#009900'>// Initialize all the prelu instances in the repeat 
+</font>                                                         <font color='#009900'>// layer.  repeat_group() is needed to group the 
+</font>                                                         <font color='#009900'>// things that are part of repeat's block.
+</font>                   <font face='Lucida Console'>)</font>;
+    <font color='#009900'>// As you can see, a network will greedily assign things given to its
+</font>    <font color='#009900'>// constructor to the layers inside itself.  The assignment is done in the
+</font>    <font color='#009900'>// order the layers are defined, but it will skip layers where the
+</font>    <font color='#009900'>// assignment doesn't make sense.  
+</font>
+    <font color='#009900'>// Now let's print the details of the pnet to the screen and inspect it.
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>The pnet has </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> pnet.num_layers <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> layers in it.</font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> pnet <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    <font color='#009900'>// These print statements will output this (I've truncated it since it's
+</font>    <font color='#009900'>// long, but you get the idea):
+</font>    <font color='#009900'>/*
+        The pnet has 131 layers in it.
+        layer&lt;0&gt;    loss_multiclass_log
+        layer&lt;1&gt;    fc       (num_outputs=10) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;2&gt;    avg_pool (nr=0, nc=0, stride_y=1, stride_x=1, padding_y=0, padding_x=0)
+        layer&lt;3&gt;    prelu    (initial_param_value=0.2)
+        layer&lt;4&gt;    add_prev1
+        layer&lt;5&gt;    bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;6&gt;    con      (num_filters=8, nr=3, nc=3, stride_y=1, stride_x=1, padding_y=1, padding_x=1) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;7&gt;    prelu    (initial_param_value=0.25)
+        layer&lt;8&gt;    bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;9&gt;    con      (num_filters=8, nr=3, nc=3, stride_y=1, stride_x=1, padding_y=1, padding_x=1) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;10&gt;   tag1
+        ...
+        layer&lt;34&gt;   relu
+        layer&lt;35&gt;   bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;36&gt;   con      (num_filters=8, nr=3, nc=3, stride_y=2, stride_x=2, padding_y=0, padding_x=0) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;37&gt;   tag1
+        layer&lt;38&gt;   tag4
+        layer&lt;39&gt;   prelu    (initial_param_value=0.3)
+        layer&lt;40&gt;   add_prev1
+        layer&lt;41&gt;   bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        ...
+        layer&lt;118&gt;  relu
+        layer&lt;119&gt;  bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;120&gt;  con      (num_filters=8, nr=3, nc=3, stride_y=2, stride_x=2, padding_y=0, padding_x=0) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;121&gt;  tag1
+        layer&lt;122&gt;  relu
+        layer&lt;123&gt;  add_prev1
+        layer&lt;124&gt;  bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;125&gt;  con      (num_filters=8, nr=3, nc=3, stride_y=1, stride_x=1, padding_y=1, padding_x=1) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;126&gt;  relu
+        layer&lt;127&gt;  bn_con   eps=1e-05 learning_rate_mult=1 weight_decay_mult=0 bias_learning_rate_mult=1 bias_weight_decay_mult=1
+        layer&lt;128&gt;  con      (num_filters=8, nr=3, nc=3, stride_y=1, stride_x=1, padding_y=1, padding_x=1) learning_rate_mult=1 weight_decay_mult=1 bias_learning_rate_mult=1 bias_weight_decay_mult=0
+        layer&lt;129&gt;  tag1
+        layer&lt;130&gt;  input&lt;matrix&gt;
+    */</font>
+
+    <font color='#009900'>// Now that we know the index numbers for each layer, we can access them
+</font>    <font color='#009900'>// individually using layer&lt;index&gt;(pnet).  For example, to access the output
+</font>    <font color='#009900'>// tensor for the first prelu layer we can say:
+</font>    layer<font color='#5555FF'>&lt;</font><font color='#979000'>3</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>pnet<font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_output</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Or to print the prelu parameter for layer 7 we can say:
+</font>    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>prelu param: </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> layer<font color='#5555FF'>&lt;</font><font color='#979000'>7</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>pnet<font face='Lucida Console'>)</font>.<font color='#BB00BB'>layer_details</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.<font color='#BB00BB'>get_initial_param_value</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    <font color='#009900'>// We can also access layers by their type.  This next statement finds the
+</font>    <font color='#009900'>// first tag1 layer in pnet, and is therefore equivalent to calling
+</font>    <font color='#009900'>// layer&lt;10&gt;(pnet):
+</font>    layer<font color='#5555FF'>&lt;</font>tag1<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>pnet<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// The tag layers don't do anything at all and exist simply so you can tag
+</font>    <font color='#009900'>// parts of your network and access them by layer&lt;tag&gt;().  You can also
+</font>    <font color='#009900'>// index relative to a tag.  So for example, to access the layer immediately
+</font>    <font color='#009900'>// after tag4 you can say:
+</font>    layer<font color='#5555FF'>&lt;</font>tag4,<font color='#979000'>1</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>pnet<font face='Lucida Console'>)</font>; <font color='#009900'>// Equivalent to layer&lt;38+1&gt;(pnet).
+</font>
+    <font color='#009900'>// Or to access the layer 2 layers after tag4:
+</font>    layer<font color='#5555FF'>&lt;</font>tag4,<font color='#979000'>2</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>pnet<font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Tagging is a very useful tool for making complex network structures.  For
+</font>    <font color='#009900'>// example, the add_prev1 layer is implemented internally by using a call to
+</font>    <font color='#009900'>// layer&lt;tag1&gt;().
+</font>
+
+
+    <font color='#009900'>// Ok, that's enough talk about defining and inspecting networks.  Let's
+</font>    <font color='#009900'>// talk about training networks!
+</font>
+    <font color='#009900'>// The dnn_trainer will use SGD by default, but you can tell it to use
+</font>    <font color='#009900'>// different solvers like adam with a weight decay of 0.0005 and the given
+</font>    <font color='#009900'>// momentum parameters. 
+</font>    dnn_trainer<font color='#5555FF'>&lt;</font>net_type,adam<font color='#5555FF'>&gt;</font> <font color='#BB00BB'>trainer</font><font face='Lucida Console'>(</font>net,<font color='#BB00BB'>adam</font><font face='Lucida Console'>(</font><font color='#979000'>0.0005</font>, <font color='#979000'>0.9</font>, <font color='#979000'>0.999</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Also, if you have multiple graphics cards you can tell the trainer to use
+</font>    <font color='#009900'>// them together to make the training faster.  For example, replacing the
+</font>    <font color='#009900'>// above constructor call with this one would cause it to use GPU cards 0
+</font>    <font color='#009900'>// and 1.
+</font>    <font color='#009900'>//dnn_trainer&lt;net_type,adam&gt; trainer(net,adam(0.0005, 0.9, 0.999), {0,1});
+</font>
+    trainer.<font color='#BB00BB'>be_verbose</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// While the trainer is running it keeps an eye on the training error.  If
+</font>    <font color='#009900'>// it looks like the error hasn't decreased for the last 2000 iterations it
+</font>    <font color='#009900'>// will automatically reduce the learning rate by 0.1.  You can change these
+</font>    <font color='#009900'>// default parameters to some other values by calling these functions.  Or
+</font>    <font color='#009900'>// disable the automatic shrinking entirely by setting the shrink factor to 1.
+</font>    trainer.<font color='#BB00BB'>set_iterations_without_progress_threshold</font><font face='Lucida Console'>(</font><font color='#979000'>2000</font><font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>set_learning_rate_shrink_factor</font><font face='Lucida Console'>(</font><font color='#979000'>0.1</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// The learning rate will start at 1e-3.
+</font>    trainer.<font color='#BB00BB'>set_learning_rate</font><font face='Lucida Console'>(</font><font color='#979000'>1e</font><font color='#5555FF'>-</font><font color='#979000'>3</font><font face='Lucida Console'>)</font>;
+    trainer.<font color='#BB00BB'>set_synchronization_file</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mnist_resnet_sync</font>", std::chrono::<font color='#BB00BB'>seconds</font><font face='Lucida Console'>(</font><font color='#979000'>100</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Now, what if your training dataset is so big it doesn't fit in RAM?  You
+</font>    <font color='#009900'>// make mini-batches yourself, any way you like, and you send them to the
+</font>    <font color='#009900'>// trainer by repeatedly calling trainer.train_one_step(). 
+</font>    <font color='#009900'>//
+</font>    <font color='#009900'>// For example, the loop below stream MNIST data to out trainer.
+</font>    std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> mini_batch_samples;
+    std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> mini_batch_labels; 
+    dlib::rand <font color='#BB00BB'>rnd</font><font face='Lucida Console'>(</font><font color='#BB00BB'>time</font><font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+    <font color='#009900'>// Loop until the trainer's automatic shrinking has shrunk the learning rate to 1e-6.
+</font>    <font color='#009900'>// Given our settings, this means it will stop training after it has shrunk the
+</font>    <font color='#009900'>// learning rate 3 times.
+</font>    <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>trainer.<font color='#BB00BB'>get_learning_rate</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>=</font> <font color='#979000'>1e</font><font color='#5555FF'>-</font><font color='#979000'>6</font><font face='Lucida Console'>)</font>
+    <b>{</b>
+        mini_batch_samples.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+        mini_batch_labels.<font color='#BB00BB'>clear</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// make a 128 image mini-batch
+</font>        <font color='#0000FF'>while</font><font face='Lucida Console'>(</font>mini_batch_samples.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font> <font color='#979000'>128</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#0000FF'>auto</font> idx <font color='#5555FF'>=</font> rnd.<font color='#BB00BB'>get_random_32bit_number</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>%</font>training_images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            mini_batch_samples.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>training_images[idx]<font face='Lucida Console'>)</font>;
+            mini_batch_labels.<font color='#BB00BB'>push_back</font><font face='Lucida Console'>(</font>training_labels[idx]<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#009900'>// Tell the trainer to update the network given this mini-batch
+</font>        trainer.<font color='#BB00BB'>train_one_step</font><font face='Lucida Console'>(</font>mini_batch_samples, mini_batch_labels<font face='Lucida Console'>)</font>;
+
+        <font color='#009900'>// You can also feed validation data into the trainer by periodically
+</font>        <font color='#009900'>// calling trainer.test_one_step(samples,labels).  Unlike train_one_step(),
+</font>        <font color='#009900'>// test_one_step() doesn't modify the network, it only computes the testing
+</font>        <font color='#009900'>// error which it records internally.  This testing error will then be print
+</font>        <font color='#009900'>// in the verbose logging and will also determine when the trainer's
+</font>        <font color='#009900'>// automatic learning rate shrinking happens.  Therefore, test_one_step()
+</font>        <font color='#009900'>// can be used to perform automatic early stopping based on held out data.   
+</font>    <b>}</b>
+
+    <font color='#009900'>// When you call train_one_step(), the trainer will do its processing in a
+</font>    <font color='#009900'>// separate thread.  This allows the main thread to work on loading data
+</font>    <font color='#009900'>// while the trainer is busy executing the mini-batches in parallel.
+</font>    <font color='#009900'>// However, this also means we need to wait for any mini-batches that are
+</font>    <font color='#009900'>// still executing to stop before we mess with the net object.  Calling
+</font>    <font color='#009900'>// get_net() performs the necessary synchronization.
+</font>    trainer.<font color='#BB00BB'>get_net</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+
+    net.<font color='#BB00BB'>clean</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+    <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mnist_res_network.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> net;
+
+
+    <font color='#009900'>// Now we have a trained network.  However, it has batch normalization
+</font>    <font color='#009900'>// layers in it.  As is customary, we should replace these with simple
+</font>    <font color='#009900'>// affine layers before we use the network.  This can be accomplished by
+</font>    <font color='#009900'>// making a network type which is identical to net_type but with the batch
+</font>    <font color='#009900'>// normalization layers replaced with affine.  For example:
+</font>    <font color='#0000FF'>using</font> test_net_type <font color='#5555FF'>=</font> loss_multiclass_log<font color='#5555FF'>&lt;</font>fc<font color='#5555FF'>&lt;</font>number_of_classes,
+                                avg_pool_everything<font color='#5555FF'>&lt;</font>
+                                ares<font color='#5555FF'>&lt;</font>ares<font color='#5555FF'>&lt;</font>ares<font color='#5555FF'>&lt;</font>ares_down<font color='#5555FF'>&lt;</font>
+                                repeat<font color='#5555FF'>&lt;</font><font color='#979000'>9</font>,ares,
+                                ares_down<font color='#5555FF'>&lt;</font>
+                                ares<font color='#5555FF'>&lt;</font>
+                                input<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>
+                                <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font>;
+    <font color='#009900'>// Then we can simply assign our trained net to our testing net.
+</font>    test_net_type tnet <font color='#5555FF'>=</font> net;
+    <font color='#009900'>// Or if you only had a file with your trained network you could deserialize
+</font>    <font color='#009900'>// it directly into your testing network.  
+</font>    <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>mnist_res_network.dat</font>"<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> tnet;
+
+
+    <font color='#009900'>// And finally, we can run the testing network over our data.
+</font>
+    std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font><font color='#5555FF'>&gt;</font> predicted_labels <font color='#5555FF'>=</font> <font color='#BB00BB'>tnet</font><font face='Lucida Console'>(</font>training_images<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>int</u></font> num_right <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    <font color='#0000FF'><u>int</u></font> num_wrong <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> training_images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>predicted_labels[i] <font color='#5555FF'>=</font><font color='#5555FF'>=</font> training_labels[i]<font face='Lucida Console'>)</font>
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>num_right;
+        <font color='#0000FF'>else</font>
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>num_wrong;
+        
+    <b>}</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>training num_right: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_right <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>training num_wrong: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_wrong <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>training accuracy:  </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_right<font color='#5555FF'>/</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>num_right<font color='#5555FF'>+</font>num_wrong<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+    predicted_labels <font color='#5555FF'>=</font> <font color='#BB00BB'>tnet</font><font face='Lucida Console'>(</font>testing_images<font face='Lucida Console'>)</font>;
+    num_right <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    num_wrong <font color='#5555FF'>=</font> <font color='#979000'>0</font>;
+    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> i <font color='#5555FF'>=</font> <font color='#979000'>0</font>; i <font color='#5555FF'>&lt;</font> testing_images.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+    <b>{</b>
+        <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>predicted_labels[i] <font color='#5555FF'>=</font><font color='#5555FF'>=</font> testing_labels[i]<font face='Lucida Console'>)</font>
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>num_right;
+        <font color='#0000FF'>else</font>
+            <font color='#5555FF'>+</font><font color='#5555FF'>+</font>num_wrong;
+        
+    <b>}</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>testing num_right: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_right <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>testing num_wrong: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_wrong <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>testing accuracy:  </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> num_right<font color='#5555FF'>/</font><font face='Lucida Console'>(</font><font color='#0000FF'><u>double</u></font><font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>num_right<font color='#5555FF'>+</font>num_wrong<font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+
+<b>}</b>
+<font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>std::exception<font color='#5555FF'>&amp;</font> e<font face='Lucida Console'>)</font>
+<b>{</b>
+    cout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> e.<font color='#BB00BB'>what</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> endl;
+<b>}</b>
+
+
+</pre></body></html>

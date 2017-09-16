@@ -1,0 +1,682 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - input.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2015  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_DNn_INPUT_H_
+<font color='#0000FF'>#define</font> DLIB_DNn_INPUT_H_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='input_abstract.h.html'>input_abstract.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../matrix.h.html'>../matrix.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../array2d.h.html'>../array2d.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../pixel.h.html'>../pixel.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../image_processing.h.html'>../image_processing.h</a>"
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sstream<font color='#5555FF'>&gt;</font>
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input'></a>input</b>
+    <b>{</b>
+        <font color='#0000FF'>const</font> <font color='#0000FF'>static</font> <font color='#0000FF'><u>bool</u></font> always_false <font color='#5555FF'>=</font> <font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>T<font face='Lucida Console'>)</font><font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#0000FF'>sizeof</font><font face='Lucida Console'>(</font>T<font face='Lucida Console'>)</font>; 
+        <b><a name='static_assert'></a>static_assert</b><font face='Lucida Console'>(</font>always_false, "<font color='#CC0000'>Unsupported type given to input&lt;&gt;.  input&lt;&gt; only supports </font>"
+            "<font color='#CC0000'>dlib::matrix and dlib::array2d objects.</font>"<font face='Lucida Console'>)</font>; 
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font> NR, <font color='#0000FF'><u>size_t</u></font> NC<font color='#5555FF'>=</font>NR<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> input_rgb_image_sized;
+
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image'></a>input_rgb_image</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> input_type;
+
+        <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : 
+            avg_red<font face='Lucida Console'>(</font><font color='#979000'>122.782</font><font face='Lucida Console'>)</font>, 
+            avg_green<font face='Lucida Console'>(</font><font color='#979000'>117.001</font><font face='Lucida Console'>)</font>,
+            avg_blue<font face='Lucida Console'>(</font><font color='#979000'>104.298</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+        <b>}</b>
+
+        <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> avg_red_,
+            <font color='#0000FF'><u>float</u></font> avg_green_,
+            <font color='#0000FF'><u>float</u></font> avg_blue_
+        <font face='Lucida Console'>)</font> : avg_red<font face='Lucida Console'>(</font>avg_red_<font face='Lucida Console'>)</font>, avg_green<font face='Lucida Console'>(</font>avg_green_<font face='Lucida Console'>)</font>, avg_blue<font face='Lucida Console'>(</font>avg_blue_<font face='Lucida Console'>)</font> 
+        <b>{</b><b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font> NR, <font color='#0000FF'><u>size_t</u></font> NC<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'>inline</font> <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> input_rgb_image_sized<font color='#5555FF'>&lt;</font>NR,NC<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font>; 
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_red'></a>get_avg_red</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>   <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_red; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_green'></a>get_avg_green</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_green; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_blue'></a>get_avg_blue</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>  <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_blue; <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nr <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nc <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// make sure all the input matrices have the same dimensions
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nc,
+                    "<font color='#CC0000'>\t input_rgb_image::to_tensor()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t All matrices given to to_tensor() must have the same dimensions.</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nr: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nr
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nc: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nc
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nr(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nc(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            
+            <font color='#009900'>// initialize data to the right size to contain the stuff in the iterator range.
+</font>            data.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font>, <font color='#979000'>3</font>, nr, nc<font face='Lucida Console'>)</font>;
+
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>size_t</u></font> offset <font color='#5555FF'>=</font> nr<font color='#5555FF'>*</font>nc;
+            <font color='#0000FF'>auto</font> ptr <font color='#5555FF'>=</font> data.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> nr; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> nc; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        rgb_pixel temp <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#5555FF'>*</font>i<font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>auto</font> p <font color='#5555FF'>=</font> ptr<font color='#5555FF'>+</font><font color='#5555FF'>+</font>;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.red<font color='#5555FF'>-</font>avg_red<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.green<font color='#5555FF'>-</font>avg_green<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.blue<font color='#5555FF'>-</font>avg_blue<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                    <b>}</b>
+                <b>}</b>
+                ptr <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>input_rgb_image</font>", out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_red, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_green, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_blue, out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>input_rgb_image<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image</font>" <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_sized</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::input_rgb_image.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_red, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_green, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_blue, in<font face='Lucida Console'>)</font>;
+
+            <font color='#009900'>// read and discard the sizes if this was really a sized input layer.
+</font>            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>=</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_sized</font>"<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'><u>size_t</u></font> nr, nc;
+                <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nr, in<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nc, in<font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> input_rgb_image<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>input_rgb_image(</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>)</font>";
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>&lt;input_rgb_image r='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' g='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' b='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>'/&gt;</font>";
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        <font color='#0000FF'><u>float</u></font> avg_red;
+        <font color='#0000FF'><u>float</u></font> avg_green;
+        <font color='#0000FF'><u>float</u></font> avg_blue;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font> NR, <font color='#0000FF'><u>size_t</u></font> NC<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image_sized'></a>input_rgb_image_sized</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <b><a name='static_assert'></a>static_assert</b><font face='Lucida Console'>(</font>NR <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font> <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> NC <font color='#5555FF'>!</font><font color='#5555FF'>=</font> <font color='#979000'>0</font>, "<font color='#CC0000'>The input image can't be empty.</font>"<font face='Lucida Console'>)</font>;
+
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> input_type;
+
+        <b><a name='input_rgb_image_sized'></a>input_rgb_image_sized</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : 
+            avg_red<font face='Lucida Console'>(</font><font color='#979000'>122.782</font><font face='Lucida Console'>)</font>, 
+            avg_green<font face='Lucida Console'>(</font><font color='#979000'>117.001</font><font face='Lucida Console'>)</font>,
+            avg_blue<font face='Lucida Console'>(</font><font color='#979000'>104.298</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+        <b>}</b>
+
+        <b><a name='input_rgb_image_sized'></a>input_rgb_image_sized</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> input_rgb_image<font color='#5555FF'>&amp;</font> item
+        <font face='Lucida Console'>)</font> : avg_red<font face='Lucida Console'>(</font>item.get_avg_red<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+            avg_green<font face='Lucida Console'>(</font>item.get_avg_green<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+            avg_blue<font face='Lucida Console'>(</font>item.get_avg_blue<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+        <b>{</b><b>}</b>
+
+        <b><a name='input_rgb_image_sized'></a>input_rgb_image_sized</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> avg_red_,
+            <font color='#0000FF'><u>float</u></font> avg_green_,
+            <font color='#0000FF'><u>float</u></font> avg_blue_
+        <font face='Lucida Console'>)</font> : avg_red<font face='Lucida Console'>(</font>avg_red_<font face='Lucida Console'>)</font>, avg_green<font face='Lucida Console'>(</font>avg_green_<font face='Lucida Console'>)</font>, avg_blue<font face='Lucida Console'>(</font>avg_blue_<font face='Lucida Console'>)</font> 
+        <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_red'></a>get_avg_red</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>   <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_red; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_green'></a>get_avg_green</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_green; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_blue'></a>get_avg_blue</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>  <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_blue; <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// make sure all input images have the correct size
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>NR <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>NC,
+                    "<font color='#CC0000'>\t input_rgb_image_sized::to_tensor()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t All input images must have </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NR<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> rows and </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NC<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> columns, but we got one with </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> rows and </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> columns.</font>"
+                <font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            
+            <font color='#009900'>// initialize data to the right size to contain the stuff in the iterator range.
+</font>            data.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font>, <font color='#979000'>3</font>, NR, NC<font face='Lucida Console'>)</font>;
+
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>size_t</u></font> offset <font color='#5555FF'>=</font> NR<font color='#5555FF'>*</font>NC;
+            <font color='#0000FF'>auto</font> ptr <font color='#5555FF'>=</font> data.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> NR; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>size_t</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> NC; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        rgb_pixel temp <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#5555FF'>*</font>i<font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>auto</font> p <font color='#5555FF'>=</font> ptr<font color='#5555FF'>+</font><font color='#5555FF'>+</font>;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.red<font color='#5555FF'>-</font>avg_red<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.green<font color='#5555FF'>-</font>avg_green<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.blue<font color='#5555FF'>-</font>avg_blue<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                    <b>}</b>
+                <b>}</b>
+                ptr <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image_sized<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>input_rgb_image_sized</font>", out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_red, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_green, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_blue, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>NR, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>NC, out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>input_rgb_image_sized<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_sized</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::input_rgb_image_sized.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_red, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_green, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_blue, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'><u>size_t</u></font> nr, nc;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nr, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>nc, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>nr <font color='#5555FF'>!</font><font color='#5555FF'>=</font> NR <font color='#5555FF'>|</font><font color='#5555FF'>|</font> nc <font color='#5555FF'>!</font><font color='#5555FF'>=</font> NC<font face='Lucida Console'>)</font>
+            <b>{</b>
+                std::ostringstream sout;
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Wrong image dimensions found while deserializing dlib::input_rgb_image_sized.\n</font>";
+                sout <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>Expected </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NR<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> rows and </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NC<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> columns, but found </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>nr<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> rows and </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>nc<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> columns.</font>";
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>sout.<font color='#BB00BB'>str</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> input_rgb_image_sized<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>input_rgb_image_sized(</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>) nr=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NR<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'> nc=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NC;
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image_sized<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>&lt;input_rgb_image_sized r='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' g='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' b='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' nr='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NR<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' nc='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>NC<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>'/&gt;</font>";
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        <font color='#0000FF'><u>float</u></font> avg_red;
+        <font color='#0000FF'><u>float</u></font> avg_green;
+        <font color='#0000FF'><u>float</u></font> avg_blue;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>size_t</u></font> NR, <font color='#0000FF'><u>size_t</u></font> NC<font color='#5555FF'>&gt;</font>
+    input_rgb_image::
+    <b><a name='input_rgb_image'></a>input_rgb_image</b> <font face='Lucida Console'>(</font>
+        <font color='#0000FF'>const</font> input_rgb_image_sized<font color='#5555FF'>&lt;</font>NR,NC<font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font> item
+    <font face='Lucida Console'>)</font> : avg_red<font face='Lucida Console'>(</font>item.get_avg_red<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+        avg_green<font face='Lucida Console'>(</font>item.get_avg_green<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>,
+        avg_blue<font face='Lucida Console'>(</font>item.get_avg_blue<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+    <b>{</b><b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> MM, <font color='#0000FF'>typename</font> L<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input'></a>input</b><font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> 
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>T,NR,NC,MM,L<font color='#5555FF'>&gt;</font> input_type;
+
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> mm<font color='#5555FF'>&gt;</font>
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&lt;</font>array2d<font color='#5555FF'>&lt;</font>T,mm<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nr <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nc <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// make sure all the input matrices have the same dimensions
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nc,
+                    "<font color='#CC0000'>\t input::to_tensor()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t All matrices given to to_tensor() must have the same dimensions.</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nr: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nr
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nc: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nc
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nr(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nc(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            
+            <font color='#009900'>// initialize data to the right size to contain the stuff in the iterator range.
+</font>            data.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font>, pixel_traits<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::num, nr, nc<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> pixel_traits<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::basic_pixel_type bptype;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>size_t</u></font> offset <font color='#5555FF'>=</font> nr<font color='#5555FF'>*</font>nc;
+            <font color='#0000FF'>auto</font> ptr <font color='#5555FF'>=</font> data.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> nr; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> nc; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        <font color='#0000FF'>auto</font> temp <font color='#5555FF'>=</font> pixel_to_vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>i<font face='Lucida Console'>)</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>auto</font> p <font color='#5555FF'>=</font> ptr<font color='#5555FF'>+</font><font color='#5555FF'>+</font>;
+                        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> j <font color='#5555FF'>=</font> <font color='#979000'>0</font>; j <font color='#5555FF'>&lt;</font> temp.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>j<font face='Lucida Console'>)</font>
+                        <b>{</b>
+                            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>is_same_type<font color='#5555FF'>&lt;</font>bptype,<font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font>::value<font face='Lucida Console'>)</font>
+                                <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font color='#BB00BB'>temp</font><font face='Lucida Console'>(</font>j<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>;
+                            <font color='#0000FF'>else</font>
+                                <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font color='#BB00BB'>temp</font><font face='Lucida Console'>(</font>j<font face='Lucida Console'>)</font>;
+                            p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <b>}</b>
+                    <b>}</b>
+                <b>}</b>
+                ptr <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> <font color='#009900'>/*item*/</font>, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>input&lt;matrix&gt;</font>", out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>input<font color='#5555FF'>&amp;</font> <font color='#009900'>/*item*/</font>, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input&lt;matrix&gt;</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::input.</font>"<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> <font color='#009900'>/*item*/</font><font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>input&lt;matrix&gt;</font>";
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> <font color='#009900'>/*item*/</font>, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>&lt;input/&gt;</font>";
+        <b>}</b>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T, <font color='#0000FF'>typename</font> MM<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input'></a>input</b><font color='#5555FF'>&lt;</font>array2d<font color='#5555FF'>&lt;</font>T,MM<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> 
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> array2d<font color='#5555FF'>&lt;</font>T,MM<font color='#5555FF'>&gt;</font> input_type;
+
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'><u>long</u></font> NR, <font color='#0000FF'><u>long</u></font> NC, <font color='#0000FF'>typename</font> mm, <font color='#0000FF'>typename</font> L<font color='#5555FF'>&gt;</font>
+        <b><a name='input'></a>input</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>T,NR,NC,mm,L<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data, <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#BB00BB'>get_rect</font><font face='Lucida Console'>(</font>data<font face='Lucida Console'>)</font>.<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>; <b>}</b>
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, drectangle r<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font> <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> <font color='#009900'>/*data*/</font>, <font color='#0000FF'><u>double</u></font> <font color='#009900'>/*scale*/</font>, drectangle r <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> r; <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nr <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>const</font> <font color='#0000FF'>auto</font> nc <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// make sure all the input matrices have the same dimensions
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nc,
+                    "<font color='#CC0000'>\t input::to_tensor()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t All array2d objects given to to_tensor() must have the same dimensions.</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nr: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nr
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nc: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nc
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nr(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nc(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            
+            <font color='#009900'>// initialize data to the right size to contain the stuff in the iterator range.
+</font>            data.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font>, pixel_traits<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::num, nr, nc<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>typedef</font> <font color='#0000FF'>typename</font> pixel_traits<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font>::basic_pixel_type bptype;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>size_t</u></font> offset <font color='#5555FF'>=</font> nr<font color='#5555FF'>*</font>nc;
+            <font color='#0000FF'>auto</font> ptr <font color='#5555FF'>=</font> data.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> nr; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> nc; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        <font color='#0000FF'>auto</font> temp <font color='#5555FF'>=</font> pixel_to_vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>float</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>(</font><font color='#5555FF'>*</font>i<font face='Lucida Console'>)</font>[r][c]<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>auto</font> p <font color='#5555FF'>=</font> ptr<font color='#5555FF'>+</font><font color='#5555FF'>+</font>;
+                        <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> j <font color='#5555FF'>=</font> <font color='#979000'>0</font>; j <font color='#5555FF'>&lt;</font> temp.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>j<font face='Lucida Console'>)</font>
+                        <b>{</b>
+                            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>is_same_type<font color='#5555FF'>&lt;</font>bptype,<font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font>::value<font face='Lucida Console'>)</font>
+                                <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font color='#BB00BB'>temp</font><font face='Lucida Console'>(</font>j<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>;
+                            <font color='#0000FF'>else</font>
+                                <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font color='#BB00BB'>temp</font><font face='Lucida Console'>(</font>j<font face='Lucida Console'>)</font>;
+                            p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <b>}</b>
+                    <b>}</b>
+                <b>}</b>
+                ptr <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>input&lt;array2d&gt;</font>", out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>input<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input&lt;array2d&gt;</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::input.</font>"<font face='Lucida Console'>)</font>;
+        <b>}</b>
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>input&lt;array2d&gt;</font>";
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>&lt;input/&gt;</font>";
+        <b>}</b>
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> PYRAMID_TYPE<font color='#5555FF'>&gt;</font>
+    <font color='#0000FF'>class</font> <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b>
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <font color='#0000FF'>typedef</font> matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font> input_type;
+        <font color='#0000FF'>typedef</font> PYRAMID_TYPE pyramid_type;
+
+        <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b> <font face='Lucida Console'>(</font>
+        <font face='Lucida Console'>)</font> : 
+            avg_red<font face='Lucida Console'>(</font><font color='#979000'>122.782</font><font face='Lucida Console'>)</font>, 
+            avg_green<font face='Lucida Console'>(</font><font color='#979000'>117.001</font><font face='Lucida Console'>)</font>,
+            avg_blue<font face='Lucida Console'>(</font><font color='#979000'>104.298</font><font face='Lucida Console'>)</font> 
+        <b>{</b>
+        <b>}</b>
+
+        <b><a name='input_rgb_image_pyramid'></a>input_rgb_image_pyramid</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'><u>float</u></font> avg_red_,
+            <font color='#0000FF'><u>float</u></font> avg_green_,
+            <font color='#0000FF'><u>float</u></font> avg_blue_
+        <font face='Lucida Console'>)</font> : avg_red<font face='Lucida Console'>(</font>avg_red_<font face='Lucida Console'>)</font>, avg_green<font face='Lucida Console'>(</font>avg_green_<font face='Lucida Console'>)</font>, avg_blue<font face='Lucida Console'>(</font>avg_blue_<font face='Lucida Console'>)</font> 
+        <b>{</b><b>}</b>
+
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_red'></a>get_avg_red</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>   <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_red; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_green'></a>get_avg_green</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_green; <b>}</b>
+        <font color='#0000FF'><u>float</u></font> <b><a name='get_avg_blue'></a>get_avg_blue</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>  <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> avg_blue; <b>}</b>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_pyramid_padding'></a>get_pyramid_padding</b> <font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> pyramid_padding; <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_pyramid_padding'></a>set_pyramid_padding</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> value<font face='Lucida Console'>)</font> <b>{</b> pyramid_padding <font color='#5555FF'>=</font> value; <b>}</b>
+
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> <b><a name='get_pyramid_outer_padding'></a>get_pyramid_outer_padding</b> <font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> pyramid_outer_padding; <b>}</b>
+        <font color='#0000FF'><u>void</u></font> <b><a name='set_pyramid_outer_padding'></a>set_pyramid_outer_padding</b> <font face='Lucida Console'>(</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> value<font face='Lucida Console'>)</font> <b>{</b> pyramid_outer_padding <font color='#5555FF'>=</font> value; <b>}</b>
+
+        <font color='#0000FF'><u>bool</u></font> <b><a name='image_contained_point'></a>image_contained_point</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'>const</font> point<font color='#5555FF'>&amp;</font> p
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rects <font color='#5555FF'>=</font> any_cast<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>annotation</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>rects.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> rects[<font color='#979000'>0</font>].<font color='#BB00BB'>contains</font><font face='Lucida Console'>(</font>p<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        drectangle <b><a name='tensor_space_to_image_space'></a>tensor_space_to_image_space</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            drectangle r
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rects <font color='#5555FF'>=</font> any_cast<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>annotation</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> tiled_pyramid_to_image<font color='#5555FF'>&lt;</font>pyramid_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>rects, r<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        drectangle <b><a name='image_space_to_tensor_space'></a>image_space_to_tensor_space</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> tensor<font color='#5555FF'>&amp;</font> data,
+            <font color='#0000FF'><u>double</u></font> scale,
+            drectangle r 
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#979000'>0</font> <font color='#5555FF'>&lt;</font> scale <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> scale <font color='#5555FF'>&lt;</font><font color='#5555FF'>=</font> <font color='#979000'>1</font> , "<font color='#CC0000'>scale: </font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> scale<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> rects <font color='#5555FF'>=</font> any_cast<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>annotation</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>return</font> image_to_tiled_pyramid<font color='#5555FF'>&lt;</font>pyramid_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>rects, scale, r<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> forward_iterator<font color='#5555FF'>&gt;</font>
+        <font color='#0000FF'><u>void</u></font> <b><a name='to_tensor'></a>to_tensor</b> <font face='Lucida Console'>(</font>
+            forward_iterator ibegin,
+            forward_iterator iend,
+            resizable_tensor<font color='#5555FF'>&amp;</font> data
+        <font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+        <b>{</b>
+            <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font> <font color='#5555FF'>&gt;</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>auto</font> nr <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>auto</font> nc <font color='#5555FF'>=</font> ibegin<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#009900'>// make sure all the input matrices have the same dimensions
+</font>            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font> i <font color='#5555FF'>=</font> ibegin; i <font color='#5555FF'>!</font><font color='#5555FF'>=</font> iend; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>i<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font>i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nr <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>=</font><font color='#5555FF'>=</font>nc,
+                    "<font color='#CC0000'>\t input_rgb_image_pyramid::to_tensor()</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t All matrices given to to_tensor() must have the same dimensions.</font>"
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nr: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nr
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t nc: </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> nc
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nr(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                    <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>\n\t i-&gt;nc(): </font>" <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> i<font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>
+                <font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+
+            std::vector<font color='#5555FF'>&lt;</font>matrix<font color='#5555FF'>&lt;</font>rgb_pixel<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font> <font color='#BB00BB'>imgs</font><font face='Lucida Console'>(</font>std::<font color='#BB00BB'>distance</font><font face='Lucida Console'>(</font>ibegin,iend<font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>parallel_for</font><font face='Lucida Console'>(</font><font color='#979000'>0</font>, imgs.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, [<font color='#5555FF'>&amp;</font>]<font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> i<font face='Lucida Console'>)</font><b>{</b>
+                std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font> rects;
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>i <font color='#5555FF'>=</font><font color='#5555FF'>=</font> <font color='#979000'>0</font><font face='Lucida Console'>)</font>
+                    create_tiled_pyramid<font color='#5555FF'>&lt;</font>pyramid_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>ibegin[i], imgs[i], data.<font color='#BB00BB'>annotation</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>.get<font color='#5555FF'>&lt;</font>std::vector<font color='#5555FF'>&lt;</font>rectangle<font color='#5555FF'>&gt;</font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, pyramid_padding, pyramid_outer_padding<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font>
+                    create_tiled_pyramid<font color='#5555FF'>&lt;</font>pyramid_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>ibegin[i], imgs[i], rects, pyramid_padding, pyramid_outer_padding<font face='Lucida Console'>)</font>;
+            <b>}</b><font face='Lucida Console'>)</font>;
+            nr <font color='#5555FF'>=</font> imgs[<font color='#979000'>0</font>].<font color='#BB00BB'>nr</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            nc <font color='#5555FF'>=</font> imgs[<font color='#979000'>0</font>].<font color='#BB00BB'>nc</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            data.<font color='#BB00BB'>set_size</font><font face='Lucida Console'>(</font>imgs.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>, <font color='#979000'>3</font>, nr, nc<font face='Lucida Console'>)</font>;
+
+            <font color='#0000FF'>const</font> <font color='#0000FF'><u>size_t</u></font> offset <font color='#5555FF'>=</font> nr<font color='#5555FF'>*</font>nc;
+            <font color='#0000FF'>auto</font> ptr <font color='#5555FF'>=</font> data.<font color='#BB00BB'>host</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'>auto</font><font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> img : imgs<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> r <font color='#5555FF'>=</font> <font color='#979000'>0</font>; r <font color='#5555FF'>&lt;</font> nr; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>r<font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>for</font> <font face='Lucida Console'>(</font><font color='#0000FF'><u>long</u></font> c <font color='#5555FF'>=</font> <font color='#979000'>0</font>; c <font color='#5555FF'>&lt;</font> nc; <font color='#5555FF'>+</font><font color='#5555FF'>+</font>c<font face='Lucida Console'>)</font>
+                    <b>{</b>
+                        rgb_pixel temp <font color='#5555FF'>=</font> <font color='#BB00BB'>img</font><font face='Lucida Console'>(</font>r,c<font face='Lucida Console'>)</font>;
+                        <font color='#0000FF'>auto</font> p <font color='#5555FF'>=</font> ptr<font color='#5555FF'>+</font><font color='#5555FF'>+</font>;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.red<font color='#5555FF'>-</font>avg_red<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.green<font color='#5555FF'>-</font>avg_green<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                        <font color='#5555FF'>*</font>p <font color='#5555FF'>=</font> <font face='Lucida Console'>(</font>temp.blue<font color='#5555FF'>-</font>avg_blue<font face='Lucida Console'>)</font><font color='#5555FF'>/</font><font color='#979000'>256.0</font>; 
+                        p <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset;
+                    <b>}</b>
+                <b>}</b>
+                ptr <font color='#5555FF'>+</font><font color='#5555FF'>=</font> offset<font color='#5555FF'>*</font><font face='Lucida Console'>(</font>data.<font color='#BB00BB'>k</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='serialize'></a>serialize</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image_pyramid<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>input_rgb_image_pyramid2</font>", out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_red, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_green, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.avg_blue, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.pyramid_padding, out<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item.pyramid_outer_padding, out<font face='Lucida Console'>)</font>;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='deserialize'></a>deserialize</b><font face='Lucida Console'>(</font>input_rgb_image_pyramid<font color='#5555FF'>&amp;</font> item, std::istream<font color='#5555FF'>&amp;</font> in<font face='Lucida Console'>)</font>
+        <b>{</b>
+            std::string version;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>version, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_pyramid</font>" <font color='#5555FF'>&amp;</font><font color='#5555FF'>&amp;</font> version <font color='#5555FF'>!</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_pyramid2</font>"<font face='Lucida Console'>)</font>
+                <font color='#0000FF'>throw</font> <font color='#BB00BB'>serialization_error</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>Unexpected version found while deserializing dlib::input_rgb_image_pyramid.</font>"<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_red, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_green, in<font face='Lucida Console'>)</font>;
+            <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.avg_blue, in<font face='Lucida Console'>)</font>;
+            <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>version <font color='#5555FF'>=</font><font color='#5555FF'>=</font> "<font color='#CC0000'>input_rgb_image_pyramid2</font>"<font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.pyramid_padding, in<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>deserialize</font><font face='Lucida Console'>(</font>item.pyramid_outer_padding, in<font face='Lucida Console'>)</font>;
+            <b>}</b>
+            <font color='#0000FF'>else</font>
+            <b>{</b>
+                item.pyramid_padding <font color='#5555FF'>=</font> <font color='#979000'>10</font>;
+                item.pyramid_outer_padding <font color='#5555FF'>=</font> <font color='#979000'>11</font>;
+            <b>}</b>
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> std::ostream<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font><font face='Lucida Console'>(</font>std::ostream<font color='#5555FF'>&amp;</font> out, <font color='#0000FF'>const</font> input_rgb_image_pyramid<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>input_rgb_image_pyramid(</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>,</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>)</font>";
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> pyramid_padding=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.pyramid_padding;
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'> pyramid_outer_padding=</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.pyramid_outer_padding;
+            <font color='#0000FF'>return</font> out;
+        <b>}</b>
+
+        <font color='#0000FF'>friend</font> <font color='#0000FF'><u>void</u></font> <b><a name='to_xml'></a>to_xml</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> input_rgb_image_pyramid<font color='#5555FF'>&amp;</font> item, std::ostream<font color='#5555FF'>&amp;</font> out<font face='Lucida Console'>)</font>
+        <b>{</b>
+            out <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font> "<font color='#CC0000'>&lt;input_rgb_image_pyramid r='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_red<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' g='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_green
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' b='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.avg_blue
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' pyramid_padding='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.pyramid_padding
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>' pyramid_outer_padding='</font>"<font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>item.pyramid_outer_padding
+                <font color='#5555FF'>&lt;</font><font color='#5555FF'>&lt;</font>"<font color='#CC0000'>'/&gt;</font>";
+        <b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        <font color='#0000FF'><u>float</u></font> avg_red;
+        <font color='#0000FF'><u>float</u></font> avg_green;
+        <font color='#0000FF'><u>float</u></font> avg_blue;
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> pyramid_padding <font color='#5555FF'>=</font> <font color='#979000'>10</font>;
+        <font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>long</u></font> pyramid_outer_padding <font color='#5555FF'>=</font> <font color='#979000'>11</font>;
+    <b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_DNn_INPUT_H_
+</font>
+
+</pre></body></html>

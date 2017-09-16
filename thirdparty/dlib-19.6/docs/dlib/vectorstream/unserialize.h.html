@@ -1,0 +1,101 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - unserialize.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#0000FF'>#ifndef</font> DLIB_uNSERIALIZE_Hh_
+<font color='#0000FF'>#define</font> DLIB_uNSERIALIZE_Hh_
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='unserialize_abstract.h.html'>unserialize_abstract.h</a>"
+
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../serialize.h.html'>../serialize.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='../algs.h.html'>../algs.h</a>"
+<font color='#0000FF'>#include</font> "<a style='text-decoration:none' href='vectorstream.h.html'>vectorstream.h</a>"
+
+
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+    <font color='#0000FF'>class</font> <b><a name='unserialize'></a>unserialize</b> : <font color='#0000FF'>public</font> std::istream
+    <b>{</b>
+        <font color='#0000FF'>class</font> <b><a name='mystreambuf'></a>mystreambuf</b> : <font color='#0000FF'>public</font> std::streambuf
+        <b>{</b>
+            <font color='#0000FF'>typedef</font> std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font>::size_type size_type;
+            size_type read_pos; <font color='#009900'>// buffer[read_pos] == next byte to read from buffer
+</font>        <font color='#0000FF'>public</font>:
+            std::vector<font color='#5555FF'>&lt;</font><font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font> buffer;
+            std::istream<font color='#5555FF'>&amp;</font> str;
+
+            <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+            <b><a name='mystreambuf'></a>mystreambuf</b><font face='Lucida Console'>(</font>
+                <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> item,
+                std::istream<font color='#5555FF'>&amp;</font> str_
+            <font face='Lucida Console'>)</font> :
+                read_pos<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>,
+                str<font face='Lucida Console'>(</font>str_<font face='Lucida Console'>)</font> 
+            <b>{</b>
+                <font color='#009900'>// put the item into our buffer.
+</font>                vectorstream <font color='#BB00BB'>vstr</font><font face='Lucida Console'>(</font>buffer<font face='Lucida Console'>)</font>;
+                <font color='#BB00BB'>serialize</font><font face='Lucida Console'>(</font>item, vstr<font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+
+            <font color='#009900'>// ------------------------ INPUT FUNCTIONS ------------------------
+</font>
+            int_type <b><a name='underflow'></a>underflow</b><font face='Lucida Console'>(</font> 
+            <font face='Lucida Console'>)</font>
+            <b>{</b>
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>read_pos <font color='#5555FF'>&lt;</font> buffer.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>buffer[read_pos]<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font>
+                    <font color='#0000FF'>return</font> str.<font color='#BB00BB'>peek</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            int_type <b><a name='uflow'></a>uflow</b><font face='Lucida Console'>(</font> 
+            <font face='Lucida Console'>)</font>
+            <b>{</b>   
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>read_pos <font color='#5555FF'>&lt;</font> buffer.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                    <font color='#0000FF'>return</font> <font color='#0000FF'>static_cast</font><font color='#5555FF'>&lt;</font><font color='#0000FF'><u>unsigned</u></font> <font color='#0000FF'><u>char</u></font><font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>buffer[read_pos<font color='#5555FF'>+</font><font color='#5555FF'>+</font>]<font face='Lucida Console'>)</font>;
+                <font color='#0000FF'>else</font>
+                    <font color='#0000FF'>return</font> str.<font color='#BB00BB'>get</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+            <b>}</b>
+
+            std::streamsize <b><a name='xsgetn'></a>xsgetn</b> <font face='Lucida Console'>(</font>
+                <font color='#0000FF'><u>char</u></font><font color='#5555FF'>*</font> s, 
+                std::streamsize n
+            <font face='Lucida Console'>)</font>
+            <b>{</b> 
+                <font color='#0000FF'>if</font> <font face='Lucida Console'>(</font>read_pos <font color='#5555FF'>&lt;</font> buffer.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font>
+                <b>{</b>
+                    <font color='#0000FF'>const</font> size_type num <font color='#5555FF'>=</font> std::min<font color='#5555FF'>&lt;</font>size_type<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>n, buffer.<font color='#BB00BB'>size</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font>read_pos<font face='Lucida Console'>)</font>;
+                    std::<font color='#BB00BB'>memcpy</font><font face='Lucida Console'>(</font>s, <font color='#5555FF'>&amp;</font>buffer[read_pos], num<font face='Lucida Console'>)</font>;
+                    read_pos <font color='#5555FF'>+</font><font color='#5555FF'>=</font> num;
+                    <font color='#0000FF'>return</font> num;
+                <b>}</b>
+                <font color='#0000FF'>else</font>
+                <b>{</b>
+                    <font color='#0000FF'>return</font> str.<font color='#BB00BB'>rdbuf</font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font color='#5555FF'>-</font><font color='#5555FF'>&gt;</font><font color='#BB00BB'>sgetn</font><font face='Lucida Console'>(</font>s,n<font face='Lucida Console'>)</font>;
+                <b>}</b>
+                <font color='#0000FF'>return</font> <font color='#979000'>0</font>;
+            <b>}</b>
+
+        <b>}</b>;
+
+    <font color='#0000FF'>public</font>:
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+        <b><a name='unserialize'></a>unserialize</b> <font face='Lucida Console'>(</font>
+            <font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> item,
+            std::istream<font color='#5555FF'>&amp;</font> str 
+        <font face='Lucida Console'>)</font> :
+            std::istream<font face='Lucida Console'>(</font><font color='#5555FF'>&amp;</font>buf<font face='Lucida Console'>)</font>,
+            buf<font face='Lucida Console'>(</font>item, str<font face='Lucida Console'>)</font>
+        <b>{</b><b>}</b>
+
+    <font color='#0000FF'>private</font>:
+        mystreambuf buf;
+    <b>}</b>;
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// DLIB_uNSERIALIZE_Hh_
+</font>
+
+</pre></body></html>

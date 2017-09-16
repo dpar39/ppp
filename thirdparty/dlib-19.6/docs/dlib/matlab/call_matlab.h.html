@@ -1,0 +1,855 @@
+<html><!-- Created using the cpp_pretty_printer from the dlib C++ library.  See http://dlib.net for updates. --><head><title>dlib C++ Library - call_matlab.h</title></head><body bgcolor='white'><pre>
+<font color='#009900'>// Copyright (C) 2012 Massachusetts Institute of Technology, Lincoln Laboratory
+</font><font color='#009900'>// License: Boost Software License   See LICENSE.txt for the full license.
+</font><font color='#009900'>// Authors: Davis E. King (davis@dlib.net)
+</font><font color='#0000FF'>#ifndef</font> MIT_LL_CALL_MATLAB_H__
+<font color='#0000FF'>#define</font> MIT_LL_CALL_MATLAB_H__
+
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>string<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>sstream<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>error.h<font color='#5555FF'>&gt;</font>
+<font color='#0000FF'>#include</font> <font color='#5555FF'>&lt;</font>dlib<font color='#5555FF'>/</font>assert.h<font color='#5555FF'>&gt;</font>
+
+<font color='#0000FF'>namespace</font> dlib
+<b>{</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>struct</font> <b><a name='invalid_args_exception'></a>invalid_args_exception</b> : error
+<b>{</b>
+    <font color='#009900'>/*!
+        WHAT THIS OBJECT REPRESENTS
+            This is the exception thrown when the mex wrapper tries to convert a matlab
+            object into a C++ object but for whatever reason can't (usually because the
+            types don't match).
+    !*/</font>
+    <b><a name='invalid_args_exception'></a>invalid_args_exception</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> msg_<font face='Lucida Console'>)</font>: error<font face='Lucida Console'>(</font>msg_<font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b><a name='invalid_args_exception'></a>invalid_args_exception</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::ostringstream<font color='#5555FF'>&amp;</font> msg_<font face='Lucida Console'>)</font>: error<font face='Lucida Console'>(</font>msg_.str<font face='Lucida Console'>(</font><font face='Lucida Console'>)</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+<b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='check_for_matlab_ctrl_c'></a>check_for_matlab_ctrl_c</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+<font color='#009900'>/*!
+    ensures
+        - If the user of MATLAB has pressed ctrl+c then this function will throw an
+          exception.
+!*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>class</font> <b><a name='matlab_object'></a>matlab_object</b>
+<b>{</b>
+    <font color='#009900'>/*!
+        WHAT THIS OBJECT REPRESENTS
+            This object is a simple wrapper around matlab's generic mxArray, which is the
+            thing that is matlab's "anything object".  So a matlab_object can be used as an
+            argument to a mex_function() that can bind to any matlab object at all. It can
+            also bind to "nothing" and so is inherently also an optional argument when
+            present in a mex_funciton().
+    !*/</font>
+<font color='#0000FF'>public</font>:
+    <b><a name='matlab_object'></a>matlab_object</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> : handle<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>,should_free<font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>,arg_idx<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b><a name='matlab_object'></a>matlab_object</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matlab_object<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+    ~<b><a name='matlab_object'></a>matlab_object</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+
+    <font color='#009900'>// Check if a matlab object is bound to this object.
+</font>    <font color='#0000FF'><u>bool</u></font> <b><a name='is_empty'></a>is_empty</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> handle<font color='#5555FF'>=</font><font color='#5555FF'>=</font><font color='#979000'>0</font>; <b>}</b>
+    <b><a name='operator'></a>operator</b> <font color='#0000FF'><u>bool</u></font><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> handle<font color='#5555FF'>!</font><font color='#5555FF'>=</font><font color='#979000'>0</font>; <b>}</b>
+
+    <font color='#009900'>// Convert from MATLAB to C++, throw invalid_args_exception if not possible.
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <b><a name='operator'></a>operator</b> <b><a name='T'></a>T</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='get'></a>get</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+
+    <font color='#009900'>// Convert from a C++ object to MATLAB
+</font>    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> matlab_object<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> new_val<font face='Lucida Console'>)</font>;
+
+
+    <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>bool</u></font> <b><a name='try_get'></a>try_get</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>
+    <b>{</b>
+        <font color='#0000FF'>try</font> <b>{</b> <font color='#BB00BB'>get</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <font color='#0000FF'>return</font> <font color='#979000'>true</font>; <b>}</b>
+        <font color='#0000FF'>catch</font><font face='Lucida Console'>(</font>invalid_args_exception<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> <font color='#979000'>false</font>; <b>}</b>
+    <b>}</b>
+
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='get_handle'></a>get_handle</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font> <b>{</b> <font color='#0000FF'>return</font> handle; <b>}</b>
+    <font color='#009900'>/*!
+        ensures
+            - returns a pointer to the mxArray object.  Might be NULL. 
+    !*/</font>
+
+
+    matlab_object<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matlab_object<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+
+    <font color='#009900'>// Users shouldn't call these functions
+</font>    <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='release_object_to_matlab'></a>release_object_to_matlab</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> temp<font color='#5555FF'>=</font>handle; handle <font color='#5555FF'>=</font> <font color='#979000'>0</font>; <font color='#0000FF'>return</font> temp; <b>}</b>
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_object_handle'></a>set_object_handle</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> arg_idx_, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> sh<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#5555FF'>!</font>handle<font face='Lucida Console'>)</font>; handle <font color='#5555FF'>=</font> sh; arg_idx<font color='#5555FF'>=</font>arg_idx_; <b>}</b>
+<font color='#0000FF'>private</font>:
+
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> handle;
+    <font color='#0000FF'><u>bool</u></font> should_free;
+    <font color='#0000FF'><u>int</u></font> arg_idx;
+<b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>class</font> <b><a name='matlab_struct'></a>matlab_struct</b> 
+<b>{</b>
+    <font color='#009900'>/*!
+        WHAT THIS OBJECT REPRESENTS
+            This object lets you interface with MATLAB structs from C++.  For example,
+            given a MATLAB struct named mystruct, you could access it's fields like this:
+                MATLAB way: mystruct.field
+                C++ way:    mystruct["field"]
+                MATLAB way: mystruct.field.subfield
+                C++ way:    mystruct["field"]["subfield"]
+
+            To get the values as C++ types you do something like this:
+                int val = mystruct["field"];
+            or 
+                int val;  
+                mystruct["field"].get(val);
+
+            See also example_mex_struct.cpp for an example that uses this part of the API.
+    !*/</font>
+
+    <font color='#0000FF'>class</font> sub;
+<font color='#0000FF'>public</font>:
+    <b><a name='matlab_struct'></a>matlab_struct</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> : struct_handle<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>,should_free<font face='Lucida Console'>(</font><font color='#979000'>false</font><font face='Lucida Console'>)</font>,arg_idx<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+    <b><a name='matlab_struct'></a>matlab_struct</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matlab_struct<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font> <font color='#5555FF'>=</font> <font color='#0000FF'>delete</font>;
+    ~<b><a name='matlab_struct'></a>matlab_struct</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>;
+
+    <font color='#0000FF'>const</font> sub <b><a name='operator'></a>operator</b>[] <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+    sub <b><a name='operator'></a>operator</b>[] <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font>;
+    <font color='#0000FF'><u>bool</u></font> <b><a name='has_field'></a>has_field</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <b><a name='release_struct_to_matlab'></a>release_struct_to_matlab</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> temp<font color='#5555FF'>=</font>struct_handle; struct_handle <font color='#5555FF'>=</font> <font color='#979000'>0</font>; <font color='#0000FF'>return</font> temp; <b>}</b>
+    <font color='#0000FF'><u>void</u></font> <b><a name='set_struct_handle'></a>set_struct_handle</b><font face='Lucida Console'>(</font><font color='#0000FF'><u>int</u></font> arg_idx_, <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> sh<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>DLIB_CASSERT</font><font face='Lucida Console'>(</font><font color='#5555FF'>!</font>struct_handle<font face='Lucida Console'>)</font>; struct_handle <font color='#5555FF'>=</font> sh; arg_idx<font color='#5555FF'>=</font>arg_idx_; <b>}</b>
+<font color='#0000FF'>private</font>:
+
+    <font color='#0000FF'>class</font> <b><a name='sub'></a>sub</b> 
+    <b>{</b>
+    <font color='#0000FF'>public</font>:
+        <b><a name='sub'></a>sub</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> : struct_handle<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font>, field_idx<font face='Lucida Console'>(</font><font color='#5555FF'>-</font><font color='#979000'>1</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <b><a name='operator'></a>operator</b> <b><a name='T'></a>T</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> <font color='#0000FF'><u>void</u></font> <b><a name='get'></a>get</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>; 
+        <font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> sub<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font> <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> T<font color='#5555FF'>&amp;</font> new_val<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'>const</font> sub <b><a name='operator'></a>operator</b>[] <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+        sub <b><a name='operator'></a>operator</b>[] <font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font>;
+        <font color='#0000FF'><u>bool</u></font> <b><a name='has_field'></a>has_field</b><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> name<font face='Lucida Console'>)</font> <font color='#0000FF'>const</font>;
+    <font color='#0000FF'>private</font>:
+        <font color='#0000FF'>friend</font> <font color='#0000FF'>class</font> matlab_struct;
+        <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> struct_handle;
+        <font color='#0000FF'><u>int</u></font> field_idx;
+        sub<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> sub<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font>;
+    <b>}</b>;
+    <font color='#0000FF'>const</font> <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> struct_handle;
+    <font color='#0000FF'><u>bool</u></font> should_free;
+    <font color='#0000FF'><u>int</u></font> arg_idx;
+    matlab_struct<font color='#5555FF'>&amp;</font> <b><a name='operator'></a>operator</b><font color='#5555FF'>=</font><font face='Lucida Console'>(</font><font color='#0000FF'>const</font> matlab_struct<font color='#5555FF'>&amp;</font><font face='Lucida Console'>)</font>; 
+<b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font> 
+<font color='#0000FF'>struct</font> <b><a name='output_decorator'></a>output_decorator</b>
+<b>{</b>
+    <b><a name='output_decorator'></a>output_decorator</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item_<font face='Lucida Console'>)</font>:item<font face='Lucida Console'>(</font>item_<font face='Lucida Console'>)</font><b>{</b><b>}</b>
+    T<font color='#5555FF'>&amp;</font> item;
+<b>}</b>;
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font><font color='#0000FF'>typename</font> T<font color='#5555FF'>&gt;</font>
+output_decorator<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font> <b><a name='returns'></a>returns</b><font face='Lucida Console'>(</font>T<font color='#5555FF'>&amp;</font> item<font face='Lucida Console'>)</font> <b>{</b> <font color='#0000FF'>return</font> output_decorator<font color='#5555FF'>&lt;</font>T<font color='#5555FF'>&gt;</font><font face='Lucida Console'>(</font>item<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#009900'>/*!
+    ensures
+        - decorates item as an output type.  This stuff is used by the call_matlab()
+          functions to tell if an argument is an input to the function or is supposed
+          to be bound to one of the return arguments.
+!*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>struct</font> <b><a name='function_handle'></a>function_handle</b>
+<b>{</b>
+    <font color='#009900'>/*!
+        WHAT THIS OBJECT REPRESENTS
+            This type is used to represent function handles passed from MATLAB into a
+            mex function.  You can call the function referenced by the handle by
+            saying:
+                call_matlab(my_handle);
+    !*/</font>
+
+    <font color='#009900'>// These two lines are just implementation details, ignore them.
+</font>    <b><a name='function_handle'></a>function_handle</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font>:h<font face='Lucida Console'>(</font><font color='#979000'>0</font><font face='Lucida Console'>)</font><b>{</b><b>}</b>
+    <font color='#0000FF'><u>void</u></font><font color='#5555FF'>*</font> <font color='#0000FF'>const</font> h;
+<b>}</b>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name
+<font face='Lucida Console'>)</font>;
+<font color='#009900'>/*!
+    ensures
+        - Calls MATLAB's function of the given name
+!*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct 
+<font face='Lucida Console'>)</font>;
+<font color='#009900'>/*!
+    ensures
+        - Calls MATLAB's function represented by the handle funct
+!*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1
+<font face='Lucida Console'>)</font>;
+<font color='#009900'>/*!
+    ensures
+        - calls MATLAB's function of the given name.  
+        - if (A1 is not decorated as an output by returns()) then
+            - A1 is passed as an argument into the MATLAB function
+        - else
+            - A1 is treated as the first return value from the MATLAB function.
+!*/</font>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1
+<font face='Lucida Console'>)</font> <b>{</b> <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1<font face='Lucida Console'>)</font>; <b>}</b>
+<font color='#009900'>/*!
+    ensures
+        - Calls MATLAB's function represented by the handle funct
+        - if (A1 is not decorated as an output by returns()) then
+            - A1 is passed as an argument into the MATLAB function
+        - else
+            - A1 is treated as the first return value from the MATLAB function.
+!*/</font>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>/*
+    The rest of this file is just overloads of call_matlab() for up to 10 arguments (or
+    just 9 arguments if function_handle is used).  They all do the same thing as the above 
+    version of call_matlab().  Generally, any argument not decorated by returns() is an 
+    input to the MATLAB function.  On the other hand, all arguments decorated by returns() 
+    are treated as outputs.  
+*/</font>
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6,
+    <font color='#0000FF'>typename</font> T7
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, 
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6,
+    <font color='#0000FF'>typename</font> T7,
+    <font color='#0000FF'>typename</font> T8
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7,
+    <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font> A12
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17, <font color='#0000FF'>typename</font> T18
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17,
+    <font color='#0000FF'>const</font> T18<font color='#5555FF'>&amp;</font> A18
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17, <font color='#0000FF'>typename</font> T18, <font color='#0000FF'>typename</font> T19
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17,
+    <font color='#0000FF'>const</font> T18<font color='#5555FF'>&amp;</font> A18, <font color='#0000FF'>const</font> T19<font color='#5555FF'>&amp;</font> A19
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17, <font color='#0000FF'>typename</font> T18, <font color='#0000FF'>typename</font> T19,
+    <font color='#0000FF'>typename</font> T20
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> std::string<font color='#5555FF'>&amp;</font> function_name,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17,
+    <font color='#0000FF'>const</font> T18<font color='#5555FF'>&amp;</font> A18, <font color='#0000FF'>const</font> T19<font color='#5555FF'>&amp;</font> A19, <font color='#0000FF'>const</font> T20<font color='#5555FF'>&amp;</font> A20
+<font face='Lucida Console'>)</font>;
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font><font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6,
+    <font color='#0000FF'>typename</font> T7
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1,
+    <font color='#0000FF'>typename</font> T2,
+    <font color='#0000FF'>typename</font> T3,
+    <font color='#0000FF'>typename</font> T4,
+    <font color='#0000FF'>typename</font> T5,
+    <font color='#0000FF'>typename</font> T6,
+    <font color='#0000FF'>typename</font> T7,
+    <font color='#0000FF'>typename</font> T8
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1,
+    <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2,
+    <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3,
+    <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4,
+    <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5,
+    <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7,
+    <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17, <font color='#0000FF'>typename</font> T18
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17,
+    <font color='#0000FF'>const</font> T18<font color='#5555FF'>&amp;</font> A18
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#0000FF'>template</font> <font color='#5555FF'>&lt;</font>
+    <font color='#0000FF'>typename</font> T1, <font color='#0000FF'>typename</font> T2, <font color='#0000FF'>typename</font> T3, <font color='#0000FF'>typename</font> T4, <font color='#0000FF'>typename</font> T5, <font color='#0000FF'>typename</font> T6, <font color='#0000FF'>typename</font>
+    T7, <font color='#0000FF'>typename</font> T8, <font color='#0000FF'>typename</font> T9, <font color='#0000FF'>typename</font> T10, <font color='#0000FF'>typename</font> T11, <font color='#0000FF'>typename</font> T12, <font color='#0000FF'>typename</font> T13,
+    <font color='#0000FF'>typename</font> T14, <font color='#0000FF'>typename</font> T15, <font color='#0000FF'>typename</font> T16, <font color='#0000FF'>typename</font> T17, <font color='#0000FF'>typename</font> T18, <font color='#0000FF'>typename</font> T19
+    <font color='#5555FF'>&gt;</font>
+<font color='#0000FF'><u>void</u></font> <b><a name='call_matlab'></a>call_matlab</b> <font face='Lucida Console'>(</font>
+    <font color='#0000FF'>const</font> function_handle<font color='#5555FF'>&amp;</font> funct,
+    <font color='#0000FF'>const</font> T1<font color='#5555FF'>&amp;</font> A1, <font color='#0000FF'>const</font> T2<font color='#5555FF'>&amp;</font> A2, <font color='#0000FF'>const</font> T3<font color='#5555FF'>&amp;</font> A3, <font color='#0000FF'>const</font> T4<font color='#5555FF'>&amp;</font> A4, <font color='#0000FF'>const</font> T5<font color='#5555FF'>&amp;</font> A5, <font color='#0000FF'>const</font> T6<font color='#5555FF'>&amp;</font> A6,
+    <font color='#0000FF'>const</font> T7<font color='#5555FF'>&amp;</font> A7, <font color='#0000FF'>const</font> T8<font color='#5555FF'>&amp;</font> A8, <font color='#0000FF'>const</font> T9<font color='#5555FF'>&amp;</font> A9, <font color='#0000FF'>const</font> T10<font color='#5555FF'>&amp;</font> A10, <font color='#0000FF'>const</font> T11<font color='#5555FF'>&amp;</font> A11, <font color='#0000FF'>const</font> T12<font color='#5555FF'>&amp;</font>
+    A12, <font color='#0000FF'>const</font> T13<font color='#5555FF'>&amp;</font> A13, <font color='#0000FF'>const</font> T14<font color='#5555FF'>&amp;</font> A14, <font color='#0000FF'>const</font> T15<font color='#5555FF'>&amp;</font> A15, <font color='#0000FF'>const</font> T16<font color='#5555FF'>&amp;</font> A16, <font color='#0000FF'>const</font> T17<font color='#5555FF'>&amp;</font> A17,
+    <font color='#0000FF'>const</font> T18<font color='#5555FF'>&amp;</font> A18, <font color='#0000FF'>const</font> T19<font color='#5555FF'>&amp;</font> A19
+<font face='Lucida Console'>)</font>
+<b>{</b>
+    <font color='#BB00BB'>call_matlab</font><font face='Lucida Console'>(</font>"<font color='#CC0000'>feval</font>", funct, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19<font face='Lucida Console'>)</font>;
+<b>}</b>
+
+<font color='#009900'>// ----------------------------------------------------------------------------------------
+</font>
+<font color='#009900'>// We define this function here so that, if you write some code that has check_for_matlab_ctrl_c()
+</font><font color='#009900'>// sprinkled throughout it you can still compile that code outside the mex wrapper
+</font><font color='#009900'>// environment and these calls will simply be no-ops.
+</font><font color='#0000FF'>#ifndef</font> MATLAB_MEX_FILE
+<font color='#0000FF'>inline</font> <font color='#0000FF'><u>void</u></font> <b><a name='check_for_matlab_ctrl_c'></a>check_for_matlab_ctrl_c</b><font face='Lucida Console'>(</font><font face='Lucida Console'>)</font> <b>{</b><b>}</b>
+<font color='#0000FF'>#endif</font>
+
+<b>}</b>
+
+<font color='#0000FF'>#endif</font> <font color='#009900'>// MIT_LL_CALL_MATLAB_H__
+</font>
+
+</pre></body></html>
