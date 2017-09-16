@@ -292,50 +292,6 @@ endif()
         with open(cmake_file, 'w') as fp:
             fp.writelines(mod_content)
 #
-    def build_dlib(self):
-        """
-        Downloads and builds dlib library
-        """
-        if os.path.exists(os.path.join(self._third_party_install_dir, 'lib/cmake/dlib/dlibConfig.cmake')):
-            return
-
-        # Download OpenCV sources if not done yet
-        dlib_src_pkg = self.download_third_party_lib(DLIB_SRC_URL)
-        # Get the file prefix for OpenCV
-        dlib_extract_dir = self.get_third_party_lib_dir('dlib')
-
-        if dlib_extract_dir is None:
-            # Extract the source files
-            self.extract_third_party_lib(dlib_src_pkg)
-            dlib_extract_dir = self.get_third_party_lib_dir('dlib')
-        #     self.insert_static_crt(os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt', ))
-
-        # cmake_extra_defs = [
-        #     '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
-        #     '-DDLIB_JPEG_SUPPORT=OFF',
-        #     '-DDLIB_USE_BLAS=OFF',
-        #     '-DDLIB_USE_LAPACK=OFF',
-        #     '-DDLIB_USE_CUDA=OFF',
-        #     '-DDLIB_PNG_SUPPORT=OFF',
-        #     '-DDLIB_GIF_SUPPORT=OFF',
-        #     '-DLIB_USE_MKL_FFT=OFF',
-        #  #   '-DJPEG_INCLUDE_DIR=' + '../dlib/external/libjpeg',
-        #  #   '-DJPEG_LIBRARY=../dlib/external/libjpeg',
-        #  #   '-DPNG_PNG_INCLUDE_DIR=../dlib/external/libpng',
-        #  #   '-DPNG_LIBRARY_RELEASE=../dlib/external/libpng',
-        #  #   '-DZLIB_INCLUDE_DIR=../dlib/external/zlib',
-        #  #  '-DZLIB_LIBRARY_RELEASE=../dlib/external/zlib'
-        # ]
-
-        # build_dir = self.build_dir_name(dlib_extract_dir)
-        # if os.path.exists(build_dir): # Remove the build directory
-        #     shutil.rmtree(build_dir)
-        # if not os.path.exists(build_dir): # Create the build directory
-        #     os.mkdir(build_dir)
-
-        # # Build
-        # self.build_cmake_lib(dlib_extract_dir, cmake_extra_defs, ['install'], False)
-#
     def get_filename_from_url(self, url):
         """
         Extracts the file name from a given URL
@@ -554,7 +510,6 @@ endif()
         # Build Third party libs
         self.extract_gmock()
         self.build_opencv()
-        self.build_dlib()
 
         if self._gen_vs_sln:
             # Build Node JS from source so the addon can be build reliably for Windows
