@@ -7,7 +7,7 @@
                 "configure": {
                     "is_static": true,
                     "params": [ "string"],
-                    "return": "void"
+                    "return": "string"
                 },
                 "setImage": {
                     "is_static": true,

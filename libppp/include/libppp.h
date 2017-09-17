@@ -32,6 +32,7 @@ public:
 
     /*!@brief Stores the image for processing
     *  param[in] bufferData Pointer to the image data
+    *  param[in] bufferLength Length of the image data (if 0 or negative we assume it is base64 string)
     *  returns Image Id that can be used to recognise the image
     !*/
     std::string setImage(const char *bufferData, size_t bufferLength) const;

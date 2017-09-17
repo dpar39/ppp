@@ -79,6 +79,8 @@ std::vector<byte> Utilities::base64Decode(const std::string &base64Str)
     return result;
 }
 
+
+
 std::string Utilities::base64Encode(const std::vector<byte>& rawStr)
 {
     static const std::string Base64CharSet =

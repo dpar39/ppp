@@ -33,8 +33,19 @@ void PublicPppEngine::configure(const std::string& jsonConfig) const
 
 std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength) const
 {
-    cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
-    auto inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
+    cv::Mat inputImage;
+    if (bufferLength <= 0)
+    {
+        std::string base64Data(bufferData);
+        auto decodedBytes = Utilities::base64Decode(base64Data);
+        cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
+        inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
+    }
+    else
+    {
+        cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
+        inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
+    }
     return m_pPppEngine->setInputImage(inputImage);
 }
 

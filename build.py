@@ -279,7 +279,6 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 endif()
 """
-
         with open(cmake_file, 'r') as fp:
             cmake_content = fp.readlines()
 

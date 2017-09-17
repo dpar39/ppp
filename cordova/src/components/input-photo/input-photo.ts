@@ -17,7 +17,7 @@ export class InputPhotoComponent {
 
   constructor() {
     console.log('Hello InputPhotoComponent Component');
-    this.text = 'Hello World';
+    this.text = 'Input photo component';
   }
 
   @Input()

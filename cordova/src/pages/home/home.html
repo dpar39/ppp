@@ -5,17 +5,13 @@
 </ion-header>
 
 <ion-content padding>
-  <h2>Create your own passport photos yeah!</h2>
+  <h2>Take or select a picture to start</h2>
   <p>
     This starter project comes with simple tabs-based layout for apps that are going to primarily use a Tabbed UI.
   </p>
-  <p>
-    Take a look at the <code>src/pages/</code> directory to add or change tabs, update any existing page or create new pages.
-  </p>
+
   <h2 [innerText]="cppProp">{{cppProp}}</h2>
 
-  <input-photo [photo]="srcImg">
-  </input-photo>
 
   <ion-grid>
     <ion-row>
@@ -33,4 +29,8 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <input-photo [photo]="srcImg">
+  </input-photo>
+
 </ion-content>

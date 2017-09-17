@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+
+import { Component, AfterViewInit} from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { AfterViewInit} from '@angular/core';
 import { InputPhotoComponent } from '../../components/input-photo/input-photo';
 import { Camera, CameraOptions } from '@ionic-native/camera'
+import { Http } from '@angular/http';
 
 declare var cpp: any;
 
@@ -12,29 +13,35 @@ declare var cpp: any;
   viewProviders: [InputPhotoComponent]
 })
 export class HomePage implements AfterViewInit {
-  
-  constructor(public navCtrl: NavController, camera: Camera) {
+
+  constructor(public navCtrl: NavController, camera: Camera, private http: Http) {
     this._camera = camera;
   }
-  
+
   private _camera: Camera;
   private srcImg: string;
-  cppProp: string = ".....";
+  public cppProp: string = ".....";
 
-  
+  private _cppReady = false;
 
   ngAfterViewInit() {
-    this.cppProp = "xxxxxxx";
-    try{
-      if (cpp) {
-        cpp.NativeWrapper.detectLandMarks("imgKey", ret => {
-          this.cppProp = ret;
+    this.cppProp = "----";
+
+  }
+
+  initCppEngine() {
+    if (cpp != null && !this._cppReady) {
+      this.http.get('/assets/config.json').subscribe(data => {
+        this.cppProp = cpp.NativeWrapper.configure(data.json(), (ret) => {
+           this.cppProp = ret;
+           this._cppReady = true;
+        }, (err)=> {
+           this.cppProp = err;
         });
-      }
-    }
-    catch (Exception) {
+      });
     }
   }
+
 
   takePicture()  {
 
@@ -46,9 +53,12 @@ export class HomePage implements AfterViewInit {
     };
 
     this._camera.getPicture(options).then((imageData) => {
-
+      this.initCppEngine();
       let base64Image = 'data:image/png;base64,' + imageData;
       this.srcImg = base64Image;
+      this.cppProp = cpp.NativeWrapper.setImage(imageData, (imgKey) => {
+        this.cppProp = imgKey;
+      });
     }, (err) => {
 
     });
