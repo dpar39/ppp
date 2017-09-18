@@ -11,9 +11,9 @@ import { TabsPage } from '../pages/tabs/tabs';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
-import { InputPhotoComponent } from '../components/input-photo/input-photo';
 import { LandmarkEditorComponent } from '../components/landmark-editor/landmark-editor';
 import { Camera } from '@ionic-native/camera';
+import { ImagePicker } from '@ionic-native/image-picker';
 
 @NgModule({
   declarations: [
@@ -22,7 +22,6 @@ import { Camera } from '@ionic-native/camera';
     ContactPage,
     HomePage,
     TabsPage,
-    InputPhotoComponent,
     LandmarkEditorComponent
   ],
   imports: [
@@ -42,7 +41,8 @@ import { Camera } from '@ionic-native/camera';
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    Camera
+    Camera,
+    ImagePicker
   ]
 })
 export class AppModule {}

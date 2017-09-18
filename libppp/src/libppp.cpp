@@ -24,11 +24,11 @@ PublicPppEngine::~PublicPppEngine()
     delete m_pPppEngine;
 }
 
-void PublicPppEngine::configure(const std::string& jsonConfig) const
+bool PublicPppEngine::configure(const std::string& jsonConfig) const
 {
     rapidjson::Document parser;
     parser.Parse(jsonConfig.c_str());
-    m_pPppEngine->configure(parser);
+    return m_pPppEngine->configure(parser);
 }
 
 std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength) const

@@ -28,7 +28,7 @@ public:
 
     ~PublicPppEngine();
 
-    void configure(const std::string &jsonConfig) const;
+    bool configure(const std::string& jsonConfig) const;
 
     /*!@brief Stores the image for processing
     *  param[in] bufferData Pointer to the image data

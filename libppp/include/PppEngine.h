@@ -36,7 +36,7 @@ public:
         IImageStoreSPtr pImageStore = nullptr);
 
     // Native interface
-    void configure(rapidjson::Value &config);
+    bool configure(rapidjson::Value& config);
 
     std::string setInputImage(const cv::Mat& inputImage) const;
 

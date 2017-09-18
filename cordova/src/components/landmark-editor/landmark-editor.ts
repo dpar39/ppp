@@ -30,20 +30,21 @@ export class LandmarkEditorComponent implements OnInit {
   private _inputPhoto: string = "#";
   @Input()
   set inputPhoto(value: string) {
-    var newImg = new Image();
-    let that = this;
-    newImg.onload = function () {
-      that._imageWidth = newImg.width;
-      that._imageHeight = newImg.height;
-      that._inputPhoto = value;
-      if (that._imageWidth > 100 && that._imageHeight > 100) {
-        that.calculateViewPort();
-        that.zoomFit();
-        that.renderImage();
-        that.renderLandMarks();
-      }
-    };
-    newImg.src = value;
+    if (value) {
+      var newImg = new Image();
+      newImg.onload = () => {
+        this._imageWidth = newImg.width;
+        this._imageHeight = newImg.height;
+        this._inputPhoto = value;
+        if (this._imageWidth > 100 && this._imageHeight > 100) {
+          this.calculateViewPort();
+          this.zoomFit();
+          this.renderImage();
+          this.renderLandMarks();
+        }
+      };
+      newImg.src = value;
+    }
   }
   get inputPhoto(): string {
     return this._inputPhoto;

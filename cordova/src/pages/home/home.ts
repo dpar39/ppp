@@ -4,20 +4,18 @@ import { NavController } from 'ionic-angular';
 import { Camera, CameraOptions } from '@ionic-native/camera'
 import { Http } from '@angular/http';
 
-import { InputPhotoComponent } from '../../components/input-photo/input-photo';
 import { LandmarkEditorComponent } from '../../components/landmark-editor/landmark-editor';
 
-import {CrownChinPointPair } from '../../model/interfaces'
+import { CrownChinPointPair } from '../../model/interfaces'
 
 declare var cpp: any;
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html',
-  viewProviders: [InputPhotoComponent, LandmarkEditorComponent]
+  viewProviders: [LandmarkEditorComponent]
 })
 export class HomePage implements AfterViewInit {
-
 
   imageKey: string;
   imageSrc: string = "#";
@@ -31,14 +29,16 @@ export class HomePage implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.imageKey = "----";
-
+    this.imageKey = "000000";
+    this.initCppEngine();
   }
 
   initCppEngine() {
     if (cpp != null && !this._cppReady) {
       this.http.get('/assets/config.json').subscribe(data => {
-        this.imageKey = cpp.NativeWrapper.configure(data.json(), (ret) => {
+        let config = JSON.stringify(data.json());
+        //this.imageKey = config;
+        this.imageKey = cpp.NativeWrapper.configure(config, (ret) => {
            this.imageKey = ret;
            this._cppReady = true;
         }, (err)=> {
@@ -48,24 +48,42 @@ export class HomePage implements AfterViewInit {
     }
   }
 
-  takePicture()  {
+  loadPicture() : void {
+    this.takePicture(false);
+  }
+
+  takePicture(useCamera : boolean = true)  {
     const options: CameraOptions = {
-      quality: 99,
+      quality: 100,
       destinationType: this._camera.DestinationType.DATA_URL,
       encodingType: this._camera.EncodingType.JPEG,
-      mediaType: this._camera.MediaType.PICTURE
+      mediaType: this._camera.MediaType.PICTURE,
+      sourceType: useCamera ? this._camera.PictureSourceType.CAMERA : this._camera.PictureSourceType.SAVEDPHOTOALBUM
     };
 
     this._camera.getPicture(options).then((imageData) => {
       this.initCppEngine();
-      let base64Image = 'data:image/png;base64,' + imageData;
+      let base64Image = 'data:image/jpg;base64,' + imageData;
       this.imageSrc = base64Image;
       this.imageKey = cpp.NativeWrapper.setImage(imageData, (imgKey) => {
         this.imageKey = imgKey;
+        this.detectLandmarks();
       });
     }, (err) => {
-
+      console.log(err);
     });
     this.imageKey = "Loading image..."
+  }
+
+  setImageInCpp()  {
+
+  }
+
+  detectLandmarks() {
+    cpp.NativeWrapper.detectLandMarks(this.imageKey, (data) => {
+      this.imageKey = data;
+      // let landmarks : LandMarks = data.json();
+      // this.crownChinPointPair = landmarks;
+    });
   }
 }

@@ -37,7 +37,7 @@ PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
 {
 }
 
-void PppEngine::configure(rapidjson::Value& config)
+bool PppEngine::configure(rapidjson::Value& config)
 {
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);
@@ -58,6 +58,7 @@ void PppEngine::configure(rapidjson::Value& config)
         m_shapePredictor = std::make_shared<dlib::shape_predictor>();
         dlib::deserialize(shapePredictorFile) >> *m_shapePredictor;
     }
+    return true;
 }
 
 void PppEngine::verifyImageExists(const string& imageKey) const
