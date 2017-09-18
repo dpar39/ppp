@@ -1,67 +1,71 @@
 
 import { Component, AfterViewInit} from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { InputPhotoComponent } from '../../components/input-photo/input-photo';
 import { Camera, CameraOptions } from '@ionic-native/camera'
 import { Http } from '@angular/http';
+
+import { InputPhotoComponent } from '../../components/input-photo/input-photo';
+import { LandmarkEditorComponent } from '../../components/landmark-editor/landmark-editor';
+
+import {CrownChinPointPair } from '../../model/interfaces'
 
 declare var cpp: any;
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html',
-  viewProviders: [InputPhotoComponent]
+  viewProviders: [InputPhotoComponent, LandmarkEditorComponent]
 })
 export class HomePage implements AfterViewInit {
+
+
+  imageKey: string;
+  imageSrc: string = "#";
+  crownChinPointPair: CrownChinPointPair;
+
+  private _camera: Camera;
+  private _cppReady = false;
 
   constructor(public navCtrl: NavController, camera: Camera, private http: Http) {
     this._camera = camera;
   }
 
-  private _camera: Camera;
-  private srcImg: string;
-  public cppProp: string = ".....";
-
-  private _cppReady = false;
-
   ngAfterViewInit() {
-    this.cppProp = "----";
+    this.imageKey = "----";
 
   }
 
   initCppEngine() {
     if (cpp != null && !this._cppReady) {
       this.http.get('/assets/config.json').subscribe(data => {
-        this.cppProp = cpp.NativeWrapper.configure(data.json(), (ret) => {
-           this.cppProp = ret;
+        this.imageKey = cpp.NativeWrapper.configure(data.json(), (ret) => {
+           this.imageKey = ret;
            this._cppReady = true;
         }, (err)=> {
-           this.cppProp = err;
+           this.imageKey = err;
         });
       });
     }
   }
 
-
   takePicture()  {
-
     const options: CameraOptions = {
-      quality: 100,
+      quality: 99,
       destinationType: this._camera.DestinationType.DATA_URL,
-      encodingType: this._camera.EncodingType.PNG,
+      encodingType: this._camera.EncodingType.JPEG,
       mediaType: this._camera.MediaType.PICTURE
     };
 
     this._camera.getPicture(options).then((imageData) => {
       this.initCppEngine();
       let base64Image = 'data:image/png;base64,' + imageData;
-      this.srcImg = base64Image;
-      this.cppProp = cpp.NativeWrapper.setImage(imageData, (imgKey) => {
-        this.cppProp = imgKey;
+      this.imageSrc = base64Image;
+      this.imageKey = cpp.NativeWrapper.setImage(imageData, (imgKey) => {
+        this.imageKey = imgKey;
       });
     }, (err) => {
 
     });
-    this.cppProp = "Aha!!!!"
+    this.imageKey = "Loading image..."
   }
 }

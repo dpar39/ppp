@@ -12,7 +12,6 @@
 
   <h2 [innerText]="cppProp">{{cppProp}}</h2>
 
-
   <ion-grid>
     <ion-row>
       <ion-col>
@@ -30,7 +29,13 @@
     </ion-row>
   </ion-grid>
 
-  <input-photo [photo]="srcImg">
-  </input-photo>
+  <!-- <landmark-editor [photo]="imageSrc">
+  </landmark-editor> -->
+
+  <landmark-editor
+    [inputPhoto]='imageSrc'
+    [crownChinPointPair]='crownChinPointPair'
+    (edited)='onLandmarksEdited'>
+  </landmark-editor>
 
 </ion-content>

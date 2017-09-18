@@ -18,7 +18,6 @@ export class AppComponent {
   title = 'app';
   imageKey: string;
   imageSrc: string = "#";
-
   crownChinPointPair: CrownChinPointPair;
 
   constructor(private el: ElementRef, private http: Http) {
@@ -30,15 +29,14 @@ export class AppComponent {
       let file = fileList[0];
 
       this.crownChinPointPair = null;
-      
+
       // Upload the file to the server to detect landmarks
       this.uploadImageToServer(file);
       // Read the image and display it
       let reader = new FileReader();
-      let that = this;
-      reader.onload = function () {
+      reader.onload = () => {
         let imgdata = reader.result;
-        that.imageSrc = imgdata;
+        this.imageSrc = imgdata;
       }
       reader.readAsDataURL(file);
     }

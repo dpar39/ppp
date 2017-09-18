@@ -12,6 +12,7 @@ import { TabsPage } from '../pages/tabs/tabs';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { InputPhotoComponent } from '../components/input-photo/input-photo';
+import { LandmarkEditorComponent } from '../components/landmark-editor/landmark-editor';
 import { Camera } from '@ionic-native/camera';
 
 @NgModule({
@@ -21,7 +22,8 @@ import { Camera } from '@ionic-native/camera';
     ContactPage,
     HomePage,
     TabsPage,
-    InputPhotoComponent
+    InputPhotoComponent,
+    LandmarkEditorComponent
   ],
   imports: [
     BrowserModule,
