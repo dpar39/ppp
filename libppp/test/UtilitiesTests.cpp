@@ -5,6 +5,7 @@
 #include "CommonHelpers.h"
 #include "TestHelpers.h"
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/objdetect.hpp>
 
 using namespace std;
 using namespace cv;
@@ -61,3 +62,10 @@ TEST(UtilitiesTests, SelfCoefficientImageTests1)
     cv::Mat outputImage = Utilities::selfCoefficientImage(inputImage, 7);
 
 }
+
+//TEST(UtilitiesTests, UpgradeCascadeHaarFiles)
+//{
+//    auto old = resolvePath("libppp/share/haarcascades/haarcascade_frontalface_alt.xml");
+//    auto newL = std::string(old.begin(), old.end() - 3) + "yml";
+//    cv::CascadeClassifier::convert(old, newL);
+//}

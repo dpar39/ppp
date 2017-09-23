@@ -144,19 +144,31 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const std::string 
     // format that is accepted as an in-memory FileNode
     // Implementation should look like this:
 
-    //cv::FileStorage fs(xmlHaarCascade, cv::FileStorage::READ | cv::FileStorage::MEMORY);
-    //auto fnode = fs.getFirstTopLevelNode();
-    //classifier->read(fnode);
-    //return classifier;
-    static std::mutex g_mutex;
-    std::lock_guard<std::mutex> lg(g_mutex);
-    std::string tmpFile = "cascade.xml";
+    std::string s(xmlHaarCascade.begin(), xmlHaarCascade.end());
+    try
     {
-        std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
-        oss.write(reinterpret_cast<char *>(xmlHaarCascade.data()), xmlHaarCascade.size());
+        cv::FileStorage fs(s, cv::FileStorage::READ | cv::FileStorage::MEMORY);
+        classifier->read(fs.getFirstTopLevelNode());
+        if (classifier->empty())
+        {
+            throw std::runtime_error("Failed to load classifier from configuration");
+        }
+        return classifier;
+
     }
-    classifier->load(tmpFile);
-    return classifier;
+    catch(std::exception &e)
+    {
+        throw e;
+    }
+    //static std::mutex g_mutex;
+    //std::lock_guard<std::mutex> lg(g_mutex);
+    //std::string tmpFile = "cascade.xml";
+    //{
+    //    std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
+    //    oss.write(reinterpret_cast<char *>(xmlHaarCascade.data()), xmlHaarCascade.size());
+    //}
+    //classifier->load(tmpFile);
+    //return classifier;
 }
 
 uint32_t Utilities::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end)

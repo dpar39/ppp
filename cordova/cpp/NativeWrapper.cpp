@@ -11,7 +11,8 @@ const char * NativeWrapper::configure(const char *jsonConfig)
 {
     try
     {
-        bool success = s_enginePtr->configure(std::string(jsonConfig));
+        auto jc = std::string(jsonConfig);
+        bool success = s_enginePtr->configure(jc);
         return success ? "SUCCESS!" : "Failure";
     }
     catch (std::exception &e)
@@ -48,5 +49,5 @@ const char * NativeWrapper::detectLandMarks(const char *imgKey)
 
 const char * NativeWrapper::createTiledPrint(const char *imgKey, const char *request)
 {
-    return "createTiledPrint";
+    return "createTiledPrint not implemented!";
 }
