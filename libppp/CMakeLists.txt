@@ -76,7 +76,7 @@ target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/shape_predictor_68_face_landmarks.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/sp_model.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #-----------------------------
 # Build the module tests
