@@ -1,11 +1,11 @@
 #include "Utilities.h"
+//#include "EmbeddedContent.h"
 
 #include <gtest/gtest.h>
 #include <utility>
-#include "CommonHelpers.h"
 #include "TestHelpers.h"
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/objdetect.hpp>
+
 
 using namespace std;
 using namespace cv;
@@ -46,7 +46,7 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
     for (const auto &tc : testCases)
     {
         auto base64 = Utilities::base64Encode(tc);
-        auto decode = Utilities::base64Decode(base64);
+        auto decode = Utilities::base64Decode(base64.c_str(), base64.size());
         EXPECT_TRUE(std::equal(tc.begin(), tc.end(), decode.begin()));
     }
 }
@@ -63,9 +63,14 @@ TEST(UtilitiesTests, SelfCoefficientImageTests1)
 
 }
 
-//TEST(UtilitiesTests, UpgradeCascadeHaarFiles)
+//TEST(UtilitiesTests, ResourceRetrievalWorks)
 //{
-//    auto old = resolvePath("libppp/share/haarcascades/haarcascade_frontalface_alt.xml");
-//    auto newL = std::string(old.begin(), old.end() - 3) + "yml";
-//    cv::CascadeClassifier::convert(old, newL);
+//    string fileName = "shape_predictor_68_face_landmarks.dat";
+//
+//    auto readMeFile = resolvePath(fileName);
+//    auto fileContent = res::getFileContent(fileName);
+//    std::string actual(fileContent.first, fileContent.first + fileContent.second);
+//    std::ifstream t(readMeFile, std::ios::binary);
+//    std::string expected((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+//    ASSERT_EQ(actual, expected);
 //}

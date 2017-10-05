@@ -38,15 +38,15 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::vector<byte> Utilities::base64Decode(const std::string &base64Str)
+std::vector<byte> Utilities::base64Decode(const char *base64Str, size_t base64Len)
 {
     uint8_t charBlock4[4], byteBlock3[3];
     std::vector<byte> result;
-    result.reserve(base64Str.size() * 3 / 4);
-
+    result.reserve(base64Len * 3 / 4);
     auto i = 0;
-    for (auto ch64 : base64Str)
+    for (size_t k = 0; k < base64Len; ++k)
     {
+        auto ch64 = base64Str[k];
         if (ch64 == '=')
         {
             break;
@@ -136,9 +136,9 @@ std::string Utilities::base64Encode(const std::vector<byte>& rawStr)
     return result;
 }
 
-cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const std::string &haarCascadeBase64Data)
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char *haarCascadeBase64Data)
 {
-    auto xmlHaarCascade = base64Decode(haarCascadeBase64Data);
+    auto xmlHaarCascade = base64Decode(haarCascadeBase64Data, strlen(haarCascadeBase64Data));
     auto classifier = std::make_shared<cv::CascadeClassifier>();
     // Workaround until there I find a way to convert to the new
     // format that is accepted as an in-memory FileNode

@@ -15,23 +15,23 @@
 
 using namespace cv;
 
+std::string pct(double v)
+{
+    return std::to_string(v * 100) + "%";
+}
+
 class Stats
 {
 public:
-    double medianValue;
-    double meanValue;
-    double stdDevValue;
-    double minValue;
-    double maxValue;
-    size_t minIndex;
-    size_t maxIndex;
+    double medianValue = 0;
+    double meanValue = 0;
+    double stdDevValue = 0;
+    double minValue = 0;
+    double maxValue = 0;
+    size_t minIndex = 0;
+    size_t maxIndex = 0;
 
     explicit Stats(const std::vector<double> &values)
-        : medianValue(0)
-        , meanValue(0)
-        , stdDevValue(0)
-        , minValue(0)
-        , maxValue(0)
     {
         if (values.empty())
         {
@@ -51,10 +51,11 @@ public:
         stdDevValue = sqrt(std::accumulate(values.begin(), values.end(), 0.0, [this](double init, double v) { return init + (v - meanValue)*(v - meanValue); }) / n);
     }
 
+
     friend std::ostream & operator<<(std::ostream &os, const Stats &s)
     {
-        os << std::setprecision(5) << "{mean: " << s.minValue << ", stddev: " << s.stdDevValue << ", median: " << s.medianValue
-            << ", min: " << s.minValue << " (@" << s.minIndex << "), max: " << s.maxValue << " (@" << s.maxIndex << ")}";
+        os << std::setprecision(5) << "{mean: " << pct(s.meanValue) << ", stddev: " << pct(s.stdDevValue) << ", median: " << pct(s.medianValue)
+            << ", min: " << pct(s.minValue) << " (@" << s.minIndex << "), max: " << pct(s.maxValue) << " (@" << s.maxIndex << ")}";
         return os;
     }
 };
@@ -69,7 +70,7 @@ protected:
         rapidjson::Document config;
         EXPECT_NO_THROW(config = readConfigFromFile());
 
-        config["shapePredictorFile"].SetString(resolvePath("libppp/share/shape_predictor_68_face_landmarks.dat").c_str(), config.GetAllocator());
+        config["shapePredictor"]["file"].SetString(resolvePath("libppp/share/sp_model.dat").c_str(), config.GetAllocator());
         EXPECT_NO_THROW(m_pPppEngine->configure(config));
     }
 
@@ -89,8 +90,8 @@ protected:
 
             auto errCrown = cv::norm(r.annotation.crownPoint - r.detection.crownPoint);
             auto errChin = cv::norm(r.annotation.chinPoint - r.detection.chinPoint);
-            auto crownChinActualDist = cv::norm(r.annotation.chinPoint - r.annotation.crownPoint);
-            auto crownChinEstimatedDist = cv::norm(r.detection.chinPoint - r.detection.crownPoint);
+            auto crownChinActualDist    = cv::norm(r.annotation.chinPoint - r.annotation.crownPoint);
+            auto crownChinEstimatedDist = cv::norm(r.detection.chinPoint  - r.detection.crownPoint);
 
             crownChinEstimationErrors.push_back((errCrown + errChin) / crownChinActualDist);
             scalingErrors.push_back(abs(crownChinEstimatedDist - crownChinActualDist) / crownChinActualDist);
@@ -106,7 +107,6 @@ protected:
         auto imgKey = m_pPppEngine->setInputImage(rgbImage);
         return m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
     }
-
 };
 
 
@@ -124,12 +124,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
             auto success = runLandMarkDetection(rgbImage, detectedLandMarks);
             EXPECT_TRUE(success) << "Error detecting landmarks in " << imagePrefix;
 
-  /*          success = IN_ROI(detectedLandMarks.vjLeftEyeRect, annotations.eyeLeftPupil) &&
-                IN_ROI(detectedLandMarks.vjRightEyeRect, annotations.eyeRightPupil);*/
-
-            EXPECT_TRUE(success) << "Failed " << imagePrefix << std::endl;
-
-            double maxEyeAllowedError = 16;
+            double maxEyeAllowedError = 25;
             auto leftEyeError = cv::norm(detectedLandMarks.eyeLeftPupil - annotations.eyeLeftPupil);
             auto rightEyeError = cv::norm(detectedLandMarks.eyeRightPupil - annotations.eyeRightPupil);
 
@@ -166,21 +161,18 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
 
             const auto maxError = (36.0 - 32.0) / 34.0;
             auto relError = cv::abs(expectedDistance - actualDistance) / expectedDistance;
-            relativeErrors.push_back(relError);
             auto accepted = relError < maxError;
 
             if (!accepted)
             {
-                std::cout << " Estimation of face height too large for image " << imagePrefix << std::endl;
+                std::cout << " *** Estimation of face height too large for image " << imagePrefix << std::endl;
             }
             return accepted;
-
-            return true;
         };
 
     std::vector<int> excludeList = {
         //1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
-        16,
+        //16,
         //56, // Glasses with some reflexion
         74, // Eyes totally closed
         //81, // red bear problem
@@ -200,17 +192,17 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         return ss.str() + "_frontal.jpg";
     });
 
-    std::vector<ResultData> rd;
+    std::vector<ResultData> resultsData;
 
-    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
+    processDatabase(process, ignoreImageList, "research/mugshot_frontal_original_all/via_region_data_dpd.csv", resultsData);
 
-    processResults(rd);
+    processResults(resultsData);
 }
 
 
 TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 {
-    auto imageFileName = resolvePath("research/mugshot_frontal_original_all/049_frontal.jpg");
+    auto imageFileName = resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg");
     auto inputImage = cv::imread(imageFileName);
 
     LandMarks detectedLandMarks;
@@ -223,8 +215,6 @@ TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
     if (true)
     {
         cv::Scalar detectionColor(250, 30, 0);
-
-
         rectangle(inputImage, detectedLandMarks.vjFaceRect, cv::Scalar(0, 128, 0), 2);
         rectangle(inputImage, detectedLandMarks.vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
         rectangle(inputImage, detectedLandMarks.vjRightEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
@@ -243,8 +233,7 @@ TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 
         for(const auto &pt : detectedLandMarks.allLandmarks)
         {
-            circle(inputImage, pt, 5, cv::Scalar(40, 40, 190), 2);
+            circle(inputImage, pt, 5, cv::Scalar(40, 40, 190), 1);
         }
     }
-
 }

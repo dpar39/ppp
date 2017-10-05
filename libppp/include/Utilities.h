@@ -26,12 +26,12 @@ public:
     *  @returns The classifier loaded into memory
     !*/
     //static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const std::string &haarCascadeFile);
-    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const std::string &haarCascadeBase64Data);
+    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const char *haarCascadeBase64Data);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/
     static uint32_t crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end);
 
-    static std::vector<byte> base64Decode(const std::string& base64Str);
+    static std::vector<byte> base64Decode(const char *base64Str, size_t base64Len);
 
     static std::string base64Encode(const std::vector<byte>& rawStr);
 

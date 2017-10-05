@@ -84,6 +84,16 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/shape_predictor_68_face_landmark
 file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
 
+#if (WIN32)
+#    set(DLIB_TRAIN_SRC_FILES
+#        ${DLIB_ROOT}/dlib/threads/thread_pool_extension.cpp
+#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_extensions.cpp
+#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_1.cpp
+#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_2.cpp
+#        ${DLIB_ROOT}/dlib/misc_api/misc_api_kernel_1.cpp
+#        ${DLIB_ROOT}/dlib/data_io/image_dataset_metadata.cpp)
+#endif()
+
 set(TEST_INC_DIRS
     ${GMOCK_ROOT}/gtest/include
     ${GMOCK_ROOT}/include
@@ -95,7 +105,7 @@ set(TEST_LIB_DEPS
     gmock
 )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${TEST_INC_FILES})
+add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
 target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
 target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 

@@ -19,7 +19,7 @@ void LipsDetector::configure(rapidjson::Value& config)
 
     if (m_useHaarCascades)
     {
-        const string haarClassifierBase64(lipsDetectorCfg["haarCascade"]["data"].GetString());
+        const auto haarClassifierBase64 = lipsDetectorCfg["haarCascade"]["data"].GetString();
         m_pMouthCascadeClassifier = Utilities::loadClassifierFromBase64(haarClassifierBase64);
     }
 }

@@ -120,7 +120,7 @@ void EyeDetector::validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize,
     }
 
     const auto epsilon = std::min(eyeRoiSize.width, eyeRoiSize.height) * 0.1;
-    if (eyeRoiSize.width- eyeCenter.x < epsilon || eyeCenter.x < epsilon 
+    if (eyeRoiSize.width- eyeCenter.x < epsilon || eyeCenter.x < epsilon
         || eyeRoiSize.height - eyeCenter.y < epsilon || eyeCenter.y < epsilon)
     {
         eyeCenter.x = ROUND_INT(eyeRoiSize.width / 2.0);
@@ -157,7 +157,7 @@ void EyeDetector::createCornerKernels()
 
 cv::Point EyeDetector::findEyeCenter(const cv::Mat& eyeROIUnscaled) const
 {
-    cv::Mat eyeRoi; 
+    cv::Mat eyeRoi;
     scaleToFastSize(eyeROIUnscaled, eyeRoi);
 
     //-- Find the gradient
@@ -259,7 +259,7 @@ cv::Point EyeDetector::unscalePoint(cv::Point p, cv::Rect origSize) const
 
 void EyeDetector::scaleToFastSize(const cv::Mat& src, cv::Mat& dst) const
 {
-    cv::resize(src, dst, cv::Size(kFastEyeWidth, 
+    cv::resize(src, dst, cv::Size(kFastEyeWidth,
         static_cast<int>(static_cast<float>(kFastEyeWidth) / src.cols * src.rows)));
 }
 

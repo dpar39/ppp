@@ -209,7 +209,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
 
         if (imageFileName.find("049_frontal") == std::string::npos)
         {
-        //    continue;
+            //continue;
         }
 
         LandMarks results;

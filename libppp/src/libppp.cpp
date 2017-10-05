@@ -24,10 +24,10 @@ PublicPppEngine::~PublicPppEngine()
     delete m_pPppEngine;
 }
 
-bool PublicPppEngine::configure(const std::string& jsonConfig) const
+bool PublicPppEngine::configure(const char* jsonConfig) const
 {
     rapidjson::Document parser;
-    parser.Parse(jsonConfig.c_str());
+    parser.Parse(jsonConfig);
     return m_pPppEngine->configure(parser);
 }
 
@@ -36,8 +36,7 @@ std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLengt
     cv::Mat inputImage;
     if (bufferLength <= 0)
     {
-        std::string base64Data(bufferData);
-        auto decodedBytes = Utilities::base64Decode(base64Data);
+        auto decodedBytes = Utilities::base64Decode(bufferData, strlen(bufferData));
         cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
         inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
     }
