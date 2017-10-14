@@ -11,13 +11,12 @@ const char * NativeWrapper::configure(const char *jsonConfig)
 {
     try
     {
-        auto jc = std::string(jsonConfig);
-        bool success = s_enginePtr->configure(jc);
-        return success ? "SUCCESS!" : "Failure";
+        bool success = s_enginePtr->configure(jsonConfig);
+        return success ? "SUCCESS!" : "FAILURE";
     }
-    catch (std::exception &e)
+    catch (...)
     {
-        return e.what();
+        return "ERROR";
     }
 }
 

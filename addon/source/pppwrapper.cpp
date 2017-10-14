@@ -119,7 +119,7 @@ void PppWrapper::Configure(const v8::FunctionCallbackInfo<v8::Value>& args)
     std::string configurationJson(*jsstr);
 
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
-    pppWrapper->m_enginePtr->configure(configurationJson);
+    pppWrapper->m_enginePtr->configure(configurationJson.c_str());
 }
 
 void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)

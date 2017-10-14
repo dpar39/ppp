@@ -1,8 +1,9 @@
 
-import { Component, AfterViewInit} from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import { Camera, CameraOptions } from '@ionic-native/camera'
 import { Http } from '@angular/http';
+import { ResponseContentType } from '@angular/http';
 
 import { LandmarkEditorComponent } from '../../components/landmark-editor/landmark-editor';
 
@@ -29,30 +30,40 @@ export class HomePage implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.imageKey = "000000";
+    this.imageKey = "000002";
     this.initCppEngine();
   }
 
-  initCppEngine() {
+  initCppEngine() : void {
     if (cpp != null && !this._cppReady) {
-      this.http.get('/assets/config.json').subscribe(data => {
-        let config = JSON.stringify(data.json());
-        //this.imageKey = config;
-        this.imageKey = cpp.NativeWrapper.configure(config, (ret) => {
-           this.imageKey = ret;
-           this._cppReady = true;
-        }, (err)=> {
-           this.imageKey = err;
+      this.http.get('/assets/config.json').subscribe(r => {
+        let objcfg = r.json();
+        this.http.get('/assets/sp_model.dat', {
+          responseType: ResponseContentType.Blob
+        }).subscribe(rr => {
+          let reader = new FileReader();
+          reader.readAsDataURL(rr.blob());
+          reader.onloadend = () => {
+            let content64 = reader.result;
+            content64 = content64.substring(content64.indexOf(',') + 1);
+            objcfg.shapePredictor.data = content64;
+            let config = JSON.stringify(objcfg);
+            objcfg = null; // memory cleanup
+            cpp.NativeWrapper.configure(config, (ret) => {
+              config = null; // memory cleanup
+              this._cppReady = true;
+            });
+          };
         });
       });
     }
   }
 
-  loadPicture() : void {
+  loadPicture(): void {
     this.takePicture(false);
   }
 
-  takePicture(useCamera : boolean = true)  {
+  takePicture(useCamera: boolean = true) {
     const options: CameraOptions = {
       quality: 100,
       destinationType: this._camera.DestinationType.DATA_URL,
@@ -65,7 +76,7 @@ export class HomePage implements AfterViewInit {
       this.initCppEngine();
       let base64Image = 'data:image/jpg;base64,' + imageData;
       this.imageSrc = base64Image;
-      this.imageKey = cpp.NativeWrapper.setImage(imageData, (imgKey) => {
+      cpp.NativeWrapper.setImage(imageData, (imgKey) => {
         this.imageKey = imgKey;
         this.detectLandmarks();
       });
@@ -75,15 +86,11 @@ export class HomePage implements AfterViewInit {
     this.imageKey = "Loading image..."
   }
 
-  setImageInCpp()  {
-
-  }
-
   detectLandmarks() {
-    cpp.NativeWrapper.detectLandMarks(this.imageKey, (data) => {
-      this.imageKey = data;
-      // let landmarks : LandMarks = data.json();
-      // this.crownChinPointPair = landmarks;
+    cpp.NativeWrapper.detectLandMarks(this.imageKey, (lmstr) => {
+       let landmarks : CrownChinPointPair = JSON.parse(lmstr);
+       this.crownChinPointPair = landmarks;
+      // this.imageKey = lmstr;;
     });
   }
 }
