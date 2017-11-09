@@ -261,24 +261,23 @@ class Builder(object):
             self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj', \
                 '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
-
-
+#
     def insert_static_crt(self, cmake_file):
         """
         Insert static CRT build on CMAKE
         """
         static_crt = """
-if (MSVC)
-    # On windows, compile with CRT only in debug mode
-    set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
-    foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-        if(${FLAG_VAR} MATCHES "/MD")
-            string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+        if (MSVC)
+            # On windows, compile with CRT only in debug mode
+            set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
+            foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+                if(${FLAG_VAR} MATCHES "/MD")
+                    string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+                endif()
+            endforeach()
+            add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
         endif()
-    endforeach()
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-endif()
-"""
+        """
         with open(cmake_file, 'r') as fp:
             cmake_content = fp.readlines()
 
@@ -298,7 +297,7 @@ endif()
         lib_filename = url.split('/')[-1].split('#')[0].split('?')[0]
         lib_filepath = os.path.join(self._third_party_dir, lib_filename)
         return lib_filepath
-
+#
     def download_third_party_lib(self, url):
         """
         Download a third party dependency from the internet if is not available offline
@@ -478,18 +477,42 @@ endif()
             os.chdir(self._install_dir)
             self.run_cmd(['node', './test.js'])
         os.chdir(self._root_dir)
-
+#
     def deploy_addon(self):
         """
         Deploys the addon to the webapp directory as well as the shared configuration
         """
         webapp_dir = os.path.join(self._root_dir, 'webapp')
-        shutil.copy(os.path.join(self._install_dir, 'addon.node'), webapp_dir)
-        shutil.copy(os.path.join(self._install_dir, 'config.json'), webapp_dir)
-        for shared_lib in ['liblibppp.so', 'libppp.dll']:
-            shared_lib_path = os.path.join(self._install_dir, shared_lib)
-            if os.path.exists(shared_lib_path):
-                shutil.copy(shared_lib_path, webapp_dir)
+        dist_files = ['addon.node', 'config.json', 'sp_model.dat', 'liblibppp.so', 'libppp.dll']
+        for dist_file in dist_files:
+            dist_file_path = os.path.join(self._install_dir, dist_file)
+            if os.path.exists(dist_file_path):
+                shutil.copy(dist_file_path, webapp_dir)
+#
+    def build_webapp(self):
+        """
+        Builds and test the web application by running shell commands
+        """
+        os.chdir(os.path.join(self._root_dir, 'webapp'))
+        shell_script = \
+        """
+        npm install
+        ng build
+        ng test --browser PhantomJS
+        """
+
+        commands = shell_script.splitlines()
+        for cmd in commands:
+            if cmd:
+                self.run_cmd(cmd.split())
+        os.chdir(self._root_dir)
+#
+    def deploy_to_azure(self):
+        """
+        Deploys the webserver to azure
+        """
+        pass # TODO
+
 
     def __init__(self):
         # Detect OS version
@@ -520,5 +543,6 @@ endif()
         # Copy built addon and configuration to webapp
         if not self._gen_vs_sln:
             self.deploy_addon()
+            self.build_webapp()
 
 BUILDER = Builder()

@@ -14,5 +14,7 @@
 /webapp/liblibppp.so
 /webapp/cascade.xml
 /webapp/node.exe
+/webapp/sp_model.dat
 cascade.xml
 *.ldb
+
