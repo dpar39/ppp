@@ -7,7 +7,6 @@ import { Http, Response, Headers, RequestOptions, URLSearchParams } from '@angul
 
 import { Point, LandMarks, CrownChinPointPair } from './model/datatypes'
 
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -97,7 +96,7 @@ export class AppComponent {
       } else {
 
         if (landmarks.crownPoint && landmarks.chinPoint) {
-          console.log('Landmarks calculated.')
+          console.log('Landmarks calculated.');
           this.crownChinPointPair = landmarks;
         }
       }

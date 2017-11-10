@@ -1,6 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "assets/_variables.scss";
-$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
-@import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
-@import "assets/_bootswatch.scss";
+// $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+// @import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
+// @import "assets/_bootswatch.scss";
+
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';

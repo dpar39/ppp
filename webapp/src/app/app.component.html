@@ -1,18 +1,18 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div class="container text-center">
+<mat-card>
   <h1>
     Welcome to {{title}}!
   </h1>
-</div>
+</mat-card>
 
 <app-landmark-editor [inputPhoto]='imageSrc'
   [crownChinPointPair]='crownChinPointPair'
   (edited)='onLandmarksEdited'>
 </app-landmark-editor>
 
-<div class='text-center'>
-  <button (click)='el.nativeElement.querySelector("#selectImage").click();' class='btn btn-success'>Choose photo</button>
-  <button (click)='createPrint()' class='btn btn-success' style="visibility:visible">Create Print</button>
+<div>
+  <button mat-button color="primary" (click)='el.nativeElement.querySelector("#selectImage").click();'>Choose photo</button>
+  <button mat-button color="primary" (click)='createPrint()'>Create Print</button>
   <form>
     <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
   </form>

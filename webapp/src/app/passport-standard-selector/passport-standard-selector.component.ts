@@ -9,7 +9,14 @@ export class PassportStandardSelectorComponent implements OnInit {
 
   constructor() { }
 
+  idType: any;
+
   ngOnInit() {
+
+    this.idType = {
+      name: 'US Passport',
+      dimensions: '2\" x 2"'
+    };
   }
 
 }
