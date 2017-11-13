@@ -1,4 +1,8 @@
 uploads
 node_modules
 dist/
+config.json
+sp_model.dat
+addon.node
+libppp.*
 *.log

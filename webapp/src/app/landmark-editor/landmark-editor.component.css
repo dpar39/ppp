@@ -22,3 +22,7 @@
     margin: 1em;
     background-color: #313232
 }
+
+img {
+    image-orientation: from-image;
+}

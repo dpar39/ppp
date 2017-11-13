@@ -27,7 +27,9 @@ console.log('Addon instance created!');
 // Configure addon engine instance
 var engineConfigFile = 'config.json';
 var jsonConfig = fs.readFileSync(engineConfigFile, "utf8");
-pppEngine.configure(jsonConfig);
+pppEngine.configure(jsonConfig, function(err){
+    console.log(err);
+});
 console.log('Addon instance configured!');
 
 // App setup
@@ -137,6 +139,7 @@ function parsePassportStandard(ps) {
     }
     return obj;
 }
+
 function validatePrintRequest(printDef, imgKey) {
 
 }
@@ -184,6 +187,7 @@ if (!fs.existsSync(uploadImageDirectory)) {
 
 // start server on the specified port and binding host
 var port = process.env.PORT || 4000;
+port = 4000;
 app.listen(port, function () {
     console.log("Server listening on port " + port);
 });
