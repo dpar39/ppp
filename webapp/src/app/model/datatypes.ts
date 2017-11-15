@@ -19,7 +19,7 @@ export class PassportStandard {
     pictureWidth: number;
     pictureHeight: number;
     faceHeight: number;
-    unit: UnitType
+    units: UnitType;
 }
 
 export class LandMarks {

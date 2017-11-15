@@ -8,6 +8,7 @@ import {MatButtonModule, MatCardModule} from '@angular/material';
 import { AppComponent } from './app.component';
 import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component';
 import { PassportStandardSelectorComponent } from './passport-standard-selector/passport-standard-selector.component';
+import { BackEndService } from './services/back-end.service';
 
 
 
@@ -24,6 +25,7 @@ import { PassportStandardSelectorComponent } from './passport-standard-selector/
     MatCardModule
   ],
   providers: [
+    BackEndService
   ],
   bootstrap: [AppComponent]
 })
