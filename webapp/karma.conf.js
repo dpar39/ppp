@@ -25,6 +25,7 @@ module.exports = function (config) {
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,
+    hostname: '127.0.0.1',
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
