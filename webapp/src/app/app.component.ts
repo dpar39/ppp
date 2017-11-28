@@ -15,7 +15,6 @@ import {BackEndService } from './services/back-end.service';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-
   title = 'app';
   imageKey: string;
   imageSrc = '#';

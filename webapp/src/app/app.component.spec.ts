@@ -1,13 +1,28 @@
 import { TestBed, async } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
+import { MatCardModule, MatButtonModule } from '@angular/material';
+import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component';
+import { PassportStandardSelectorComponent } from './passport-standard-selector/passport-standard-selector.component';
+import { HttpModule } from '@angular/http';
+import { BackEndService } from './services/back-end.service';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
-        AppComponent
+        AppComponent,
+        LandmarkEditorComponent,
+        PassportStandardSelectorComponent
       ],
+      imports: [
+        HttpModule,
+        MatCardModule,
+        MatButtonModule
+      ],
+      providers: [
+        BackEndService
+      ]
     }).compileComponents();
   }));
 

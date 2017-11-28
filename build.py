@@ -497,8 +497,7 @@ class Builder(object):
         shell_script = \
         """
         npm install
-        ng build
-        ng test --browser PhantomJS
+        ng test --browser PhantomJS --single-run
         """
 
         commands = shell_script.splitlines()

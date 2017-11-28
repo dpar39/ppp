@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { HttpModule } from '@angular/http';
 
 
-import {MatButtonModule, MatCardModule} from '@angular/material';
+import { MatButtonModule, MatCardModule} from '@angular/material';
 
 import { AppComponent } from './app.component';
 import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component';
