@@ -520,6 +520,7 @@ class Builder(object):
         # Install NPM tools
         if not which('node-gyp'):
             self.run_cmd(['npm', 'install', 'node-gyp', '-g'])
+            self.run_cmd(['npm', 'install', '@angular/cli', '-g'])
 
         if IS_WINDOWS:
             self.detect_vs_version()
