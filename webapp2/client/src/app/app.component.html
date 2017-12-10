@@ -1,0 +1,22 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<mat-card>
+  <h1>
+    Welcome to {{title}}!
+  </h1>
+</mat-card>
+
+<app-landmark-editor [inputPhoto]='imageSrc'
+  [crownChinPointPair]='crownChinPointPair'
+  (edited)='onLandmarksEdited'>
+</app-landmark-editor>
+
+<div>
+  <button mat-button color="primary" (click)='el.nativeElement.querySelector("#selectImage").click();'>Choose photo</button>
+  <button mat-button color="primary" (click)='createPrint()'>Create Print</button>
+  <form>
+    <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
+  </form>
+</div>
+
+<app-passport-standard-selector class='row'>
+</app-passport-standard-selector>
