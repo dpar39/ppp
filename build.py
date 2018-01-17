@@ -18,11 +18,12 @@ NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
+USE_NODEJS_SERVER = True
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
 # All thrid party libs that can be build with CMAKE are unpackaged and built
 # within a 'build' directory inside their respective folder
-
+#
 def which(program):
     """
     Returns the full path of to a program if available in the system PATH, None otherwise
@@ -48,6 +49,13 @@ class Builder(object):
     """
     Class that holds the whole building process
     """
+    def web_app_dir(self):
+        """
+        Returns the absolute path of the webapp directory (depending on wheter we using NodeJs or .Net Core server)
+        """
+        webapp_dir_name = 'webapp' if USE_NODEJS_SERVER else 'webapp2'
+        return os.path.join(self._root_dir, webapp_dir_name)
+#
     def detect_vs_version(self):
         """
         Detects the first available version of Visual Studio
@@ -131,6 +139,12 @@ class Builder(object):
             except:
                 return # Do not launch visual studio as it is already opened
         self.run_cmd(['call', 'devenv', solution_file])
+#
+    def add_prj_to_vs_sln(self, prj_path):
+        """
+        Adds an existing project to a solution
+        """
+        raise Exception('Not implemented')
 #
     def build_dir_name(self, prefix):
         """
@@ -361,7 +375,6 @@ class Builder(object):
         """
         Parses command line arguments
         """
-
         parser = argparse.ArgumentParser(description='Builds the passport photo application.')
         parser.add_argument('--arch_name', help='Platform [x86 | x64]', default='x64')
         parser.add_argument('--build_config', help='Build configuration [debug | release]', \
@@ -471,36 +484,39 @@ class Builder(object):
                 os.chdir(self._install_dir)
                 self.run_cmd(['ppp_test', '--gtest_output=xml:tests.xml'])
             os.chdir(self._root_dir)
-            # Create Node.js addon with node-gyp
-            self.build_addon_with_nodegyp()
-            # Run addon integration test
-            os.chdir(self._install_dir)
-            self.run_cmd(['node', './test.js'])
+
+            if USE_NODEJS_SERVER:
+                # Create Node.js addon with node-gyp
+                self.build_addon_with_nodegyp()
+                # Run addon integration test
+                os.chdir(self._install_dir)
+                self.run_cmd(['node', './test.js'])
+            else:
+                # TODO: we need to test that libppp works with .net core
+                pass
         os.chdir(self._root_dir)
 #
     def deploy_addon(self):
         """
         Deploys the addon to the webapp directory as well as the shared configuration
         """
-        webapp_dir = os.path.join(self._root_dir, 'webapp')
         dist_files = ['addon.node', 'config.json', 'sp_model.dat', 'liblibppp.so', 'libppp.dll']
         for dist_file in dist_files:
             dist_file_path = os.path.join(self._install_dir, dist_file)
             if os.path.exists(dist_file_path):
-                shutil.copy(dist_file_path, webapp_dir)
+                shutil.copy(dist_file_path, self.web_app_dir())
 #
     def build_webapp(self):
         """
         Builds and test the web application by running shell commands
         """
-        os.chdir(os.path.join(self._root_dir, 'webapp'))
+        os.chdir(self.web_app_dir())
         shell_script = \
         """
         npm install
         npm install -g @angular/cli
         ng test --browser PhantomJS --single-run
         """
-
         commands = shell_script.splitlines()
         for cmd in commands:
             if cmd:
@@ -513,13 +529,12 @@ class Builder(object):
         """
         pass # TODO
 
-
     def __init__(self):
         # Detect OS version
         self.parse_arguments()
 
-        # Install NPM tools
-        if not which('node-gyp'):
+        # Install NPM tools (not needed if using .NET core)
+        if USE_NODEJS_SERVER and not which('node-gyp'):
             self.run_cmd(['npm', 'install', 'node-gyp', '-g'])
 
         if IS_WINDOWS:
@@ -533,7 +548,7 @@ class Builder(object):
         self.extract_gmock()
         self.build_opencv()
 
-        if self._gen_vs_sln:
+        if self._gen_vs_sln and USE_NODEJS_SERVER:
             # Build Node JS from source so the addon can be build reliably for Windows
             self.build_nodejs()
 

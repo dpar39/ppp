@@ -7,8 +7,10 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-
 using namespace std;
+
+PublicPppEngine g_c_pppInstance;
+string g_last_error;
 
 cv::Point fromJson(rapidjson::Value& v)
 {
@@ -89,10 +91,10 @@ std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const 
 template <typename T>
 std::vector<byte> toBytes(const T& x)
 {
-     vector<byte> v(static_cast<const byte*>(static_cast<const void*>(&x)),
+    vector<byte> v(static_cast<const byte*>(static_cast<const void*>(&x)),
         static_cast<const byte*>(static_cast<const void*>(&x)) + sizeof(x));
-     reverse(v.begin(), v.end());
-     return v;
+    reverse(v.begin(), v.end());
+    return v;
 }
 
 /*  The pHYs chunk specifies the intended pixel size or aspect ratio for display of the image. It contains:
@@ -108,7 +110,7 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
 {
     auto chunkLenBytes = toBytes(9);
     auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
-    string physStr = "pHYs";
+    const string physStr = "pHYs";
 
     auto pHYsChunk(chunkLenBytes);
     pHYsChunk.insert(pHYsChunk.end(), physStr.begin(), physStr.end());
@@ -128,4 +130,41 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double
         // Insert the chunk in the stream
         imageStream.insert(it - 4, pHYsChunk.begin(), pHYsChunk.end());
     }
+}
+
+#pragma region C Interface
+#define TRYRUN(statements) \
+    try { statements; return true; } catch(const std::exception & ex) {  g_last_error = ex.what(); return false; }
+
+bool set_image(const char* img_buf, int img_buf_size, char *img_id)
+{
+    TRYRUN(
+        auto imgId = g_c_pppInstance.setImage(img_buf, img_buf_size);
+    strcpy(img_id, imgId.c_str());
+    );
+}
+
+bool configure(const char* config_json)
+{
+    TRYRUN(
+        g_c_pppInstance.configure(config_json);
+    );
+}
+
+bool detect_landmarks(const char* img_id, char* landmarks)
+{
+    TRYRUN(
+        auto landmarksStr = g_c_pppInstance.detectLandmarks(img_id);
+    strcpy(landmarks, landmarksStr.c_str());
+    );
+}
+#pragma endregion
+
+bool create_tiled_print(const char* img_id, const char* request, unsigned char* out_buf, int& out_size)
+{
+    TRYRUN(
+        auto output = g_c_pppInstance.createTiledPrint(img_id, request);
+    copy(output.begin(), output.end(), out_buf);
+    out_size = static_cast<int>(output.size());
+    );
 }

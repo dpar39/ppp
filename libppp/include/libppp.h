@@ -65,7 +65,7 @@ public:
     .       "x": 500,
     .       "y": 600
     .    },
-    .    "asBase64": true|falseS
+    .    "asBase64": true|false
     .}
     !*/
     std::string createTiledPrint(const std::string& imageId, const std::string &request) const;
@@ -76,3 +76,16 @@ private:
 private:
     static void setPngResolutionDpi(std::vector<byte>& imageStream, double resolution_ppmm);
 };
+
+extern "C"
+{
+    bool set_image(const char *img_buf, int img_buf_size, char *img_id);
+
+    bool configure(const char *config_json);
+
+    bool detect_landmarks(const char *img_id, char *landmarks);
+
+    bool create_tiled_print(const char *img_id, const char *request, unsigned char *out_buf, int &out_size);
+
+    void get_last_error(char *err_message);
+}
