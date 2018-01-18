@@ -147,6 +147,8 @@ function validatePrintRequest(printDef, imgKey) {
 // -- Create photo print
 app.get(api_prefix + '/photoprint', function (req, res) {
 
+    console.log(req.url);
+
     var imgKey = req.query.imgKey;
     var crownPoint = req.query.crownPoint;
     var chinPoint = req.query.chinPoint;
@@ -158,7 +160,6 @@ app.get(api_prefix + '/photoprint', function (req, res) {
         var printDef = {
             crownPoint : parsePoint(crownPoint),
             chinPoint : parsePoint(chinPoint),
-
             canvas : parseCanvas(canvas),
             standard : parsePassportStandard(standard)
         }
@@ -166,8 +167,6 @@ app.get(api_prefix + '/photoprint', function (req, res) {
     } catch (e) {
         console.log(e);
     }
-
-    console.log(imgKey);
 
     pppEngine.createTilePrint(imgKey, printDef, function(err, bufferData) {
          if (err) {
