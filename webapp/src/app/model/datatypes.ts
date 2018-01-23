@@ -9,9 +9,9 @@ export class Point {
 }
 
 export enum UnitType {
-    mm,
-    cm,
-    inch
+    mm = "mm",
+    cm = "cm",
+    inch = "inch"
 }
 
 export class PassportStandard {
@@ -19,6 +19,13 @@ export class PassportStandard {
     pictureWidth: number;
     pictureHeight: number;
     faceHeight: number;
+    units: UnitType;
+}
+
+export class Canvas {
+    height: number;
+    width: number;
+    resolution: number;
     units: UnitType;
 }
 
@@ -32,4 +39,20 @@ export class LandMarks {
 export class CrownChinPointPair {
     crownPoint: Point;
     chinPoint: Point;
+}
+
+export class TiledPhotoRequest {
+    imgKey: string;
+    standard: PassportStandard;
+    canvas: Canvas;
+    crownPoint: Point;
+    chinPoint: Point;
+
+    constructor(imgKey: string, ps: PassportStandard, canvas: Canvas, ccPoints: CrownChinPointPair) {
+        this.imgKey = imgKey;
+        this.standard = ps;
+        this.canvas = canvas;
+        this.crownPoint = ccPoints.crownPoint;
+        this.chinPoint = ccPoints.chinPoint; 
+    }
 }

@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
+import { TiledPhotoRequest } from '../model/datatypes';
+import { DomSanitizer } from '@angular/platform-browser';
+import * as $ from 'jquery';
 
 @Injectable()
 export class BackEndService {
 
-  constructor() {
-
-   }
+  constructor(private sanitizer: DomSanitizer) {
+  }
 
   uploadImageToServer(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -25,24 +27,37 @@ export class BackEndService {
           reject(imgKey);
         }
       };
-
-      xhr.upload.onprogress = (evt) => {
-        if (evt.lengthComputable) {
-          // calculate the percentage of upload completed
-          let percentComplete = evt.loaded / evt.total;
-          percentComplete = percentComplete * 100;
-          // update the Bootstrap progress bar with the new percentage
-          // $('.progress-bar').text(percentComplete + '%');
-          // $('.progress-bar').width(percentComplete + '%');
-
-          // // once the upload reaches 100%, set the progress bar text to done
-          // if (percentComplete === 100) {
-          //     $('.progress-bar').html('Done');
-          // }
-        }
-      };
       xhr.open('POST', '/api/upload', true);
       xhr.send(formData);
     });
+  }
+
+  getTiledPrint(req: TiledPhotoRequest) : Promise<any> {
+    return new Promise((resolve, reject) => {
+      $.get({
+        url: '/api/photoprint',
+        data: req,
+        xhr: () => {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onreadystatechange = (e) => {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    let blob = xhr.response;
+                    var binaryData = [];
+                    binaryData.push(blob);
+                    var b = window.URL.createObjectURL(new Blob(binaryData, {
+                        type: "image/png"
+                    }));
+
+                    let outImgSrc =  this.sanitizer.bypassSecurityTrustResourceUrl(b);
+                    resolve(outImgSrc);
+                }
+            }
+            return xhr;
+        }
+    });
+    }
+  );
+    
   }
 }

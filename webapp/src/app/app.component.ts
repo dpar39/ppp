@@ -1,14 +1,13 @@
 import { Component, ElementRef } from '@angular/core';
-
-import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component'
-
 import { DomSanitizer } from '@angular/platform-browser';
 import { HttpRequest, HttpEventType, HttpParams } from '@angular/common/http';
 import { Http, Response, Headers, RequestOptions, URLSearchParams } from '@angular/http';
 
-import { Point, LandMarks, CrownChinPointPair } from './model/datatypes';
+import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component'
 
+import { Point, LandMarks, CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
+
 declare var $: any;
 
 @Component({
@@ -21,7 +20,21 @@ export class AppComponent {
     imageKey: string;
     imageSrc = '#';
     outImgSrc: any = '#';
+    
+    // Model data
     crownChinPointPair: CrownChinPointPair;
+    passportStandard: PassportStandard = {
+        pictureWidth: 35,
+        pictureHeight: 45,
+        faceHeight: 34,
+        units: UnitType.mm
+    };
+    canvas: Canvas = {
+        height: 4,
+        width: 6,
+        resolution: 300,
+        units: UnitType.inch
+    };
 
     constructor(
         private el: ElementRef,
@@ -71,50 +84,14 @@ export class AppComponent {
     }
 
     onLandmarksEdited(data) {
-
     }
 
     createPrint() {
-
-        console.log('Create print called');
-
-        const params = {
-            imgKey: this.imageKey,
-            crownPoint: this.crownChinPointPair.crownPoint,
-            chinPoint: this.crownChinPointPair.chinPoint,
-            canvas: {
-                height: 4,
-                width: 6,
-                resolution: 300,
-                units: "inch"
-            },
-            standard: {
-                pictureWidth: 35,
-                pictureHeight: 45,
-                faceHeight: 34,
-                units: "mm"
-            }
-        };
-
-        $.get({
-            url: '/api/photoprint',
-            data: params,
-            xhr: () => {
-                var xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onreadystatechange = (e) => {
-                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                        let blob = xhr.response;
-                        var binaryData = [];
-                        binaryData.push(blob);
-                        var b = window.URL.createObjectURL(new Blob(binaryData, {
-                            type: "image/png"
-                        }));
-                        this.outImgSrc =  this.sanitizer.bypassSecurityTrustResourceUrl(b);
-                    }
-                }
-                return xhr;
-            }
+        console.log('Creating print output');
+        let req = new TiledPhotoRequest(this.imageKey,this.passportStandard, 
+            this.canvas, this.crownChinPointPair )
+        this.beService.getTiledPrint(req).then(outputDataUrl =>{
+            this.outImgSrc = outputDataUrl;
         });
     }
 }
