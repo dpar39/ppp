@@ -429,7 +429,7 @@ class Builder(object):
             """
             Extracts file from zip archive
             """
-            print 'Extracting "%s", please wait ...' % os.path.basename(zipfile)
+            print 'Extracting "%s", please wait ...' % (os.path.basename(zip_file))
             zip_file = os.path.join(research_dir, zip_file)
             zip_handle = zipfile.ZipFile(zip_file)
             for item in zip_handle.namelist():
