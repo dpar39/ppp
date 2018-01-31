@@ -22,5 +22,5 @@
 </app-passport-standard-selector>
 
 <div>
-  <img [src]='outImgSrc'>
+  <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' (click)="saveOutput()">
 </div>
