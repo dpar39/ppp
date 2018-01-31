@@ -429,6 +429,7 @@ class Builder(object):
             """
             Extracts file from zip archive
             """
+            print 'Extracting "%s", please wait ...' % os.path.basename(zipfile)
             zip_file = os.path.join(research_dir, zip_file)
             zip_handle = zipfile.ZipFile(zip_file)
             for item in zip_handle.namelist():
@@ -436,7 +437,7 @@ class Builder(object):
             zip_handle.close()
 
         research_dir = os.path.join(self._root_dir, 'research')
-        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all')):
+        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all/130_frontal.jpg')):
             return # Nothing to do, data already been extracted
 
         print 'Extracting validation data ...'
@@ -543,6 +544,9 @@ class Builder(object):
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
             os.mkdir(self._install_dir)
+
+        # Extract testing dataset
+        self.extract_validation_data()
 
         # Build Third party libs
         self.extract_gmock()
