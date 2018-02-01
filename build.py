@@ -84,6 +84,7 @@ class Builder(object):
             cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         else:
             env['CXXFLAGS'] = '-fPIC'
+            env['LD_LIBRARY_PATH'] = self._install_dir
         env['INSTALL_DIR'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         print ' '.join(cmd_args)
@@ -453,7 +454,7 @@ class Builder(object):
         """
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
-             # Remove the build directory - clean
+            # Remove the build directory - clean
             shutil.rmtree(self._build_dir)
         if not os.path.exists(self._build_dir):
             # Create the build directory if doesn't exist
@@ -483,7 +484,7 @@ class Builder(object):
             # Run unit tests for C++ code
             if self._run_tests:
                 os.chdir(self._install_dir)
-                self.run_cmd(['ppp_test', '--gtest_output=xml:tests.xml'])
+                self.run_cmd(['./ppp_test', '--gtest_output=xml:tests.xml'])
             os.chdir(self._root_dir)
 
             if USE_NODEJS_SERVER:
@@ -515,7 +516,6 @@ class Builder(object):
         shell_script = \
         """
         npm install
-        npm install -g @angular/cli
         ng test --browser PhantomJS --single-run
         """
         commands = shell_script.splitlines()
@@ -537,6 +537,10 @@ class Builder(object):
         # Install NPM tools (not needed if using .NET core)
         if USE_NODEJS_SERVER and not which('node-gyp'):
             self.run_cmd(['npm', 'install', 'node-gyp', '-g'])
+
+        # Install the angular cli
+        if not which('ng'):
+            self.run_cmd(['npm', 'install', '@angular/cli', '-g'])
 
         if IS_WINDOWS:
             self.detect_vs_version()

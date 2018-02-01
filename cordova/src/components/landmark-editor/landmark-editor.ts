@@ -10,14 +10,14 @@ import { Point, CrownChinPointPair } from '../../model/interfaces'
 })
 export class LandmarkEditorComponent implements OnInit {
 
-  private _imageWidth: number;
-  private _imageHeight: number;
-  private _viewPortWidth: number;
-  private _viewPortHeight: number;
+  private _imageWidth: number = 0;
+  private _imageHeight: number = 0;
+  private _viewPortWidth: number = 0;
+  private _viewPortHeight: number = 0;
 
-  private _xleft: number; // Offset in screen pixels
-  private _ytop: number;
-  private _ratio: number;   // Ratio between image pixels and screen pixels
+  private _xleft: number = 0; // Offset in screen pixels
+  private _ytop: number = 0;
+  private _ratio: number = 1;   // Ratio between image pixels and screen pixels
 
   private _imgElmt: any;
   private _containerElmt: any;
@@ -104,6 +104,9 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   zoomFit(): void {
+    if (this._imageWidth <= 0 || this._imageHeight <= 0) {
+      return;
+    }
     let xratio = this._viewPortWidth / this._imageWidth;
     let yratio = this._viewPortHeight / this._imageHeight;
     this._ratio = xratio < yratio ? xratio : yratio;
@@ -111,6 +114,10 @@ export class LandmarkEditorComponent implements OnInit {
     this._ytop = this._viewPortHeight / 2 - this._ratio * this._imageHeight / 2;
   };
   calculateViewPort(): void {
+    if (!this._containerElmt) {
+      return;
+    }
+
     this._viewPortWidth = this._containerElmt.clientWidth;
     this._viewPortHeight = this._containerElmt.clientHeight;
   };
@@ -125,6 +132,9 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   renderImage(): void {
+    if (this._imageWidth <= 0 || this._imageHeight <= 0) {
+      return;
+    }
     let xw = this._imageWidth * this._ratio;
     let yh = this._imageHeight * this._ratio;
     this._imgElmt.width = xw;

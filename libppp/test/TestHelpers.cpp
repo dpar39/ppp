@@ -37,15 +37,12 @@ std::string resolvePath(const std::string& relPath)
 
 std::string pathCombine(const std::string& prefix, const std::string& suffix)
 {
-    namespace fs = std::tr2::sys;
     return (fs::path(prefix) / fs::path(suffix)).string();
 }
 
 void getImageFiles(const std::string& testImagesDir, std::vector<std::string>& imageFilenames)
 {
     std::vector<std::string> supportedImageExtensions = {".jpg", /*".png",*/ ".bmp"};
-
-    namespace fs = std::tr2::sys;
     fs::directory_iterator endIter;
     if (fs::exists(fs::path(testImagesDir)) && fs::is_directory(fs::path(testImagesDir)))
     {
@@ -295,9 +292,9 @@ TEST(Research, ModelCoefficientsCalculation)
     importLandMarks(annCsvFile, landMarksMap);
 
     std::vector<LandMarks> annotations;
-    std::transform(landMarksMap.begin(), landMarksMap.end(), std::back_inserter(annotations), [](const auto &kv)
+    for (const auto &kv : landMarksMap)
     {
-        return kv.second;
-    });
+        annotations.push_back(kv.second);
+    }
     adjustCrownChinCoeffs(annotations);
 }

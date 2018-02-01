@@ -15,7 +15,7 @@ find_package(OpenCV REQUIRED)
 
 # Boost library for non C++17 compiler
 if (UNIX)
-    find_package(Boost REQUIRED COMPONENTS Filesystem)
+    find_package(Boost REQUIRED COMPONENTS filesystem)
 endif()
 
 if (WIN32 AND (${BUILD_TYPE} MATCHES "debug"))
