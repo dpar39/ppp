@@ -90,7 +90,8 @@ class Builder(object):
         cmd_all = cmd_all + cmd_args
         if cmd_print:
             print ' '.join(cmd_args)
-        process = subprocess.Popen(cmd_all, env=env)
+
+        process = subprocess.Popen(cmd_all, env=env, stderr=subprocess.STDOUT)
         process.wait()
         if process.returncode != 0:
             print 'Command "%s" exited with code %d' % (' '.join(cmd_args), process.returncode)
@@ -519,15 +520,8 @@ class Builder(object):
         Builds and test the web application by running shell commands
         """
         os.chdir(self.web_app_dir())
-        shell_script = \
-        """
-        npm install
-        ng test --browser PhantomJS --single-run
-        """
-        commands = shell_script.splitlines()
-        for cmd in commands:
-            if cmd:
-                self.run_cmd(cmd.split())
+        self.run_cmd(['npm', 'install'])
+        self.run_cmd(['ng', 'test', '--browser', 'PhantomJS', '--single-run'])
         os.chdir(self._root_dir)
 #
     def deploy_to_azure(self):

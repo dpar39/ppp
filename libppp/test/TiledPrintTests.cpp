@@ -22,9 +22,8 @@ void verifyEqualImage(const std::string &expectedImageFilePath, const cv::Mat &a
 {
     auto expectedImage = cv::imread(expectedImageFilePath);
     auto numDisctintPixels = cv::countNonZero(cv::sum(cv::abs(expectedImage - actualImage)));
-    EXPECT_EQ(numDisctintPixels, 0) << "Actual image differs to image in file " << expectedImageFilePath;
+    EXPECT_LE(numDisctintPixels, 3) << "Actual image differs to image in file " << expectedImageFilePath;
 }
-
 
 TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 {
@@ -39,7 +38,7 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 
     // Crop the photo to the right dimensions
     auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
-    
+
     auto expectedCropPath = pathCombine(resolvePath("libppp/test/data"), "000-cropped.png");
 #if MANUAL_CHECK  // Set to 1 for manual check
     cv::imwrite(expectedCropPath, croppedImage);
