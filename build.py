@@ -427,18 +427,20 @@ class Builder(object):
         These images were requested at http://www.scface.org/ and are copyrighted,
         so please do not share them without obatining written consent
         """
+        research_dir = os.path.join(self._root_dir, 'research')
+
         def extract(research_dir, zip_file):
             """
             Extracts file from zip archive
             """
             print 'Extracting "%s", please wait ...' % (os.path.basename(zip_file))
-            zip_file = os.path.join(research_dir, zip_file)
-            zip_handle = zipfile.ZipFile(zip_file)
-            for item in zip_handle.namelist():
-                zip_handle.extract(item, research_dir, pwd='mugshot_frontal_original_all.zip')
-            zip_handle.close()
-
-        research_dir = os.path.join(self._root_dir, 'research')
+            os.chdir(research_dir)
+            if IS_WINDOWS:
+                self.run_cmd(['7za.exe', 'x', zip_file, '*',
+                    '-pmugshot_frontal_original_all.zip', '-y' ])
+            else:
+                self.run_cmd(['unzip', '-P',
+                    'mugshot_frontal_original_all.zip', zip_file])
         data_dir = os.path.join(research_dir, 'mugshot_frontal_original_all')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
@@ -446,16 +448,9 @@ class Builder(object):
             return # Nothing to do, data already been extracted
 
         print 'Extracting validation data ...'
-        threads = [
-            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset0.zip'))),
-            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset1.zip'))),
-            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset2.zip'))),
-            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset3.zip')))
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        extract(research_dir, 'mugshot_frontal_original_all_1.zip')
+        extract(research_dir, 'mugshot_frontal_original_all_2.zip')
+        extract(research_dir, 'mugshot_frontal_original_all_3.zip')
         print 'Extracting validation data completed!'
 #
     def build_cpp_code(self):
