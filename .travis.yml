@@ -3,14 +3,14 @@ node_js:
 - 6.10.2
 dist: trusty
 sudo: required
-#addons:
-#  apt:
-#    sources:
-#    - ubuntu-toolchain-r-test
-#    packages:
-#    - gcc-5
-#    - g++-5
-#env: CXX=g++-5 CC=gcc-5
+addons:
+ apt:
+   sources:
+   - ubuntu-toolchain-r-test
+   packages:
+   - gcc-5
+   - g++-5
+env: CXX=g++-5 CC=gcc-5
 before_script:
 - chmod +x ./build.*
 script:
