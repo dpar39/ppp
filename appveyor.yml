@@ -20,10 +20,10 @@ platform:
   - x86
 
 build_script:
-  - python build.py --build_config=release
+  - python build.py --build_config=release  --arch_name=%PLATFORM%
 
 test_script:
-  - cmd: install_release_%PLATFORM%\ppp_test.exe --gtest_output=xml:tests.xml --arch_name=%PLATFORM%
+  - cmd: install_release_%PLATFORM%\ppp_test.exe --gtest_output=xml:tests.xml
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
