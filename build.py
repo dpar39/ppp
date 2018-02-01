@@ -89,12 +89,12 @@ class Builder(object):
         env['INSTALL_DIR'] = self._install_dir
         cmd_all = cmd_all + cmd_args
         if cmd_print:
-            print ' '.join(cmd_args)
+            print(' '.join(cmd_args))
 
         process = subprocess.Popen(cmd_all, env=env, stderr=subprocess.STDOUT)
         process.wait()
         if process.returncode != 0:
-            print 'Command "%s" exited with code %d' % (' '.join(cmd_args), process.returncode)
+            print('Command "%s" exited with code %d' % (' '.join(cmd_args), process.returncode))
             os.chdir(self._root_dir)
             sys.exit(process.returncode)
 #
@@ -172,7 +172,7 @@ class Builder(object):
         node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
 
         if not os.path.exists(node_exe_path):
-            print 'Building Node JS from sources ... please wait ...'
+            print('Building Node JS from sources ... please wait ...')
             os.chdir(node_extract_dir)
             build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
             if "64" in self._arch_name:
@@ -322,7 +322,7 @@ class Builder(object):
         """
         lib_filepath = self.get_filename_from_url(url)
         if not os.path.exists(lib_filepath):
-            print 'Downloading ' + url + ' to "' + lib_filepath + '" please wait ...'
+            print('Downloading %s to "%s" please wait ...' %(url, lib_filepath))
             import urllib2
             lib_file = urllib2.urlopen(url)
             with open(lib_filepath, 'wb') as output:
@@ -333,7 +333,7 @@ class Builder(object):
         """
         Extracts a third party lib package source file into a directory
         """
-        print 'Extracting third party library "' + lib_src_pkg + '" please wait ...'
+        print('Extracting third party library "%s" please wait ...' % lib_src_pkg)
         if 'zip' in lib_src_pkg:
             zip_handle = zipfile.ZipFile(lib_src_pkg)
             for item in zip_handle.namelist():
@@ -435,7 +435,7 @@ class Builder(object):
             """
             Extracts file from zip archive
             """
-            print 'Extracting "%s", please wait ...' % (os.path.basename(zip_file))
+            print('Extracting "%s", please wait ...' % (os.path.basename(zip_file)))
             os.chdir(research_dir)
             if IS_WINDOWS:
                 self.run_cmd(['7za.exe', 'x', zip_file, '*',
@@ -449,11 +449,11 @@ class Builder(object):
         if os.path.exists(os.path.join(data_dir, '130_frontal.jpg')):
             return # Nothing to do, data already been extracted
 
-        print 'Extracting validation data ...'
+        print('Extracting validation data ...')
         extract(research_dir, 'mugshot_frontal_original_all_1.zip')
         extract(research_dir, 'mugshot_frontal_original_all_2.zip')
         extract(research_dir, 'mugshot_frontal_original_all_3.zip')
-        print 'Extracting validation data completed!'
+        print('Extracting validation data completed!')
 #
     def build_cpp_code(self):
         """
@@ -484,14 +484,16 @@ class Builder(object):
         else:
             # Building the project code from the command line
             self.run_cmake(cmake_generator, '..')
-            self.run_cmd(make_cmd)
             # Copy binaries to the local install directory
             if self._run_install:
                 self.run_cmd(make_cmd + ['install'])
+            else:
+                self.run_cmd(make_cmd)
             # Run unit tests for C++ code
             if self._run_tests:
                 os.chdir(self._install_dir)
-                self.run_cmd(['./ppp_test', '--gtest_output=xml:tests.xml'])
+                test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
+                self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
             os.chdir(self._root_dir)
 
             if USE_NODEJS_SERVER:
@@ -557,7 +559,7 @@ class Builder(object):
         self.build_opencv()
 
         if self._gen_vs_sln and USE_NODEJS_SERVER:
-            # Build Node JS from source so the addon can be build reliably for Windows
+            # Build Node JS from source so the addon can be debugged in Windows
             self.build_nodejs()
 
         # Build this project
