@@ -72,7 +72,7 @@ class Builder(object):
                     self._vc_cmake_gen += ' Win64'
                 break
 #
-    def run_cmd(self, cmd_args):
+    def run_cmd(self, cmd_args, cmd_print=True):
         """
         Runs a shell command
         """
@@ -88,7 +88,8 @@ class Builder(object):
             env['LD_LIBRARY_PATH'] = self._install_dir
         env['INSTALL_DIR'] = self._install_dir
         cmd_all = cmd_all + cmd_args
-        print ' '.join(cmd_args)
+        if cmd_print:
+            print ' '.join(cmd_args)
         process = subprocess.Popen(cmd_all, env=env)
         process.wait()
         if process.returncode != 0:
@@ -437,10 +438,10 @@ class Builder(object):
             os.chdir(research_dir)
             if IS_WINDOWS:
                 self.run_cmd(['7za.exe', 'x', zip_file, '*',
-                    '-pmugshot_frontal_original_all.zip', '-y' ])
+                    '-pmugshot_frontal_original_all.zip', '-y' ], False)
             else:
                 self.run_cmd(['unzip', '-P', '-qq', '-o'
-                    'mugshot_frontal_original_all.zip', zip_file])
+                    'mugshot_frontal_original_all.zip', zip_file], False)
         data_dir = os.path.join(research_dir, 'mugshot_frontal_original_all')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
