@@ -1,5 +1,7 @@
-
 image: Visual Studio 2015
+
+environment:
+  nodejs_version: "6"
 
 version: 1.0.{build}
 
@@ -11,12 +13,13 @@ max_jobs: 1
 
 install:
   - npm install -g node-gyp
+  - npm install -g @angular/cli
 
 platform:
   - x86
 
 build_script:
-  - python build.py --build_config=release  --skip_tests
+  - python build.py --build_config=release
 
 test_script:
   - cmd: install_release_%PLATFORM%\ppp_test.exe --gtest_output=xml:tests.xml
