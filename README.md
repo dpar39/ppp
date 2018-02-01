@@ -1,5 +1,7 @@
 # [PassPort Photo app](https://passport-photo.azurewebsites.net)
-[![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) 
+Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
+
+AppVeyor Build Status: 
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
 
 Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
