@@ -14,9 +14,9 @@ sudo: required
 before_script:
 - chmod +x ./build.*
 script:
-- sudo apt-get install libboost-filesystem-dev
+- sudo apt-get install -qq libboost-filesystem-dev
 - sudo apt-get install -qq cmake
-- npm install -g node-gyp
+- npm install -g node-gyp @angular/cli
 - "./build.linux64.sh"
 notifications:
   email:

@@ -9,6 +9,7 @@ import shutil
 import zipfile
 import tarfile
 import argparse
+import threading
 import subprocess
 import multiprocessing
 
@@ -438,14 +439,23 @@ class Builder(object):
             zip_handle.close()
 
         research_dir = os.path.join(self._root_dir, 'research')
-        if os.path.exists(os.path.join(research_dir, 'mugshot_frontal_original_all/130_frontal.jpg')):
+        data_dir = os.path.join(research_dir, 'mugshot_frontal_original_all')
+        if not os.path.exists(data_dir):
+            os.mkdir(data_dir)
+        if os.path.exists(os.path.join(data_dir, '130_frontal.jpg')):
             return # Nothing to do, data already been extracted
 
         print 'Extracting validation data ...'
-        extract(research_dir, 'annotated_imageset0.zip')
-        extract(research_dir, 'annotated_imageset1.zip')
-        extract(research_dir, 'annotated_imageset2.zip')
-        extract(research_dir, 'annotated_imageset3.zip')
+        threads = [
+            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset0.zip'))),
+            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset1.zip'))),
+            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset2.zip'))),
+            threading.Thread(target=lambda:(extract(research_dir, 'annotated_imageset3.zip')))
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
         print 'Extracting validation data completed!'
 #
     def build_cpp_code(self):
