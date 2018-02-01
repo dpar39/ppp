@@ -440,7 +440,7 @@ class Builder(object):
                 self.run_cmd(['7za.exe', 'x', zip_file, '*',
                     '-pmugshot_frontal_original_all.zip', '-y' ], False)
             else:
-                self.run_cmd(['unzip', '-P', '-qq', '-o'
+                self.run_cmd(['unzip', '-qq', '-o', '-P',
                     'mugshot_frontal_original_all.zip', zip_file], False)
         data_dir = os.path.join(research_dir, 'mugshot_frontal_original_all')
         if not os.path.exists(data_dir):
