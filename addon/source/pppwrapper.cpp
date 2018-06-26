@@ -135,7 +135,6 @@ void PppWrapper::SetImage(const FunctionCallbackInfo<Value>& args)
     auto pppWrapper = ObjectWrap::Unwrap<PppWrapper>(args.This());
     auto imageDataPtr = node::Buffer::Data(args[0]);
     auto imageDataLen = node::Buffer::Length(args[0]);
-;
     Local<Function> callback = Local<Function>::Cast(args[1]);
 
     auto work = new SetImageWorkItem();
@@ -211,8 +210,6 @@ void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     args.GetReturnValue().Set(Undefined(isolate));
 }
-
-
 
 #pragma region Async Workers
 v8::Local<v8::Primitive> GetWorkItemError(WorkItemBase * work)

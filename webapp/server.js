@@ -162,7 +162,7 @@ app.get(api_prefix + '/photoprint', function (req, res) {
             chinPoint : parsePoint(chinPoint),
             canvas : parseCanvas(canvas),
             standard : parsePassportStandard(standard)
-        }
+        };
         console.log(printDef);
     } catch (e) {
         console.log(e);

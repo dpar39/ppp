@@ -20,7 +20,7 @@ export class AppComponent {
     imageKey: string;
     imageSrc = '#';
     outImgSrc: any = '#';
-    
+
     // Model data
     crownChinPointPair: CrownChinPointPair;
     passportStandard: PassportStandard = {
@@ -71,8 +71,7 @@ export class AppComponent {
             const landmarks: LandMarks = data.json();
             if (landmarks.errorMsg) {
                 console.log(landmarks.errorMsg);
-            }
-            else {
+            } else {
                 if (landmarks.crownPoint && landmarks.chinPoint) {
                     console.log('Landmarks calculated.');
                     this.crownChinPointPair = landmarks;
@@ -88,9 +87,9 @@ export class AppComponent {
 
     createPrint() {
         console.log('Creating print output');
-        let req = new TiledPhotoRequest(this.imageKey,this.passportStandard, 
-            this.canvas, this.crownChinPointPair )
-        this.beService.getTiledPrint(req).then(outputDataUrl =>{
+        const req = new TiledPhotoRequest(this.imageKey, this.passportStandard,
+            this.canvas, this.crownChinPointPair);
+        this.beService.getTiledPrint(req).then(outputDataUrl => {
             this.outImgSrc = outputDataUrl;
         });
     }
