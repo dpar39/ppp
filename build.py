@@ -417,7 +417,11 @@ class Builder(object):
         addon_dir = os.path.join(self._root_dir, 'addon')
         os.chdir(addon_dir)
         arch = '--arch=%s' % ('x64' if self._arch_name == 'x64' else 'ia32')
-        self.run_cmd(['node-gyp', 'clean', 'configure', 'build', arch])
+
+        node_gyp_cmd =['node-gyp', 'clean', 'configure', 'build', arch]
+        if IS_WINDOWS:
+            node_gyp_cmd.append('--msvs_version=2015')
+        self.run_cmd(node_gyp_cmd)
         os.chdir(self._root_dir)
         # Copy build output to install directory
         shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
