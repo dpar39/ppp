@@ -46,7 +46,7 @@ var uploadImageDirectory = path.join(__dirname, '/uploads');
 
 // App entry point
 app.get('/', function (req, res) {
-    res.sendfile('dist/index.html', { root: __dirname })
+    res.sendfile('index.html', { root: __dirname })
 });
 
 // -- Upload input image
@@ -186,7 +186,6 @@ if (!fs.existsSync(uploadImageDirectory)) {
 
 // start server on the specified port and binding host
 var port = process.env.PORT || 4000;
-port = 4000;
 app.listen(port, function () {
     console.log("Server listening on port " + port);
 });
