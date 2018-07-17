@@ -5,22 +5,28 @@
   </h1>
 </mat-card>
 
-<app-landmark-editor [inputPhoto]='imageSrc'
-  [crownChinPointPair]='crownChinPointPair'
-  (edited)='onLandmarksEdited'>
-</app-landmark-editor>
+<div layout="row" layout-xs="column">
 
-<div>
-  <button mat-button color="primary" (click)='el.nativeElement.querySelector("#selectImage").click();'>Choose photo</button>
-  <button mat-button color="primary" (click)='createPrint()'>Create Print</button>
-  <form>
-    <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
-  </form>
+  <div flex>
+    <app-landmark-editor [inputPhoto]='imageSrc' [crownChinPointPair]='crownChinPointPair' (edited)='onLandmarksEdited'>
+    </app-landmark-editor>
+  </div>
+
+  <div flex>
+    <button mat-button color="primary" (click)='el.nativeElement.querySelector("#selectImage").click();'>Choose photo</button>
+    <button mat-button color="primary" (click)='createPrint()'>Create Print</button>
+    <form>
+      <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
+    </form>
+  </div>
+
+  <div flex>
+    <app-passport-standard-selector class='row'>
+    </app-passport-standard-selector>
+  </div>
 </div>
-
-<app-passport-standard-selector class='row'>
-</app-passport-standard-selector>
-
 <div>
-  <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' (click)="saveOutput()">
+  <a *ngIf='outImgSrc!="#"' [href]='outImgSrc' download="print.png">
+    <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' class='fit' (click)="saveOutput()">
+  </a>
 </div>
