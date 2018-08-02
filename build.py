@@ -527,7 +527,7 @@ class Builder(object):
         """
         os.chdir(self.web_app_dir())
         self.run_cmd(['npm', 'install'])
-        self.run_cmd(['ng', 'test', '--browser', 'PhantomJS', '--single-run'])
+        self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
         os.chdir(self._root_dir)
 #
     def deploy_to_azure(self):
