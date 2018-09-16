@@ -38,10 +38,10 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::vector<byte> Utilities::base64Decode(const char *base64Str, size_t base64Len)
+std::vector<BYTE> Utilities::base64Decode(const char *base64Str, size_t base64Len)
 {
-    uint8_t charBlock4[4], byteBlock3[3];
-    std::vector<byte> result;
+    BYTE charBlock4[4], byteBlock3[3];
+    std::vector<BYTE> result;
     result.reserve(base64Len * 3 / 4);
     auto i = 0;
     for (size_t k = 0; k < base64Len; ++k)
@@ -81,7 +81,7 @@ std::vector<byte> Utilities::base64Decode(const char *base64Str, size_t base64Le
 
 
 
-std::string Utilities::base64Encode(const std::vector<byte>& rawStr)
+std::string Utilities::base64Encode(const std::vector<BYTE>& rawStr)
 {
     static const std::string Base64CharSet =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -225,7 +225,7 @@ class Builder(object):
                 return
         else:
             lib_files = glob.glob(self._third_party_install_dir + '/lib/libopencv_*.a')
-            if len(lib_files) == len(ocv_build_modules):
+            if len(lib_files) >= len(ocv_build_modules):
                 return
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
@@ -515,7 +515,7 @@ class Builder(object):
         """
         Deploys the addon to the webapp directory as well as the shared configuration
         """
-        dist_files = ['addon.node', 'config.json', 'sp_model.dat', 'liblibppp.so', 'libppp.dll']
+        dist_files = ['addon.node', 'config.json', 'sp_model.dat', 'liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
         for dist_file in dist_files:
             dist_file_path = os.path.join(self._install_dir, dist_file)
             if os.path.exists(dist_file_path):

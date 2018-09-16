@@ -31,9 +31,9 @@ public:
     /*!@brief Calculates CRC value for a buffer of specified length !*/
     static uint32_t crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end);
 
-    static std::vector<byte> base64Decode(const char *base64Str, size_t base64Len);
+    static std::vector<BYTE> base64Decode(const char *base64Str, size_t base64Len);
 
-    static std::string base64Encode(const std::vector<byte>& rawStr);
+    static std::string base64Encode(const std::vector<BYTE>& rawStr);
 
 
     /*!@brief Convert a distance to millimeters

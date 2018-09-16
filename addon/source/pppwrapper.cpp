@@ -211,7 +211,7 @@ void PppWrapper::CreateTiledPrint(const v8::FunctionCallbackInfo<v8::Value>& arg
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-#pragma region Async Workers
+//#pragma region Async Workers
 v8::Local<v8::Primitive> GetWorkItemError(WorkItemBase * work)
 {
     auto isolate = Isolate::GetCurrent();
@@ -327,9 +327,9 @@ void PppWrapper::CreateTilePrintWorkAsyncComplete(uv_work_t* req, int status)
     work->callback.Reset();
     delete work;
 }
-#pragma endregion
+//#pragma endregion
 
-#pragma region ScopeLogger
+//#pragma region ScopeLogger
 
 int ScopeLogger::s_indent = 0;
 
@@ -343,4 +343,4 @@ ScopeLogger::~ScopeLogger()
     std::cout << std::string(--s_indent, ' ') << "Exit:  " << m_message << std::endl;
 }
 
-#pragma endregion
+//#pragma endregion

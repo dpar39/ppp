@@ -14,7 +14,7 @@
 #include <vector>
 #include <string>
 
-typedef unsigned char byte;
+using BYTE = uint8_t;
 class PppEngine;
 
 /*!@brief Wrapper class for this lib.
@@ -74,7 +74,7 @@ private:
     PppEngine* m_pPppEngine;
 
 private:
-    static void setPngResolutionDpi(std::vector<byte>& imageStream, double resolution_ppmm);
+    static void setPngResolutionDpi(std::vector<BYTE>& imageStream, double resolution_ppmm);
 };
 
 extern "C"

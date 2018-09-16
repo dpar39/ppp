@@ -2,6 +2,7 @@
 #include "PppEngine.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
+#include "CommonHelpers.h"
 #include "CanvasDefinition.h"
 #include "Utilities.h"
 
@@ -75,7 +76,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const 
 
     auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
-    std::vector<byte> pictureData;
+    std::vector<BYTE> pictureData;
     cv::imencode(".png", result, pictureData);
 
     // Add image resolution to output
@@ -89,11 +90,11 @@ std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const 
 }
 
 template <typename T>
-std::vector<byte> toBytes(const T& x)
+std::vector<BYTE> toBytes(const T& x)
 {
-    vector<byte> v(static_cast<const byte*>(static_cast<const void*>(&x)),
-        static_cast<const byte*>(static_cast<const void*>(&x)) + sizeof(x));
-    reverse(v.begin(), v.end());
+    vector<BYTE> v(static_cast<const BYTE*>(static_cast<const void*>(&x)),
+        static_cast<const BYTE*>(static_cast<const void*>(&x)) + sizeof(x));
+    reverse(v.begin(), v.end()); // Little endian notation
     return v;
 }
 
@@ -106,7 +107,7 @@ The following values are defined for the unit specifier:
     1: unit is the meter
 pHYs has to go before IDAT chunk
 */
-void PublicPppEngine::setPngResolutionDpi(std::vector<byte> &imageStream, double resolution_ppmm)
+void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> &imageStream, double resolution_ppmm)
 {
     auto chunkLenBytes = toBytes(9);
     auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
