@@ -17,6 +17,19 @@
             "url": "http://localhost:4000/",
             "sourceMaps": true,
             "webRoot": "${workspaceRoot}"
-        }
+        },
+        {
+            "name": "ng serve",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:4200/#",
+            "webRoot": "${workspaceFolder}",
+            "sourceMapPathOverrides": {
+              "webpack:/./*": "${webRoot}/*",
+              "webpack:/src/*": "${webRoot}/src/*",
+              "webpack:/*": "*",
+              "webpack:/./~/*": "${webRoot}/node_modules/*"
+            }
+          },
     ]
 }
