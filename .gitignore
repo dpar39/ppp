@@ -12,6 +12,7 @@
 /webapp/config.json
 /webapp/libppp.dll
 /webapp/liblibppp.so
+/webapp/liblibppp.dylib
 /webapp/cascade.xml
 /webapp/node.exe
 /webapp/sp_model.dat

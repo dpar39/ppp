@@ -29,8 +29,7 @@ namespace cv
     class CascadeClassifier;
 }
 
-typedef unsigned char byte;
-
+using  BYTE = uint8_t;
 
 class noncopyable
 {

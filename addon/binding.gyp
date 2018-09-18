@@ -41,6 +41,19 @@
               "-fPIC",
               "-Wno-unknown-pragmas"
             ]
+          },
+          "OS=='mac'",
+          {
+            "libraries": [
+              "-L$(INSTALL_DIR)",
+              "-llibppp"
+            ],
+            "ldflags": [
+              "-Wl,-rpath,'$$ORIGIN'"
+            ],
+              'xcode_settings': {
+              'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+            }
           }
         ]
       ]
