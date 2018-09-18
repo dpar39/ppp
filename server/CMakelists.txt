@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 2.8.0)
+
+set(MODULE_NAME server)
+project(${MODULE_NAME} CXX)
+set(LIB_NAME lib${MODULE_NAME})
+set(TEST_NAME ${MODULE_NAME}_test)
+
+message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
+
+
+#----------------------------
+# Third party dependencies
+#----------------------------
+
+# Boost Library
+if (MSVC)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_USE_STATIC_RUNTIME ON)
+    set(Boost_MULTITHREADED ON)
+    find_package(Boost COMPONENTS system date_time filesystem regex REQUIRED )
+else()
+    find_package(Boost COMPONENTS system thread REQUIRED )
+endif()
+
+
+file(GLOB LIB_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+set(MODULE_INC_DIRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    ${Boost_INCLUDE_DIRS}
+)
+
+set(MODULE_LIB_DEPS
+    libppp
+    ${OpenCV_LIBS}
+    ${Boost_LIBRARIES}
+    ${OPENCV_3RDPARTY_LIBS}
+)
+
+add_executable(${MODULE_NAME} ${LIB_SRC_FILES})
+link_directories(${MODULE_LIB_DIRS})
+target_include_directories(${MODULE_NAME} PUBLIC ${MODULE_INC_DIRS})
+target_link_libraries(${MODULE_NAME} ${MODULE_LIB_DEPS})
+
+install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})

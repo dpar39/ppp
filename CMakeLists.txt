@@ -16,9 +16,11 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty" CACHE INTERNAL "" FORCE)
 set(THIRD_PARTY_DIR_INSTALL "${THIRD_PARTY_DIR}/install_${BUILD_TYPE}_${ARCH_NAME}")
 
-set(OPENCV_DIR ${THIRD_PARTY_DIR_INSTALL} CACHE INTERNAL "" FORCE)
-set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0" CACHE INTERNAL "" FORCE)
-set(DLIB_ROOT  "${THIRD_PARTY_DIR}/dlib-19.6" CACHE INTERNAL "" FORCE)
+set(OPENCV_DIR  ${THIRD_PARTY_DIR_INSTALL}       CACHE INTERNAL "" FORCE)
+set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0"  CACHE INTERNAL "" FORCE)
+set(DLIB_ROOT  "${THIRD_PARTY_DIR}/dlib-19.6"    CACHE INTERNAL "" FORCE)
+set(BOOST_ROOT "C:/local/boost_1_68_0" CACHE INTERNAL "" FORCE)
+set(BOOST_LIBRARYDIR "C:/local/boost_1_68_0/lib64-msvc-14.0"   CACHE INTERNAL "" FORCE)
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${THIRD_PARTY_DIR_INSTALL}" CACHE INTERNAL "" FORCE)
 
@@ -51,8 +53,13 @@ add_subdirectory(${GMOCK_ROOT})
 include_directories(libppp/include)
 add_subdirectory(libppp)
 
+# Add the webapp app
+include_directories(server/include)
+add_subdirectory(server)
+
+
 # Add the C++ wrapper for node.js
-if (MSVC AND (${BUILD_TYPE} MATCHES "debug"))
-    include_directories(addon/include)
-    add_subdirectory(addon)
-endif()
+# if (MSVC AND (${BUILD_TYPE} MATCHES "debug"))
+#     include_directories(addon/include)
+#     add_subdirectory(addon)
+# endif()
