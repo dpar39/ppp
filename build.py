@@ -1,5 +1,5 @@
 ﻿"""
-build.py
+build.py (python 3)
 """
 import os
 import re
@@ -12,11 +12,13 @@ import argparse
 import threading
 import subprocess
 import multiprocessing
+from urllib.request import urlopen
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
+#OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
 USE_NODEJS_SERVER = True
@@ -61,13 +63,12 @@ class Builder(object):
         """
         Detects the first available version of Visual Studio
         """
-        vc_releases = [('14', '2015'), ('12', '2013'), ('11', '2012'), ('10', '2010')]
-        for (vc_version, vc_release) in vc_releases:
-            vcvarsbat = "C:\\Program Files (x86)\\Microsoft Visual Studio %s.0\\VC\\vcvarsall.bat" \
-                % vc_version
+        vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
+        for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
                 self._vcvarsbat = vcvarsbat
-                self._vc_cmake_gen = 'Visual Studio ' + vc_version + ' ' + vc_release
+                self._vc_cmake_gen = vsgenerator
                 if "64" in self._arch_name:
                     self._vc_cmake_gen += ' Win64'
                 break
@@ -323,8 +324,7 @@ class Builder(object):
         lib_filepath = self.get_filename_from_url(url)
         if not os.path.exists(lib_filepath):
             print('Downloading %s to "%s" please wait ...' %(url, lib_filepath))
-            import urllib2
-            lib_file = urllib2.urlopen(url)
+            lib_file = urlopen(url)
             with open(lib_filepath, 'wb') as output:
                 output.write(lib_file.read())
         return lib_filepath
