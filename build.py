@@ -1,5 +1,6 @@
-﻿"""
-build.py (python 3)
+﻿#! /usr/bin/env python
+"""
+build.py
 """
 import os
 import re
@@ -12,13 +13,17 @@ import argparse
 import threading
 import subprocess
 import multiprocessing
-from urllib.request import urlopen
+
+try: # For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:   # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
-#OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
+#OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 # b2 --with-system --with-regex --with-thread toolset=msvc-14.0 --build-type=complete address-model=64 link=static stage
 
