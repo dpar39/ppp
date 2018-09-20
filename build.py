@@ -7,6 +7,7 @@ import re
 import sys
 import glob
 import shutil
+import psutil
 import zipfile
 import tarfile
 import argparse
@@ -143,13 +144,8 @@ class Builder(object):
         with open(solution_file, "w") as file_handle:
             file_handle.writelines(["%s\n" % item  for item in prj_lines])
 
-        sdf_file = os.path.join(self._build_dir, 'PassportPhoto.sdf')
-        if os.path.exists(sdf_file):
-            try:
-                os.rename(sdf_file, sdf_file) #can't rename an open file so an error will be thrown
-            except:
-                return # Do not launch visual studio as it is already opened
-        self.run_cmd(['call', 'devenv', solution_file])
+        if not "devenv" in (p.name() for p in psutil.process_iter()):
+            self.run_cmd(['call', 'devenv', solution_file])
 #
     def add_prj_to_vs_sln(self, prj_path):
         """
@@ -504,17 +500,6 @@ class Builder(object):
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
-            os.chdir(self._root_dir)
-
-            if USE_NODEJS_SERVER:
-                # Create Node.js addon with node-gyp
-                self.build_addon_with_nodegyp()
-                # Run addon integration test
-                os.chdir(self._install_dir)
-                self.run_cmd(['node', './test.js'])
-            else:
-                # TODO: we need to test that libppp works with .net core
-                pass
         os.chdir(self._root_dir)
 #
     def deploy_addon(self):
@@ -546,10 +531,6 @@ class Builder(object):
         # Detect OS version
         self.parse_arguments()
 
-        # Install NPM tools (not needed if using .NET core)
-        if USE_NODEJS_SERVER and not which('node-gyp'):
-            self.run_cmd(['npm', 'install', 'node-gyp', '-g'])
-
         # Install the angular cli
         if not which('ng'):
             self.run_cmd(['npm', 'install', '@angular/cli', '-g'])
@@ -568,16 +549,11 @@ class Builder(object):
         self.extract_gmock()
         self.build_opencv()
 
-        if self._gen_vs_sln and USE_NODEJS_SERVER:
-            # Build Node JS from source so the addon can be debugged in Windows
-            self.build_nodejs()
-
         # Build this project
         self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         if not self._gen_vs_sln:
-            self.deploy_addon()
             self.build_webapp()
 
 BUILDER = Builder()

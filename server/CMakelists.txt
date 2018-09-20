@@ -24,6 +24,7 @@ endif()
 
 
 file(GLOB LIB_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 set(MODULE_INC_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     ${Boost_INCLUDE_DIRS}
@@ -36,7 +37,7 @@ set(MODULE_LIB_DEPS
     ${OPENCV_3RDPARTY_LIBS}
 )
 
-add_executable(${MODULE_NAME} ${LIB_SRC_FILES})
+add_executable(${MODULE_NAME} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 link_directories(${MODULE_LIB_DIRS})
 target_include_directories(${MODULE_NAME} PUBLIC ${MODULE_INC_DIRS})
 target_link_libraries(${MODULE_NAME} ${MODULE_LIB_DEPS})
