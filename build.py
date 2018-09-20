@@ -20,6 +20,7 @@ NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
 #OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
+# b2 --with-system --with-regex --with-thread toolset=msvc-14.0 --build-type=complete address-model=64 link=static stage
 
 USE_NODEJS_SERVER = True
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)

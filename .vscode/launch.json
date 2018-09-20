@@ -2,6 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Flask",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "flask",
+            "cwd": "${workspaceFolder}/webapp",
+            "env": {
+                "FLASK_APP": "server.py"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ]
+        },
+        {
             "name": "Python Build Script",
             "type": "python",
             "request": "launch",
