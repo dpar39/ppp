@@ -7,7 +7,7 @@ import re
 import sys
 import glob
 import shutil
-import psutil
+#import psutil
 import zipfile
 import tarfile
 import argparse
@@ -144,8 +144,8 @@ class Builder(object):
         with open(solution_file, "w") as file_handle:
             file_handle.writelines(["%s\n" % item  for item in prj_lines])
 
-        if not "devenv" in (p.name() for p in psutil.process_iter()):
-            self.run_cmd(['call', 'devenv', solution_file])
+        #if not "devenv" in (p.name() for p in psutil.process_iter()):
+        #    self.run_cmd(['call', 'devenv', solution_file])
 #
     def add_prj_to_vs_sln(self, prj_path):
         """

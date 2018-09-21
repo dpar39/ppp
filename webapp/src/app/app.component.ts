@@ -18,7 +18,7 @@ declare var $: any;
 export class AppComponent {
 
     imageKey: string;
-    imageSrc = '#';
+    imageSrc: string | ArrayBuffer = '#';
     outImgSrc: any = '#';
 
     // Model data
@@ -37,7 +37,7 @@ export class AppComponent {
     };
 
     constructor(
-        private el: ElementRef,
+        public el: ElementRef,
         private http: Http,
         private sanitizer: DomSanitizer,
         private beService: BackEndService) {
