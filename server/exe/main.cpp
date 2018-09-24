@@ -1,17 +1,13 @@
 
 //#include "HttpServer.h"
-#include "crow_all.h"
+#include "stdafx.h"
+
+#include "MultiPartFormParser.h"
+#include "libppp.h"
+
 #include <iostream>
+#include <regex>
 
-// int main()
-// {
-//     crow::SimpleApp app;
-
-//     CROW_ROUTE(app, "/")([](){
-//         return "Hello world";
-//     });
-
-//     app.port(18080).multithreaded().run();
 // }
 // int main(int argc, char * argv[])
 //{
@@ -62,7 +58,7 @@ public:
 
     void serveFile(const std::string & url, crow::response & res)
     {
-        const auto fullPath = m_prefix + url;
+        const auto fullPath = m_prefix + "/" + url;
 
         std::ifstream fs(fullPath, std::ifstream::in);
         if (fs)
@@ -74,8 +70,6 @@ public:
             res.end();
             return;
         }
-        res.code = 404;
-        res.end();
     }
 
 private:
@@ -119,30 +113,113 @@ private:
     std::string m_prefix;
 };
 
-int main()
+struct ExampleMiddleware
 {
-    crow::SimpleApp app;
+    std::string message;
 
-    StaticFileServer sfs("./dist/");
+    StaticFileServer sfs;
 
-    CROW_ROUTE(app, "/about")
-    ([]() { return "About Crow example."; });
+    ExampleMiddleware()
+    : sfs("./dist")
+    {
+        message = "foo";
+    }
 
-    // simple json response
-    CROW_ROUTE(app, "/json")
-    ([] {
+    struct context
+    {
+    };
+
+    void before_handle(crow::request & req, crow::response & res, context & /*ctx*/)
+    {
+        CROW_LOG_INFO << ": " << req.url;
+
+        if (req.method == crow::HTTPMethod::GET)
+        {
+            auto url = req.url;
+            if (url == "/")
+            {
+                sfs.serveFile("index.html", res);
+            }
+            else
+            {
+                sfs.serveFile(url, res);
+            }
+        }
+    }
+
+    void after_handle(crow::request & req, crow::response & res, context & /*ctx*/)
+    {
+        // no-op
+    }
+};
+
+int main(int argc, char * argv[])
+{
+    uint16_t serverPort = 4000;
+    auto idx = 0;
+    while (idx < argc)
+    {
+        if (std::strcmp(argv[idx], "-p") == 0 || std::strcmp(argv[idx], "--port") == 0)
+            serverPort = std::atoi(argv[++idx]);
+        idx++;
+    }
+
+    crow::App<ExampleMiddleware> app;
+
+    PublicPppEngine pppEngine;
+
+    std::ifstream configFile("config.json");
+    const auto configStr = std::string(std::istreambuf_iterator<char>(configFile), std::istreambuf_iterator<char>());
+    pppEngine.configure(configStr.c_str());
+
+    CROW_ROUTE(app, "/api/upload").methods("POST"_method)([&pppEngine](const crow::request & req, crow::response & res) {
+        MultiPartFormParser parser;
+        const auto success = parser.parse(req);
         crow::json::wvalue x;
-        x["message"] = "Hello, World!";
-        return x;
-    });
-
-    CROW_ROUTE(app, "/add/<int>/<int>")
-    ([](const crow::request & /*req*/, crow::response & res, int a, int b) {
-        std::ostringstream os;
-        os << a + b;
-        res.write(os.str());
+        if (success)
+        {
+            const auto & body = req.body;
+            auto fileContent = body.c_str() + parser.contentStartOffset();
+            auto fileSize = parser.contentSize();
+            const auto uid = pppEngine.setImage(fileContent, fileSize);
+            crow::json::wvalue x;
+            x["imgKey"] = uid;
+            res.write(crow::json::dump(x));
+            res.end();
+            return;
+        }
+        res.write("Failed to upload image");
+        res.code = 500;
         res.end();
     });
+
+    CROW_ROUTE(app, "/api/landmarks")
+    ([&pppEngine](const crow::request & req, crow::response & res) {
+
+        auto imgKey = req.url_params.get("imgKey");
+
+        // TODO: Check if imgKey exists first
+
+        const auto landmarks = pppEngine.detectLandmarks(imgKey);
+        res.write(landmarks);
+        res.end();
+    });
+
+    //    // simple json response
+    //    CROW_ROUTE(app, "/json")
+    //    ([] {
+    //        crow::json::wvalue x;
+    //        x["message"] = "Hello, World!";
+    //        return x;
+    //    });
+
+    //    CROW_ROUTE(app, "/add/<int>/<int>")
+    //    ([](const crow::request & /*req*/, crow::response & res, int a, int b) {
+    //        std::ostringstream os;
+    //        os << a + b;
+    //        res.write(os.str());
+    //        res.end();
+    //    });
 
     // Compile error with message "Handler type is mismatched with URL paramters"
     // CROW_ROUTE(app,"/another/<int>")
@@ -151,56 +228,37 @@ int main()
     //});
 
     // more json example
-    CROW_ROUTE(app, "/add_json")
-    ([](const crow::request & req) {
-        auto x = crow::json::load(req.body);
-        if (!x)
-            return crow::response(400);
-        int sum = x["a"].i() + x["b"].i();
-        std::ostringstream os;
-        os << sum;
-        return crow::response { os.str() };
-    });
+    //    CROW_ROUTE(app, "/add_json")
+    //    ([](const crow::request & req) {
+    //        auto x = crow::json::load(req.body);
+    //        if (!x)
+    //            return crow::response(400);
+    //        int sum = x["a"].i() + x["b"].i();
+    //        std::ostringstream os;
+    //        os << sum;
+    //        return crow::response { os.str() };
+    //    });
+    //
+    //    CROW_ROUTE(app, "/params")
+    //    ([](const crow::request & req) {
+    //        std::ostringstream os;
+    //        os << "Params: " << req.url_params << "\n\n";
+    //        os << "The key 'foo' was " << (req.url_params.get("foo") == nullptr ? "not " : "") << "found.\n";
+    //        if (req.url_params.get("pew") != nullptr)
+    //        {
+    //            double countD = boost::lexical_cast<double>(req.url_params.get("pew"));
+    //            os << "The value of 'pew' is " << countD << '\n';
+    //        }
+    //        auto count = req.url_params.get_list("count");
+    //        os << "The key 'count' contains " << count.size() << " value(s).\n";
+    //        for (const auto & countVal : count)
+    //        {
+    //            os << " - " << countVal << '\n';
+    //        }
+    //        return crow::response { os.str() };
+    //    });
 
-    CROW_ROUTE(app, "/params")
-    ([](const crow::request & req) {
-        std::ostringstream os;
-        os << "Params: " << req.url_params << "\n\n";
-        os << "The key 'foo' was " << (req.url_params.get("foo") == nullptr ? "not " : "") << "found.\n";
-        if (req.url_params.get("pew") != nullptr)
-        {
-            double countD = boost::lexical_cast<double>(req.url_params.get("pew"));
-            os << "The value of 'pew' is " << countD << '\n';
-        }
-        auto count = req.url_params.get_list("count");
-        os << "The key 'count' contains " << count.size() << " value(s).\n";
-        for (const auto & countVal : count)
-        {
-            os << " - " << countVal << '\n';
-        }
-        return crow::response { os.str() };
-    });
 
-    /* CROW_ROUTE(app, "/")
-     ([&sfs](const crow::request & req, crow::response & res) { sfs.serveFile("index.html", res); });*/
-
-    CROW_ROUTE(app, "/<string>")
-    ([&sfs](const crow::request & req, crow::response & res, const std::string filename) {
-        sfs.serveFile(filename, res);
-    });
-
-    CROW_ROUTE(app, "/")
-    ([&sfs](const crow::request & req, crow::response & res) {
-        int x = 0;
-        auto url = req.url;
-        if (url == "/")
-        {
-            sfs.serveFile("index.html", res);
-            return;
-        }
-        sfs.serveFile(url, res);
-    });
-
-    crow::logger::setLogLevel(crow::LogLevel::Debug);
-    app.port(18080).multithreaded().run();
+    crow::logger::setLogLevel(crow::LogLevel::Info);
+    app.port(serverPort).multithreaded().run();
 }
