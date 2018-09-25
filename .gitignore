@@ -14,7 +14,8 @@
 /webapp/liblibppp.so
 /webapp/liblibppp.dylib
 /webapp/cascade.xml
-/webapp/node.exe
+/webapp/server.exe
+/webapp/s
 /webapp/sp_model.dat
 cascade.xml
 *.ldb
@@ -24,3 +25,6 @@ package-lock.json
 /cmake-build-debug
 .idea/*
 .DS_Store
+/webapp/Debug/*
+/webapp/server.ilk
+/webapp/uploads
