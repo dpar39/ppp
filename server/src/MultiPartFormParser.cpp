@@ -6,7 +6,6 @@
 #include <crow_all.h>
 #include <regex>
 
-
 bool MultiPartFormParser::parse(const crow::request & req)
 {
 
@@ -33,7 +32,7 @@ bool MultiPartFormParser::parse(const crow::request & req)
     const auto endBoundary = std::string("--") + m_boundary + std::string("--");
 
     auto itc = body.begin();
-    auto itcEnd = body.end();
+    const auto itcEnd = body.end();
 
     auto itc2 = std::search(itc, itcEnd, startBoundary.begin(), startBoundary.end());
     if (itc2 == itcEnd)
@@ -55,7 +54,7 @@ bool MultiPartFormParser::parse(const crow::request & req)
         return false;
     }
 
-    const auto name = m[1].str();
+    m_name = m[1].str();
     m_filename = m[2].str();
 
     itc = std::next(itc2, lineBreak.size());
@@ -84,7 +83,6 @@ bool MultiPartFormParser::parse(const crow::request & req)
     }
     itc = std::next(itc2, lineBreak.size());
 
-
     itc2 = std::search(itc, itcEnd, endBoundary.begin(), endBoundary.end());
     if (itc2 == itcEnd)
     {
@@ -92,8 +90,7 @@ bool MultiPartFormParser::parse(const crow::request & req)
     }
 
     m_contentStart = std::distance(body.begin(), itc);
-    m_contentSize =  std::distance(itc, itc2);
-
+    m_contentSize = std::distance(itc, itc2);
 
     return true;
 }
@@ -106,4 +103,14 @@ int MultiPartFormParser::contentStartOffset() const
 int MultiPartFormParser::contentSize() const
 {
     return m_contentSize;
+}
+
+std::string MultiPartFormParser::getContentFilename() const
+{
+    return m_filename;
+}
+
+std::string MultiPartFormParser::getContentName() const
+{
+    return m_name;
 }

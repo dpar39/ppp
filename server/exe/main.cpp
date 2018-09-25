@@ -133,7 +133,7 @@ struct ExampleMiddleware
     {
         CROW_LOG_INFO << ": " << req.url;
 
-        if (req.method == crow::HTTPMethod::GET)
+        if (req.method == crow::HTTPMethod::Get)
         {
             auto url = req.url;
             if (url == "/")
@@ -195,7 +195,6 @@ int main(int argc, char * argv[])
 
     CROW_ROUTE(app, "/api/landmarks")
     ([&pppEngine](const crow::request & req, crow::response & res) {
-
         auto imgKey = req.url_params.get("imgKey");
 
         // TODO: Check if imgKey exists first
@@ -257,7 +256,6 @@ int main(int argc, char * argv[])
     //        }
     //        return crow::response { os.str() };
     //    });
-
 
     crow::logger::setLogLevel(crow::LogLevel::Info);
     app.port(serverPort).multithreaded().run();

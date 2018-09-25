@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <regex>
 #include <string>
 
 namespace crow
@@ -22,6 +23,9 @@ public:
 
     int contentSize() const;
 
+    std::string getContentFilename() const;
+    std::string getContentName() const;
+
 private:
     std::string m_boundary;
 
@@ -32,4 +36,6 @@ private:
     int m_contentStart = 0;
 
     int m_contentSize = 0;
+
+    std::string m_name;
 };

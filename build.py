@@ -23,12 +23,10 @@ except ImportError:   # Fall back to Python 2's urllib2
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
-#OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 # b2 --with-system --with-regex --with-thread toolset=msvc-14.0 --build-type=complete address-model=64 link=static stage
 
-USE_NODEJS_SERVER = True
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
 # All thrid party libs that can be build with CMAKE are unpackaged and built
@@ -63,7 +61,7 @@ class Builder(object):
         """
         Returns the absolute path of the webapp directory (depending on wheter we using NodeJs or .Net Core server)
         """
-        webapp_dir_name = 'webapp' if USE_NODEJS_SERVER else 'webapp2'
+        webapp_dir_name = 'webapp'
         return os.path.join(self._root_dir, webapp_dir_name)
 #
     def detect_vs_version(self):
@@ -159,33 +157,6 @@ class Builder(object):
         """
         return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
 #
-    def build_nodejs(self):
-        """
-        Downloads, extract and builds Node JS from source (Windows ONLY)
-        """
-        # Download Node JS if not done yet
-        node_src_pkg = self.download_third_party_lib(NODEJS_SRC_URL)
-        # Get the file prefix for node js
-        node_extract_dir = self.get_third_party_lib_dir('node')
-        if node_extract_dir is None:
-            # Extract the source files
-            self.extract_third_party_lib(node_src_pkg)
-            node_extract_dir = self.get_third_party_lib_dir('node')
-        # Build Node JS if not done yet
-        node_exe_path = os.path.join(node_extract_dir, self._build_config, 'node.exe')
-
-        if not os.path.exists(node_exe_path):
-            print('Building Node JS from sources ... please wait ...')
-            os.chdir(node_extract_dir)
-            build_cmd = ['vcbuild.bat', 'nosign', self._build_config]
-            if "64" in self._arch_name:
-                build_cmd.append('x64')
-            self.run_cmd(build_cmd)
-            os.chdir(self._root_dir)
-        # Install built node executable into the install dir
-        if self._run_install:
-            shutil.copy(node_exe_path, self._install_dir)
-#
     def extract_gmock(self):
         """
         Extract and build GMock/GTest libraries
@@ -218,7 +189,7 @@ class Builder(object):
             'ml', 'photo', 'video', 'imgcodecs', 'shape', \
             'videoio', 'highgui', 'objdetect', 'superres', \
             'ts', 'features2d', 'calib3d', 'stitching', \
-            'videostab', 'java']
+            'videostab', 'java', 'python2', 'python']
         ocv_build_modules = ['highgui', 'core', 'imgproc',\
             'objdetect', 'imgcodecs', 'ml', 'videoio']
 
@@ -412,23 +383,6 @@ class Builder(object):
         if self._gen_vs_sln:
             self._build_dir = os.path.join(self._root_dir, 'visualstudio')
 #
-    def build_addon_with_nodegyp(self):
-        """
-        Builds the Node JS addon using node-gyp
-        """
-        addon_dir = os.path.join(self._root_dir, 'addon')
-        os.chdir(addon_dir)
-        arch = '--arch=%s' % ('x64' if self._arch_name == 'x64' else 'ia32')
-
-        node_gyp_cmd =['node-gyp', 'clean', 'configure', 'build', arch]
-        if IS_WINDOWS:
-            node_gyp_cmd.append('--msvs_version=2015')
-        self.run_cmd(node_gyp_cmd)
-        os.chdir(self._root_dir)
-        # Copy build output to install directory
-        shutil.copy(os.path.join(addon_dir, "build", "Release", "addon.node"), self._install_dir)
-        shutil.copy(os.path.join(addon_dir, "test.js"), self._install_dir)
-#
     def extract_validation_data(self):
         """
         Extracts validation imageset with annotations from a password protected zip file
@@ -501,7 +455,7 @@ class Builder(object):
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
         os.chdir(self._root_dir)
-#
+##
     def deploy_addon(self):
         """
         Deploys the addon to the webapp directory as well as the shared configuration
@@ -519,9 +473,10 @@ class Builder(object):
         os.chdir(self.web_app_dir())
         self.run_cmd(['npm', 'install'])
         self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
+        self.run_cmd(['ng', 'build'])
         os.chdir(self._root_dir)
 #
-    def deploy_to_azure(self):
+    def deploy_to_heroku(self):
         """
         Deploys the webserver to azure
         """
