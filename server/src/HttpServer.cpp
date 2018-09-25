@@ -1,15 +1,5 @@
 // #include "crow_all.h"
 
-// int main()
-// {
-//     crow::SimpleApp app;
-
-//     CROW_ROUTE(app, "/")([](){
-//         return "Hello world";
-//     });
-
-//     app.port(18080).multithreaded().run();
-// }
 #include "HttpServer.h"
 #include "fields_alloc.hpp"
 
@@ -30,7 +20,7 @@ boost::beast::string_view mime_type(boost::beast::string_view path)
     auto const ext = [&path] {
         auto const pos = path.rfind(".");
         if (pos == boost::beast::string_view::npos)
-            return boost::beast::string_view {};
+            return boost::beast::string_view{};
         return path.substr(pos);
     }();
 
@@ -110,6 +100,7 @@ void HttpWorker::readRequest()
 void HttpWorker::processRequest(http::request<request_body_t, http::basic_fields<alloc_t>> const & req)
 {
     const auto & req_target = req.target();
+
     switch (req.method())
     {
         case http::verb::get:
@@ -201,3 +192,47 @@ void HttpWorker::checkDeadline()
 
     m_requestDeadline.async_wait([this](boost::beast::error_code) { checkDeadline(); });
 }
+
+class HttpServer
+{
+private:
+    std::string _address = "0.0.0.0";
+    uint16_t _port = 4000;
+    int _numWorkers = 1;
+
+public:
+    void configure(uint16_t port, int numWorkers)
+    {
+    }
+
+    bool addStatic(const std::string & pathPrefix)
+    {
+        return true;
+    }
+
+    int run()
+    {
+        try
+        {
+            boost::asio::io_context ioc{ 1 };
+            auto const address = boost::asio::ip::make_address(_address);
+
+            tcp::acceptor acceptor{ ioc, { address, _port } };
+
+            std::list<HttpWorker> workers;
+            for (int i = 0; i < _numWorkers; ++i)
+            {
+                workers.emplace_back(acceptor);
+
+                workers.back().start();
+            }
+            ioc.run();
+            return EXIT_SUCCESS;
+        }
+        catch (const std::exception & e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+};

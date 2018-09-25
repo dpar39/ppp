@@ -19,9 +19,12 @@ public:
     HttpWorker(HttpWorker const &) = delete;
     HttpWorker & operator=(HttpWorker const &) = delete;
 
-    HttpWorker(tcp::acceptor & acceptor, std::string doc_root)
+    explicit HttpWorker(tcp::acceptor & acceptor)
     : m_acceptor(acceptor)
-    , m_docRoot(doc_root)
+    {
+    }
+
+    void addRoute(const std::string & route)
     {
     }
 
@@ -43,22 +46,20 @@ private:
     std::string m_docRoot;
 
     // The socket for the currently connected client.
-    tcp::socket m_socket { m_acceptor.get_executor().context() };
+    tcp::socket m_socket{ m_acceptor.get_executor().context() };
 
     // The buffer for performing reads
     boost::beast::flat_static_buffer<8192> m_buffer;
 
     // The allocator used for the fields in the request and reply.
-    alloc_t alloc_ { 8192 };
+    alloc_t alloc_{ 8192 };
 
     // The parser for reading the requests
     boost::optional<http::request_parser<request_body_t, alloc_t>> _parser;
 
     // The timer putting a time limit on requests.
-    boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_requestDeadline {
-        m_acceptor.get_executor().context(),
-        (std::chrono::steady_clock::time_point::max)()
-    };
+    boost::asio::basic_waitable_timer<std::chrono::steady_clock>
+        m_requestDeadline{ m_acceptor.get_executor().context(), (std::chrono::steady_clock::time_point::max)() };
 
     // The string-based response message.
     boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> m_stringResponse;
