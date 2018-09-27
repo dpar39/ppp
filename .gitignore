@@ -26,5 +26,6 @@ package-lock.json
 .idea/*
 .DS_Store
 /webapp/Debug/*
-/webapp/server.ilk
+/webapp/server*
 /webapp/uploads
+
