@@ -7,7 +7,6 @@ import re
 import sys
 import glob
 import shutil
-#import psutil
 import zipfile
 import tarfile
 import argparse
@@ -22,9 +21,9 @@ except ImportError:   # Fall back to Python 2's urllib2
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-NODEJS_SRC_URL = 'https://nodejs.org/dist/v6.10.2/node-v6.10.2.tar.gz'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.3.0.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
+
 # b2 --with-system --with-regex --with-thread toolset=msvc-14.0 --build-type=complete address-model=64 link=static stage
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
@@ -69,6 +68,7 @@ class Builder(object):
         Detects the first available version of Visual Studio
         """
         vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
                        ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
@@ -380,8 +380,6 @@ class Builder(object):
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
         self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' \
             + self._build_config + '_' + self._arch_name)
-        if self._gen_vs_sln:
-            self._build_dir = os.path.join(self._root_dir, 'visualstudio')
 #
     def extract_validation_data(self):
         """
@@ -500,7 +498,7 @@ class Builder(object):
         # Extract testing dataset
         self.extract_validation_data()
 
-        # Build Third party libs
+        # Build Third Party Libs
         self.extract_gmock()
         self.build_opencv()
 
@@ -508,7 +506,6 @@ class Builder(object):
         self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
-        if not self._gen_vs_sln:
-            self.build_webapp()
+        self.build_webapp()
 
 BUILDER = Builder()

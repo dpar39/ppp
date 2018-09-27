@@ -18,16 +18,10 @@ if (UNIX)
     find_package(Boost REQUIRED COMPONENTS system filesystem)
 endif()
 
-if (WIN32 AND (${BUILD_TYPE} MATCHES "debug"))
-    # Build a static library for Windows when debugging
-    set(LIB_MODE STATIC)
-else()
-    # Build a shared version of the library
-    # Avoid node-gyp mechanism to resolve third party libraries
-    set(LIB_MODE SHARED)
-    add_definitions(-DDLLEXPORT)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
+set(LIB_MODE SHARED)
+add_definitions(-DDLLEXPORT)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 
 #-----------------------------
 # Build the module library
@@ -77,6 +71,7 @@ install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/sp_model.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 #-----------------------------
 # Build the module tests

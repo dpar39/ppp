@@ -1,9 +1,9 @@
 #include "libppp.h"
-#include "PppEngine.h"
+#include "CanvasDefinition.h"
+#include "CommonHelpers.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
-#include "CommonHelpers.h"
-#include "CanvasDefinition.h"
+#include "PppEngine.h"
 #include "Utilities.h"
 
 #include <opencv2/imgcodecs.hpp>
@@ -13,12 +13,13 @@ using namespace std;
 PublicPppEngine g_c_pppInstance;
 string g_last_error;
 
-cv::Point fromJson(rapidjson::Value& v)
+cv::Point fromJson(rapidjson::Value & v)
 {
     return cv::Point(v["x"].GetInt(), v["y"].GetInt());
 }
 
-PublicPppEngine::PublicPppEngine() : m_pPppEngine(new PppEngine)
+PublicPppEngine::PublicPppEngine()
+: m_pPppEngine(new PppEngine)
 {
 }
 
@@ -27,14 +28,14 @@ PublicPppEngine::~PublicPppEngine()
     delete m_pPppEngine;
 }
 
-bool PublicPppEngine::configure(const char* jsonConfig) const
+bool PublicPppEngine::configure(const char * jsonConfig) const
 {
     rapidjson::Document parser;
     parser.Parse(jsonConfig);
     return m_pPppEngine->configure(parser);
 }
 
-std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLength) const
+std::string PublicPppEngine::setImage(const char * bufferData, size_t bufferLength) const
 {
     cv::Mat inputImage;
     if (bufferLength <= 0)
@@ -51,14 +52,14 @@ std::string PublicPppEngine::setImage(const char* bufferData, size_t bufferLengt
     return m_pPppEngine->setInputImage(inputImage);
 }
 
-std::string PublicPppEngine::detectLandmarks(const std::string& imageId) const
+std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const
 {
     LandMarks landMarks;
     m_pPppEngine->detectLandMarks(imageId, landMarks);
     return landMarks.toJson();
 }
 
-std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const std::string& request) const
+std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const std::string & request) const
 {
     rapidjson::Document d;
     d.Parse(request.c_str());
@@ -90,10 +91,10 @@ std::string PublicPppEngine::createTiledPrint(const std::string& imageId, const 
 }
 
 template <typename T>
-std::vector<BYTE> toBytes(const T& x)
+std::vector<BYTE> toBytes(const T & x)
 {
-    vector<BYTE> v(static_cast<const BYTE*>(static_cast<const void*>(&x)),
-        static_cast<const BYTE*>(static_cast<const void*>(&x)) + sizeof(x));
+    vector<BYTE> v(static_cast<const BYTE *>(static_cast<const void *>(&x)),
+                   static_cast<const BYTE *>(static_cast<const void *>(&x)) + sizeof(x));
     reverse(v.begin(), v.end()); // Little endian notation
     return v;
 }
@@ -107,7 +108,7 @@ The following values are defined for the unit specifier:
     1: unit is the meter
 pHYs has to go before IDAT chunk
 */
-void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> &imageStream, double resolution_ppmm)
+void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm)
 {
     auto chunkLenBytes = toBytes(9);
     auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
@@ -134,38 +135,47 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> &imageStream, double
 }
 
 #pragma region C Interface
-#define TRYRUN(statements) \
-    try { statements; return true; } catch(const std::exception & ex) {  g_last_error = ex.what(); return false; }
+#define TRYRUN(statements)                                                                                             \
+    try                                                                                                                \
+    {                                                                                                                  \
+        statements;                                                                                                    \
+        return true;                                                                                                   \
+    }                                                                                                                  \
+    catch (const std::exception & ex)                                                                                  \
+    {                                                                                                                  \
+        g_last_error = ex.what();                                                                                      \
+        return false;                                                                                                  \
+    }
 
-bool set_image(const char* img_buf, int img_buf_size, char *img_id)
+bool set_image(const char * img_buf, int img_buf_size, char * img_id)
 {
-    TRYRUN(
-        auto imgId = g_c_pppInstance.setImage(img_buf, img_buf_size);
-    strcpy(img_id, imgId.c_str());
-    );
+    TRYRUN(auto imgId = g_c_pppInstance.setImage(img_buf, img_buf_size); strcpy(img_id, imgId.c_str()););
 }
 
-bool configure(const char* config_json)
+bool configure(const char * config_json)
 {
-    TRYRUN(
-        g_c_pppInstance.configure(config_json);
-    );
+    TRYRUN(g_c_pppInstance.configure(config_json););
 }
 
-bool detect_landmarks(const char* img_id, char* landmarks)
+bool detect_landmarks(const char * img_id, char * landmarks)
 {
-    TRYRUN(
-        auto landmarksStr = g_c_pppInstance.detectLandmarks(img_id);
-    strcpy(landmarks, landmarksStr.c_str());
-    );
+    TRYRUN(auto landmarksStr = g_c_pppInstance.detectLandmarks(img_id); strcpy(landmarks, landmarksStr.c_str()););
 }
-#pragma endregion
 
-bool create_tiled_print(const char* img_id, const char* request, unsigned char* out_buf, int& out_size)
+int create_tiled_print(const char * img_id, const char * request, char * out_buf)
 {
-    TRYRUN(
+    try
+    {
         auto output = g_c_pppInstance.createTiledPrint(img_id, request);
-    copy(output.begin(), output.end(), out_buf);
-    out_size = static_cast<int>(output.size());
-    );
+        const auto out_size = static_cast<int>(output.size());
+        copy(output.begin(), output.end(), out_buf);
+        return out_size;
+    }
+    catch (const std::exception & ex)
+    {
+        g_last_error = ex.what();
+        return 0;
+    }
 }
+
+#pragma endregion

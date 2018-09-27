@@ -15,7 +15,6 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 
 set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty" CACHE INTERNAL "" FORCE)
 set(THIRD_PARTY_DIR_INSTALL "${THIRD_PARTY_DIR}/install_${BUILD_TYPE}_${ARCH_NAME}")
-
 set(OPENCV_DIR "${THIRD_PARTY_DIR_INSTALL}"       CACHE INTERNAL "" FORCE)
 set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0"  CACHE INTERNAL "" FORCE)
 set(DLIB_ROOT  "${THIRD_PARTY_DIR}/dlib-19.6"    CACHE INTERNAL "" FORCE)
@@ -24,28 +23,21 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${THIRD_PARTY_DIR_INSTALL}" CACHE IN
 
 set(CMAKE_CXX_STANDARD 14)
 # Set compilers flags globally
-if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -fexceptions")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/include\"" CACHE STRING "" FORCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/gtest/include\"" CACHE STRING "" FORCE)
 endif()
 if (MSVC)
-    set(BOOST_ROOT "C:/local/boost_1_68_0" CACHE INTERNAL "" FORCE)
-    # On windows, compile with CRT only in debug mode
-    set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    set(GTEST_DISABLE_PTHREADS ON CACHE INTERNAL "" FORCE)
     foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
         if(${FLAG_VAR} MATCHES "/MD")
             string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
         endif()
     endforeach()
-    # if (MSVC_VERSION GREATER_EQUAL "1900")
-    #     include(CheckCXXCompilerFlag)
-    #     CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
-    #     if (_cpp_latest_flag_supported)
-    #         add_compile_options("/std:c++latest")
-    #     endif()
-    # endif()
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 endif()
 
@@ -61,5 +53,5 @@ include_directories(libppp/include)
 add_subdirectory(libppp)
 
 # Add the webapp app
-include_directories(server/include)
-add_subdirectory(server)
+# include_directories(server/include)
+# add_subdirectory(server)
