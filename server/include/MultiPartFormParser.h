@@ -7,17 +7,14 @@
 #include <regex>
 #include <string>
 
-namespace crow
-{
-
-struct request;
-}
+#include <unordered_map>
 
 class MultiPartFormParser
 {
 
 public:
-    bool parse(const crow::request & req);
+    template <class KeyValueMap>
+    bool parse( const KeyValueMap & headers, const std::string & body);
 
     int contentStartOffset() const;
 

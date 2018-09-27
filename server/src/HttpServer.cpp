@@ -1,8 +1,8 @@
-// #include "crow_all.h"
 
 #include "HttpServer.h"
 #include "fields_alloc.hpp"
 
+#include <HttpServer.h>
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <cstdlib>
@@ -26,26 +26,27 @@ boost::beast::string_view mime_type(boost::beast::string_view path)
 
     const auto str = ext.to_string();
 
-    static std::unordered_map<std::string, std::string> s_knownMimeTypes = { { "htm", "text/html" },
-                                                                             { ".html", "text/html" },
-                                                                             { ".css", "text/css" },
-                                                                             { ".txt", "text/plain" },
-                                                                             { ".js", "application/javascript" },
-                                                                             { ".json", "application/json" },
-                                                                             { ".xml", "application/xml" },
-                                                                             { ".swf", "application/x-shockwave-flash" },
-                                                                             { ".flv", "video/x-flv" },
-                                                                             { ".png", "image/png" },
-                                                                             { ".jpe", "image/jpeg" },
-                                                                             { ".jpeg", "image/jpeg" },
-                                                                             { ".jpg", "image/jpeg" },
-                                                                             { ".gif", "image/gif" },
-                                                                             { ".bmp", "image/bmp" },
-                                                                             { ".ico", "image/vnd.microsoft.icon" },
-                                                                             { ".tiff", "image/tiff" },
-                                                                             { ".tif", "image/tiff" },
-                                                                             { ".svg", "image/svg+xml" },
-                                                                             { ".svgz", "image/svg+xml" } };
+    using MIMETypes = std::unordered_map<std::string, std::string>;
+    static MIMETypes s_knownMimeTypes = { { "htm", "text/html" },
+                                          { ".html", "text/html" },
+                                          { ".css", "text/css" },
+                                          { ".txt", "text/plain" },
+                                          { ".js", "application/javascript" },
+                                          { ".json", "application/json" },
+                                          { ".xml", "application/xml" },
+                                          { ".swf", "application/x-shockwave-flash" },
+                                          { ".flv", "video/x-flv" },
+                                          { ".png", "image/png" },
+                                          { ".jpe", "image/jpeg" },
+                                          { ".jpeg", "image/jpeg" },
+                                          { ".jpg", "image/jpeg" },
+                                          { ".gif", "image/gif" },
+                                          { ".bmp", "image/bmp" },
+                                          { ".ico", "image/vnd.microsoft.icon" },
+                                          { ".tiff", "image/tiff" },
+                                          { ".tif", "image/tiff" },
+                                          { ".svg", "image/svg+xml" },
+                                          { ".svgz", "image/svg+xml" } };
     const auto it = s_knownMimeTypes.find(str);
     if (it != s_knownMimeTypes.end())
     {
@@ -87,19 +88,46 @@ void HttpWorker::readRequest()
     // We construct the dynamic body with a 1MB limit
     // to prevent vulnerability to buffer attacks.
     //
-    _parser.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(alloc_));
+    m_parser.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(m_alloc));
 
-    http::async_read(m_socket, m_buffer, *_parser, [this](boost::beast::error_code ec, std::size_t) {
+    http::async_read(m_socket, m_buffer, *m_parser, [this](boost::beast::error_code ec, std::size_t) {
         if (ec)
             accept();
         else
-            processRequest(_parser->get());
+            processRequest(m_parser->get());
     });
 }
 
-void HttpWorker::processRequest(http::request<request_body_t, http::basic_fields<alloc_t>> const & req)
+void HttpWorker::processRequest(const http::request<request_body_t, http::basic_fields<alloc_t>> & req)
 {
     const auto & req_target = req.target();
+
+    bool handled = false;
+
+    m_stringResponse.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(m_alloc));
+    Response res(*m_stringResponse);
+
+    for (auto & routeDef : m_routeDefinitions)
+    {
+        handled |= routeDef->handle(req, res);
+        if (handled)
+        {
+            // Complete
+            return;
+        }
+    }
+
+    if (!handled)
+    {
+        // check if we can send a file
+        handled |= sendFile(req_target);
+    }
+
+    if (!handled)
+    {
+        sendBadResponse(http::status::bad_request,
+                "Invalid request-method '" + req.method_string().to_string() + "'\r\n");
+    }
 
     switch (req.method())
     {
@@ -116,9 +144,10 @@ void HttpWorker::processRequest(http::request<request_body_t, http::basic_fields
     }
 }
 
+
 void HttpWorker::sendBadResponse(const http::status status, std::string const & error)
 {
-    m_stringResponse.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(alloc_));
+    m_stringResponse.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(m_alloc));
 
     m_stringResponse->result(status);
     m_stringResponse->keep_alive(false);
@@ -128,7 +157,6 @@ void HttpWorker::sendBadResponse(const http::status status, std::string const & 
     m_stringResponse->prepare_payload();
 
     m_stringSerializer.emplace(*m_stringResponse);
-
     http::async_write(m_socket, *m_stringSerializer, [this](boost::beast::error_code ec, std::size_t) {
         m_socket.shutdown(tcp::socket::shutdown_send, ec);
         m_stringSerializer.reset();
@@ -137,13 +165,13 @@ void HttpWorker::sendBadResponse(const http::status status, std::string const & 
     });
 }
 
-void HttpWorker::sendFile(boost::beast::string_view target)
+bool HttpWorker::sendFile(boost::beast::string_view target)
 {
     // Request path must be absolute and not contain "..".
     if (target.empty() || target[0] != '/' || target.find("..") != std::string::npos)
     {
         sendBadResponse(http::status::not_found, "File not found\r\n");
-        return;
+        return false;
     }
 
     auto full_path = m_docRoot;
@@ -154,12 +182,11 @@ void HttpWorker::sendFile(boost::beast::string_view target)
     file.open(full_path.c_str(), boost::beast::file_mode::read, ec);
     if (ec)
     {
-        sendBadResponse(http::status::not_found, "File not found\r\n");
-        return;
+        // sendBadResponse(http::status::not_found, "File not found\r\n");
+        return false;
     }
 
-    m_fileResponse.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(alloc_));
-
+    m_fileResponse.emplace(std::piecewise_construct, std::make_tuple(), std::make_tuple(m_alloc));
     m_fileResponse->result(http::status::ok);
     m_fileResponse->keep_alive(false);
     m_fileResponse->set(http::field::server, "Beast");
@@ -175,6 +202,8 @@ void HttpWorker::sendFile(boost::beast::string_view target)
         m_fileResponse.reset();
         accept();
     });
+
+    return true;
 }
 
 void HttpWorker::checkDeadline()
@@ -193,46 +222,76 @@ void HttpWorker::checkDeadline()
     m_requestDeadline.async_wait([this](boost::beast::error_code) { checkDeadline(); });
 }
 
-class HttpServer
+int HttpServer::run()
 {
-private:
-    std::string _address = "0.0.0.0";
-    uint16_t _port = 4000;
-    int _numWorkers = 1;
-
-public:
-    void configure(uint16_t port, int numWorkers)
+    try
     {
+        boost::asio::io_context ioc{ 1 };
+        auto const address = boost::asio::ip::make_address(_address);
+
+        tcp::acceptor acceptor{ ioc, { address, _port } };
+
+        std::list<HttpWorker> workers;
+        for (int i = 0; i < _numWorkers; ++i)
+        {
+            workers.emplace_back(acceptor);
+            auto & worker = workers.back();
+            for (const auto & route : _routeDefinitions)
+            {
+                worker.addRoute(route);
+            }
+            worker.start();
+        }
+        ioc.run();
+        return EXIT_SUCCESS;
     }
-
-    bool addStatic(const std::string & pathPrefix)
+    catch (const std::exception & e)
     {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+}
+
+bool RouteDefinition::handle(const Request & req, Response & res) const
+{
+    if (_verbs.find(req.method()) == _verbs.end())
+    {
+        return false;
+    }
+    const auto url = req.target().to_string();
+    std::smatch m;
+    if (std::regex_search(url, m, _routeRegex))
+    {
+        // TODO: Parse parameters
+
+        // Invoke the route's handler method
+        _handler(req, res);
+
         return true;
     }
+    return false;
+}
 
-    int run()
-    {
-        try
-        {
-            boost::asio::io_context ioc{ 1 };
-            auto const address = boost::asio::ip::make_address(_address);
+RouteDefinition::RouteDefinition(std::string routeString,
+                                 std::initializer_list<http::verb> verbs,
+                                 RouteHandler routeHandler)
+: _handler(routeHandler)
+, _verbs(verbs)
+, _routeString(routeString)
+{
+    // convert route string to a regex
 
-            tcp::acceptor acceptor{ ioc, { address, _port } };
+    std::string regexStr;
+    regexStr.reserve(routeString.size() * 2);
 
-            std::list<HttpWorker> workers;
-            for (int i = 0; i < _numWorkers; ++i)
-            {
-                workers.emplace_back(acceptor);
+    regexStr = regex_replace(routeString, std::regex("\\/"), "\\/");
 
-                workers.back().start();
-            }
-            ioc.run();
-            return EXIT_SUCCESS;
-        }
-        catch (const std::exception & e)
-        {
-            std::cerr << "Error: " << e.what() << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-};
+    _routeRegex = std::regex(regexStr);
+}
+
+RouteDefinitionSPtr RouteDefinition::create(std::string routeString,
+                                            std::initializer_list<http::verb> verbs,
+                                            RouteHandler routeHandler)
+{
+    return RouteDefinitionSPtr(new RouteDefinition(routeString, verbs, routeHandler));
+}

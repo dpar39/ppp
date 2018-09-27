@@ -9,7 +9,7 @@ set(TEST_NAME ${MODULE_NAME}_test)
 
 message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../webapp)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../webapp)
 #----------------------------
 # Third party dependencies
 #----------------------------

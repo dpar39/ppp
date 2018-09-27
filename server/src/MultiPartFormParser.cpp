@@ -3,14 +3,15 @@
 //
 
 #include "MultiPartFormParser.h"
-#include <crow_all.h>
+#include <unordered_map>
 #include <regex>
 
-bool MultiPartFormParser::parse(const crow::request & req)
+template <class KeyValueMap>
+bool MultiPartFormParser::parse(const KeyValueMap & headers, const std::string & body)
 {
 
-    auto it = req.headers.find("Content-Type");
-    if (it == req.headers.end())
+    auto it = headers.find("Content-Type");
+    if (it == headers.end())
     {
         return false;
     }
@@ -24,8 +25,6 @@ bool MultiPartFormParser::parse(const crow::request & req)
         return false;
     }
     m_boundary = m[1].str();
-
-    const auto & body = req.body;
 
     static const std::string lineBreak("\r\n");
     const auto startBoundary = std::string("--") + m_boundary + lineBreak;
@@ -114,3 +113,5 @@ std::string MultiPartFormParser::getContentName() const
 {
     return m_name;
 }
+
+template bool MultiPartFormParser::parse<std::unordered_multimap<std::string, std::string> >( const std::unordered_multimap<std::string, std::string>  & headers, const std::string & body);

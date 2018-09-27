@@ -3,8 +3,9 @@
 //
 
 #include "MultiPartFormParser.h"
-#include "stdafx.h"
+
 #include <gtest/gtest.h>
+#include <unordered_map>
 
 class MultiPartFormDataTest : public ::testing::Test
 {
@@ -13,17 +14,16 @@ class MultiPartFormDataTest : public ::testing::Test
 TEST_F(MultiPartFormDataTest, parse)
 {
     const char * body = "------WebKitFormBoundaryq66day34BHUKvTaX\r\nContent-Disposition: form-data; name=\"uploads\"; "
-                        "filename=\"image_0001.jpg\"\r\n\Content-Type: "
+                        "filename=\"image_0001.jpg\"\r\nContent-Type: "
                         "image/jpeg\r\n\r\nJPEGCONTENT------WebKitFormBoundaryq66day34BHUKvTaX--";
 
     MultiPartFormParser parser;
 
-    crow::request request;
-    request.headers.insert(
+    std::unordered_multimap<std::string, std::string> headers;
+    headers.insert(
         std::make_pair("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryq66day34BHUKvTaX"));
-    request.body = body;
 
-    const bool success = parser.parse(request);
+    const bool success = parser.parse(headers, body);
 
     EXPECT_EQ(std::string("image_0001.jpg"), parser.getContentFilename());
     EXPECT_EQ(std::string("uploads"), parser.getContentName());
