@@ -8,15 +8,6 @@
 /research/*.asv
 /addon/build
 /research/mugshot_frontal_original_all
-/webapp/addon.node
-/webapp/config.json
-/webapp/libppp.dll
-/webapp/liblibppp.so
-/webapp/liblibppp.dylib
-/webapp/cascade.xml
-/webapp/server.exe
-/webapp/s
-/webapp/sp_model.dat
 cascade.xml
 *.ldb
 build/config.gypi
@@ -25,7 +16,4 @@ package-lock.json
 /cmake-build-debug
 .idea/*
 .DS_Store
-/webapp/Debug/*
-/webapp/server*
-/webapp/uploads
 

@@ -40,3 +40,13 @@ Thumbs.db
 
 # Python virtual environment
 /env
+
+# Server files part of LIBPPP
+/uploads
+*.pyc
+config.json
+libppp.dll
+liblibppp.so
+liblibppp.dylib
+cascade.xml
+sp_model.dat

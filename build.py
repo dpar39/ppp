@@ -479,12 +479,16 @@ class Builder(object):
         os.chdir(self._root_dir)
 
         # Copy libppp artifacts to the webapp directory
-        dist_files = ['config.json', 'sp_model.dat',
+        dist_files = ['config.json', 'sp_model.dat', 'libpppwrapper.py',
                       'liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
         for dist_file in dist_files:
-            dist_file_path = os.path.join(self._install_dir, dist_file)
-            if os.path.exists(dist_file_path):
-                shutil.copy(dist_file_path, self.web_app_dir())
+            src_file_path = os.path.join(self._install_dir, dist_file)
+            dst_link = os.path.join(self.web_app_dir(), dist_file)
+            if os.path.exists(src_file_path):
+                ln = 'mklink' if IS_WINDOWS else 'ln -sf'
+                link_cmd = '%s "%s" "%s"' % (ln, dst_link, src_file_path)
+                os.system(link_cmd)
+                #shutil.copy(src_file_path, self.web_app_dir())
 #
 
     def build_webapp(self):
