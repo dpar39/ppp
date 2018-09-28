@@ -69,7 +69,8 @@ class Builder(object):
         """
         vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
                        ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
+                       #('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')
+                       ]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
                 self._vcvarsbat = vcvarsbat

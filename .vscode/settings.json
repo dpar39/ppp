@@ -8,5 +8,6 @@
         "cstddef": "cpp",
         "filesystem": "cpp"
     },
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "python.pythonPath": "C:\\Python27\\python.exe"
 }

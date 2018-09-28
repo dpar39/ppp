@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Flask",
+            "name": "Flask Server",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
