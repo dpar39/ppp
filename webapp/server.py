@@ -3,7 +3,7 @@ import os
 from flask import Flask, abort, request, redirect, url_for, send_from_directory, flash, jsonify
 from werkzeug.utils import secure_filename
 
-import lib
+import libpppwrapper as ppp
 
 app = Flask(__name__, static_url_path='', static_folder='dist')
 
@@ -34,7 +34,9 @@ def upload_image():
             if not os.path.isdir('uploads'):
                 os.makedirs('uploads')
             file.save(os.path.join('uploads', filename))
-            return jsonify( {'imgKey': 'abcdefgh'})
+
+            img_key =  ppp.set_image(file.read())
+            return jsonify( {'imgKey': img_key})
 
 
 
