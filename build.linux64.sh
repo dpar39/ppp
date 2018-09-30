@@ -5,5 +5,4 @@
 #sudo apt-get install -qq npm
 
 # Build script
-python build.py 
-#--skip_tests
+python build.py $*

@@ -6,14 +6,13 @@ from werkzeug.utils import secure_filename
 import libpppwrapper as ppp
 
 app = Flask(__name__, static_url_path='', static_folder='dist')
+ALLOWED_IMG_FORMATS = set(['jpg', 'jpeg',  'png', 'webp', 'ppm'])
 
+assert ppp.configure('config.json')
 
 @app.route('/')
 def root():
     return app.send_static_file('index.html')
-
-
-ALLOWED_IMG_FORMATS = set(['jpg', 'jpeg',  'png', 'webp', 'ppm'])
 
 
 def allowed_file(filename):
@@ -33,12 +32,19 @@ def upload_image():
             filename = secure_filename(file.filename)
             if not os.path.isdir('uploads'):
                 os.makedirs('uploads')
-            file.save(os.path.join('uploads', filename))
+            content = file.read()
+            file_path = os.path.join('uploads', secure_filename(filename))
+            with open(file_path, 'wb') as fp:
+                fp.write(content)
+            img_key = ppp.set_image(content)
+            return jsonify({'imgKey': img_key})
 
-            img_key =  ppp.set_image(file.read())
-            return jsonify( {'imgKey': img_key})
-
-
+@app.route('/api/landmarks')
+def get_landmarks():
+    img_key = request.args.get('imgKey')
+    if img_key:
+        lm = ppp.detect_landmarks(str(img_key))
+        return lm
 
 if __name__ == "__main__":
     app.run(debug=True)

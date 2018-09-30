@@ -485,8 +485,10 @@ class Builder(object):
             src_file_path = os.path.join(self._install_dir, dist_file)
             dst_link = os.path.join(self.web_app_dir(), dist_file)
             if os.path.exists(src_file_path):
-                ln = 'mklink' if IS_WINDOWS else 'ln -sf'
-                link_cmd = '%s "%s" "%s"' % (ln, dst_link, src_file_path)
+                if IS_WINDOWS:
+                    link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
+                else:
+                    link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
                 os.system(link_cmd)
                 #shutil.copy(src_file_path, self.web_app_dir())
 #

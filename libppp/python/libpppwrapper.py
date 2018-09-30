@@ -12,6 +12,8 @@ elif sys.platform == "win32":
 
 
 def resolve_filepath(rel_path):
+    """
+    """
     dirname, _ = os.path.split(os.path.abspath(__file__))
 
     while True:
@@ -51,9 +53,12 @@ def configure(config_file):
 def set_image(img_content):
     """
     """
-    if os.path.isfile(img_content):
-        with open(img_content, 'rb') as fp:
-            img_content = fp.read()
+    try:
+        if os.path.isfile(img_content):
+            with open(img_content, 'rb') as fp:
+                img_content = fp.read()
+    except TypeError:
+        pass
 
     img_content_len = len(img_content)
     img_key = create_string_buffer(16)
