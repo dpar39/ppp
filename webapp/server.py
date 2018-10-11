@@ -77,24 +77,16 @@ def parsePassportStandard(ps) :
     }
     return obj
 
-@app.route('/api/photoprint')
+@app.route('/api/photoprint',  methods=['POST'])
 def get_photo_print():
-    img_key = request.args.get('imgKey')
-    crown_point = request.args.get('crownPoint')
-    chin_point = request.args.get('chinPoint')
-    canvas = request.args.get('canvas')
-    standard = request.args.get('standard')
 
-    printDef = {
-            'crownPoint' : parsePoint(crown_point),
-            'chinPoint' : parsePoint(chin_point),
-            'canvas' : parseCanvas(canvas),
-            'standard' : parsePassportStandard(standard)
-        }
-    json.dumps(printDef)
+    print_def = request.get_json()
 
-    if img_key:
-        png_content = ppp.create_tiled_print(img_key, request)
+    # TODO: validate request
+
+    if 'imgKey' in print_def:
+        img_key = print_def['imgKey']
+        png_content = ppp.create_tiled_print(img_key, print_def)
         response = make_response(png_content)
         response.headers.set('Content-Type', 'image/png')
         return response
