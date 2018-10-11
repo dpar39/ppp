@@ -1,14 +1,10 @@
 import { Component, ElementRef } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { HttpRequest, HttpEventType, HttpParams } from '@angular/common/http';
-import { Http, Response, Headers, RequestOptions, URLSearchParams } from '@angular/http';
+import { Http, URLSearchParams } from '@angular/http';
 
-import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component'
 
-import { Point, LandMarks, CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
+import { LandMarks, CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
 
-declare var $: any;
 
 @Component({
     selector: 'app-root',
@@ -39,7 +35,6 @@ export class AppComponent {
     constructor(
         public el: ElementRef,
         private http: Http,
-        private sanitizer: DomSanitizer,
         private beService: BackEndService) {
     }
 
@@ -82,7 +77,7 @@ export class AppComponent {
         });
     }
 
-    onLandmarksEdited(data) {
+    onLandmarksEdited() {
     }
 
     createPrint() {

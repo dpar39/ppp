@@ -38,26 +38,25 @@ export class BackEndService {
         url: '/api/photoprint',
         data: req,
         xhr: () => {
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
             xhr.onreadystatechange = (e) => {
                 if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                    let blob = xhr.response;
-                    var binaryData = [];
+                    const blob = xhr.response;
+                    const binaryData = [];
                     binaryData.push(blob);
-                    var b = window.URL.createObjectURL(new Blob(binaryData, {
-                        type: "image/png"
+                    const b = window.URL.createObjectURL(new Blob(binaryData, {
+                        type: 'image/png'
                     }));
 
-                    let outImgSrc =  this.sanitizer.bypassSecurityTrustResourceUrl(b);
+                    const outImgSrc =  this.sanitizer.bypassSecurityTrustResourceUrl(b);
                     resolve(outImgSrc);
                 }
-            }
+            };
             return xhr;
         }
     });
     }
   );
-    
   }
 }

@@ -1,34 +1,45 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
-<mat-card>
-  <h1>This is a test</h1>
-  <h4>
-    Create your passport photo for free, from the comfort of your home.
-  </h4>
-</mat-card>
+<header>
+  <div class="bg-dark">
+    <h2 align="center">
+      Welcome to this cool app!
+    </h2>
+  </div>
+</header>
 
-<div layout="row" layout-xs="column">
+<div class="container">
 
-  <div flex>
-    <app-landmark-editor [inputPhoto]='imageSrc' [crownChinPointPair]='crownChinPointPair' (edited)='onLandmarksEdited'>
-    </app-landmark-editor>
+  <div class="row">
+    <div style="width: 80%; margin: 0 auto;">
+      <app-landmark-editor class="center" [inputPhoto]='imageSrc' [crownChinPointPair]='crownChinPointPair' (edited)='onLandmarksEdited'>
+      </app-landmark-editor>
+    </div>
   </div>
 
-  <div flex>
-    <button mat-button color="primary" (click)='el.nativeElement.querySelector("#selectImage").click();'>Choose photo</button>
-    <button mat-button color="primary" (click)='createPrint()'>Create Print</button>
-    <form>
-      <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
-    </form>
+  <div class="row">
+    <div class="span12">
+      <div class="text-center">
+        <button type="button" class="btn btn-primary" style="margin-right: 1em" (click)='el.nativeElement.querySelector("#selectImage").click();'>
+          Choose photo</button>
+        <button type="button" class="btn btn-primary btn-primary-spacing" (click)='createPrint()'>
+          Create Print
+        </button>
+        <form>
+          <input id='selectImage' type="file" name="uploads[]" accept="image/*" style="visibility: hidden;" (change)='loadImage($event)'>
+        </form>
+      </div>
+    </div>
   </div>
 
-  <div flex>
+  <div class="row">
     <app-passport-standard-selector class='row'>
     </app-passport-standard-selector>
   </div>
-</div>
-<div>
-  <a *ngIf='outImgSrc!="#"' [href]='outImgSrc' download="print.png">
-    <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' class='fit' (click)="saveOutput()">
-  </a>
+
+  <div>
+    <a *ngIf='outImgSrc!="#"' [href]='outImgSrc' download="print.png">
+      <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' class='fit' (click)="saveOutput()">
+    </a>
+  </div>
 </div>

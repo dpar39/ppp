@@ -1,6 +1,7 @@
 
 import os
-from flask import Flask, abort, request, redirect, url_for, send_from_directory, flash, jsonify
+import json
+from flask import Flask, abort, request, redirect, url_for, send_from_directory, flash, jsonify, make_response
 from werkzeug.utils import secure_filename
 
 import libpppwrapper as ppp
@@ -45,6 +46,59 @@ def get_landmarks():
     if img_key:
         lm = ppp.detect_landmarks(str(img_key))
         return lm
+
+def parsePoint(pt):
+    p = {
+        'x': int(pt['x']),
+        'y': int(pt['y']),
+    }
+    return p
+
+def validateUnits(units):
+    if units not in ["mm", "cm", "inch"]:
+        raise Exception( "Unrecognized units: " + units)
+    return units
+
+def parseCanvas(canvas):
+    obj = {
+        'height': float(canvas['height']),
+        'width': float(canvas['width']),
+        'resolution': int(canvas['resolution']),
+        'units': validateUnits(canvas['units'])
+    }
+    return obj
+
+def parsePassportStandard(ps) :
+    obj = {
+        'pictureHeight': float(ps.pictureHeight),
+        'pictureWidth': float(ps.pictureWidth),
+        'faceHeight': float(ps.faceHeight),
+        'units': validateUnits(ps.units)
+    }
+    return obj
+
+@app.route('/api/photoprint')
+def get_photo_print():
+    img_key = request.args.get('imgKey')
+    crown_point = request.args.get('crownPoint')
+    chin_point = request.args.get('chinPoint')
+    canvas = request.args.get('canvas')
+    standard = request.args.get('standard')
+
+    printDef = {
+            'crownPoint' : parsePoint(crown_point),
+            'chinPoint' : parsePoint(chin_point),
+            'canvas' : parseCanvas(canvas),
+            'standard' : parsePassportStandard(standard)
+        }
+    json.dumps(printDef)
+
+    if img_key:
+        png_content = ppp.create_tiled_print(img_key, request)
+        response = make_response(png_content)
+        response.headers.set('Content-Type', 'image/png')
+        return response
+    return abort(400)
 
 if __name__ == "__main__":
     app.run(debug=True)
