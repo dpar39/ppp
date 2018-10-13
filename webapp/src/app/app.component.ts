@@ -59,11 +59,8 @@ export class AppComponent {
     }
 
     retrieveLandmarks() {
-        const params: URLSearchParams = new URLSearchParams();
-        params.set('imgKey', this.imageKey);
 
-        this.http.get('/api/landmarks', { search: params }).subscribe(data => {
-            const landmarks: LandMarks = data.json();
+        this.beService.retrieveLandmarks(this.imageKey).then((landmarks) => {
             if (landmarks.errorMsg) {
                 console.log(landmarks.errorMsg);
             } else {
@@ -72,8 +69,6 @@ export class AppComponent {
                     this.crownChinPointPair = landmarks;
                 }
             }
-        }, err => {
-            console.log(err);
         });
     }
 

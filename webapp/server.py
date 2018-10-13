@@ -38,14 +38,13 @@ def upload_image():
             with open(file_path, 'wb') as fp:
                 fp.write(content)
             img_key = ppp.set_image(content)
+            img_key = img_key.decode('ascii')
             return jsonify({'imgKey': img_key})
 
-@app.route('/api/landmarks')
-def get_landmarks():
-    img_key = request.args.get('imgKey')
-    if img_key:
-        lm = ppp.detect_landmarks(str(img_key))
-        return lm
+@app.route('/api/landmarks/<img_key>')
+def get_landmarks(img_key):
+    lm = ppp.detect_landmarks(img_key)
+    return lm.decode('ascii')
 
 def parsePoint(pt):
     p = {
@@ -77,7 +76,7 @@ def parsePassportStandard(ps) :
     }
     return obj
 
-@app.route('/api/photoprint',  methods=['POST'])
+@app.route('/api/photoprint', methods=['POST'])
 def get_photo_print():
 
     print_def = request.get_json()
