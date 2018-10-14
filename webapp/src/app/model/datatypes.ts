@@ -9,9 +9,9 @@ export class Point {
 }
 
 export enum UnitType {
-    mm = "mm",
-    cm = "cm",
-    inch = "inch"
+    mm = 'mm',
+    cm = 'cm',
+    inch = 'inch'
 }
 
 export class PassportStandard {
@@ -53,6 +53,6 @@ export class TiledPhotoRequest {
         this.standard = ps;
         this.canvas = canvas;
         this.crownPoint = ccPoints.crownPoint;
-        this.chinPoint = ccPoints.chinPoint; 
+        this.chinPoint = ccPoints.chinPoint;
     }
 }

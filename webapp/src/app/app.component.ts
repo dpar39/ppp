@@ -1,8 +1,7 @@
 import { Component, ElementRef } from '@angular/core';
-import { Http, URLSearchParams } from '@angular/http';
+import { Http } from '@angular/http';
 
-
-import { LandMarks, CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
+import { CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
 
 
@@ -34,7 +33,6 @@ export class AppComponent {
 
     constructor(
         public el: ElementRef,
-        private http: Http,
         private beService: BackEndService) {
     }
 
@@ -59,7 +57,6 @@ export class AppComponent {
     }
 
     retrieveLandmarks() {
-
         this.beService.retrieveLandmarks(this.imageKey).then((landmarks) => {
             if (landmarks.errorMsg) {
                 console.log(landmarks.errorMsg);
