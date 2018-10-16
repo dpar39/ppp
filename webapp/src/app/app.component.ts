@@ -18,12 +18,9 @@ export class AppComponent {
 
     // Model data
     crownChinPointPair: CrownChinPointPair;
-    passportStandard: PassportStandard = {
-        pictureWidth: 35,
-        pictureHeight: 45,
-        faceHeight: 34,
-        units: UnitType.mm
-    };
+    passportStandard: PassportStandard = new PassportStandard(
+        35, 45, 34, UnitType.mm
+    );
     canvas: Canvas = {
         height: 4,
         width: 6,

@@ -15,12 +15,11 @@
 }
 
 #container {
-    max-height: 50%;
+    max-height: 50vh;
     height: 300px;
     border: 1px solid #363434;
     border-radius: 5px;
     margin: 1em auto;
-    background-color: #313232
 }
 
 img {

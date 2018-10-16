@@ -1,8 +1,9 @@
+import { TouchSequence } from "selenium-webdriver";
 
 export class Point {
     x: number;
     y: number;
-    constructor(x: number, y: number)  {
+    constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
@@ -16,10 +17,18 @@ export enum UnitType {
 
 export class PassportStandard {
 
-    pictureWidth: number;
-    pictureHeight: number;
-    faceHeight: number;
-    units: UnitType;
+    constructor(
+        public pictureWidth: number,
+        public pictureHeight: number,
+        public faceHeight: number,
+        public units: UnitType,
+        public name: string = 'Custom') {
+    }
+
+    sizestring() {
+        const unitStr: string = this.units === UnitType.inch ? '"' : '' + this.units;
+        return `${this.pictureWidth} x ${this.pictureHeight}${unitStr}`;
+    }
 }
 
 export class Canvas {

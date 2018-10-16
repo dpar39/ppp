@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PassportStandardSelectorComponent } from './passport-standard-selector.component';
-import { MatCardModule } from '@angular/material';
+
 
 
 
@@ -12,10 +12,9 @@ describe('PassportStandardSelectorComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
-        PassportStandardSelectorComponent 
+        PassportStandardSelectorComponent
       ],
       imports: [
-        MatCardModule
       ]
     })
     .compileComponents();

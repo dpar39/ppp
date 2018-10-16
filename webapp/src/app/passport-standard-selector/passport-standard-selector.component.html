@@ -1,9 +1,35 @@
+<div class="dropdown" dropdown>
+  <button dropdownToggle class="btn btn-primary" role="button">
+    <p>{{_standard.name}}</p>
+    <span class="caret"></span>
+    <!-- <div class="form-inline " style="border: 1px solid gray; height: 2em;" ></div> -->
+    <p>{{_standard.sizestring()}}</p>
+    <!-- <div class="container-fluid">
+      <div class="row form-inline">
+        <input type="text" class="form-control col-5 input-sm mr-2 pull-right" placeholder="Width" OnlyNumber="true">
+        <input type="text" class="form-control col-5 input-sm ml-2 pull-right" placeholder="Height" OnlyNumber="true">
+      </div>
+    </div> -->
+  </button>
+  <div *dropdownMenu class="dropdown-menu">
+    <div *ngFor="let standard of _allStandards">
+      <p>{{ standard.pictureWidth }}</p>
+    </div>
 
-<div class="card" style="width: 18rem;">
-    <h5 class="card-title">{{photoIdType.name}}</h5>
-    <div class="card-body">
+  </div>
+</div>
 
-      <p class="card-text">{{photoIdType.dimensions}}</p>
-      <a href="#" class="btn btn-primary">Edit</a>
+<!-- <div>
+  <h5 class="card-title">{{photoIdType.name}}</h5>
+  <div class="card-body">
+    <p class="card-text">{{photoIdType.dimensions}}</p>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row form-inline">
+
+      <input type="text" class="form-control col-5 input-sm mr-2 pull-right" placeholder="Width" OnlyNumber="true">
+      <input type="text" class="form-control col-5 input-sm ml-2 pull-right" placeholder="Height" OnlyNumber="true">
     </div>
   </div>
+</div> -->
