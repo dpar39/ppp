@@ -8,9 +8,21 @@ set(DLIB_ROOT ${THIRDPARTY_DIR}/dlib-19.6)
 
 #set(OpenCV_DIR ${THIRDPARTY_DIR}/opencv-3.2.0-android-sdk/OpenCV-android-sdk/sdk/native/jni)
 
-set(OpenCV_DIR  $ENV{OpenCV_DIR})
+
+#
+# defaultConfig {
+#     externalNativeBuild {
+#         cmake {
+#             arguments "-DANDROID_CPP_FEATURES=rtti exceptions"
+#         }
+#     }
+#     ndk {
+#         abiFilters 'x86', 'armeabi-v7a'
+#     }
+
+set(OpenCV_DIR  $ENV{OPENCV_ANDROID}/sdk/native/jni)
 message("Set OpenCV_DIR to " ${OpenCV_DIR})
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3.4 REQUIRED java)
 add_definitions(-DOS_ANDROID)
 
 add_definitions(-D__GXX_EXPERIMENTAL_CXX0X__)

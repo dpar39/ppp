@@ -30,15 +30,14 @@ export class HomePage implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.imageKey = "000002";
     this.initCppEngine();
   }
 
   initCppEngine() : void {
-    if (cpp != null && !this._cppReady) {
-      this.http.get('/assets/config.json').subscribe(r => {
+    if (!this._cppReady) {
+      this.http.get('assets/config.json').subscribe(r => {
         let objcfg = r.json();
-        this.http.get('/assets/sp_model.dat', {
+        this.http.get('assets/sp_model.dat', {
           responseType: ResponseContentType.Blob
         }).subscribe(rr => {
           let reader = new FileReader();
@@ -52,6 +51,7 @@ export class HomePage implements AfterViewInit {
             cpp.NativeWrapper.configure(config, (ret) => {
               config = null; // memory cleanup
               this._cppReady = true;
+              this.imageKey = 'Configured!';
             });
           };
         });

@@ -11,12 +11,13 @@ module.exports = function(context) {
 
     var templateCmakeLists = path.join(projectRoot, 'plugins',  pluginId, 'templates', 'CMakeLists.txt');
 
-    var s1 = fs.lstatSync(cmakeListFile);
-    var s2 = fs.lstatSync(templateCmakeLists);
-    if (s1.mtimeMs > s2.mtimeMs) {
-        console.log('[HOOK] Overriding CMakeLists.txt in "' + pluginId + '" plugin template');
-        fs.writeFileSync(templateCmakeLists, fs.readFileSync(cmakeListFile));
-    } else {
-        console.log('[HOOK] No need to overwrite CMakeLists.txt');
+    var cmklstContent = fs.readFileSync(cmakeListFile, "utf-8");
+
+    if (fs.existsSync(templateCmakeLists)) {
+        var oldCmklstContent = fs.readFileSync(templateCmakeLists, "utf-8");
+        if(oldCmklstContent != cmklstContent ) {
+            console.log('[HOOK] Overriding CMakeLists.txt in "' + pluginId + '" plugin template');
+            fs.writeFileSync(templateCmakeLists, cmklstContent);
+        }
     }
 };

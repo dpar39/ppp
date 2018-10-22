@@ -3,7 +3,7 @@
     <name>MyApp</name>
     <description>An awesome Ionic/Cordova app.</description>
     <author email="dpar39@gmail.com" href="http://github.com/dpar39">Darien Pardinas</author>
-    <content original-src="index.html" src="http://192.168.0.15:8100" />
+    <content src="index.html" />
     <access origin="*" />
     <allow-navigation href="http://ionic.local/*" />
     <allow-navigation href="http://192.168.0.24:8100" />
@@ -83,7 +83,7 @@
     <hook src="hooks/before_prepare.js" type="before_prepare" />
     <engine name="android" spec="^6.2.3" />
     <engine name="browser" spec="^4.1.0" />
-    <plugin name="com.synconset.imagepicker" spec="~2.1.8">
+    <plugin name="com.synconset.imagepicker" spec="^2.1.10">
         <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="Select a picture..." />
     </plugin>
     <plugin name="cordova-plugin-camera" spec="^2.4.1" />
