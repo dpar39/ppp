@@ -23,12 +23,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
-            "program": "${file}",
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ]
+            "program": "${workspaceFolder}/build.py",
         },
         {
             "name": "Start node.js server",

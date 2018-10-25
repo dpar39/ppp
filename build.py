@@ -24,9 +24,11 @@ GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
-
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
+PLATFORM = 'windows' if IS_WINDOWS else sys.platform
+ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
+ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
 
 
 def which(program):
@@ -51,6 +53,68 @@ def which(program):
     return None
 #
 
+class ShellRunner(object):
+
+    def __init__(self, arch_name='x64'):
+        self._env = os.environ.copy()
+        self._extra_paths = []
+        self._arch_name = arch_name
+        if sys.platform == 'win32':
+            self._detect_vs_version()
+
+
+    def add_system_path(self, new_path):
+        curr_path_str = self._env['PATH']
+        path_elmts = set(curr_path_str.split(os.pathsep))
+        if new_path in path_elmts:
+            return
+        self._env['PATH'] = curr_path_str + os.pathsep + new_path
+
+    def set_env_var(self, var_name, var_value):
+        assert isinstance(var_name, str), 'var_name should be a string'
+        assert isinstance(var_value, str) or var_value is None, 'var_value should be a string or None'
+        self._env[var_name] = var_value
+
+    def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
+            """
+            Runs a shell command
+            """
+            if isinstance(cmd_args, str):
+                cmd_args = cmd_args.split()
+            cmd_all = []
+            if IS_WINDOWS:
+                cmd_all = [self._vcvarsbat, self._arch_name,
+                        '&&', 'set', 'CL=/MP', '&&']
+            cmd_all = cmd_all + cmd_args
+
+            if cmd_print:
+                print(' '.join(cmd_args))
+
+            p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+            if input:
+                p.communicate(input=input)
+            else:
+                p.wait()
+            if p.returncode != 0:
+                print('Command "%s" exited with code %d' %(' '.join(cmd_args), p.returncode))
+                sys.exit(p.returncode)
+
+    def _detect_vs_version(self):
+        """
+        Detects the first available version of Visual Studio
+        """
+        vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
+        for (vsgenerator, vcvarsbat) in vc_releases:
+            if os.path.exists(vcvarsbat):
+                self._vcvarsbat = vcvarsbat
+                self._vc_cmake_gen = vsgenerator
+                if "64" in self._arch_name:
+                    self._vc_cmake_gen += ' Win64'
+                break
+    def get_vc_cmake_generator(self):
+        return self._vc_cmake_gen
 
 class Builder(object):
     """
@@ -63,53 +127,6 @@ class Builder(object):
         """
         webapp_dir_name = 'webapp'
         return os.path.join(self._root_dir, webapp_dir_name)
-#
-
-    def detect_vs_version(self):
-        """
-        Detects the first available version of Visual Studio
-        """
-        vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 15 2017',
-                        r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
-        for (vsgenerator, vcvarsbat) in vc_releases:
-            if os.path.exists(vcvarsbat):
-                self._vcvarsbat = vcvarsbat
-                self._vc_cmake_gen = vsgenerator
-                if "64" in self._arch_name:
-                    self._vc_cmake_gen += ' Win64'
-                break
-#
-
-    def run_cmd(self, cmd_args, cmd_print=True):
-        """
-        Runs a shell command
-        """
-        env = os.environ.copy()
-        cmd_all = []
-        if IS_WINDOWS:
-            # Load visual studio environmental variables first
-            if not hasattr(self, '_vcvarsbat'):
-                self.detect_vs_version()
-            cmd_all = [self._vcvarsbat, self._arch_name,
-                       '&&', 'set', 'CL=/MP', '&&']
-        else:
-            env['CXXFLAGS'] = '-fPIC'
-            env['LD_LIBRARY_PATH'] = self._install_dir
-        env['INSTALL_DIR'] = self._install_dir
-        cmd_all = cmd_all + cmd_args
-        if cmd_print:
-            print(' '.join(cmd_args))
-
-        process = subprocess.Popen(cmd_all, env=env, stderr=subprocess.STDOUT)
-        process.wait()
-        if process.returncode != 0:
-            print('Command "%s" exited with code %d' %
-                  (' '.join(cmd_args), process.returncode))
-            os.chdir(self._root_dir)
-            sys.exit(process.returncode)
-#
 
     def run_cmake(self, cmake_generator, cmakelists_path='.'):
         """
@@ -125,6 +142,8 @@ class Builder(object):
         cmake_args.append(cmakelists_path)
         self.run_cmd(cmake_args)
 #
+    def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
+        self._shell.run_cmd(cmd_args, cmd_print=cmd_print, cwd=cwd, input=input)
 
     def set_startup_vs_prj(self, project_name):
         """
@@ -251,7 +270,7 @@ class Builder(object):
         else:  # Windows OS: only builds with msbuild.exe
             # Change directory to the build directory
             os.chdir(build_dir)
-            cmake_cmd = ['cmake', '-G', self._vc_cmake_gen] \
+            cmake_cmd = ['cmake', '-G', self._shell.get_vc_cmake_generator()] \
                 + cmake_extra_defs + [opencv_extract_dir]
             self.run_cmd(cmake_cmd)
             platform = 'x64' if '64' in self._arch_name else 'Win32'
@@ -315,15 +334,18 @@ class Builder(object):
         return lib_filepath
 #
 
-    def extract_third_party_lib(self, lib_src_pkg):
+    def extract_third_party_lib(self, lib_src_pkg, extract_dir=None):
         """
         Extracts a third party lib package source file into a directory
         """
+
+        if not extract_dir:
+            extract_dir = self._third_party_dir
         print('Extracting third party library "%s" please wait ...' % lib_src_pkg)
         if 'zip' in lib_src_pkg:
             zip_handle = zipfile.ZipFile(lib_src_pkg)
             for item in zip_handle.namelist():
-                zip_handle.extract(item, self._third_party_dir)
+                zip_handle.extract(item, extract_dir)
             zip_handle.close()
         else:  # Assume tar archive (tgz, tar.bz2, tar.gz)
             tar = tarfile.open(lib_src_pkg, 'r')
@@ -401,7 +423,55 @@ class Builder(object):
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
         self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_'
                                                      + self._build_config + '_' + self._arch_name)
+
+        shell = ShellRunner(args.arch_name)
+
+        # Set up some compiler flags
+        if not IS_WINDOWS:
+            shell.set_env_var('CXXFLAGS', '-fPIC')
+            shell.set_env_var('LD_LIBRARY_PATH', self._install_dir)
+        shell.set_env_var('INSTALL_DIR', self._install_dir)
+        self._shell = shell
 #
+
+    def setup_android(self):
+        # Download SDK tools if not present and extract it to
+        android_sdk_tools_pkg = self.download_third_party_lib(ANDROID_SDK_TOOLS)
+
+
+        # Extract the SDK if not done already
+        android_sdk_tools_dirname = os.path.splitext(os.path.basename(android_sdk_tools_pkg))[0]
+        android_sdk_tools_dir = self.get_third_party_lib_dir(android_sdk_tools_dirname)
+        if android_sdk_tools_dir is None:
+            android_sdk_tools_dir = os.path.join(self._third_party_dir, android_sdk_tools_dirname)
+            self.extract_third_party_lib(android_sdk_tools_pkg, android_sdk_tools_dir)
+
+        android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
+
+        # Extract the NDK if not done already
+        android_ndk_dirname = os.path.splitext(os.path.basename(android_ndk_pkg))[0]
+        android_ndk_dir = self.get_third_party_lib_dir(android_ndk_dirname)
+        if android_ndk_dir is None:
+            android_ndk_dir = os.path.join(self._third_party_dir, android_ndk_dirname)
+            self.extract_third_party_lib(android_ndk_pkg, android_ndk_dir)
+
+        # Set up environment
+        android_user_dir = os.path.join(os.path.expanduser("~"), '.android')
+        if not os.path.exists(android_user_dir):
+            os.mkdir(android_user_dir)
+        repos_cfg = os.path.join(android_user_dir, 'repositories.cfg')
+        if not os.path.exists(repos_cfg):
+            with open(repos_cfg, 'w') as fp:
+                fp.write('')
+
+        self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
+        self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
+        self._shell.set_env_var('ANDROID_NDK', android_ndk_dir)
+        self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools/bin')))
+        self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools')))
+
+        #self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='yes')
+
 
     def extract_validation_data(self):
         """
@@ -460,7 +530,7 @@ class Builder(object):
         os.chdir(self._build_dir)
         if self._gen_vs_sln:
             # Generating visual studio solution
-            cmake_generator = self._vc_cmake_gen
+            cmake_generator = self._shell.get_vc_cmake_generator()
             self.run_cmake(cmake_generator, '..')
             self.set_startup_vs_prj('ppp_test')
         else:
@@ -518,8 +588,8 @@ class Builder(object):
         # Detect OS version
         self.parse_arguments()
 
-        if IS_WINDOWS:
-            self.detect_vs_version()
+        self.setup_android()
+        exit()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
@@ -537,6 +607,11 @@ class Builder(object):
 
         # Copy built addon and configuration to webapp
         self.build_webapp()
+
+
+
+
+
 
 
 BUILDER = Builder()
