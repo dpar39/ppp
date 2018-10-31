@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PassportPhotoApp</string>
+    <string name="title_activity_main">PassportPhotoApp</string>
+    <string name="package_name">org.pardinas.ppp</string>
+    <string name="fileprovider_authority">org.pardinas.ppp.fileprovider</string>
+    <string name="custom_url_scheme">org.pardinas.ppp</string>
+</resources>

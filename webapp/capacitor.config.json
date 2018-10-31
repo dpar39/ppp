@@ -1,0 +1,6 @@
+{
+  "appId": "org.pardinas.ppp",
+  "appName": "PassportPhotoApp",
+  "bundledWebRuntime": false,
+  "webDir": "dist"
+}

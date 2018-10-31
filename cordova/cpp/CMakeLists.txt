@@ -5,11 +5,11 @@ set(APP_CPPFLAGS "${APP_CPPFLAGS} -std=c++11 -fPIC")
 
 set(THIRDPARTY_DIR ${CMAKE_SOURCE_DIR}/../../../../thirdparty)
 set(DLIB_ROOT ${THIRDPARTY_DIR}/dlib-19.6)
+set(OpenCV_DIR ${THIRDPARTY_DIR}/OpenCV-android-sdk/sdk/native/jni)
 
-#set(OpenCV_DIR ${THIRDPARTY_DIR}/opencv-3.2.0-android-sdk/OpenCV-android-sdk/sdk/native/jni)
+message(STATUS "Setting OpenCV_DIR to " ${OpenCV_DIR})
 
 
-#
 # defaultConfig {
 #     externalNativeBuild {
 #         cmake {
@@ -20,8 +20,6 @@ set(DLIB_ROOT ${THIRDPARTY_DIR}/dlib-19.6)
 #         abiFilters 'x86', 'armeabi-v7a'
 #     }
 
-set(OpenCV_DIR  $ENV{OPENCV_ANDROID}/sdk/native/jni)
-message("Set OpenCV_DIR to " ${OpenCV_DIR})
 find_package(OpenCV 3.4 REQUIRED java)
 add_definitions(-DOS_ANDROID)
 

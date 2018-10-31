@@ -1,9 +1,0 @@
-/bin
-/obj
-/uploads
-/client/node_modules
-/wwwroot
-config.json
-sp_model.dat
-libppp.*
-*.log

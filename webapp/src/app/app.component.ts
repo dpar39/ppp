@@ -1,16 +1,19 @@
-import { Component, ElementRef } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import { Http } from '@angular/http';
 
 import { CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
+import { Plugins } from '@capacitor/core';
 
+import { PppPluginPlugin } from '../ionic-plugin/definitions';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+    echoString = 'Welcome to this app';
 
     imageKey: string;
     imageSrc: string | ArrayBuffer = '#';
@@ -31,6 +34,14 @@ export class AppComponent {
     constructor(
         public el: ElementRef,
         private beService: BackEndService) {
+    }
+
+    ngOnInit(): void {
+
+        const { PppPlugin } = Plugins;
+        PppPlugin.echo({value: 'aaa'}).then(v => {
+            this.echoString = v.value;
+        });
     }
 
     loadImage(event) {

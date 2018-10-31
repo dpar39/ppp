@@ -21,7 +21,7 @@ except ImportError:   # Fall back to Python 2's urllib2
 
 # Configuration
 GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.1.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.3.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
@@ -230,7 +230,7 @@ class Builder(object):
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
         # Get the file prefix for OpenCV
-        opencv_extract_dir = self.get_third_party_lib_dir('opencv')
+        opencv_extract_dir = self.get_third_party_lib_dir('opencv-')
 
         if opencv_extract_dir is None:
             # Extract the source files
@@ -588,8 +588,7 @@ class Builder(object):
         # Detect OS version
         self.parse_arguments()
 
-        self.setup_android()
-        exit()
+        # self.setup_android()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
