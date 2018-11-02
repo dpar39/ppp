@@ -5,7 +5,6 @@ import { CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canv
 import { BackEndService } from './services/back-end.service';
 import { Plugins } from '@capacitor/core';
 
-import { PppPluginPlugin } from '../ionic-plugin/definitions';
 
 @Component({
     selector: 'app-root',
@@ -43,7 +42,8 @@ export class AppComponent implements OnInit {
             this.echoString = v.value;
         });
 
-        PppPlugin.configure("this is cool").then(s => this.echoString = s);
+        PppPlugin.configure({cfg :"this is cool"})
+            .then(s => this.echoString = s);
     }
 
     loadImage(event) {
