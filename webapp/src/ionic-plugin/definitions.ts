@@ -1,9 +1,13 @@
-declare global {
-  interface PluginRegistry {
-    PppPlugin?: PppPluginPlugin;
-  }
+declare global
+{
+    interface PluginRegistry {
+        PppPlugin?: PppPluginPlugin;
+    }
 }
 
 export interface PppPluginPlugin {
-  echo(options: { value: string }): Promise<{value: string}>;
+  
+    echo(options: { value: string }): Promise<{ value : string }>;
+
+    configure(options: { cfg: string }): Promise<string>;
 }

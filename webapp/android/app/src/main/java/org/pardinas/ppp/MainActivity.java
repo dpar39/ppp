@@ -9,10 +9,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
 
-  static {
-    System.loadLibrary("native-lib");
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

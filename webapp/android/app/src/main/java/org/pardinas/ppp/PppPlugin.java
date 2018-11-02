@@ -13,6 +13,10 @@ import swig.libppp;
 @NativePlugin()
 public class PppPlugin extends Plugin {
 
+  static {
+    System.loadLibrary("libppp");
+  }
+
   @PluginMethod()
   public void echo(PluginCall call) {
     String value = call.getString("value");
@@ -24,7 +28,7 @@ public class PppPlugin extends Plugin {
 
   @PluginMethod()
   public void configure(PluginCall call) {
-    String config = call.getData().toString();
+    String config = call.getString("cfg");
     boolean result = libppp.configure(config);
     if (result) {
       JSObject ret = new JSObject();

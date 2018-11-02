@@ -10,23 +10,39 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 #----------------------------
 # Third party dependencies
 #----------------------------
-# OpenCV Library
-find_package(OpenCV REQUIRED)
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
+set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0")
+set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
+#set(JAVA_HOME $ENV{JAVA_HOME})
 
-# Boost library for non C++17 compiler
-if (UNIX)
-    find_package(Boost REQUIRED COMPONENTS system filesystem)
+if( ANDROID )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fexceptions -fPIC")
+    set(APP_CPPFLAGS "${APP_CPPFLAGS} -std=c++11 -fexceptions -fPIC")
+    set(OpenCV_DIR ${THIRD_PARTY_DIR}/OpenCV-android-sdk/sdk/native/jni)
+    file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*java_wrap.cxx")
+else()
+    if (CMAKE_SIZEOF_VOID_P MATCHES "4")
+        set(ARCH_NAME "x86")
+    else()
+        set(ARCH_NAME "x64")
+    endif()
+    string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+    set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_${BUILD_TYPE}_${ARCH_NAME})
+
+    add_definitions(-DDLLEXPORT)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*nodejs_wrap.cxx")
 endif()
 
-set(LIB_MODE SHARED)
-add_definitions(-DDLLEXPORT)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+# Find OpenCV Library
+find_package(OpenCV REQUIRED)
 
 #-----------------------------
 # Build the module library
 #-----------------------------
 file(GLOB LIB_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*_wrap.cxx")
+
 file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 # Add some source files needed for DLIB
@@ -49,59 +65,56 @@ set(LIB_SRC_FILES ${LIB_CPP_FILES} ${LIB_WRP_FILES}
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
     ${DLIB_ROOT}
     ${DLIB_ROOT}/dlib/base64
     ${DLIB_ROOT}/dlib/entropy_decoder
     ${DLIB_ROOT}/dlib/entropy_encoder
+    ${THIRD_PARTY_DIR}
 )
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
-    ${Boost_LIBRARIES}
     ${OPENCV_3RDPARTY_LIBS}
 )
 
 include_directories(${MODULE_INC_DIRS})
-add_library(${LIB_NAME} ${LIB_MODE} ${LIB_SRC_FILES} ${LIB_INC_FILES})
+add_library(${LIB_NAME} SHARED ${LIB_SRC_FILES} ${LIB_INC_FILES})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
-# Install the library
-install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/sp_model.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
+if (NOT ANDROID AND NOT IOS)
+    # Install the library
+    install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/sp_model.dat DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-#-----------------------------
-# Build the module tests
-#-----------------------------
-file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
-file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
+    #-----------------------------
+    # Build the module tests
+    #-----------------------------
+    if (UNIX) # Boost library for non C++17 compiler
+        find_package(Boost REQUIRED COMPONENTS system filesystem)
+    endif()
 
-#if (WIN32)
-#    set(DLIB_TRAIN_SRC_FILES
-#        ${DLIB_ROOT}/dlib/threads/thread_pool_extension.cpp
-#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_extensions.cpp
-#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_1.cpp
-#        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_2.cpp
-#        ${DLIB_ROOT}/dlib/misc_api/misc_api_kernel_1.cpp
-#        ${DLIB_ROOT}/dlib/data_io/image_dataset_metadata.cpp)
-#endif()
+    file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
+    file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
 
-set(TEST_INC_DIRS
-    ${GMOCK_ROOT}/gtest/include
-    ${GMOCK_ROOT}/include
-    ${MODULE_INC_DIRS}
-)
-set(TEST_LIB_DEPS
-    ${LIB_NAME}
-    ${MODULE_LIB_DEPS}
-    gmock
-)
+    set(TEST_INC_DIRS
+        ${MODULE_INC_DIRS}
+        ${GMOCK_ROOT}/gtest/include
+        ${GMOCK_ROOT}/include
+        ${Boost_INCLUDE_DIRS}
+    )
+    set(TEST_LIB_DEPS
+        ${MODULE_LIB_DEPS}
+        ${LIB_NAME}
+        ${Boost_LIBRARIES}
+        gmock
+    )
 
-add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
-target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
-target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
+    add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
+    target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
+    target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
 
-install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()

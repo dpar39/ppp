@@ -2,8 +2,9 @@ import { WebPlugin } from '@capacitor/core';
 import { PppPluginPlugin } from './definitions';
 
 export class PppPluginWeb extends WebPlugin implements PppPluginPlugin {
-  async configure(cfg: string): Promise<string> {
-    console.log('CONFIGURE', cfg);
+  async configure(options: {cfg: string} ): Promise<string> {
+
+    console.log('CONFIGURE', options.cfg);
     return Promise.resolve('OOOOO');
   }
   constructor() {
