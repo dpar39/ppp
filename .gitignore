@@ -18,3 +18,5 @@ package-lock.json
 .DS_Store
 
 /webapp/libpppwrapper.py
+/libppp/swig/*.cxx
+

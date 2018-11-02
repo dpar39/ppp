@@ -86,6 +86,4 @@ extern "C"
     bool detect_landmarks(const char *img_id, char *landmarks);
 
     int  create_tiled_print(const char *img_id, const char *request, char *out_buf);
-
-    void get_last_error(char *err_message);
 }

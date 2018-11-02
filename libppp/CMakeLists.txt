@@ -26,11 +26,11 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Build the module library
 #-----------------------------
 file(GLOB LIB_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*.c")
+file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*_wrap.cxx")
 file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 # Add some source files needed for DLIB
-set(LIB_SRC_FILES ${LIB_CPP_FILES} #${LIB_WRP_FILES}
+set(LIB_SRC_FILES ${LIB_CPP_FILES} ${LIB_WRP_FILES}
     ${DLIB_ROOT}/dlib/base64/base64_kernel_1.cpp
     ${DLIB_ROOT}/dlib/bit_stream/bit_stream_kernel_1.cpp
     ${DLIB_ROOT}/dlib/threads/threads_kernel_1.cpp

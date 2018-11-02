@@ -42,6 +42,8 @@ export class AppComponent implements OnInit {
         PppPlugin.echo({value: 'aaa'}).then(v => {
             this.echoString = v.value;
         });
+
+        PppPlugin.configure("this is cool").then(s => this.echoString = s);
     }
 
     loadImage(event) {

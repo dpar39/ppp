@@ -70,3 +70,6 @@ fastlane/readme.md
 
 # Copied web assets
 app/src/main/assets/public
+
+# Swig generated code
+app/src/main/java/swig

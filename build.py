@@ -26,10 +26,13 @@ DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
+
 PLATFORM = 'windows' if IS_WINDOWS else sys.platform
 ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
 ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
+ANDROID_GRADLE = ''
 
+#  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
 
 def which(program):
     """
@@ -399,7 +402,7 @@ class Builder(object):
         parser.add_argument(
             '--clean', help='Cleans the whole build directory', action="store_true")
         parser.add_argument(
-            '--skip_tests', help='Skips running unit tests', action="store_true")
+            '--test', help='Runs unit tests', action="store_true")
         parser.add_argument(
             '--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
@@ -411,7 +414,7 @@ class Builder(object):
         self._build_clean = args.clean
         self._build_config = args.build_config
         self._gen_vs_sln = args.gen_vs_sln
-        self._run_tests = not args.skip_tests
+        self._run_tests = args.test
         self._run_install = not args.skip_install
 
         # directory suffix for the build and release
@@ -605,7 +608,7 @@ class Builder(object):
         self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
-        self.build_webapp()
+        #self.build_webapp()
 
 
 
