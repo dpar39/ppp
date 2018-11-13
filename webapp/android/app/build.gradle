@@ -16,7 +16,7 @@ android {
       }
     }
     ndk {
-      abiFilters 'x86', 'armeabi-v7a'
+      abiFilters 'x86_64'
     }
   }
   externalNativeBuild {
@@ -71,7 +71,7 @@ task myPrebuildTask(type: Exec) {
   if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
     commandLine 'cmd', '/c', 'ng','build','&&','npx','cap','copy'
   } else {
-    commandLine 'sh', '-c', 'ng','build','&&','npx','cap','copy'
+    commandLine 'bash', '-c', 'ng build && npx cap copy'
   }
 }
 preBuild.dependsOn myPrebuildTask

@@ -564,7 +564,13 @@ class Builder(object):
                     link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
                 os.system(link_cmd)
                 #shutil.copy(src_file_path, self.web_app_dir())
-#
+
+    def build_android(self):
+        # Create swig code
+        self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
+
+        # Build android project
+        self.run_cmd('gradle build', cwd='webapp/android')
 
     def build_webapp(self):
         """
@@ -604,8 +610,11 @@ class Builder(object):
         self.extract_gmock()
         self.build_opencv()
 
-        # Build this project
+        # Build this project for a desktop platform (Windows or Unix-based OS)
         self.build_cpp_code()
+
+        # Build the android app
+        self.build_android()
 
         # Copy built addon and configuration to webapp
         #self.build_webapp()
