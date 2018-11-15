@@ -54,17 +54,24 @@ def which(program):
             if is_exe(exe_file):
                 return exe_file
     return None
-#
+
+def link_file(src_file_path, dst_link):
+    if not os.path.exists(src_file_path):
+        raise FileNotFoundError(src_file_path)
+    if IS_WINDOWS:
+        link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
+    else:
+        link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
+    print('Creating link for file "%s" in "%s"' % (src_file_path, dst_link))
+    os.system(link_cmd)
 
 class ShellRunner(object):
-
     def __init__(self, arch_name='x64'):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
         if sys.platform == 'win32':
             self._detect_vs_version()
-
 
     def add_system_path(self, new_path):
         curr_path_str = self._env['PATH']
@@ -558,12 +565,13 @@ class Builder(object):
             src_file_path = os.path.join(self._install_dir, dist_file)
             dst_link = os.path.join(self.web_app_dir(), dist_file)
             if os.path.exists(src_file_path):
-                if IS_WINDOWS:
-                    link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
-                else:
-                    link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
-                os.system(link_cmd)
-                #shutil.copy(src_file_path, self.web_app_dir())
+                link_file(src_file_path, dst_link)
+
+        extra_asset_files = glob.glob(os.path.join(self._root_dir, 'libppp/share/*'))
+        for asset_file in extra_asset_files:
+            print('>>' + asset_file)
+            dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(asset_file))
+            link_file(asset_file, dst_link)
 
     def build_android(self):
         # Create swig code
