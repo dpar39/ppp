@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Http } from '@angular/http';
+import { Http, ResponseContentType } from '@angular/http';
 
 import { CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
@@ -9,7 +9,11 @@ import { Plugins } from '@capacitor/core';
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
+    styles: [`
+     .fit {
+        max-width: 99%;
+        max-height: 99%;
+      }`]
 })
 export class AppComponent implements OnInit {
     echoString = 'Welcome to this app';
@@ -32,18 +36,40 @@ export class AppComponent implements OnInit {
 
     constructor(
         public el: ElementRef,
-        private beService: BackEndService) {
+        private beService: BackEndService,
+        private http: Http) {
     }
 
     ngOnInit(): void {
 
         const { PppPlugin } = Plugins;
-        PppPlugin.echo({value: 'aaa'}).then(v => {
+        PppPlugin.echo({ value: 'aaa' }).then(v => {
             this.echoString = v.value;
         });
 
-        PppPlugin.configure({cfg :"this is cool"})
-            .then(s => this.echoString = s);
+        this.http.get('assets/config.json').subscribe(r => {
+            let objcfg = r.json();
+
+            this.http.get('assets/sp_model.dat', {
+                responseType: ResponseContentType.Blob
+            }).subscribe(rr => {
+                const reader = new FileReader();
+                reader.readAsDataURL(rr.blob());
+                reader.onloadend = () => {
+                    //let content64 = reader.result as string;
+                   // content64 = content64.substring(content64.indexOf(',') + 1);
+                    //objcfg.shapePredictor.data = content64;
+                    let config = JSON.stringify(objcfg);
+
+                    objcfg = null; // memory cleanup
+                    this.echoString = 'dddddddd!';
+                    PppPlugin.configure({ cfg: config }).then(() => {
+                        config = null; // memory cleanup
+                        this.echoString = 'Configured!';
+                    });
+                };
+            });
+        });
     }
 
     loadImage(event) {
