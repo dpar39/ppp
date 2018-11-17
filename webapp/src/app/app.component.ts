@@ -47,28 +47,8 @@ export class AppComponent implements OnInit {
             this.echoString = v.value;
         });
 
-        this.http.get('assets/config.json').subscribe(r => {
-            let objcfg = r.json();
-
-            this.http.get('assets/sp_model.dat', {
-                responseType: ResponseContentType.Blob
-            }).subscribe(rr => {
-                const reader = new FileReader();
-                reader.readAsDataURL(rr.blob());
-                reader.onloadend = () => {
-                    //let content64 = reader.result as string;
-                   // content64 = content64.substring(content64.indexOf(',') + 1);
-                    //objcfg.shapePredictor.data = content64;
-                    let config = JSON.stringify(objcfg);
-
-                    objcfg = null; // memory cleanup
-                    this.echoString = 'dddddddd!';
-                    PppPlugin.configure({ cfg: config }).then(() => {
-                        config = null; // memory cleanup
-                        this.echoString = 'Configured!';
-                    });
-                };
-            });
+        PppPlugin.configure({ cfg: null }).then(() => {
+            this.echoString = 'Configured!';
         });
     }
 
