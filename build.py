@@ -6,6 +6,8 @@ import os
 import re
 import sys
 import glob
+import json
+import base64
 import shutil
 import zipfile
 import tarfile
@@ -28,11 +30,14 @@ MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
 
 PLATFORM = 'windows' if IS_WINDOWS else sys.platform
-ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
-ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
+ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(
+    PLATFORM)
+ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(
+    PLATFORM)
 ANDROID_GRADLE = ''
 
 #  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
+
 
 def which(program):
     """
@@ -55,6 +60,7 @@ def which(program):
                 return exe_file
     return None
 
+
 def link_file(src_file_path, dst_link):
     if not os.path.exists(src_file_path):
         raise FileNotFoundError(src_file_path)
@@ -64,6 +70,7 @@ def link_file(src_file_path, dst_link):
         link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
     print('Creating link for file "%s" in "%s"' % (src_file_path, dst_link))
     os.system(link_cmd)
+
 
 class ShellRunner(object):
     def __init__(self, arch_name='x64'):
@@ -82,39 +89,43 @@ class ShellRunner(object):
 
     def set_env_var(self, var_name, var_value):
         assert isinstance(var_name, str), 'var_name should be a string'
-        assert isinstance(var_value, str) or var_value is None, 'var_value should be a string or None'
+        assert isinstance(
+            var_value, str) or var_value is None, 'var_value should be a string or None'
         self._env[var_name] = var_value
 
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
-            """
-            Runs a shell command
-            """
-            if isinstance(cmd_args, str):
-                cmd_args = cmd_args.split()
-            cmd_all = []
-            if IS_WINDOWS:
-                cmd_all = [self._vcvarsbat, self._arch_name,
-                        '&&', 'set', 'CL=/MP', '&&']
-            cmd_all = cmd_all + cmd_args
+        """
+        Runs a shell command
+        """
+        if isinstance(cmd_args, str):
+            cmd_args = cmd_args.split()
+        cmd_all = []
+        if IS_WINDOWS:
+            cmd_all = [self._vcvarsbat, self._arch_name,
+                       '&&', 'set', 'CL=/MP', '&&']
+        cmd_all = cmd_all + cmd_args
 
-            if cmd_print:
-                print(' '.join(cmd_args))
+        if cmd_print:
+            print(' '.join(cmd_args))
 
-            p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-            if input:
-                p.communicate(input=input)
-            else:
-                p.wait()
-            if p.returncode != 0:
-                print('Command "%s" exited with code %d' %(' '.join(cmd_args), p.returncode))
-                sys.exit(p.returncode)
+        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd,
+                             stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        if input:
+            p.communicate(input=input)
+        else:
+            p.wait()
+        if p.returncode != 0:
+            print('Command "%s" exited with code %d' %
+                  (' '.join(cmd_args), p.returncode))
+            sys.exit(p.returncode)
 
     def _detect_vs_version(self):
         """
         Detects the first available version of Visual Studio
         """
         vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 15 2017',
+                        r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
                        ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
@@ -123,8 +134,10 @@ class ShellRunner(object):
                 if "64" in self._arch_name:
                     self._vc_cmake_gen += ' Win64'
                 break
+
     def get_vc_cmake_generator(self):
         return self._vc_cmake_gen
+
 
 class Builder(object):
     """
@@ -151,9 +164,10 @@ class Builder(object):
 
         cmake_args.append(cmakelists_path)
         self.run_cmd(cmake_args)
-#
+
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
-        self._shell.run_cmd(cmd_args, cmd_print=cmd_print, cwd=cwd, input=input)
+        self._shell.run_cmd(cmd_args, cmd_print=cmd_print,
+                            cwd=cwd, input=input)
 
     def set_startup_vs_prj(self, project_name):
         """
@@ -181,14 +195,12 @@ class Builder(object):
 
         # if not "devenv" in (p.name() for p in psutil.process_iter()):
         #    self.run_cmd(['call', 'devenv', solution_file])
-#
 
     def build_dir_name(self, prefix):
         """
         Returns a name for a build directory based on the build configuration
         """
         return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
-#
 
     def extract_gmock(self):
         """
@@ -202,7 +214,6 @@ class Builder(object):
         if gmock_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
-#
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -214,7 +225,6 @@ class Builder(object):
             if prefix in lib_dir:
                 return os.path.join(self._third_party_dir, lib_dir)
         return None
-#
 
     def build_opencv(self):
         """
@@ -290,7 +300,6 @@ class Builder(object):
             self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj',
                           '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
-#
 
     def insert_static_crt(self, cmake_file):
         """
@@ -319,7 +328,6 @@ class Builder(object):
                 mod_content.append(static_crt)
         with open(cmake_file, 'w') as fp:
             fp.writelines(mod_content)
-#
 
     def get_filename_from_url(self, url):
         """
@@ -328,7 +336,6 @@ class Builder(object):
         lib_filename = url.split('/')[-1].split('#')[0].split('?')[0]
         lib_filepath = os.path.join(self._third_party_dir, lib_filename)
         return lib_filepath
-#
 
     def download_third_party_lib(self, url):
         """
@@ -342,7 +349,6 @@ class Builder(object):
             with open(lib_filepath, 'wb') as output:
                 output.write(lib_file.read())
         return lib_filepath
-#
 
     def extract_third_party_lib(self, lib_src_pkg, extract_dir=None):
         """
@@ -362,7 +368,6 @@ class Builder(object):
             for item in tar:
                 tar.extract(item, self._third_party_dir)
             tar.close()
-#
 
     def build_cmake_lib(self, cmakelists_path, extra_definitions, targets, clean_build=False):
         """
@@ -446,23 +451,29 @@ class Builder(object):
 
     def setup_android(self):
         # Download SDK tools if not present and extract it to
-        android_sdk_tools_pkg = self.download_third_party_lib(ANDROID_SDK_TOOLS)
-
+        android_sdk_tools_pkg = self.download_third_party_lib(
+            ANDROID_SDK_TOOLS)
 
         # Extract the SDK if not done already
-        android_sdk_tools_dirname = os.path.splitext(os.path.basename(android_sdk_tools_pkg))[0]
-        android_sdk_tools_dir = self.get_third_party_lib_dir(android_sdk_tools_dirname)
+        android_sdk_tools_dirname = os.path.splitext(
+            os.path.basename(android_sdk_tools_pkg))[0]
+        android_sdk_tools_dir = self.get_third_party_lib_dir(
+            android_sdk_tools_dirname)
         if android_sdk_tools_dir is None:
-            android_sdk_tools_dir = os.path.join(self._third_party_dir, android_sdk_tools_dirname)
-            self.extract_third_party_lib(android_sdk_tools_pkg, android_sdk_tools_dir)
+            android_sdk_tools_dir = os.path.join(
+                self._third_party_dir, android_sdk_tools_dirname)
+            self.extract_third_party_lib(
+                android_sdk_tools_pkg, android_sdk_tools_dir)
 
         android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
 
         # Extract the NDK if not done already
-        android_ndk_dirname = os.path.splitext(os.path.basename(android_ndk_pkg))[0]
+        android_ndk_dirname = os.path.splitext(
+            os.path.basename(android_ndk_pkg))[0]
         android_ndk_dir = self.get_third_party_lib_dir(android_ndk_dirname)
         if android_ndk_dir is None:
-            android_ndk_dir = os.path.join(self._third_party_dir, android_ndk_dirname)
+            android_ndk_dir = os.path.join(
+                self._third_party_dir, android_ndk_dirname)
             self.extract_third_party_lib(android_ndk_pkg, android_ndk_dir)
 
         # Set up environment
@@ -477,11 +488,12 @@ class Builder(object):
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_NDK', android_ndk_dir)
-        self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools/bin')))
-        self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools')))
+        self._shell.add_system_path(os.path.normpath(
+            os.path.join(android_sdk_tools_dir, 'tools/bin')))
+        self._shell.add_system_path(os.path.normpath(
+            os.path.join(android_sdk_tools_dir, 'tools')))
 
         #self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='yes')
-
 
     def extract_validation_data(self):
         """
@@ -515,7 +527,37 @@ class Builder(object):
         extract(research_dir, 'mugshot_frontal_original_all_2.zip')
         extract(research_dir, 'mugshot_frontal_original_all_3.zip')
         print('Extracting validation data completed!')
-#
+
+    def bundle_config(self):
+        """
+        Bundles all configuration files into a config.bundle.json encoding referred files as Base64
+        """
+        lippp_share_dir = os.path.join(self._root_dir, 'libppp/share')
+
+        def expand_node(node):
+            if not isinstance(node, dict):
+                return
+            for key in node:
+                if key == 'file' and not node.get('data', ''):
+                    file_name = node['file']
+                    file_path = os.path.join(lippp_share_dir, file_name)
+                    with open(file_path, 'rb') as fp:
+                        content = base64.b64encode(fp.read()).decode('ascii')
+                    node['data'] = content
+                else:
+                    expand_node(node[key])
+
+        config_input_file = os.path.join(lippp_share_dir, 'config.json')
+        with open(config_input_file) as fp:
+            config_data = json.load(fp)
+
+        for key in config_data:
+            expand_node(config_data[key])
+
+        config_bundle_file = os.path.join(
+            lippp_share_dir, 'config.bundle.json')
+        with open(config_bundle_file, 'w') as fp:
+            json.dump(config_data, fp)
 
     def build_cpp_code(self):
         """
@@ -567,10 +609,12 @@ class Builder(object):
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
-        extra_asset_files = glob.glob(os.path.join(self._root_dir, 'libppp/share/*'))
+        extra_asset_files = glob.glob(
+            os.path.join(self._root_dir, 'libppp/share/*'))
         for asset_file in extra_asset_files:
             print('>>' + asset_file)
-            dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(asset_file))
+            dst_link = os.path.join(
+                self.web_app_dir(), 'src', 'assets', os.path.basename(asset_file))
             link_file(asset_file, dst_link)
 
     def build_android(self):
@@ -613,6 +657,7 @@ class Builder(object):
 
         # Extract testing dataset
         self.extract_validation_data()
+        self.bundle_config()
 
         # Build Third Party Libs
         self.extract_gmock()
@@ -625,12 +670,7 @@ class Builder(object):
         self.build_android()
 
         # Copy built addon and configuration to webapp
-        #self.build_webapp()
-
-
-
-
-
+        # self.build_webapp()
 
 
 BUILDER = Builder()

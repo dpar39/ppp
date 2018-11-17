@@ -46,9 +46,8 @@ Thumbs.db
 # Server files part of LIBPPP
 /uploads
 *.pyc
-config.json
+config.bundle.json
 libppp.dll
 liblibppp.so
 liblibppp.dylib
-cascade.xml
-sp_model.dat
+liblibpppwrapper.py

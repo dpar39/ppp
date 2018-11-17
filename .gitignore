@@ -19,4 +19,5 @@ package-lock.json
 
 /webapp/libpppwrapper.py
 /libppp/swig/*.cxx
+/libppp/share/config.bundle.json
 
