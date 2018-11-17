@@ -33,7 +33,7 @@ bool EyeDetector::detectLandMarks(const cv::Mat& grayImage, LandMarks& landMarks
 {
     const auto& faceRect = landMarks.vjFaceRect;
 
-    if (faceRect.width <= 10 && faceRect.height <=10)
+    if (faceRect.width <= 10 && faceRect.height <= 10)
     {
         throw std::runtime_error("Face rectangle is too small or not defined");
     }

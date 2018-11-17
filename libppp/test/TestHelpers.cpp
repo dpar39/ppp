@@ -180,7 +180,7 @@ void verifyEqualImages(const cv::Mat& expected, const cv::Mat& actual)
 rapidjson::Document readConfigFromFile(const std::string& configFile)
 {
     auto configFilePath = configFile.empty()
-                              ? resolvePath("libppp/share/config.json")
+                              ? resolvePath("libppp/share/config.bundle.json")
                               : configFile;
 
     std::ifstream fs(configFilePath, std::ios_base::in);

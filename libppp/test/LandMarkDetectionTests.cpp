@@ -69,8 +69,6 @@ protected:
     {
         rapidjson::Document config;
         EXPECT_NO_THROW(config = readConfigFromFile());
-
-        config["shapePredictor"]["file"].SetString(resolvePath("libppp/share/sp_model.dat").c_str(), config.GetAllocator());
         EXPECT_NO_THROW(m_pPppEngine->configure(config));
     }
 

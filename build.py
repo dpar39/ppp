@@ -559,7 +559,7 @@ class Builder(object):
         os.chdir(self._root_dir)
 
         # Copy libppp artifacts to the webapp directory
-        dist_files = ['config.json', 'sp_model.dat', 'libpppwrapper.py',
+        dist_files = ['config.bundle.json', 'libpppwrapper.py',
                       'liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
         for dist_file in dist_files:
             src_file_path = os.path.join(self._install_dir, dist_file)
