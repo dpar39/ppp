@@ -609,13 +609,12 @@ class Builder(object):
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
-        extra_asset_files = glob.glob(
-            os.path.join(self._root_dir, 'libppp/share/*'))
-        for asset_file in extra_asset_files:
-            print('>>' + asset_file)
-            dst_link = os.path.join(
-                self.web_app_dir(), 'src', 'assets', os.path.basename(asset_file))
-            link_file(asset_file, dst_link)
+        # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
+        libpp_config_file = os.path.join(
+            self._root_dir, 'libppp/share/config.bundle.json')
+        dst_link = os.path.join(
+            self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
+        link_file(libpp_config_file, dst_link)
 
     def build_android(self):
         # Create swig code
