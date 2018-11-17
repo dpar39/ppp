@@ -9,7 +9,7 @@ import libpppwrapper as ppp
 app = Flask(__name__, static_url_path='', static_folder='dist')
 ALLOWED_IMG_FORMATS = set(['jpg', 'jpeg',  'png', 'webp', 'ppm'])
 
-assert ppp.configure('config.json')
+assert ppp.configure('config.bundle.json')
 
 @app.route('/')
 def root():

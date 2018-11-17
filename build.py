@@ -419,6 +419,10 @@ class Builder(object):
             '--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
                             action="store_true")
+        parser.add_argument(
+            '--android', help='Builds the android app', action="store_true")
+        parser.add_argument(
+            '--web', help='Builds the web app', action="store_true")
 
         args = parser.parse_args()
 
@@ -428,6 +432,8 @@ class Builder(object):
         self._gen_vs_sln = args.gen_vs_sln
         self._run_tests = args.test
         self._run_install = not args.skip_install
+        self._android_build = args.android
+        self._web_build = args.web
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
@@ -563,6 +569,10 @@ class Builder(object):
         """
         Builds the project from sources
         """
+
+        self.run_cmd(
+            'swig -c++ -python -Ilibppp/include -outdir libppp/python -o libppp/swig/libppp_python_wrap.cxx libppp/swig/libppp.i')
+
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
             # Remove the build directory - clean
@@ -601,8 +611,7 @@ class Builder(object):
         os.chdir(self._root_dir)
 
         # Copy libppp artifacts to the webapp directory
-        dist_files = ['config.bundle.json', 'libpppwrapper.py',
-                      'liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
+        dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
         for dist_file in dist_files:
             src_file_path = os.path.join(self._install_dir, dist_file)
             dst_link = os.path.join(self.web_app_dir(), dist_file)
@@ -617,26 +626,38 @@ class Builder(object):
         link_file(libpp_config_file, dst_link)
 
     def build_android(self):
-        # Create swig code
-        self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
 
-        # Build android project
-        self.run_cmd('gradle build', cwd='webapp/android')
+        if self._android_build:
+            # Create swig code
+            self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
+            # Build android project
+            self.run_cmd('gradle build', cwd='webapp/android')
 
-    def build_webapp(self):
+    def build_webapp(self, build=True):
         """
         Builds and test the web application by running shell commands
         """
+        #  Copy libppp configurations and build files to the webapp directory
+        dist_files = ['libppp/share/config.bundle.json',
+                      'libppp/python/libpppwrapper.py']
+        for dist_file in dist_files:
+            src_file_path = os.path.join(self._root_dir, dist_file)
+            dst_link = os.path.join(self.web_app_dir(), os.path.basename(dist_file))
+            if os.path.exists(src_file_path):
+                link_file(src_file_path, dst_link)
+
         # Install the angular-cli if not found in PATH
         if not which('ng'):
             self.run_cmd(['npm', 'install', '@angular/cli', '-g'])
 
-        os.chdir(self.web_app_dir())
-        self.run_cmd(['npm', 'install'])
-        self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
-        self.run_cmd(['ng', 'build'])
-        os.chdir(self._root_dir)
-#
+        # Build the web app
+        if self._web_build:
+            os.chdir(self.web_app_dir())
+            self.run_cmd(['npm', 'install'])
+            self.run_cmd(
+                ['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
+            self.run_cmd(['ng', 'build'])
+            os.chdir(self._root_dir)
 
     def deploy_to_heroku(self):
         """
@@ -665,11 +686,11 @@ class Builder(object):
         # Build this project for a desktop platform (Windows or Unix-based OS)
         self.build_cpp_code()
 
+        # Copy built addon and configuration to webapp
+        self.build_webapp(False)
+
         # Build the android app
         self.build_android()
-
-        # Copy built addon and configuration to webapp
-        # self.build_webapp()
 
 
 BUILDER = Builder()

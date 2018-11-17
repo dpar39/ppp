@@ -10,5 +10,5 @@
     },
     "files.trimTrailingWhitespace": true,
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "/usr/local/bin/python3.7"
+    "python.pythonPath": "env/bin/python"
 }

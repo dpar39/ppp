@@ -50,4 +50,4 @@ config.bundle.json
 libppp.dll
 liblibppp.so
 liblibppp.dylib
-liblibpppwrapper.py
+libpppwrapper.py

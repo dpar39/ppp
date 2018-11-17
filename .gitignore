@@ -8,7 +8,6 @@
 /research/*.asv
 /addon/build
 /research/mugshot_frontal_original_all
-cascade.xml
 *.ldb
 build/config.gypi
 package-lock.json
@@ -17,7 +16,7 @@ package-lock.json
 .idea/*
 .DS_Store
 
-/webapp/libpppwrapper.py
 /libppp/swig/*.cxx
 /libppp/share/config.bundle.json
 
+/env

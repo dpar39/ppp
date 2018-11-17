@@ -47,9 +47,7 @@ export class AppComponent implements OnInit {
             this.echoString = v.value;
         });
 
-        PppPlugin.configure({ cfg: null }).then(() => {
-            this.echoString = 'Configured!';
-        });
+     
     }
 
     loadImage(event) {

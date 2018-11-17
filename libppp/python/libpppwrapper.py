@@ -41,11 +41,13 @@ libppp.detect_landmarks.argtypes = [c_char_p, c_char_p]
 libppp.create_tiled_print.restype = int
 libppp.create_tiled_print.argtypes = [c_char_p, c_char_p, c_char_p]
 
+def str2bytes(string):
+    return bytes(string, 'ascii')
 
 def configure(config_file):
     """
     """
-    with open(config_file) as fp:
+    with open(config_file, 'rb') as fp:
         cfg = fp.read()
     return libppp.configure(cfg)
 
@@ -57,7 +59,7 @@ def set_image(img_content):
         if os.path.isfile(img_content):
             with open(img_content, 'rb') as fp:
                 img_content = fp.read()
-    except TypeError:
+    except:
         pass
 
     img_content_len = len(img_content)
@@ -74,7 +76,7 @@ def detect_landmarks(img_key):
     assert img_key and isinstance(img_key, str), 'Invalid image key'
 
     landmarks = create_string_buffer(65535)
-    success = libppp.detect_landmarks(img_key, landmarks)
+    success = libppp.detect_landmarks(str2bytes(img_key), landmarks)
     if success:
         return landmarks.value
     return None
@@ -88,7 +90,7 @@ def create_tiled_print(img_key, request):
         request = json.dumps(request)
 
     png_content = create_string_buffer(8*1024*1024)  # A buffer of 8MB at least
-    num_bytes = libppp.create_tiled_print(img_key, request, png_content)
+    num_bytes = libppp.create_tiled_print(str2bytes(img_key), str2bytes(request), png_content)
     png_d = png_content.raw[0:num_bytes]
     return png_d
 

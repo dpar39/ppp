@@ -11,6 +11,7 @@ import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.compo
 import { PassportStandardSelectorComponent } from './passport-standard-selector/passport-standard-selector.component';
 import { BackEndService } from './services/back-end.service';
 import { OnlyNumberDirective } from './directives/onlynumbers-directive';
+import { Platform } from '@ionic/angular';
 
 
 @NgModule({
@@ -28,6 +29,7 @@ import { OnlyNumberDirective } from './directives/onlynumbers-directive';
     ModalModule.forRoot()
   ],
   providers: [
+    Platform,
     BackEndService
   ],
   bootstrap: [AppComponent]
