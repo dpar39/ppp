@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Plugins } from '@capacitor/core';
@@ -8,25 +7,18 @@ import { TiledPhotoRequest } from '../model/datatypes';
 
 @Injectable()
 export class BackEndService {
-    _isConfigured = false;
     _isMobilePlatform = false;
 
-    constructor(private sanitizer: DomSanitizer, private http: Http, private plt: Platform) {
+    constructor(private sanitizer: DomSanitizer, private plt: Platform) {
         this.plt.ready().then((readySource) => {
             this._isMobilePlatform = this.plt.is('ios') || this.plt.is('android');
-            if (this._isMobilePlatform) {
-                const { PppPlugin } = Plugins;
-                PppPlugin.configure({ cfg: null }).then(() => {
-                    this._isConfigured = true;
-                });
-            }
         });
     }
 
     uploadImageToServer(file: File): Promise<string> {
 
         return new Promise((resolve, reject) => {
-            if (this._isMobilePlatform && this._isConfigured) {
+            if (true || this._isMobilePlatform) {
                 const { PppPlugin } = Plugins;
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -62,7 +54,7 @@ export class BackEndService {
 
     retrieveLandmarks(imgKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (this._isMobilePlatform && this._isConfigured) {
+            if (this._isMobilePlatform) {
                 const { PppPlugin } = Plugins;
 
                 PppPlugin.detectLandmarks({ imgKey: imgKey }).then((result) => {

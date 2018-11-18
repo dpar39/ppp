@@ -6,6 +6,8 @@
 #include "PppEngine.h"
 #include "Utilities.h"
 
+#include <regex>
+
 #include <opencv2/imgcodecs.hpp>
 
 using namespace std;
@@ -40,7 +42,18 @@ std::string PublicPppEngine::setImage(const char * bufferData, size_t bufferLeng
     cv::Mat inputImage;
     if (bufferLength <= 0)
     {
-        auto decodedBytes = Utilities::base64Decode(bufferData, strlen(bufferData));
+        // Find out if this is a data url
+        auto offset = 0;
+        auto dataLen = strlen(bufferData);
+
+        regex re("^data:([a-z]+\\/[a-z]+(;[a-z\\-]+\\=[a-z\\-]+)?)?(;base64)?,");
+        std::cmatch cm;    // same as std::match_results<const char*> cm;
+        if (std::regex_search (bufferData, cm, re)) {
+            offset = cm[0].length();
+            dataLen -= offset;
+        }
+
+        auto decodedBytes = Utilities::base64Decode(bufferData + offset, dataLen);
         cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
         inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
     }

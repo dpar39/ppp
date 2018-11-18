@@ -12,23 +12,29 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
+import swig.PublicPppEngine;
+
 import swig.libppp;
 
 
 @NativePlugin()
 public class PppPlugin extends Plugin {
 
+    private PublicPppEngine engine;
+
     static {
         System.loadLibrary("libppp");
     }
 
-    @PluginMethod()
-    public void echo(PluginCall call) {
-        String value = call.getString("value");
-
-        JSObject ret = new JSObject();
-        ret.put("value", "La vida es bella");
-        call.success(ret);
+    @Override()
+    public void load() {
+        engine = new PublicPppEngine();
+        String config = loadAsset("public/assets/config.bundle.json");
+        boolean result = engine.configure(config);
+        if (!result)
+        {
+            engine = null;
+        }
     }
 
     private String loadAsset(String filePath) {
@@ -50,22 +56,16 @@ public class PppPlugin extends Plugin {
     }
 
     @PluginMethod()
-    public void configure(PluginCall call) {
+    public void setImage(PluginCall call) {
+        String imgDataBase64 = call.getString("imgData");
 
-        String config = loadAsset("public/assets/config.bundle.json");
-
-        boolean result = libppp.configure(config);
-
-        if (result) {
+        String imgKey = engine.setImage(imgDataBase64, 0).toString();
+        if (imgKey != null && !imgKey.isEmpty()) {
             JSObject ret = new JSObject();
-            ret.put("success", result);
+            ret.put("imgKey", imgKey);
             call.success(ret);
         }
-    }
-
-    @PluginMethod()
-    public void setImage(PluginCall call) {
-
+        call.reject(null);
     }
 
     @PluginMethod()

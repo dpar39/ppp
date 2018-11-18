@@ -1,10 +1,8 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Http, ResponseContentType } from '@angular/http';
+import { Http } from '@angular/http';
 
 import { CrownChinPointPair, TiledPhotoRequest, PassportStandard, UnitType, Canvas } from './model/datatypes';
 import { BackEndService } from './services/back-end.service';
-import { Plugins } from '@capacitor/core';
-
 
 @Component({
     selector: 'app-root',
@@ -36,18 +34,11 @@ export class AppComponent implements OnInit {
 
     constructor(
         public el: ElementRef,
-        private beService: BackEndService,
-        private http: Http) {
+        private beService: BackEndService) {
     }
 
     ngOnInit(): void {
-
-        const { PppPlugin } = Plugins;
-        PppPlugin.echo({ value: 'aaa' }).then(v => {
-            this.echoString = v.value;
-        });
-
-     
+        this.echoString = '' + this.beService._isMobilePlatform;
     }
 
     loadImage(event) {
