@@ -16,8 +16,8 @@ set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 #set(JAVA_HOME $ENV{JAVA_HOME})
 
 if( ANDROID )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fexceptions -fPIC")
-    set(APP_CPPFLAGS "${APP_CPPFLAGS} -std=c++11 -fexceptions -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fexceptions -fPIC")
+    set(APP_CPPFLAGS "${APP_CPPFLAGS} -std=c++17 -fexceptions -fPIC")
     set(OpenCV_DIR ${THIRD_PARTY_DIR}/OpenCV-android-sdk/sdk/native/jni)
     file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*java_wrap.cxx")
 else()
@@ -94,9 +94,9 @@ if (NOT ANDROID AND NOT IOS)
     #-----------------------------
     # Build the module tests
     #-----------------------------
-    if (UNIX) # Boost library for non C++17 compiler
-        find_package(Boost REQUIRED COMPONENTS system filesystem)
-    endif()
+    #if (UNIX) # Boost library for non C++17 compiler
+    #    find_package(Boost REQUIRED COMPONENTS system filesystem)
+    #endif()
 
     file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
     file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
@@ -112,6 +112,7 @@ if (NOT ANDROID AND NOT IOS)
         ${LIB_NAME}
         ${Boost_LIBRARIES}
         gmock
+        stdc++fs
     )
 
     add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})

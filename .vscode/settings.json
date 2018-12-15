@@ -8,7 +8,22 @@
         "cstddef": "cpp",
         "filesystem": "cpp"
     },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "./thirdparty/opencv-3.4.3": true,
+        "./thirdparty/install_release_x64": true,
+        "./thirdparty/install_debug_x64": true,
+        "**/node_modules": true,
+    },
     "files.trimTrailingWhitespace": true,
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "env/bin/python"
+    "python.pythonPath": "/usr/bin/python3",
+    "python.linting.pep8Enabled": true,
+     "python.linting.pep8Args": [
+         "--ignore=E501"
+     ]
 }

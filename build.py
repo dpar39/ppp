@@ -29,12 +29,17 @@ DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
 
-PLATFORM = 'windows' if IS_WINDOWS else sys.platform
+if sys.platform == 'win32':
+    PLATFORM = 'windows'
+elif sys.platform == 'linux2':
+    PLATFORM = 'linux'
+elif sys.platform == 'darwin':
+    PLATFORM = 'darwin'
 ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(
     PLATFORM)
 ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(
     PLATFORM)
-ANDROID_GRADLE = ''
+ANDROID_GRADLE = 'https://services.gradle.org/distributions/gradle-4.10.3-bin.zip'
 
 #  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
 
@@ -409,7 +414,7 @@ class Builder(object):
             description='Builds the passport photo application.')
         parser.add_argument('--arch_name', required=False,
                             choices=['x64', 'x86'], help='Platform architecture', default='x64')
-        parser.add_argument('--build_config',  required=False, choices=[
+        parser.add_argument('--build_config', required=False, choices=[
                             'debug', 'release'], help='Build configuration type', default='release')
         parser.add_argument(
             '--clean', help='Cleans the whole build directory', action="store_true")
@@ -471,6 +476,15 @@ class Builder(object):
             self.extract_third_party_lib(
                 android_sdk_tools_pkg, android_sdk_tools_dir)
 
+        # Download gradle
+        gradle_pkg = self.download_third_party_lib(ANDROID_GRADLE)
+        gradle_pkg_dirname = os.path.splitext(os.path.basename(gradle_pkg))[0][:-4]
+        gradle_pkg_dir = self.get_third_party_lib_dir(gradle_pkg_dirname)
+        if gradle_pkg_dir is None:
+            gradle_pkg_dir = os.path.join(self._third_party_dir, gradle_pkg_dirname)
+            self.extract_third_party_lib(gradle_pkg)
+
+        # Download Android NDK if not present
         android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
 
         # Extract the NDK if not done already
@@ -494,12 +508,19 @@ class Builder(object):
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_NDK', android_ndk_dir)
-        self._shell.add_system_path(os.path.normpath(
-            os.path.join(android_sdk_tools_dir, 'tools/bin')))
+        self._shell.set_env_var('JAVA_OPTS', '-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee')
+        bin_tools = os.path.normpath(
+            os.path.join(android_sdk_tools_dir, 'tools/bin'))
+        self._shell.add_system_path(bin_tools)
         self._shell.add_system_path(os.path.normpath(
             os.path.join(android_sdk_tools_dir, 'tools')))
-
-        #self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='yes')
+        self._shell.add_system_path(os.path.normpath(
+            os.path.join(gradle_pkg_dir, 'bin')))
+        if os.name == 'posix':
+            self.run_cmd('chmod +x {}/sdkmanager'.format(bin_tools))
+            self.run_cmd('chmod +x {}/bin/gradle'.format(gradle_pkg_dir))
+        # self.run_cmd('yes | sdkmanager --licenses')
+        #self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
 
     def extract_validation_data(self):
         """
@@ -626,7 +647,9 @@ class Builder(object):
         link_file(libpp_config_file, dst_link)
 
     def build_android(self):
-
+        """
+        Builds android app
+        """
         if self._android_build:
             # Create swig code
             self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
@@ -642,7 +665,8 @@ class Builder(object):
                       'libppp/python/libpppwrapper.py']
         for dist_file in dist_files:
             src_file_path = os.path.join(self._root_dir, dist_file)
-            dst_link = os.path.join(self.web_app_dir(), os.path.basename(dist_file))
+            dst_link = os.path.join(
+                self.web_app_dir(), os.path.basename(dist_file))
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
@@ -669,7 +693,9 @@ class Builder(object):
         # Detect OS version
         self.parse_arguments()
 
-        # self.setup_android()
+        # Setup android tools
+        if self._android_build:
+            self.setup_android()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):
@@ -684,7 +710,7 @@ class Builder(object):
         self.build_opencv()
 
         # Build this project for a desktop platform (Windows or Unix-based OS)
-        self.build_cpp_code()
+        #self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.build_webapp(False)
