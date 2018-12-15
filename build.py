@@ -31,7 +31,7 @@ IS_WINDOWS = sys.platform == 'win32'
 
 if sys.platform == 'win32':
     PLATFORM = 'windows'
-elif sys.platform == 'linux2':
+elif 'linux' in sys.platform:
     PLATFORM = 'linux'
 elif sys.platform == 'darwin':
     PLATFORM = 'darwin'
@@ -97,6 +97,9 @@ class ShellRunner(object):
         assert isinstance(
             var_value, str) or var_value is None, 'var_value should be a string or None'
         self._env[var_name] = var_value
+
+    def get_env_var(self, var_name):
+        return self._env.get(var_name, '')
 
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
         """
@@ -362,7 +365,7 @@ class Builder(object):
 
         if not extract_dir:
             extract_dir = self._third_party_dir
-        print('Extracting third party library "%s" please wait ...' % lib_src_pkg)
+        print('Extracting third party library "%s" into "%s" ... please wait ...' % (lib_src_pkg, extract_dir))
         if 'zip' in lib_src_pkg:
             zip_handle = zipfile.ZipFile(lib_src_pkg)
             for item in zip_handle.namelist():
@@ -478,23 +481,17 @@ class Builder(object):
 
         # Download gradle
         gradle_pkg = self.download_third_party_lib(ANDROID_GRADLE)
-        gradle_pkg_dirname = os.path.splitext(os.path.basename(gradle_pkg))[0][:-4]
-        gradle_pkg_dir = self.get_third_party_lib_dir(gradle_pkg_dirname)
+        gradle_pkg_dir = self.get_third_party_lib_dir('gradle')
         if gradle_pkg_dir is None:
-            gradle_pkg_dir = os.path.join(self._third_party_dir, gradle_pkg_dirname)
             self.extract_third_party_lib(gradle_pkg)
 
         # Download Android NDK if not present
         android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
 
         # Extract the NDK if not done already
-        android_ndk_dirname = os.path.splitext(
-            os.path.basename(android_ndk_pkg))[0]
-        android_ndk_dir = self.get_third_party_lib_dir(android_ndk_dirname)
+        android_ndk_dir = self.get_third_party_lib_dir('android-ndk')
         if android_ndk_dir is None:
-            android_ndk_dir = os.path.join(
-                self._third_party_dir, android_ndk_dirname)
-            self.extract_third_party_lib(android_ndk_pkg, android_ndk_dir)
+            self.extract_third_party_lib(android_ndk_pkg)
 
         # Set up environment
         android_user_dir = os.path.join(os.path.expanduser("~"), '.android')
@@ -505,10 +502,13 @@ class Builder(object):
             with open(repos_cfg, 'w') as fp:
                 fp.write('')
 
+        self._shell.set_env_var('JAVA_HOME', '/usr/lib/jvm/java-8-oracle')
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
-        self._shell.set_env_var('ANDROID_NDK', android_ndk_dir)
-        self._shell.set_env_var('JAVA_OPTS', '-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee')
+        self._shell.set_env_var('ANDROID_NDK_HOME', android_ndk_dir)
+        # self._shell.set_env_var('JAVA_OPTS', '-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee')
+        self._shell.set_env_var('JAVA_OPTS', '')
+
         bin_tools = os.path.normpath(
             os.path.join(android_sdk_tools_dir, 'tools/bin'))
         self._shell.add_system_path(bin_tools)
@@ -516,11 +516,16 @@ class Builder(object):
             os.path.join(android_sdk_tools_dir, 'tools')))
         self._shell.add_system_path(os.path.normpath(
             os.path.join(gradle_pkg_dir, 'bin')))
+        self._shell.add_system_path(os.path.normpath(android_ndk_dir))
+        self._shell.add_system_path(os.path.normpath(
+            os.path.join(self._shell.get_env_var('JAVA_HOME'), '/jre/bin')))
+
+        # print(self._shell._env)
         if os.name == 'posix':
             self.run_cmd('chmod +x {}/sdkmanager'.format(bin_tools))
             self.run_cmd('chmod +x {}/bin/gradle'.format(gradle_pkg_dir))
         # self.run_cmd('yes | sdkmanager --licenses')
-        #self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
+        # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
 
     def extract_validation_data(self):
         """
@@ -654,7 +659,7 @@ class Builder(object):
             # Create swig code
             self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
             # Build android project
-            self.run_cmd('gradle build', cwd='webapp/android')
+            self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
 
     def build_webapp(self, build=True):
         """
@@ -672,7 +677,10 @@ class Builder(object):
 
         # Install the angular-cli if not found in PATH
         if not which('ng'):
-            self.run_cmd(['npm', 'install', '@angular/cli', '-g'])
+            self.run_cmd('npm install @angular/cli -g')
+        # Install the angular-cli if not found in PATH
+        if not which('npx'):
+            self.run_cmd('npm install npx -g')
 
         # Build the web app
         if self._web_build:
@@ -710,7 +718,7 @@ class Builder(object):
         self.build_opencv()
 
         # Build this project for a desktop platform (Windows or Unix-based OS)
-        #self.build_cpp_code()
+        # self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.build_webapp(False)

@@ -1,7 +1,7 @@
 # [PassPort Photo app](https://passport-photo.azurewebsites.net)
 Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
 
-AppVeyor Build Status: 
+AppVeyor Build Status:
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
 
 Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
@@ -38,7 +38,18 @@ At the moment, the web app is still under development, you can try it out [here]
 
 In order to crop and scale the face of the person to a particular passport requirement, the following approach was investigated. Given the set of detected face landmarks *A*, *B*, *C* and *D*, we would like to estimate *P* and *Q* with an accuracy that is sufficient to ensure that the face in the output photo fall within the limits of the measure requirements. In other words, the estimated location of the crown (*P’*) and chin point (*Q’*) should be such that the distance *P’Q’* scaled by the distance between the ideal location of the crown (*P*) and chin point (*Q*) falls within the tolerance range allowed in the passport requirement. For the Australian passport requirements, the allowed scale range is **±5.88%** for a face heigth between 32 and 36mm: [(36mm - 32mm)/(36mm + 32mm)]
 
-To develop and validate the proposed approach, facial landmarks from the [SCFace database](http://www.scface.org/) were used. The SCFace database contains images for 130 different subjects and frontal images of each individual were carefully annotated by the [Biometric Recognition Group - ATVS at Escuela Politecnica Superior of the Universidad Autonoma de Madrid [ATVS]](https://atvs.ii.uam.es/scfacedb_landmarks.html). 
+To develop and validate the proposed approach, facial landmarks from the [SCFace database](http://www.scface.org/) were used. The SCFace database contains images for 130 different subjects and frontal images of each individual were carefully annotated by the [Biometric Recognition Group - ATVS at Escuela Politecnica Superior of the Universidad Autonoma de Madrid [ATVS]](https://atvs.ii.uam.es/scfacedb_landmarks.html).
 The procedure to estimate *P’* and *Q’* from *A*, *B*, *C* and *D* is as follow: Firstly, points *M* and *N* are found as the center of segments *AB* and *CD* respectively. *P’* and *Q’* are expected to fall in the line that passes through *M* and *N*. Then using a normalization distance *KK = |AB| + |MN|* and scale constants *α* and *β*, we estimate *P’Q’* = *αKK* and *M’Q’* = *βKK*. From the dataset *α* and *β* were adjusted to minimise the estimation error of *P'* and *Q'*.
 
 <div style="text-align:center"><img src ="research/model/key-facial-landmarks.png"/></div>
+
+
+## Building the Android App
+### Debian based OS
+
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java8-installer
+sudo apt install oracle-java8-set-default
+
+sudo apt-get install libpcap0.8-dev

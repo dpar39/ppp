@@ -31,6 +31,9 @@
             "request": "launch",
             "stopOnEntry": false,
             "program": "${workspaceFolder}/build.py",
+            "args": [
+                "--android"
+            ]
         },
         {
             "name": "Start node.js server",
