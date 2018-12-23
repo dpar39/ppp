@@ -522,8 +522,9 @@ class Builder(object):
 
         # print(self._shell._env)
         if os.name == 'posix':
-            self.run_cmd('chmod +x {}/sdkmanager'.format(bin_tools))
-            self.run_cmd('chmod +x {}/bin/gradle'.format(gradle_pkg_dir))
+            self.run_cmd('chmod -R +x {}'.format(bin_tools))
+            self.run_cmd('chmod -R +x {}'.format(android_ndk_dir))
+            self.run_cmd('chmod -R +x {}/bin'.format(gradle_pkg_dir))
         # self.run_cmd('yes | sdkmanager --licenses')
         # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
 

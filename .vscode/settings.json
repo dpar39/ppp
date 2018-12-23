@@ -18,6 +18,9 @@
         "./thirdparty/install_release_x64": true,
         "./thirdparty/install_debug_x64": true,
         "**/node_modules": true,
+        "./thirdparty/android-ndk-r15c": true,
+        "./thirdparty/sdk-tools-*": true,
+
     },
     "files.trimTrailingWhitespace": true,
     "cmake.configureOnOpen": false,
