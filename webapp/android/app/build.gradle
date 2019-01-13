@@ -69,7 +69,7 @@ try {
     logger.warn("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
 
-task myPrebuildTask(type: Exec) {
+task buildAngularApp(type: Exec) {
   workingDir "$projectDir/../.."
   if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
     commandLine 'cmd', '/c', 'ng', 'build', '&&', 'npx', 'cap', 'copy'
@@ -77,5 +77,5 @@ task myPrebuildTask(type: Exec) {
     commandLine 'sh', '-c', 'ng build && npx cap copy'
   }
 }
-// preBuild.dependsOn myPrebuildTask
 
+preBuild.dependsOn buildAngularApp
