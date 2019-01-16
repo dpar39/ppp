@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.0.0)
 
 set(MODULE_NAME ppp)
 project(${MODULE_NAME} CXX)
@@ -84,6 +84,7 @@ include_directories(${MODULE_INC_DIRS})
 add_library(${LIB_NAME} SHARED ${LIB_SRC_FILES} ${LIB_INC_FILES})
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
+# Unit tests for libppp
 if (NOT ANDROID AND NOT IOS)
     # Install the library
     install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
@@ -94,9 +95,9 @@ if (NOT ANDROID AND NOT IOS)
     #-----------------------------
     # Build the module tests
     #-----------------------------
-    #if (UNIX) # Boost library for non C++17 compiler
-    #    find_package(Boost REQUIRED COMPONENTS system filesystem)
-    #endif()
+    if (UNIX) # Boost library for non C++17 compiler
+        find_package(Boost REQUIRED COMPONENTS system filesystem)
+    endif()
 
     file(GLOB TEST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
     file(GLOB TEST_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.h")
@@ -112,7 +113,6 @@ if (NOT ANDROID AND NOT IOS)
         ${LIB_NAME}
         ${Boost_LIBRARIES}
         gmock
-        stdc++fs
     )
 
     add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})

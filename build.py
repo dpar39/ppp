@@ -484,6 +484,7 @@ class Builder(object):
         gradle_pkg_dir = self.get_third_party_lib_dir('gradle')
         if gradle_pkg_dir is None:
             self.extract_third_party_lib(gradle_pkg)
+            gradle_pkg_dir = self.get_third_party_lib_dir('gradle')
 
         # Download Android NDK if not present
         android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
@@ -502,7 +503,7 @@ class Builder(object):
             with open(repos_cfg, 'w') as fp:
                 fp.write('')
 
-        self._shell.set_env_var('JAVA_HOME', '/usr/lib/jvm/java-8-oracle')
+        # self._shell.set_env_var('JAVA_HOME', '/usr/lib/jvm/java-8-oracle')
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_NDK_HOME', android_ndk_dir)
@@ -594,7 +595,7 @@ class Builder(object):
 
     def build_cpp_code(self):
         """
-        Builds the project from sources
+        Builds the C++ libppp project from sources
         """
 
         self.run_cmd(
@@ -719,7 +720,7 @@ class Builder(object):
         self.build_opencv()
 
         # Build this project for a desktop platform (Windows or Unix-based OS)
-        # self.build_cpp_code()
+        #self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.build_webapp(False)
