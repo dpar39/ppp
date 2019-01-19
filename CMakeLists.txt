@@ -7,7 +7,7 @@ project(PassportPhoto CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
-set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0")
+set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${THIRD_PARTY_DIR_INSTALL}" CACHE INTERNAL "" FORCE)
 
@@ -17,8 +17,8 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL
     set(CMAKE_MACOSX_RPATH 1)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC -fexceptions -pthread")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -fexceptions -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/include\"" CACHE STRING "" FORCE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/gtest/include\"" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/googletest/include\"" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GMOCK_ROOT}/googlemock/include\"" CACHE STRING "" FORCE)
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
@@ -32,13 +32,12 @@ if (MSVC)
             string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
         endif()
     endforeach()
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
 endif()
 
 # Add GMock/GTest as it is needed by all modules
-include_directories(${GMOCK_ROOT}/gtest/include)
-include_directories(${GMOCK_ROOT}/include)
-
+include_directories(${GMOCK_ROOT}/googletest/include)
+include_directories(${GMOCK_ROOT}/googlemock/include)
 add_subdirectory(${GMOCK_ROOT})
 
 # Add the ppp library

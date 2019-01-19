@@ -22,9 +22,9 @@ except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
 # Configuration
-GMOCK_SRC_URL = 'https://googlemock.googlecode.com/files/gmock-1.7.0.zip'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.3.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.5.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
+GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
 
 MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
@@ -35,10 +35,8 @@ elif 'linux' in sys.platform:
     PLATFORM = 'linux'
 elif sys.platform == 'darwin':
     PLATFORM = 'darwin'
-ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(
-    PLATFORM)
-ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(
-    PLATFORM)
+ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
+ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
 ANDROID_GRADLE = 'https://services.gradle.org/distributions/gradle-4.10.3-bin.zip'
 
 #  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
@@ -132,8 +130,7 @@ class ShellRunner(object):
         Detects the first available version of Visual Studio
         """
         vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 15 2017',
-                        r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+                       ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
                        ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
@@ -214,10 +211,11 @@ class Builder(object):
         """
         Extract and build GMock/GTest libraries
         """
-        # Download POCO sources if not done yet
-        gmock_src_pkg = self.download_third_party_lib(GMOCK_SRC_URL)
-        # Get the file prefix for POCO
-        gmock_extract_dir = self.get_third_party_lib_dir('gmock')
+        # Download googletest sources if not done yet
+        gmock_src_pkg = self.download_third_party_lib(
+            GMOCK_SRC_URL, 'googletest.zip')
+        # Get the file prefix for googletest
+        gmock_extract_dir = self.get_third_party_lib_dir('googletest')
 
         if gmock_extract_dir is None:
             # Extract the source files
@@ -238,13 +236,7 @@ class Builder(object):
         """
         Downloads and builds OpenCV from source
         """
-        ocv_all_modules = ['core', 'flann', 'imgproc',
-                           'ml', 'photo', 'video', 'imgcodecs', 'shape',
-                           'videoio', 'highgui', 'objdetect', 'superres',
-                           'ts', 'features2d', 'calib3d', 'stitching',
-                           'videostab', 'java', 'python2', 'python']
-        ocv_build_modules = ['highgui', 'core', 'imgproc',
-                             'objdetect', 'imgcodecs', 'ml', 'videoio']
+        ocv_build_modules = ['highgui', 'core', 'imgproc', 'objdetect', 'imgcodecs']
 
         # Skip building OpenCV if done already
         if IS_WINDOWS:
@@ -278,12 +270,8 @@ class Builder(object):
             '-DWITH_MSMF=OFF',
             '-DWITH_VFW=OFF',
             '-DWITH_OPENEXR=OFF',
-            '-DWITH_WEBP=OFF']
-
-        for ocv_module in ocv_all_modules:
-            onoff = '=ON' if ocv_module in ocv_build_modules else '=OFF'
-            cmake_def = '-DBUILD_opencv_' + ocv_module + onoff
-            cmake_extra_defs.append(cmake_def)
+            '-DWITH_WEBP=OFF',
+            '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui']  # List of libraries that need to be build
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)
@@ -345,11 +333,14 @@ class Builder(object):
         lib_filepath = os.path.join(self._third_party_dir, lib_filename)
         return lib_filepath
 
-    def download_third_party_lib(self, url):
+    def download_third_party_lib(self, url, package_name=None):
         """
         Download a third party dependency from the internet if is not available offline
         """
-        lib_filepath = self.get_filename_from_url(url)
+        if not package_name:
+            lib_filepath = self.get_filename_from_url(url)
+        else:
+            lib_filepath = os.path.join(self._third_party_dir, package_name)
         if not os.path.exists(lib_filepath):
             print('Downloading %s to "%s" please wait ...' %
                   (url, lib_filepath))
@@ -362,10 +353,10 @@ class Builder(object):
         """
         Extracts a third party lib package source file into a directory
         """
-
         if not extract_dir:
             extract_dir = self._third_party_dir
-        print('Extracting third party library "%s" into "%s" ... please wait ...' % (lib_src_pkg, extract_dir))
+        print('Extracting third party library "%s" into "%s" ... please wait ...' % (
+            lib_src_pkg, extract_dir))
         if 'zip' in lib_src_pkg:
             zip_handle = zipfile.ZipFile(lib_src_pkg)
             for item in zip_handle.namelist():
@@ -598,8 +589,8 @@ class Builder(object):
         Builds the C++ libppp project from sources
         """
 
-        self.run_cmd(
-            'swig -c++ -python -Ilibppp/include -outdir libppp/python -o libppp/swig/libppp_python_wrap.cxx libppp/swig/libppp.i')
+        # self.run_cmd(
+        #     'swig -c++ -python -Ilibppp/include -outdir libppp/python -o libppp/swig/libppp_python_wrap.cxx libppp/swig/libppp.i')
 
         # Build actions
         if self._build_clean and os.path.exists(self._build_dir):
@@ -720,7 +711,7 @@ class Builder(object):
         self.build_opencv()
 
         # Build this project for a desktop platform (Windows or Unix-based OS)
-        #self.build_cpp_code()
+        self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
         self.build_webapp(False)

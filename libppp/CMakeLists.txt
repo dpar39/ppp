@@ -11,7 +11,7 @@ message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 # Third party dependencies
 #----------------------------
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
-set(GMOCK_ROOT "${THIRD_PARTY_DIR}/gmock-1.7.0")
+set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 #set(JAVA_HOME $ENV{JAVA_HOME})
 
@@ -27,6 +27,7 @@ else()
         set(ARCH_NAME "x64")
     endif()
     string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+    set(OpenCV_STATIC ON)
     set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_${BUILD_TYPE}_${ARCH_NAME})
     if(EXISTS ${OpenCV_DIR}/share/OpenCV/OpenCVConfig.cmake)
         set(OpenCV_DIR ${OpenCV_DIR}/share/OpenCV)
@@ -104,8 +105,8 @@ if (NOT ANDROID AND NOT IOS)
 
     set(TEST_INC_DIRS
         ${MODULE_INC_DIRS}
-        ${GMOCK_ROOT}/gtest/include
-        ${GMOCK_ROOT}/include
+        ${GMOCK_ROOT}/googletest/include
+        ${GMOCK_ROOT}/googlemock/include
         ${Boost_INCLUDE_DIRS}
     )
     set(TEST_LIB_DEPS
@@ -113,6 +114,7 @@ if (NOT ANDROID AND NOT IOS)
         ${LIB_NAME}
         ${Boost_LIBRARIES}
         gmock
+        gtest
     )
 
     add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
