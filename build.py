@@ -68,7 +68,9 @@ def link_file(src_file_path, dst_link):
     if not os.path.exists(src_file_path):
         raise FileNotFoundError(src_file_path)
     if IS_WINDOWS:
-        link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
+        shutil.copyfile(src_file_path, dst_link)
+        return
+        #link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
     else:
         link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
     print('Creating link for file "%s" in "%s"' % (src_file_path, dst_link))
@@ -129,9 +131,12 @@ class ShellRunner(object):
         """
         Detects the first available version of Visual Studio
         """
-        vc_releases = [('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 15 2017', r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
-                       ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
+        vc_releases = [
+            ('Visual Studio 15 2017',
+             r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
+            ('Visual Studio 15 2017',
+             r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+            ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
                 self._vcvarsbat = vcvarsbat
@@ -193,8 +198,8 @@ class Builder(object):
                 lin_prj_end = lnum
                 break
             lnum = lnum + 1
-        prj_lines = sln_lines[:2] + sln_lines[lin_prj_beg:lin_prj_end+1] \
-            + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end+1:]
+        prj_lines = sln_lines[:2] + sln_lines[lin_prj_beg:lin_prj_end + 1] \
+            + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end + 1:]
         with open(solution_file, "w") as file_handle:
             file_handle.writelines(["%s\n" % item for item in prj_lines])
 
@@ -406,22 +411,17 @@ class Builder(object):
         """
         parser = argparse.ArgumentParser(
             description='Builds the passport photo application.')
-        parser.add_argument('--arch_name', required=False,
-                            choices=['x64', 'x86'], help='Platform architecture', default='x64')
+        parser.add_argument('--arch_name', required=False, choices=['x64', 'x86'],
+                            help='Platform architecture', default='x64')
         parser.add_argument('--build_config', required=False, choices=[
                             'debug', 'release'], help='Build configuration type', default='release')
-        parser.add_argument(
-            '--clean', help='Cleans the whole build directory', action="store_true")
-        parser.add_argument(
-            '--test', help='Runs unit tests', action="store_true")
-        parser.add_argument(
-            '--skip_install', help='Skips installation', action="store_true")
+        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
+        parser.add_argument('--test', help='Runs unit tests', action="store_true")
+        parser.add_argument('--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
                             action="store_true")
-        parser.add_argument(
-            '--android', help='Builds the android app', action="store_true")
-        parser.add_argument(
-            '--web', help='Builds the web app', action="store_true")
+        parser.add_argument('--android', help='Builds the android app', action="store_true")
+        parser.add_argument('--web', help='Builds the web app', action="store_true")
 
         args = parser.parse_args()
 
@@ -436,13 +436,11 @@ class Builder(object):
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
-        self._build_dir = os.path.join(self._root_dir, 'build_'
-                                       + self._build_config + '_' + self._arch_name)
-        self._install_dir = os.path.join(self._root_dir, 'install_'
-                                         + self._build_config + '_' + self._arch_name)
+        build_suffix = self._build_config + '_' + self._arch_name
+        self._build_dir = os.path.join(self._root_dir, 'build_' + build_suffix)
+        self._install_dir = os.path.join(self._root_dir, 'install_' + build_suffix)
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_'
-                                                     + self._build_config + '_' + self._arch_name)
+        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + build_suffix)
 
         shell = ShellRunner(args.arch_name)
 
@@ -588,7 +586,6 @@ class Builder(object):
         """
         Builds the C++ libppp project from sources
         """
-
         # self.run_cmd(
         #     'swig -c++ -python -Ilibppp/include -outdir libppp/python -o libppp/swig/libppp_python_wrap.cxx libppp/swig/libppp.i')
 
