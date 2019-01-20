@@ -267,6 +267,13 @@ class Builder(object):
             '-DBUILD_WITH_STATIC_CRT=ON',
             '-DBUILD_SHARED_LIBS=OFF',
             '-DBUILD_PERF_TESTS=OFF',
+            '-DBUILD_ZLIB=ON',
+            '-DBUILD_ILMIMF=ON',
+            '-DBUILD_TBB=ON',
+            '-DBUILD_JASPER=ON',
+            '-DBUILD_PNG=ON',
+            '-DBUILD_JPEG=ON',
+            '-DBUILD_TIFF=ON',
             '-DBUILD_opencv_apps=OFF',
             '-DBUILD_WITH_DEBUG_INFO=OFF',
             '-DBUILD_DOCS=OFF',
@@ -301,34 +308,6 @@ class Builder(object):
             self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj',
                           '/t:Build', msbuild_conf])
             os.chdir(self._root_dir)
-
-    def insert_static_crt(self, cmake_file):
-        """
-        Insert static CRT build on CMAKE
-        """
-        static_crt = """
-        if (MSVC)
-            # On windows, compile with CRT only in debug mode
-            set(gtest_disable_pthreads ON CACHE INTERNAL "" FORCE)
-            foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-                if(${FLAG_VAR} MATCHES "/MD")
-                    string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
-                endif()
-            endforeach()
-            add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-        endif()
-        """
-        with open(cmake_file, 'r') as fp:
-            cmake_content = fp.readlines()
-
-        re_prj = re.compile(r'project\s*\(\s*dlib\s*\)', re.IGNORECASE)
-        mod_content = []
-        for line in cmake_content:
-            mod_content.append(line)
-            if re_prj.search(line):
-                mod_content.append(static_crt)
-        with open(cmake_file, 'w') as fp:
-            fp.writelines(mod_content)
 
     def get_filename_from_url(self, url):
         """
@@ -698,7 +677,7 @@ class Builder(object):
             self.run_cmd(['npm', 'install'])
             if self._run_tests:
                 self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
-            self.run_cmd(['ng', 'build'])
+            self.run_cmd(['ng', 'build', '--prod'])
             os.chdir(self._root_dir)
 
     def deploy_to_azure(self):
@@ -717,6 +696,12 @@ class Builder(object):
             shutil.copy(file, azure_dir)
         for file in glob.glob('webapp/*.py'):
             shutil.copy(file, azure_dir)
+
+    def setup_dev_env(self):
+        """
+        """
+        # curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+        return
 
     def __init__(self):
         # Detect OS version

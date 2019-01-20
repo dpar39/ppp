@@ -32,7 +32,8 @@
             "stopOnEntry": false,
             "program": "${workspaceFolder}/build.py",
             "args": [
-                "--android"
+                // "--android",
+                "--build_config=release"
             ]
         },
         {

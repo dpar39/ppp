@@ -24,7 +24,7 @@
     },
     "files.trimTrailingWhitespace": true,
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "/usr/bin/python3",
+    "python.pythonPath": "env\\Scripts\\python.exe",
     "python.linting.pep8Enabled": true,
      "python.linting.pep8Args": [
          "--ignore=E501"

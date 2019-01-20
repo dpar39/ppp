@@ -20,3 +20,5 @@ package-lock.json
 /libppp/share/config.bundle.json
 
 /env
+/azure
+/heroku
