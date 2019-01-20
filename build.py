@@ -67,13 +67,13 @@ def which(program):
 def link_file(src_file_path, dst_link):
     if not os.path.exists(src_file_path):
         raise FileNotFoundError(src_file_path)
+    print('Creating link for file "%s" in "%s"' % (src_file_path, dst_link))
     if IS_WINDOWS:
         shutil.copyfile(src_file_path, dst_link)
         return
-        #link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
+        link_cmd = 'mklink "%s" "%s"' % (dst_link, src_file_path)
     else:
         link_cmd = 'ln -sf "%s" "%s"' % (src_file_path, dst_link)
-    print('Creating link for file "%s" in "%s"' % (src_file_path, dst_link))
     os.system(link_cmd)
 
 
@@ -210,7 +210,7 @@ class Builder(object):
         """
         Returns a name for a build directory based on the build configuration
         """
-        return os.path.join(prefix, 'build_' + self._build_config + '_' + self._arch_name)
+        return os.path.join(prefix, 'build_' + self.build_name())
 
     def extract_gmock(self):
         """
@@ -403,7 +403,14 @@ class Builder(object):
         for target in targets:
             self.run_cmd(make_cmd + [target])
         os.chdir(self._root_dir)
-#
+
+    def build_name(self):
+        system_name = sys.platform.lower()
+        if 'linux' in system_name:
+            system_name = 'linux'
+        if 'win32' in system_name:
+            system_name = 'windows'
+        return system_name + '_' + self._build_config + '_' + self._arch_name
 
     def parse_arguments(self):
         """
@@ -422,6 +429,7 @@ class Builder(object):
                             action="store_true")
         parser.add_argument('--android', help='Builds the android app', action="store_true")
         parser.add_argument('--web', help='Builds the web app', action="store_true")
+        parser.add_argument('--azure', help='Deploys the app to azure', action="store_true")
 
         args = parser.parse_args()
 
@@ -433,14 +441,14 @@ class Builder(object):
         self._run_install = not args.skip_install
         self._android_build = args.android
         self._web_build = args.web
+        self._azure_deploy = args.azure
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
-        build_suffix = self._build_config + '_' + self._arch_name
-        self._build_dir = os.path.join(self._root_dir, 'build_' + build_suffix)
-        self._install_dir = os.path.join(self._root_dir, 'install_' + build_suffix)
+        self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
+        self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + build_suffix)
+        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self.build_name())
 
         shell = ShellRunner(args.arch_name)
 
@@ -635,10 +643,22 @@ class Builder(object):
                 link_file(src_file_path, dst_link)
 
         # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        libpp_config_file = os.path.join(
-            self._root_dir, 'libppp/share/config.bundle.json')
-        dst_link = os.path.join(
-            self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
+        libpp_config_file = os.path.join(self._root_dir, 'libppp/share/config.bundle.json')
+        dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
+        link_file(libpp_config_file, dst_link)
+
+    def deploy_libppp(self, dst_path, symlink=False):
+        # Copy libppp artifacts to the webapp directory
+        artifact_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib', 'libpppwrapper.py', 'config.bundle.json']
+        for artifact in artifact_files:
+            src_file_path = os.path.join(self._install_dir, artifact)
+            dst_link = os.path.join(dst_path, artifact)
+            if os.path.exists(src_file_path):
+                link_file(src_file_path, dst_link)
+
+        # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
+        libpp_config_file = os.path.join(self._root_dir, 'libppp/share/config.bundle.json')
+        dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
         link_file(libpp_config_file, dst_link)
 
     def build_android(self):
@@ -676,16 +696,27 @@ class Builder(object):
         if self._web_build:
             os.chdir(self.web_app_dir())
             self.run_cmd(['npm', 'install'])
-            self.run_cmd(
-                ['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
+            if self._run_tests:
+                self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
             self.run_cmd(['ng', 'build'])
             os.chdir(self._root_dir)
 
-    def deploy_to_heroku(self):
+    def deploy_to_azure(self):
         """
         Deploys the webserver to azure
         """
-        pass  # TODO
+        if not self._azure_deploy:
+            return
+
+        azure_dir = os.path.join(self._root_dir, 'azure')
+        if not os.path.exists(azure_dir):
+            self.run_cmd('git clone https://dpar39@passportphoto.scm.azurewebsites.net:443/passportphoto.git azure')
+        shutil.copytree('webapp/dist', os.path.join(azure_dir, 'dist'))
+        shutil.copy('webapp/config.bundle.json', azure_dir)
+        for file in glob.glob('webapp/*libppp*'):
+            shutil.copy(file, azure_dir)
+        for file in glob.glob('webapp/*.py'):
+            shutil.copy(file, azure_dir)
 
     def __init__(self):
         # Detect OS version
@@ -711,7 +742,8 @@ class Builder(object):
         self.build_cpp_code()
 
         # Copy built addon and configuration to webapp
-        self.build_webapp(False)
+        self.build_webapp()
+        self.deploy_to_azure()
 
         # Build the android app
         self.build_android()

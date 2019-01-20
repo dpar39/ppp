@@ -15,9 +15,9 @@ namespace fs = std::experimental::filesystem;
 #elif _MSC_VER >= 1900 // VS 2015
 #include <filesystem>
 namespace fs = std::tr2::sys;
-#elif __GNUC__ &&  __GNUC__ >= 7
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem::v1;
+// #elif __GNUC__ &&  __GNUC__ >= 7
+// #include <experimental/filesystem>
+// namespace fs = std::experimental::filesystem::v1;
 #else
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
