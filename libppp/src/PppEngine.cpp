@@ -131,7 +131,7 @@ bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) co
 
     const auto& inputImage = m_pImageStore->getImage(imageKey);
     cv::Mat grayImage;
-    cvtColor(inputImage, grayImage, CV_BGR2GRAY);
+    cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
 
     // Detect the face
     if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))

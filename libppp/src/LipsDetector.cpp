@@ -47,12 +47,12 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
     if (m_useHaarCascades)
     {
         Mat mouthRoiImageGray;
-        cv::cvtColor(mouthRoiImage, mouthRoiImageGray, CV_BGR2GRAY);
+        cv::cvtColor(mouthRoiImage, mouthRoiImageGray, cv::COLOR_BGR2GRAY);
         vector<Rect> mouthRects;
         vector<int> rejectLevels;
         vector<double> levelWeights;
         m_pMouthCascadeClassifier->detectMultiScale(mouthRoiImageGray, mouthRects, 1.05, 3,
-            CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT, mouthRoiSize / 4, mouthRoiSize);
+            CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT, mouthRoiSize / 4, mouthRoiSize);
 
         if (mouthRects.size() > 0)
         {
@@ -88,7 +88,7 @@ bool LipsDetector::detectLandMarks(const cv::Mat& origImage, ::LandMarks& landMa
         morphologyEx(v, binaryImg, MORPH_CLOSE, getStructuringElement(MORPH_ELLIPSE, Size(7, 7)));
 
         std::vector<std::vector<Point>> contours;
-        findContours(binaryImg, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, mouthRoiLeftTop);
+        findContours(binaryImg, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, mouthRoiLeftTop);
 
         double maxArea1st = 0, maxArea2nd = 0;
         std::vector<std::vector<Point>>::iterator c1st, c2nd;

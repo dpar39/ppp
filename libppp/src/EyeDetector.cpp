@@ -132,7 +132,7 @@ cv::Rect EyeDetector::detectWithHaarCascadeClassifier(const cv::Mat &image, cv::
 {
     vector<cv::Rect> results;
     cc->detectMultiScale(image, results, 1.05, 3,
-                         CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT);
+                         cv::CASCADE_SCALE_IMAGE | cv::CASCADE_FIND_BIGGEST_OBJECT);
     if (results.empty() || results.size() > 1)
     {
         return cv::Rect();

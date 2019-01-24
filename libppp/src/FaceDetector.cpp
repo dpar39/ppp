@@ -53,14 +53,14 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
 
         if (inputPicture.channels() != 1)
         {
-            cv::cvtColor(inputPicture, grayImage, CV_BGR2GRAY);
+            cv::cvtColor(inputPicture, grayImage, COLOR_BGR2GRAY);
         }
 
         vector<Rect> facesRects;
         vector<int> rejectLevels;
         vector<double> levelWeights;
         m_pFaceCascadeClassifier->detectMultiScale(grayImage, facesRects, 1.05, 3,
-            CV_HAAR_SCALE_IMAGE | CV_HAAR_FIND_BIGGEST_OBJECT,
+            CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
             minFaceSize, maxFaceSize);
 
         if (facesRects.size() == 0)
