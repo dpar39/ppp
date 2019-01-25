@@ -22,19 +22,18 @@ except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
 # Configuration
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/3.4.5.zip'
+OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
 
-MINUS_JN = '-j%i' % min(multiprocessing.cpu_count(), 8)
 IS_WINDOWS = sys.platform == 'win32'
-
 if sys.platform == 'win32':
     PLATFORM = 'windows'
 elif 'linux' in sys.platform:
     PLATFORM = 'linux'
 elif sys.platform == 'darwin':
     PLATFORM = 'darwin'
+
 ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
 ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
 ANDROID_GRADLE = 'https://services.gradle.org/distributions/gradle-4.10.3-bin.zip'
@@ -78,19 +77,27 @@ def link_file(src_file_path, dst_link):
 
 
 class ShellRunner(object):
-    def __init__(self, arch_name='x64'):
+    def __init__(self, arch_name, is_emscripten):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
-        if sys.platform == 'win32':
+        self._is_emscripten = is_emscripten
+        if IS_WINDOWS and not self._is_emscripten:
             self._detect_vs_version()
+        # Add tools like ninja and swig to the current PATH
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        tools_dir = os.path.join(this_dir, 'thirdparty', 'tools', PLATFORM)
+        self.add_system_path(tools_dir)
 
-    def add_system_path(self, new_path):
+    def add_system_path(self, new_path, at_end=True):
         curr_path_str = self._env['PATH']
         path_elmts = set(curr_path_str.split(os.pathsep))
         if new_path in path_elmts:
             return
-        self._env['PATH'] = curr_path_str + os.pathsep + new_path
+        if at_end:
+            self._env['PATH'] = curr_path_str + os.pathsep + new_path
+        else:
+            self._env['PATH'] = new_path + os.pathsep + curr_path_str
 
     def set_env_var(self, var_name, var_value):
         assert isinstance(var_name, str), 'var_name should be a string'
@@ -101,6 +108,9 @@ class ShellRunner(object):
     def get_env_var(self, var_name):
         return self._env.get(var_name, '')
 
+    def get_env(self):
+        return self._env
+
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
         """
         Runs a shell command
@@ -108,15 +118,14 @@ class ShellRunner(object):
         if isinstance(cmd_args, str):
             cmd_args = cmd_args.split()
         cmd_all = []
-        if IS_WINDOWS:
-            cmd_all = [self._vcvarsbat, self._arch_name,
-                       '&&', 'set', 'CL=/MP', '&&']
+        if IS_WINDOWS and not self._is_emscripten:
+            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
         cmd_all = cmd_all + cmd_args
 
         if cmd_print:
             print(' '.join(cmd_args))
 
-        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd,
+        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, shell=True,
                              stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         if input:
             p.communicate(input=input)
@@ -161,7 +170,7 @@ class Builder(object):
         webapp_dir_name = 'webapp'
         return os.path.join(self._root_dir, webapp_dir_name)
 
-    def run_cmake(self, cmake_generator, cmakelists_path='.'):
+    def run_cmake(self, cmake_generator='Ninja', cmakelists_path='.'):
         """
         Runs CMake with the specified generator in the specified path with
         possibly some extra definitions
@@ -170,9 +179,7 @@ class Builder(object):
                       '-DCMAKE_INSTALL_PREFIX=' + self._install_dir,
                       '-DCMAKE_PREFIX_PATH=' + self._install_dir,
                       '-DCMAKE_BUILD_TYPE=' + self._build_config,
-                      '-G', cmake_generator]
-
-        cmake_args.append(cmakelists_path)
+                      '-G', cmake_generator, cmakelists_path]
         self.run_cmd(cmake_args)
 
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
@@ -244,7 +251,7 @@ class Builder(object):
         ocv_build_modules = ['highgui', 'core', 'imgproc', 'objdetect', 'imgcodecs']
 
         # Skip building OpenCV if done already
-        if IS_WINDOWS:
+        if IS_WINDOWS and not self._emscripten:
             if os.path.exists(os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')):
                 return
         else:
@@ -264,12 +271,11 @@ class Builder(object):
 
         cmake_extra_defs = [
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
-            '-DBUILD_WITH_STATIC_CRT=ON',
             '-DBUILD_SHARED_LIBS=OFF',
+            '-DBUILD_DOCS=OFF',
             '-DBUILD_PERF_TESTS=OFF',
             '-DBUILD_ZLIB=ON',
             '-DBUILD_ILMIMF=ON',
-            '-DBUILD_TBB=ON',
             '-DBUILD_JASPER=ON',
             '-DBUILD_PNG=ON',
             '-DBUILD_JPEG=ON',
@@ -283,7 +289,30 @@ class Builder(object):
             '-DWITH_VFW=OFF',
             '-DWITH_OPENEXR=OFF',
             '-DWITH_WEBP=OFF',
-            '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui']  # List of libraries that need to be build
+            '-DBUILD_opencv_java=OFF',
+            '-DBUILD_opencv_python=OFF']
+
+        if self._emscripten:
+            cmake_extra_defs += [
+                '-DCV_ENABLE_INTRINSICS=OFF',
+                '-DBUILD_IPP_IW=OFF',
+                '-DWITH_TBB=OFF',
+                '-DWITH_OPENMP=OFF',
+                '-DWITH_PTHREADS_PF=OFF',
+                '-DWITH_OPENCL=OFF',
+                '-DWITH_IPP=OFF',
+                '-DWITH_ITT=OFF',
+                '-DCPU_BASELINE=',
+                '-DCPU_DISPATCH=',
+                '-DBUILD_LIST=objdetect,imgproc,imgcodecs',
+            ]
+        else:
+            cmake_extra_defs += [
+                '-DBUILD_TBB=ON',
+                '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui'
+            ]
+            if IS_WINDOWS:
+                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=ON']
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)
@@ -291,23 +320,7 @@ class Builder(object):
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
-        # Build
-        if not IS_WINDOWS:
-            self.build_cmake_lib(opencv_extract_dir,
-                                 cmake_extra_defs, [], False)
-        else:  # Windows OS: only builds with msbuild.exe
-            # Change directory to the build directory
-            os.chdir(build_dir)
-            cmake_cmd = ['cmake', '-G', self._shell.get_vc_cmake_generator()] \
-                + cmake_extra_defs + [opencv_extract_dir]
-            self.run_cmd(cmake_cmd)
-            platform = 'x64' if '64' in self._arch_name else 'Win32'
-            msbuild_conf = '/p:Configuration=' + self._build_config + ';Platform=' + platform
-            self.run_cmd(['msbuild.exe', 'OpenCV.sln',
-                          '/t:Build', msbuild_conf])
-            self.run_cmd(['msbuild.exe', 'INSTALL.vcxproj',
-                          '/t:Build', msbuild_conf])
-            os.chdir(self._root_dir)
+        self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], False)
 
     def get_filename_from_url(self, url):
         """
@@ -364,32 +377,38 @@ class Builder(object):
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
 
-        # Define CMake generator and make command
-        if IS_WINDOWS:
-            cmake_generator = 'NMake Makefiles'
-            make_cmd = ['set', 'MAKEFLAGS=', '&&', 'nmake', 'VEBOSITY=1']
+        if self._emscripten:
+            emscripten_path = self._shell.get_env_var('EMSCRIPTEN')
+            if not emscripten_path:
+                print('EMSCRIPTEN is not set, exiting ...')
+                exit(1)
+            cmake_module_path = os.path.join(emscripten_path, 'cmake')
+            cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
+            extra_definitions = [
+                '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain,
+                '-DCMAKE_MAKE_PROGRAM=ninja',
+                '-DCMAKE_MODULE_PATH="' + cmake_module_path + '"',
+                '-DCMAKE_CXX_FLAGS="-std=c++1z -O3 --llvm-lto 1 --bind -s ASSERTIONS=2 --memory-init-file 0 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s NO_FILESYSTEM=1 -s NO_EXIT_RUNTIME=1 -s DISABLE_EXCEPTION_CATCHING=0 -o out.html"'
+            ]
         else:
-            cmake_generator = 'Unix Makefiles'
-            make_cmd = ['make', MINUS_JN, 'install']
+            pass
+
+        # Define CMake generator and make command
         os.chdir(build_dir)
-        cmake_cmd = ['cmake',
-                     '-DCMAKE_BUILD_TYPE=' + self._build_config,
-                     '-G', cmake_generator] + extra_definitions
-        cmake_cmd.append(cmakelists_path)
+        cmake_cmd = ['cmake', '-G', 'Ninja', '--debug-output',
+                     '-DCMAKE_BUILD_TYPE=' + self._build_config] + extra_definitions + [cmakelists_path]
+
         # Run CMake and Make
         self.run_cmd(cmake_cmd)
-        self.run_cmd(make_cmd)
+        self.run_cmd('ninja')
         for target in targets:
-            self.run_cmd(make_cmd + [target])
+            self.run_cmd(['ninja', target])
         os.chdir(self._root_dir)
 
     def build_name(self):
-        system_name = sys.platform.lower()
-        if 'linux' in system_name:
-            system_name = 'linux'
-        if 'win32' in system_name:
-            system_name = 'windows'
-        return system_name + '_' + self._build_config + '_' + self._arch_name
+        if self._emscripten:
+            return 'wasm'
+        return PLATFORM + '_' + self._build_config + '_' + self._arch_name
 
     def parse_arguments(self):
         """
@@ -409,6 +428,7 @@ class Builder(object):
         parser.add_argument('--android', help='Builds the android app', action="store_true")
         parser.add_argument('--web', help='Builds the web app', action="store_true")
         parser.add_argument('--azure', help='Deploys the app to azure', action="store_true")
+        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
 
         args = parser.parse_args()
 
@@ -421,6 +441,7 @@ class Builder(object):
         self._android_build = args.android
         self._web_build = args.web
         self._azure_deploy = args.azure
+        self._emscripten = args.emscripten
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
@@ -429,7 +450,7 @@ class Builder(object):
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
         self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self.build_name())
 
-        shell = ShellRunner(args.arch_name)
+        shell = ShellRunner(self._arch_name, self._emscripten)
 
         # Set up some compiler flags
         if not IS_WINDOWS:
@@ -437,7 +458,6 @@ class Builder(object):
             shell.set_env_var('LD_LIBRARY_PATH', self._install_dir)
         shell.set_env_var('INSTALL_DIR', self._install_dir)
         self._shell = shell
-#
 
     def setup_android(self):
         # Download SDK tools if not present and extract it to
@@ -504,6 +524,39 @@ class Builder(object):
             self.run_cmd('chmod -R +x {}/bin'.format(gradle_pkg_dir))
         # self.run_cmd('yes | sdkmanager --licenses')
         # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
+
+    def setup_emscripten(self):
+        emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
+        if not os.path.exists(emsdk_dir):
+            os.chdir(self._third_party_dir)
+            self.run_cmd(['git', 'clone', 'https://github.com/emscripten-core/emsdk.git', 'emsdk'])
+        os.chdir(emsdk_dir)
+        self.run_cmd(['python', 'emsdk', 'install', 'latest'])
+        self.run_cmd(['python', 'emsdk', 'activate', 'latest'])
+        process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
+        (output, _) = process.communicate()
+        exit_code = process.wait()
+        if exit_code != 0:
+            exit(exit_code)
+        path_re = re.compile(r'PATH \+= (.*)')
+        envvar_re = re.compile(r'([A-Za-z_]+) = (.*)')
+        if not isinstance(output, str):
+            output = output.decode("utf-8")
+        for line in output.splitlines():
+            m = path_re.search(line)
+            if m:
+                path = m.group(1)
+                self._shell.add_system_path(path, at_end=False)
+                continue
+            m = envvar_re.search(line)
+            if m:
+                var_name = m.group(1)
+                var_value = m.group(2)
+                self._shell.set_env_var(var_name, var_value)
+                continue
+        os.chdir(self._root_dir)
+        self._shell.set_env_var('CC', 'emcc')
+        self._shell.set_env_var('CXX', 'em++')
 
     def extract_validation_data(self):
         """
@@ -584,13 +637,6 @@ class Builder(object):
             # Create the build directory if doesn't exist
             os.mkdir(self._build_dir)
 
-        # Configure build system
-        make_cmd = ['make', MINUS_JN]
-        cmake_generator = 'Unix Makefiles'
-        if IS_WINDOWS:
-            cmake_generator = 'NMake Makefiles'
-            make_cmd = ['nmake']
-
         # Change directory to build directory
         os.chdir(self._build_dir)
         if self._gen_vs_sln:
@@ -599,15 +645,17 @@ class Builder(object):
             self.run_cmake(cmake_generator, '..')
             self.set_startup_vs_prj('ppp_test')
         else:
-            # Building the project code from the command line
-            self.run_cmake(cmake_generator, '..')
-            # Copy binaries to the local install directory
-            if self._run_install:
-                self.run_cmd(make_cmd + ['install'])
-            else:
-                self.run_cmd(make_cmd)
+            self.build_cmake_lib('..', [], ['install'])
+
+            # # Building the project code from the command line
+            # self.run_cmake('Ninja', '..')
+            # # Copy binaries to the local install directory
+            # if self._run_install:
+            #     self.run_cmd(['ninja', 'install'])
+            # else:
+            #     self.run_cmd(['ninja'])
             # Run unit tests for C++ code
-            if self._run_tests:
+            if not self._emscripten and self._run_tests:
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
@@ -710,6 +758,10 @@ class Builder(object):
         # Setup android tools
         if self._android_build:
             self.setup_android()
+
+        # Setup Emscripten tools
+        if self._emscripten:
+            self.setup_emscripten()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):

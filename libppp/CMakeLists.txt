@@ -15,6 +15,8 @@ set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 
 set(CMAKE_CXX_STANDARD 17)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 if(ANDROID)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fexceptions -fPIC")
