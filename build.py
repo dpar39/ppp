@@ -163,12 +163,32 @@ class Builder(object):
     Class that holds the whole building process
     """
 
-    def web_app_dir(self):
+    def repo_path(self, rel_path=''):
+        if not rel_path:
+            return self._root_dir
+        return os.path.join(self._root_dir, rel_path).replace('\\', '/')
+
+    def webapp_path(self, rel_path=''):
         """
         Returns the absolute path of the webapp directory (depending on wheter we using NodeJs or .Net Core server)
         """
-        webapp_dir_name = 'webapp'
-        return os.path.join(self._root_dir, webapp_dir_name)
+        if not rel_path:
+            return os.path.join(self._root_dir, 'webapp')
+        return os.path.join(self._root_dir, 'webapp', rel_path)
+
+    def build_name(self):
+        if self._emscripten:
+            return 'emscripten'
+        return PLATFORM + '_' + self._build_config + '_' + self._arch_name
+
+    def build_dir_name(self, prefix):
+        """
+        Returns a name for a build directory based on the build configuration
+        """
+        return os.path.join(prefix, 'build_' + self.build_name())
+
+    def build_path(self, rel_path):
+        return os.path.join(self._build_dir, rel_path).replace('\\', '/')
 
     def run_cmake(self, cmake_generator='Ninja', cmakelists_path='.'):
         """
@@ -212,12 +232,6 @@ class Builder(object):
 
         # if not "devenv" in (p.name() for p in psutil.process_iter()):
         #    self.run_cmd(['call', 'devenv', solution_file])
-
-    def build_dir_name(self, prefix):
-        """
-        Returns a name for a build directory based on the build configuration
-        """
-        return os.path.join(prefix, 'build_' + self.build_name())
 
     def extract_gmock(self):
         """
@@ -274,6 +288,9 @@ class Builder(object):
             '-DBUILD_SHARED_LIBS=OFF',
             '-DBUILD_DOCS=OFF',
             '-DBUILD_PERF_TESTS=OFF',
+            '-DWITH_PYTHON=OFF',
+            '-DWITH_PYTHON2=OFF',
+            '-DWITH_JAVA=OFF',
             '-DBUILD_ZLIB=ON',
             '-DBUILD_ILMIMF=ON',
             '-DBUILD_JASPER=ON',
@@ -290,7 +307,8 @@ class Builder(object):
             '-DWITH_OPENEXR=OFF',
             '-DWITH_WEBP=OFF',
             '-DBUILD_opencv_java=OFF',
-            '-DBUILD_opencv_python=OFF']
+            '-DBUILD_opencv_python=OFF',
+            '-DBUILD_opencv_python2=OFF']
 
         if self._emscripten:
             cmake_extra_defs += [
@@ -384,19 +402,21 @@ class Builder(object):
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
             cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
-            extra_definitions = [
-                '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain,
+            extra_definitions += [
+                '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
                 '-DCMAKE_MAKE_PROGRAM=ninja',
-                '-DCMAKE_MODULE_PATH="' + cmake_module_path + '"',
-                '-DCMAKE_CXX_FLAGS="-std=c++1z -O3 --llvm-lto 1 --bind -s ASSERTIONS=2 --memory-init-file 0 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s NO_FILESYSTEM=1 -s NO_EXIT_RUNTIME=1 -s DISABLE_EXCEPTION_CATCHING=0 -o out.html"'
+                '-DCMAKE_MODULE_PATH=' + cmake_module_path.replace('\\', '/'),
+                '-DCMAKE_CXX_FLAGS="-std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0' +
+                ' -s ASSERTIONS=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1' +
+                ' -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=1073741824 "'
             ]
         else:
             pass
 
         # Define CMake generator and make command
         os.chdir(build_dir)
-        cmake_cmd = ['cmake', '-G', 'Ninja', '--debug-output',
-                     '-DCMAKE_BUILD_TYPE=' + self._build_config] + extra_definitions + [cmakelists_path]
+        cmake_cmd = ['cmake', '-G', 'Ninja',
+                     '-DCMAKE_BUILD_TYPE=' + self._build_config] + extra_definitions + [cmakelists_path.replace('\\', '/')]
 
         # Run CMake and Make
         self.run_cmd(cmake_cmd)
@@ -404,11 +424,6 @@ class Builder(object):
         for target in targets:
             self.run_cmd(['ninja', target])
         os.chdir(self._root_dir)
-
-    def build_name(self):
-        if self._emscripten:
-            return 'wasm'
-        return PLATFORM + '_' + self._build_config + '_' + self._arch_name
 
     def parse_arguments(self):
         """
@@ -448,7 +463,7 @@ class Builder(object):
         self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
         self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self.build_name())
+        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
 
         shell = ShellRunner(self._arch_name, self._emscripten)
 
@@ -529,10 +544,10 @@ class Builder(object):
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
-            self.run_cmd(['git', 'clone', 'https://github.com/emscripten-core/emsdk.git', 'emsdk'])
+            self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
         os.chdir(emsdk_dir)
-        self.run_cmd(['python', 'emsdk', 'install', 'latest'])
-        self.run_cmd(['python', 'emsdk', 'activate', 'latest'])
+        self.run_cmd('python emsdk install latest')
+        self.run_cmd('python emsdk activate latest')
         process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
@@ -546,12 +561,13 @@ class Builder(object):
             m = path_re.search(line)
             if m:
                 path = m.group(1)
+                path = path.replace('\\', '/')
                 self._shell.add_system_path(path, at_end=False)
                 continue
             m = envvar_re.search(line)
             if m:
                 var_name = m.group(1)
-                var_value = m.group(2)
+                var_value = m.group(2).replace('\\', '/')
                 self._shell.set_env_var(var_name, var_value)
                 continue
         os.chdir(self._root_dir)
@@ -645,33 +661,30 @@ class Builder(object):
             self.run_cmake(cmake_generator, '..')
             self.set_startup_vs_prj('ppp_test')
         else:
-            self.build_cmake_lib('..', [], ['install'])
-
-            # # Building the project code from the command line
-            # self.run_cmake('Ninja', '..')
-            # # Copy binaries to the local install directory
-            # if self._run_install:
-            #     self.run_cmd(['ninja', 'install'])
-            # else:
-            #     self.run_cmd(['ninja'])
+            self.build_cmake_lib('..', [], [])
             # Run unit tests for C++ code
             if not self._emscripten and self._run_tests:
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
+
         os.chdir(self._root_dir)
+        if self._emscripten:
+            shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'), self.repo_path('webapp/src/assets/config.bundle.json'))
+            shutil.copyfile(self.build_path('libppp/libppp.js'), self.repo_path('webapp/src/assets/libppp.js'))
+            shutil.copyfile(self.build_path('libppp/libppp.wasm'), self.repo_path('webapp/src/assets/libppp.wasm'))
 
         # Copy libppp artifacts to the webapp directory
         dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
         for dist_file in dist_files:
             src_file_path = os.path.join(self._install_dir, dist_file)
-            dst_link = os.path.join(self.web_app_dir(), dist_file)
+            dst_link = self.webapp_path(dist_file)
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
         # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        libpp_config_file = os.path.join(self._root_dir, 'libppp/share/config.bundle.json')
-        dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
+        libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
+        dst_link = self.webapp_path('src/assets/config.bundle.json')
         link_file(libpp_config_file, dst_link)
 
     def deploy_libppp(self, dst_path, symlink=False):
@@ -684,8 +697,8 @@ class Builder(object):
                 link_file(src_file_path, dst_link)
 
         # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        libpp_config_file = os.path.join(self._root_dir, 'libppp/share/config.bundle.json')
-        dst_link = os.path.join(self.web_app_dir(), 'src', 'assets', os.path.basename(libpp_config_file))
+        libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
+        dst_link = self.webapp_path('src/assets/config.bundle.json')
         link_file(libpp_config_file, dst_link)
 
     def build_android(self):
@@ -707,8 +720,7 @@ class Builder(object):
                       'libppp/python/libpppwrapper.py']
         for dist_file in dist_files:
             src_file_path = os.path.join(self._root_dir, dist_file)
-            dst_link = os.path.join(
-                self.web_app_dir(), os.path.basename(dist_file))
+            dst_link = self.webapp_path(os.path.basename(dist_file))
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
@@ -721,7 +733,7 @@ class Builder(object):
 
         # Build the web app
         if self._web_build:
-            os.chdir(self.web_app_dir())
+            os.chdir(self.webapp_path())
             self.run_cmd(['npm', 'install'])
             if self._run_tests:
                 self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])

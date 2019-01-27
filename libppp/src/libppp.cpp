@@ -10,6 +10,12 @@
 
 #include <opencv2/imgcodecs.hpp>
 
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#else
+#define EMSCRIPTEN_KEEPALIVE
+#endif
+
 using namespace std;
 
 PublicPppEngine g_c_pppInstance;
@@ -152,29 +158,35 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, doubl
     try                                                                                                                \
     {                                                                                                                  \
         statements;                                                                                                    \
+        std::cout << "Method '"<< __FUNCTION__ << "' called successfully" << std::endl;                                \
         return true;                                                                                                   \
     }                                                                                                                  \
     catch (const std::exception & ex)                                                                                  \
     {                                                                                                                  \
+        std::cout << "Method '"<< __FUNCTION__ << "' failed: " << ex.what() << std::endl;                              \
         g_last_error = ex.what();                                                                                      \
         return false;                                                                                                  \
     }
 
+EMSCRIPTEN_KEEPALIVE
 bool set_image(const char * img_buf, int img_buf_size, char * img_id)
 {
     TRYRUN(auto imgId = g_c_pppInstance.setImage(img_buf, img_buf_size); strcpy(img_id, imgId.c_str()););
 }
 
+EMSCRIPTEN_KEEPALIVE
 bool configure(const char * config_json)
 {
     TRYRUN(g_c_pppInstance.configure(config_json););
 }
 
+EMSCRIPTEN_KEEPALIVE
 bool detect_landmarks(const char * img_id, char * landmarks)
 {
     TRYRUN(auto landmarksStr = g_c_pppInstance.detectLandmarks(img_id); strcpy(landmarks, landmarksStr.c_str()););
 }
 
+EMSCRIPTEN_KEEPALIVE
 int create_tiled_print(const char * img_id, const char * request, char * out_buf)
 {
     try
@@ -192,61 +204,3 @@ int create_tiled_print(const char * img_id, const char * request, char * out_buf
 }
 
 #pragma endregion
-
-#ifdef EMSCRIPTEN
-
-#include <stdio.h>
-#include <emscripten.h>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-
-// global data
-cv::Mat3b bgr_g, bgr_out_g;
-
-using namespace cv;
-
-extern "C"
-{
-
-   bool EMSCRIPTEN_KEEPALIVE rotate_colors(int width, int height,
-                                           cv::Vec4b* frame4b_ptr,
-                                           cv::Vec4b* frame4b_ptr_out,
-                                           int hsteps) try
-   {
-      // wrap memory pointers with proper cv::Mat images (no copies)
-      cv::Mat4b rgba_in(height, width, frame4b_ptr);
-      cv::Mat4b rgba_out(height, width, frame4b_ptr_out);
-
-      // allocate 3-channel images if needed
-      bgr_g.create(rgba_in.size());
-      bgr_out_g.create(rgba_in.size());
-
-      cv::cvtColor(rgba_in, bgr_g, cv::COLOR_RGBA2BGR);
-      // color_cycle::rotate_hue(bgr_g, bgr_out_g, hsteps);
-
-      // mix BGR + A (from input) => RGBA output
-      const Mat in_mats[] = { bgr_out_g, rgba_in };
-      constexpr int from_to[] = { 0,2, 1,1, 2,0, 6,3 };
-      mixChannels(in_mats, std::size(in_mats), &rgba_out, 1, from_to, std::size(from_to)/2);
-      return true;
-   }
-   catch (std::exception const& e)
-   {
-      printf("Exception thrown: %s\n", e.what());
-      return false;
-   }
-   catch (...)
-   {
-      printf("Unknown exception thrown!\n");
-      return false;
-   }
-
-   void EMSCRIPTEN_KEEPALIVE release()
-   {
-      //color_cycle::clear_all();
-      bgr_g.release();
-      bgr_out_g.release();
-   }
-}
-
-#endif

@@ -1,18 +1,24 @@
 /.vs
 /.vscode
+
+# Build and install directories
 /build_*
 /install_*
+/cmake-build-debug
+
 /thirdparty
 /node_modules
 /visualstudio
 /research/*.asv
 /addon/build
+build/config.gypi
+
 /research/mugshot_frontal_original_all
 *.ldb
-build/config.gypi
+
 package-lock.json
 *.pyc
-/cmake-build-debug
+
 .idea/*
 .DS_Store
 
@@ -22,3 +28,7 @@ package-lock.json
 /env
 /azure
 /heroku
+
+# Generated assets
+webapp/src/assets/libppp.wasm
+webapp/src/assets/libppp.js

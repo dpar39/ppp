@@ -16,7 +16,6 @@ set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 
 set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
 if(ANDROID)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fexceptions -fPIC")
@@ -26,7 +25,11 @@ if(ANDROID)
 else()
     set(OpenCV_STATIC ON)
     if (DEFINED EMSCRIPTEN)
-        set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_wasm)
+        # set(CMAKE_C_COMPILER "emcc")
+        # set(CMAKE_CXX_COMPILER "emc++")
+        SET(EMCC_LINKER_FLAGS "${EMCC_LINKER_FLAGS} ${CMAKE_CXX_FLAGS}")
+        message(STATUS "Setting EMCC_LINKER_FLAGS=${EMCC_LINKER_FLAGS}")
+        set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_emscripten)
     else()
         if (MSVC)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
@@ -63,9 +66,9 @@ else()
     endif()
     message(STATUS "Setting OpenCV_DIR=${OpenCV_DIR}")
 
+    # Not used for now as we are not building node addon
     file(GLOB LIB_WRP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/swig/*nodejs_wrap.cxx")
 endif()
-
 
 # Find OpenCV Library
 find_package(OpenCV REQUIRED)
@@ -118,7 +121,7 @@ target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
 # Unit tests for libppp
 if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
-    # Install the library
+    # Install the library as we need everything in a single place for unit testing
     install(TARGETS ${LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/libppp.h DESTINATION ${CMAKE_INSTALL_PREFIX})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.bundle.json DESTINATION ${CMAKE_INSTALL_PREFIX})
@@ -127,7 +130,7 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     #-----------------------------
     # Build the module tests
     #-----------------------------
-    if (UNIX) # Boost library for non C++17 compiler
+    if (UNIX) # Boost library for non C++17 compiler that provide filesystem
         find_package(Boost REQUIRED COMPONENTS system filesystem)
     endif()
 

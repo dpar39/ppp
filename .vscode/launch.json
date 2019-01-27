@@ -32,7 +32,7 @@
             "stopOnEntry": false,
             "program": "${workspaceFolder}/build.py",
             "args": [
-                // "--android",
+                "--emscripten",
                 "--build_config=release"
             ]
         },
