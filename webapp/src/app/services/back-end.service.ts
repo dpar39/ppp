@@ -15,6 +15,7 @@ export class BackEndService {
 
     _onImageSet: (imgId: string) => void;
     _onLandmarksDetected: (landmarks: object) => void;
+    _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
 
     constructor(private sanitizer: DomSanitizer, private plt: Platform) {
         this.plt.ready().then((readySource) => {
@@ -37,6 +38,18 @@ export class BackEndService {
                 case 'onLandmarksDetected':
                      this._onLandmarksDetected(e.data.landmarks);
                     break;
+                case 'onCreateTilePrint':
+                    const pngArraryBuffer = e.data.pngData;
+
+                    var blob = new Blob( [ pngArraryBuffer ], { type: "image/png" } );
+                    var imageUrl = URL.createObjectURL( blob );
+                    let pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
+                    this._onCreateTiledPrint(pngDataUrl);
+                    break;
+                    //const binString = Array.prototype.map.call(pngArraryBuffer, (ch) =>
+                    //    String.fromCharCode(ch)).join('');
+                    //let pngDataUrl = 'data:image/png;base64,' + base64String; // btoa(binString);
+                    //this._onCreateTiledPrint(pngDataUrl);
             }
         }, false);
     }
@@ -123,6 +136,11 @@ export class BackEndService {
     }
 
     getTiledPrint(req: TiledPhotoRequest): Promise<SafeResourceUrl> {
+        return new Promise((resolve, reject) => {
+            this._onCreateTiledPrint = resolve;
+            this.worker.postMessage({'cmd': 'createTiledPrint', 'request': req})
+        });
+
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             const url = '/api/photoprint';

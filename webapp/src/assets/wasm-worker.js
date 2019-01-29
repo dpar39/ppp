@@ -8,9 +8,11 @@ if( 'function' === typeof importScripts) {
             case "setImage":
                 setImage(e.data.imageData);
                 break;
-
             case "detectLandmarks":
                 detectLandmarks(e.data.imgKey);
+                break;
+            case "createTiledPrint":
+                createTilePrint(e.data.request);
                 break;
         }
     });
@@ -68,5 +70,21 @@ if( 'function' === typeof importScripts) {
         Module._free(imgKeyPtr);
         Module._free(landMarksStr);
         postMessage({'cmd': 'onLandmarksDetected', 'landmarks' : JSON.parse(landMarksStr)});
+    }
+
+    function createTilePrint(requestObject) {
+
+        const imgKeyPtr = _stringToPtr(requestObject.imgKey);
+        const requestObjPtr = _stringToPtr(JSON.stringify(requestObject));
+
+        const outImageDataPtr = Module._malloc(10000000);
+        const imageDataSize = Module._create_tiled_print(imgKeyPtr, requestObjPtr, outImageDataPtr);
+
+        let heapBytes = Module.HEAPU8.subarray(outImageDataPtr, outImageDataPtr + imageDataSize);
+
+        Module._free(imgKeyPtr);
+        Module._free(requestObjPtr);
+        postMessage({'cmd': 'onCreateTilePrint', 'pngData': heapBytes});
+        Module._free(outImageDataPtr);
     }
 }
