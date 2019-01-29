@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.echoString = '' + this.beService._isMobilePlatform;
+      //  this.echoString = '' + this.beService._isMobilePlatform;
     }
 
     loadImage(event) {

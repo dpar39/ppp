@@ -42,7 +42,7 @@
   </div>
 
   <div class="row">
-    <a *ngIf='outImgSrc!="#"' [href]='outImgSrc' download="print.png">
+    <a *ngIf='outImgSrc!="#"' [href]='outImgSrc' download="print.png" class="col">
       <img [src]='outImgSrc' *ngIf='outImgSrc!="#"' class='fit' (click)="saveOutput()">
     </a>
   </div>

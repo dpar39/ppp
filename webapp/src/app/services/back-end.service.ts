@@ -141,26 +141,26 @@ export class BackEndService {
             this.worker.postMessage({'cmd': 'createTiledPrint', 'request': req})
         });
 
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const url = '/api/photoprint';
-            xhr.open('POST', url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.responseType = 'blob';
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    const blob = xhr.response;
-                    const binaryData = [];
-                    binaryData.push(blob);
-                    const b = window.URL.createObjectURL(
-                        new Blob(binaryData, { type: 'image/png' }));
+        // return new Promise((resolve, reject) => {
+        //     const xhr = new XMLHttpRequest();
+        //     const url = '/api/photoprint';
+        //     xhr.open('POST', url, true);
+        //     xhr.setRequestHeader('Content-Type', 'application/json');
+        //     xhr.responseType = 'blob';
+        //     xhr.onreadystatechange = () => {
+        //         if (xhr.readyState === 4 && xhr.status === 200) {
+        //             const blob = xhr.response;
+        //             const binaryData = [];
+        //             binaryData.push(blob);
+        //             const b = window.URL.createObjectURL(
+        //                 new Blob(binaryData, { type: 'image/png' }));
 
-                    const outImgSrc = this.sanitizer.bypassSecurityTrustResourceUrl(b);
-                    resolve(outImgSrc);
-                }
-            };
-            const data = JSON.stringify(req);
-            xhr.send(data);
-        });
+        //             const outImgSrc = this.sanitizer.bypassSecurityTrustResourceUrl(b);
+        //             resolve(outImgSrc);
+        //         }
+        //     };
+        //     const data = JSON.stringify(req);
+        //     xhr.send(data);
+        // });
     }
 }
