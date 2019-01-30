@@ -23,10 +23,15 @@
 
     },
     "files.trimTrailingWhitespace": true,
+    "editor.codeLens": false,
+    "editor.autoIndent": true,
     "cmake.configureOnOpen": false,
     "python.pythonPath": "env\\Scripts\\python.exe",
     "python.linting.pep8Enabled": true,
      "python.linting.pep8Args": [
          "--ignore=E501"
      ]
+     ,
+    "prettier.singleQuote": true,
+    "prettier.printWidth": 100,
 }

@@ -16,7 +16,7 @@ build/config.gypi
 /research/mugshot_frontal_original_all
 *.ldb
 
-package-lock.json
+
 *.pyc
 
 .idea/*

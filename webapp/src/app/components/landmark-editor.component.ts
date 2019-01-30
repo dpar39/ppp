@@ -7,11 +7,46 @@ import { Point, CrownChinPointPair } from '../model/datatypes';
 
 @Component({
   selector: 'app-landmark-editor',
-  templateUrl: './landmark-editor.component.html',
-  styleUrls: ['./landmark-editor.component.css']
+  template: `
+    <div id="container" class="bg-dark">
+      <img id="photo" alt="" title="Input picture" [src]="inputPhoto" />
+      <div class="landmark" id="crownMark"></div>
+      <div class="landmark" id="chinMark"></div>
+    </div>
+  `,
+  styles: [
+    `
+      .landmark {
+        width: 1em;
+        height: 1em;
+        border: 1px solid green;
+        border-radius: 50%;
+        background-color: greenyellow;
+        opacity: 0.6;
+        float: left;
+        position: absolute;
+        visibility: hidden;
+      }
+
+      #photo {
+        position: absolute;
+      }
+
+      #container {
+        max-height: 50vh;
+        height: 300px;
+        border: 1px solid #363434;
+        border-radius: 5px;
+        margin: 1em auto;
+      }
+
+      img {
+        image-orientation: from-image;
+      }
+    `
+  ]
 })
 export class LandmarkEditorComponent implements OnInit {
-
   private _imageWidth = 0;
   private _imageHeight = 0;
   private _viewPortWidth = 0;
@@ -20,7 +55,7 @@ export class LandmarkEditorComponent implements OnInit {
   private _xleft = 0; // Offset in screen pixels
   private _ytop = 0;
   private _zoom = 0;
-  private _ratio = 0;   // Ratio between image pixels and screen pixels
+  private _ratio = 0; // Ratio between image pixels and screen pixels
 
   private _imgElmt: any = null;
   private _containerElmt: any = null;
@@ -77,38 +112,37 @@ export class LandmarkEditorComponent implements OnInit {
     this._chinMarkElmt = this.el.nativeElement.querySelector('#chinMark');
 
     const that = this;
-    interact('.landmark')
-      .draggable({
-        // enable inertial throwing
-        inertia: false,
-        // keep the element within the area of it's parent
-        restrict: {
-          restriction: 'parent',
-          endOnly: true,
-          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-        },
-        // call this function on every dragmove event
-        onmove: function (event) {
-          const target = event.target;
-          // keep the dragged position in the x/y attributes
-          const x = (parseFloat(target.getAttribute('x')) || 0) + event.dx;
-          const y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;
-          // translate the element
-          that.translateElement(target, new Point(x, y));
-        },
-        // call this function on every dragend event
-        onend: function (event) {
-          that.updateLandMarks();
-        }
-      });
+    interact('.landmark').draggable({
+      // enable inertial throwing
+      inertia: false,
+      // keep the element within the area of it's parent
+      restrict: {
+        restriction: 'parent',
+        endOnly: true,
+        elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+      },
+      // call this function on every dragmove event
+      onmove: function(event) {
+        const target = event.target;
+        // keep the dragged position in the x/y attributes
+        const x = (parseFloat(target.getAttribute('x')) || 0) + event.dx;
+        const y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;
+        // translate the element
+        that.translateElement(target, new Point(x, y));
+      },
+      // call this function on every dragend event
+      onend: function(event) {
+        that.updateLandMarks();
+      }
+    });
   }
 
   zoomFit(): void {
     const xratio = this._viewPortWidth / this._imageWidth;
     const yratio = this._viewPortHeight / this._imageHeight;
     this._ratio = xratio < yratio ? xratio : yratio;
-    this._xleft = this._viewPortWidth / 2 - this._ratio * this._imageWidth / 2;
-    this._ytop = this._viewPortHeight / 2 - this._ratio * this._imageHeight / 2;
+    this._xleft = this._viewPortWidth / 2 - (this._ratio * this._imageWidth) / 2;
+    this._ytop = this._viewPortHeight / 2 - (this._ratio * this._imageHeight) / 2;
   }
 
   calculateViewPort(): void {
@@ -120,7 +154,6 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-
   onResize(event) {
     this.calculateViewPort();
     this.zoomFit();
@@ -154,9 +187,16 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   renderLandMarks(): void {
-    if (this.crownPoint && this.crownPoint.x && this.crownPoint.y
-        && this.chinPoint && this.chinPoint.x && this.chinPoint.y
-        && this._imageWidth > 100 && this._imageHeight > 100) {
+    if (
+      this.crownPoint &&
+      this.crownPoint.x &&
+      this.crownPoint.y &&
+      this.chinPoint &&
+      this.chinPoint.x &&
+      this.chinPoint.y &&
+      this._imageWidth > 100 &&
+      this._imageHeight > 100
+    ) {
       const p1 = this.pixelToScreen(this._crownMarkElmt, this.crownPoint);
       const p2 = this.pixelToScreen(this._chinMarkElmt, this.chinPoint);
       this.translateElement(this._crownMarkElmt, p1);
@@ -170,13 +210,15 @@ export class LandmarkEditorComponent implements OnInit {
   pixelToScreen(elmt: any, pt: Point): Point {
     return new Point(
       this._xleft + pt.x * this._ratio - elmt.clientWidth / 2,
-      this._ytop + pt.y * this._ratio - elmt.clientHeight / 2);
+      this._ytop + pt.y * this._ratio - elmt.clientHeight / 2
+    );
   }
 
   screenToPixel(elmt: any): Point {
     return new Point(
       (parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xleft) / this._ratio,
-      (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._ytop) / this._ratio);
+      (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._ytop) / this._ratio
+    );
   }
 
   updateLandMarks() {

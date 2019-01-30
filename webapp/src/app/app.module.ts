@@ -7,12 +7,11 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ModalModule } from 'ngx-bootstrap/modal';
 
 import { AppComponent } from './app.component';
-import { LandmarkEditorComponent } from './landmark-editor/landmark-editor.component';
-import { PassportStandardSelectorComponent } from './passport-standard-selector/passport-standard-selector.component';
+import { LandmarkEditorComponent } from './components/landmark-editor.component';
+import { PassportStandardSelectorComponent } from './components/passport-standard-selector.component';
 import { BackEndService } from './services/back-end.service';
 import { OnlyNumberDirective } from './directives/onlynumbers-directive';
 import { Platform } from '@ionic/angular';
-
 
 @NgModule({
   declarations: [
@@ -28,10 +27,7 @@ import { Platform } from '@ionic/angular';
     TooltipModule.forRoot(),
     ModalModule.forRoot()
   ],
-  providers: [
-    Platform,
-    BackEndService
-  ],
+  providers: [Platform, BackEndService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}
