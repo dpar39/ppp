@@ -541,10 +541,13 @@ class Builder(object):
         # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
 
     def setup_emscripten(self):
+        if which('emsdk'):
+            return # we already have emscripten in path
+
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
-            self.run_cmd(['git', 'clone', 'https://github.com/emscripten-core/emsdk.git'])
+            self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
         os.chdir(emsdk_dir)
         self.run_cmd('python emsdk install latest')
         self.run_cmd('python emsdk activate latest')

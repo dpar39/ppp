@@ -16,6 +16,7 @@ before_script:
 script:
 - sudo apt-get install -qq libboost-filesystem-dev
 - sudo apt-get install -qq cmake
+- git clone https://github.com/emscripten-core/emsdk.git thirdparty/emsdk
 # - npm install -g node-gyp @angular/cli
 - "python build.py --emscripten --web --test"
 notifications:
