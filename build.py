@@ -544,11 +544,11 @@ class Builder(object):
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
-            self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git --git-dir=emsdk')
+            self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git')
         os.chdir(emsdk_dir)
         self.run_cmd('python emsdk install latest')
         self.run_cmd('python emsdk activate latest')
-        process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['python', 'emsdk-master', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
         if exit_code != 0:
