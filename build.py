@@ -711,7 +711,7 @@ class Builder(object):
             # Build android project
             self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
 
-    def build_webapp(self, build=True):
+    def build_webapp(self):
         """
         Builds and test the web application by running shell commands
         """
@@ -719,25 +719,23 @@ class Builder(object):
         dist_files = ['libppp/share/config.bundle.json',
                       'libppp/python/libpppwrapper.py']
         for dist_file in dist_files:
-            src_file_path = os.path.join(self._root_dir, dist_file)
+            src_file_path = self.repo_path(dist_file)
             dst_link = self.webapp_path(os.path.basename(dist_file))
             if os.path.exists(src_file_path):
                 link_file(src_file_path, dst_link)
 
-        # Install the angular-cli if not found in PATH
-        if not which('ng'):
-            self.run_cmd('npm install @angular/cli -g')
-        # Install the angular-cli if not found in PATH
+        # Install the angular-cli if not found in $PATH
         if not which('npx'):
             self.run_cmd('npm install npx -g')
 
         # Build the web app
         if self._web_build:
             os.chdir(self.webapp_path())
-            self.run_cmd(['npm', 'install'])
+            if not os.path.isdir(self.webapp_path('node_modules')):
+                self.run_cmd('npm install')
             if self._run_tests:
-                self.run_cmd(['ng', 'test', '--browsers=PhantomJS', '--watch=false'])
-            self.run_cmd(['ng', 'build', '--prod'])
+                self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
+            self.run_cmd('npx ng build --prod')
             os.chdir(self._root_dir)
 
     def deploy_to_azure(self):

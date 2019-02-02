@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- 8.11
+- 10.11
 dist: trusty
 sudo: required
 addons:
@@ -17,7 +17,7 @@ script:
 - sudo apt-get install -qq libboost-filesystem-dev
 - sudo apt-get install -qq cmake
 - npm install -g node-gyp @angular/cli
-- "./build.linux64.sh"
+- "python build.py --emscripten --web --test"
 notifications:
   email:
     on_failure: change
