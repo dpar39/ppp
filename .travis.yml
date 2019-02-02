@@ -3,20 +3,20 @@ node_js:
 - 10.11
 dist: trusty
 sudo: required
-addons:
- apt:
-   sources:
-   - ubuntu-toolchain-r-test
-   packages:
-   - gcc-5
-   - g++-5
-env: CXX=g++-5 CC=gcc-5
+# addons:
+#  apt:
+#    sources:
+#    - ubuntu-toolchain-r-test
+#    packages:
+#    - gcc-5
+#    - g++-5
+# env: CXX=g++-5 CC=gcc-5
 before_script:
 - chmod +x ./build.*
 script:
 - sudo apt-get install -qq libboost-filesystem-dev
 - sudo apt-get install -qq cmake
-- npm install -g node-gyp @angular/cli
+# - npm install -g node-gyp @angular/cli
 - "python build.py --emscripten --web --test"
 notifications:
   email:
