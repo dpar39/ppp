@@ -5,6 +5,13 @@ environment:
 
 version: 1.0.{build}
 
+cache:
+  - thirdparty/install_emscripten
+  - thirdparty/install_windows_release_x86
+  - thirdparty/install_windows_release_x64
+  - thirdparty/install_linux_release_x64
+  - webapp/node_modules  -> webapp/package.json
+
 branches:
   only:
     - emscripten
@@ -18,7 +25,8 @@ platform:
   - x86
 
 build_script:
-  - python build.py --build_config=release --arch_name=%PLATFORM% --test --web --emscripten
+  - python build.py --arch_name=%PLATFORM% --test
+  - python build.py --web --emscripten --test
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))

@@ -542,8 +542,7 @@ class Builder(object):
 
     def setup_emscripten(self):
         if which('emsdk'):
-            return # we already have emscripten in path
-
+            return  # we already have emscripten in path
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
