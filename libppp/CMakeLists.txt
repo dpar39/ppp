@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.2.0)
 
 set(MODULE_NAME ppp)
 project(${MODULE_NAME} CXX)
@@ -7,11 +7,19 @@ set(TEST_NAME ${MODULE_NAME}_test)
 
 message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
 
+if (CMAKE_SIZEOF_VOID_P MATCHES "4")
+    set(ARCH_NAME "x86")
+else()
+    set(ARCH_NAME "x64")
+endif()
+string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} SYSTEM_NAME)
+set(BUILD_NAME_SUFFIX ${SYSTEM_NAME}_${BUILD_TYPE}_${ARCH_NAME} )
+
 #----------------------------
 # Third party dependencies
 #----------------------------
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
-set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -25,8 +33,6 @@ if(ANDROID)
 else()
     set(OpenCV_STATIC ON)
     if (DEFINED EMSCRIPTEN)
-        # set(CMAKE_C_COMPILER "emcc")
-        # set(CMAKE_CXX_COMPILER "emc++")
         SET(EMCC_LINKER_FLAGS "${EMCC_LINKER_FLAGS} ${CMAKE_CXX_FLAGS}")
         message(STATUS "Setting EMCC_LINKER_FLAGS=${EMCC_LINKER_FLAGS}")
         set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_emscripten)
@@ -46,17 +52,9 @@ else()
         #     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC -fexceptions -pthread")
         #     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -fexceptions -pthread")
         # endif()
-
         add_definitions(-DDLLEXPORT)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-        if (CMAKE_SIZEOF_VOID_P MATCHES "4")
-            set(ARCH_NAME "x86")
-        else()
-            set(ARCH_NAME "x64")
-        endif()
-        string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-        string(TOLOWER ${CMAKE_SYSTEM_NAME} SYSTEM_NAME)
-        set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_${SYSTEM_NAME}_${BUILD_TYPE}_${ARCH_NAME})
+        set(OpenCV_DIR ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
     endif()
 
     if(EXISTS ${OpenCV_DIR}/share/OpenCV/OpenCVConfig.cmake)
@@ -127,6 +125,15 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.bundle.json DESTINATION ${CMAKE_INSTALL_PREFIX})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
 
+    set(GTest_DIR ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
+
+    message(STATUS "Setting GTest_DIR=${GTest_DIR}")
+
+    enable_testing()
+    find_package(GTest REQUIRED)
+    set(GTEST_GMOCK_LIBRARY ${GTEST_LIBRARY} )
+    string(REGEX REPLACE "gtest" "gmock" GTEST_GMOCK_LIBRARY ${GTEST_GMOCK_LIBRARY})
+
     #-----------------------------
     # Build the module tests
     #-----------------------------
@@ -139,16 +146,15 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
 
     set(TEST_INC_DIRS
         ${MODULE_INC_DIRS}
-        ${GMOCK_ROOT}/googletest/include
-        ${GMOCK_ROOT}/googlemock/include
+        ${GTest_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
     )
     set(TEST_LIB_DEPS
         ${MODULE_LIB_DEPS}
         ${LIB_NAME}
         ${Boost_LIBRARIES}
-        gmock
-        gtest
+        ${GTEST_LIBRARY}
+        ${GTEST_GMOCK_LIBRARY}
     )
 
     add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})

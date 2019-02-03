@@ -3,11 +3,11 @@
 #========================================
 cmake_minimum_required(VERSION 3.0.0)
 
- project(PassportPhoto CXX)
+project(PassportPhoto CXX)
 # set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
-set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
+#set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
+# set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 
 # set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${THIRD_PARTY_DIR}" CACHE INTERNAL "" FORCE)
 
@@ -37,9 +37,9 @@ set(GMOCK_ROOT "${THIRD_PARTY_DIR}/googletest-release-1.8.1")
 # include_directories(${GMOCK_ROOT}/googletest/include)
 # include_directories(${GMOCK_ROOT}/googlemock/include)
 
-if (NOT DEFINED EMSCRIPTEN)
-    add_subdirectory(${GMOCK_ROOT})
-endif()
+# if (NOT DEFINED EMSCRIPTEN)
+#     add_subdirectory(${GMOCK_ROOT})
+# endif()
 
 # # Add the ppp library
 # include_directories(libppp/include)

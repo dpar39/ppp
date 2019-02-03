@@ -32,3 +32,4 @@ build/config.gypi
 # Generated assets
 webapp/src/assets/libppp.wasm
 webapp/src/assets/libppp.js
+tests.xml

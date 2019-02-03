@@ -233,19 +233,28 @@ class Builder(object):
         # if not "devenv" in (p.name() for p in psutil.process_iter()):
         #    self.run_cmd(['call', 'devenv', solution_file])
 
-    def extract_gmock(self):
+    def build_googletest(self):
         """
         Extract and build GMock/GTest libraries
         """
+        if self._emscripten:
+            return  # We don't run WebAssembly unit tests
+
+        if os.path.isfile(os.path.join(self._third_party_install_dir, 'lib/cmake/GTest/GTestConfig.cmake')):
+            return  # We have Gtest installed
+
         # Download googletest sources if not done yet
-        gmock_src_pkg = self.download_third_party_lib(
-            GMOCK_SRC_URL, 'googletest.zip')
+        gmock_src_pkg = self.download_third_party_lib(GMOCK_SRC_URL, 'googletest.zip')
         # Get the file prefix for googletest
         gmock_extract_dir = self.get_third_party_lib_dir('googletest')
-
         if gmock_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
+        # Build GoogleTest/GoogleMock and install
+        cmake_extra_defs = [
+            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
+        ]
+        self.build_cmake_lib(gmock_extract_dir, cmake_extra_defs, ['install'])
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -269,8 +278,7 @@ class Builder(object):
             if os.path.exists(os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')):
                 return
         else:
-            lib_files = glob.glob(
-                self._third_party_install_dir + '/lib/libopencv_*.a')
+            lib_files = glob.glob(self._third_party_install_dir + '/lib/libopencv_*.a')
             if len(lib_files) >= len(ocv_build_modules):
                 return
         # Download OpenCV sources if not done yet
@@ -663,12 +671,14 @@ class Builder(object):
             self.run_cmake(cmake_generator, '..')
             self.set_startup_vs_prj('ppp_test')
         else:
-            self.build_cmake_lib('..', [], [])
+            targets = ['install'] if not self._emscripten else []
+            cmake_extra_defs = ['-DCMAKE_INSTALL_PREFIX=' + self._install_dir]
+            self.build_cmake_lib('..', cmake_extra_defs, targets)
             # Run unit tests for C++ code
             if not self._emscripten and self._run_tests:
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
-                self.run_cmd([test_exe, '--gtest_output=xml:tests.xml'])
+                self.run_cmd([test_exe, '--gtest_output=xml:../tests.xml'])
 
         os.chdir(self._root_dir)
         if self._emscripten:
@@ -784,7 +794,7 @@ class Builder(object):
         self.bundle_config()
 
         # Build Third Party Libs
-        self.extract_gmock()
+        self.build_googletest()
         self.build_opencv()
 
         # Build this project for a desktop platform (Windows or Unix-based OS)
