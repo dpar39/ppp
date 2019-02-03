@@ -337,7 +337,7 @@ class Builder(object):
                 '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui'
             ]
             if IS_WINDOWS:
-                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=ON']
+                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=ON', '-DUSE_MSVC_SSE=OFF']
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)

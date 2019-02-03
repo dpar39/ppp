@@ -125,10 +125,7 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.bundle.json DESTINATION ${CMAKE_INSTALL_PREFIX})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-    set(GTest_DIR ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
-
-    message(STATUS "Setting GTest_DIR=${GTest_DIR}")
-
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
     enable_testing()
     find_package(GTest REQUIRED)
     set(GTEST_GMOCK_LIBRARY ${GTEST_LIBRARY} )
