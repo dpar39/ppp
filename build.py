@@ -551,7 +551,7 @@ class Builder(object):
         os.chdir(emsdk_dir)
         self.run_cmd('python emsdk install latest')
         self.run_cmd('python emsdk activate latest')
-        process = subprocess.Popen(['python', 'emsdk-master', 'construct_env'], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
         if exit_code != 0:
