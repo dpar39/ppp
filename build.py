@@ -239,10 +239,8 @@ class Builder(object):
         """
         if self._emscripten:
             return  # We don't run WebAssembly unit tests
-
         if os.path.isfile(os.path.join(self._third_party_install_dir, 'lib/cmake/GTest/GTestConfig.cmake')):
             return  # We have Gtest installed
-
         # Download googletest sources if not done yet
         gmock_src_pkg = self.download_third_party_lib(GMOCK_SRC_URL, 'googletest.zip')
         # Get the file prefix for googletest
@@ -250,6 +248,7 @@ class Builder(object):
         if gmock_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
+            gmock_extract_dir = self.get_third_party_lib_dir('googletest')
         # Build GoogleTest/GoogleMock and install
         cmake_extra_defs = [
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
