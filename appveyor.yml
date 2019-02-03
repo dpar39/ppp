@@ -1,7 +1,7 @@
 image: Visual Studio 2015
 
 environment:
-  nodejs_version: "8"
+  nodejs_version: "10"
 
 version: 1.0.{build}
 
@@ -13,8 +13,6 @@ max_jobs: 1
 
 install:
   - ps: Install-Product node $env:nodejs_version
-  - npm install -g node-gyp
-  - npm install -g @angular/cli
 
 platform:
   - x86
