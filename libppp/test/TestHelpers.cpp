@@ -225,7 +225,7 @@ void processDatabase(DetectionCallback callback, const std::vector<std::string>&
 
         auto inputImage = cv::imread(imageFileName);
         cv::Mat grayImage;
-        cv::cvtColor(inputImage, grayImage, CV_BGR2GRAY);
+        cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
 
         auto imagePrefix = imageFileName.substr(0, imageFileName.find_last_of('.'));
         auto annotatedLandMarkFiles = imagePrefix + ".pos";
