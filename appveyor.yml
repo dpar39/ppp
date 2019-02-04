@@ -10,6 +10,7 @@ cache:
   - thirdparty/install_windows_release_x86
   - thirdparty/install_windows_release_x64
   - thirdparty/install_linux_release_x64
+  - research/mugshot_frontal_original_all
   - webapp/node_modules  -> webapp/package.json
 
 branches:
