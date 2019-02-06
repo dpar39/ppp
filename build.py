@@ -483,8 +483,7 @@ class Builder(object):
 
     def setup_android(self):
         # Download SDK tools if not present and extract it to
-        android_sdk_tools_pkg = self.download_third_party_lib(
-            ANDROID_SDK_TOOLS)
+        android_sdk_tools_pkg = self.download_third_party_lib(ANDROID_SDK_TOOLS)
 
         # Extract the SDK if not done already
         android_sdk_tools_dirname = os.path.splitext(
@@ -504,13 +503,13 @@ class Builder(object):
             self.extract_third_party_lib(gradle_pkg)
             gradle_pkg_dir = self.get_third_party_lib_dir('gradle')
 
-        # Download Android NDK if not present
-        android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
+        # # Download Android NDK if not present
+        # android_ndk_pkg = self.download_third_party_lib(ANDROID_NDK)
 
-        # Extract the NDK if not done already
-        android_ndk_dir = self.get_third_party_lib_dir('android-ndk')
-        if android_ndk_dir is None:
-            self.extract_third_party_lib(android_ndk_pkg)
+        # # Extract the NDK if not done already
+        # android_ndk_dir = self.get_third_party_lib_dir('android-ndk')
+        # if android_ndk_dir is None:
+        #     self.extract_third_party_lib(android_ndk_pkg)
 
         # Set up environment
         android_user_dir = os.path.join(os.path.expanduser("~"), '.android')
@@ -524,27 +523,23 @@ class Builder(object):
         # self._shell.set_env_var('JAVA_HOME', '/usr/lib/jvm/java-8-oracle')
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
         self._shell.set_env_var('ANDROID_SDK_ROOT', android_sdk_tools_dir)
-        self._shell.set_env_var('ANDROID_NDK_HOME', android_ndk_dir)
+        # self._shell.set_env_var('ANDROID_NDK_HOME', android_ndk_dir)
         # self._shell.set_env_var('JAVA_OPTS', '-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee')
-        self._shell.set_env_var('JAVA_OPTS', '')
+        # self._shell.set_env_var('JAVA_OPTS', '')
 
-        bin_tools = os.path.normpath(
-            os.path.join(android_sdk_tools_dir, 'tools/bin'))
+        bin_tools = os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools/bin'))
         self._shell.add_system_path(bin_tools)
-        self._shell.add_system_path(os.path.normpath(
-            os.path.join(android_sdk_tools_dir, 'tools')))
-        self._shell.add_system_path(os.path.normpath(
-            os.path.join(gradle_pkg_dir, 'bin')))
-        self._shell.add_system_path(os.path.normpath(android_ndk_dir))
-        self._shell.add_system_path(os.path.normpath(
-            os.path.join(self._shell.get_env_var('JAVA_HOME'), '/jre/bin')))
+        self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools')))
+        self._shell.add_system_path(os.path.normpath(os.path.join(gradle_pkg_dir, 'bin')))
+        # self._shell.add_system_path(os.path.normpath(android_ndk_dir))
+        self._shell.add_system_path(os.path.normpath(os.path.join(self._shell.get_env_var('JAVA_HOME'), '/jre/bin')))
 
         # print(self._shell._env)
         if os.name == 'posix':
             self.run_cmd('chmod -R +x {}'.format(bin_tools))
-            self.run_cmd('chmod -R +x {}'.format(android_ndk_dir))
+            # self.run_cmd('chmod -R +x {}'.format(android_ndk_dir))
             self.run_cmd('chmod -R +x {}/bin'.format(gradle_pkg_dir))
-        # self.run_cmd('yes | sdkmanager --licenses')
+        self.run_cmd('yes | sdkmanager --licenses')
         # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
 
     def setup_emscripten(self):
@@ -801,10 +796,12 @@ class Builder(object):
 
         # Copy built addon and configuration to webapp
         self.build_webapp()
-        self.deploy_to_azure()
 
         # Build the android app
         self.build_android()
+
+        # Deploy webapp to the cloud
+        self.deploy_to_azure()
 
 
 BUILDER = Builder()

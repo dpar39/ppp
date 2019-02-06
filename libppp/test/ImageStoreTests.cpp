@@ -3,7 +3,7 @@
 #include "ImageStore.h"
 #include "TestHelpers.h"
 
-class ImageStoreTests : public ::testing::Test
+class ImageStoreTests : public testing::Test
 {
 
 protected:
@@ -14,7 +14,6 @@ protected: // Test data
     cv::Mat m_mat2 = cv::Mat(4, 5, CV_8UC1, 2);
     cv::Mat m_mat3 = cv::Mat(6, 8, CV_8UC1, 3);
 };
-
 
 TEST_F(ImageStoreTests, CanAddAndRetrieveImages)
 {
@@ -32,7 +31,6 @@ TEST_F(ImageStoreTests, CanAddAndRetrieveImages)
     verifyEqualImages(m_mat1, m1Ret);
     verifyEqualImages(m_mat2, m2Ret);
 }
-
 
 TEST_F(ImageStoreTests, ImagesArePrioritizedByAccess)
 {

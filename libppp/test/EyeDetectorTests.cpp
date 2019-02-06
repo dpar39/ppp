@@ -2,13 +2,12 @@
 
 #include <gtest/gtest.h>
 
-class EyeDetectorTests : public ::testing::Test
+class EyeDetectorTests : public testing::Test
 {
 
 protected:
     void SetUp() override
     {
-        
     }
 
     EyeDetectorSPtr m_pEyeDetector = std::make_shared<EyeDetector>();
@@ -16,6 +15,6 @@ protected:
 
 TEST_F(EyeDetectorTests, FallbackWorks)
 {
-    //EyeDetector d;
-   // d.configure();
+    // EyeDetector d;
+    // d.configure();
 }
