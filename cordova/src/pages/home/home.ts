@@ -43,7 +43,7 @@ export class HomePage implements AfterViewInit {
           let reader = new FileReader();
           reader.readAsDataURL(rr.blob());
           reader.onloadend = () => {
-            let content64 = reader.result;
+            let content64 = reader.result as string;
             content64 = content64.substring(content64.indexOf(',') + 1);
             objcfg.shapePredictor.data = content64;
             let config = JSON.stringify(objcfg);

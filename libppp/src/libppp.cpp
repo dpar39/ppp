@@ -83,8 +83,8 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     rapidjson::Document d;
     d.Parse(request.c_str());
 
-    auto ps = PhotoStandard::fromJson(d["standard"]);
-    auto canvas = CanvasDefinition::fromJson(d["canvas"]);
+    const auto ps = PhotoStandard::fromJson(d["standard"]);
+    const auto canvas = CanvasDefinition::fromJson(d["canvas"]);
     auto cronwPoint = fromJson(d["crownPoint"]);
     auto chinPoint = fromJson(d["chinPoint"]);
     auto asBase64Encode = false;
@@ -94,7 +94,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
         asBase64Encode = d["asBase64"].GetBool();
     }
 
-    auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
+    const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
     std::vector<BYTE> pictureData;
     cv::imencode(".png", result, pictureData);

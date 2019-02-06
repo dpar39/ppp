@@ -1,19 +1,19 @@
 #pragma once
 
+#include "LandMarks.h"
 #include <functional>
 #include <rapidjson/document.h>
-#include "LandMarks.h"
 
 // image name prefix, rgb image, gray image, annotated landmarks, detected landmarks
-typedef std::function<bool(const std::string&, cv::Mat&, cv::Mat&, const LandMarks&, LandMarks&)> DetectionCallback;
+typedef std::function<bool(const std::string &, cv::Mat &, cv::Mat &, const LandMarks &, LandMarks &)> DetectionCallback;
 
 struct ResultData
 {
-    ResultData(const std::string &imgName, const LandMarks& annotated, const LandMarks &detected, bool isSuccess)
-        : imageName(imgName)
-        , annotation(annotated)
-        , detection(detected)
-        , isSuccess(isSuccess)
+    ResultData(const std::string & imgName, const LandMarks & annotated, const LandMarks & detected, bool isSuccess)
+    : imageName(imgName)
+    , annotation(annotated)
+    , detection(detected)
+    , isSuccess(isSuccess)
     {
     }
 
@@ -23,27 +23,31 @@ struct ResultData
     bool isSuccess;
 };
 
-#define IN_ROI(r, p) (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
+#define IN_ROI(r, p)                                                                                                   \
+    (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
 
-std::string resolvePath(const std::string& relPath);
+std::string resolvePath(const std::string & relPath);
 
-std::string pathCombine(const std::string& prefix, const std::string& suffix);
+std::string pathCombine(const std::string & prefix, const std::string & suffix);
 
-void getImageFiles(const std::string& testImagesDir, std::vector<std::string>& imageFilenames);
+void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFilenames);
 
-std::string getFileName(const std::string& filePath);
+std::string getFileName(const std::string & filePath);
 
-bool importSCFaceLandMarks(const std::string& txtFileName, cv::Mat& output);
+bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output);
 
-void verifyEqualImages(const cv::Mat& expected, const cv::Mat& actual);
+void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual);
 
-rapidjson::Document readConfigFromFile(const std::string& configFile = "");
+rapidjson::Document readConfigFromFile(const std::string & configFile = "");
 
-void processDatabase(DetectionCallback callback, const std::vector<std::string> &ignoredImages, const std::string &landmarksPath, std::vector<ResultData> &dr);
+void processDatabase(const DetectionCallback & callback,
+                     const std::vector<std::string> & ignoredImages,
+                     const std::string & landmarksPath,
+                     std::vector<ResultData> & dr);
 
-void adjustCrownChinCoeffs(const std::vector<LandMarks>& groundTruthAnnotations);
+void adjustCrownChinCoeffs(const std::vector<LandMarks> & groundTruthAnnotations);
 
-template <typename  T>
+template <typename T>
 static double median(std::vector<T> scores)
 {
     double median;

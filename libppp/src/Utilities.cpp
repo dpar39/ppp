@@ -4,14 +4,14 @@
 #include <mutex>
 #include <numeric>
 
-#include <opencv2/objdetect/objdetect.hpp>
+#include <base64_kernel_1.h>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
 
 namespace cv
 {
-    FWD_DECL(CascadeClassifier)
+FWD_DECL(CascadeClassifier)
 }
-
 
 static uint8_t fromChar(char ch)
 {
@@ -38,7 +38,7 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::vector<BYTE> Utilities::base64Decode(const char *base64Str, size_t base64Len)
+std::vector<BYTE> Utilities::base64Decode(const char * base64Str, size_t base64Len)
 {
     BYTE charBlock4[4], byteBlock3[3];
     std::vector<BYTE> result;
@@ -46,7 +46,7 @@ std::vector<BYTE> Utilities::base64Decode(const char *base64Str, size_t base64Le
     auto i = 0;
     for (size_t k = 0; k < base64Len; ++k)
     {
-        auto ch64 = base64Str[k];
+        const auto ch64 = base64Str[k];
         if (ch64 == '=')
         {
             break;
@@ -79,18 +79,32 @@ std::vector<BYTE> Utilities::base64Decode(const char *base64Str, size_t base64Le
     return result;
 }
 
-
-
-std::string Utilities::base64Encode(const std::vector<BYTE>& rawStr)
+struct membuf : std::streambuf
 {
-    static const std::string Base64CharSet =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789+/";
+    membuf(char const * base, size_t size)
+    {
+        char * p(const_cast<char *>(base));
+        this->setg(p, p, p + size);
+    }
+};
+struct imemstream : virtual membuf, std::istream
+{
+    imemstream(char const * base, size_t size)
+    : membuf(base, size)
+    , std::istream(static_cast<std::streambuf *>(this))
+    {
+    }
+};
+
+std::string Utilities::base64Encode(const std::vector<BYTE> & rawStr)
+{
 
     auto byteIter = rawStr.data();
     auto bufferSize = rawStr.size();
+    const std::string Base64CharSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
     std::string result;
+    result.reserve(static_cast<size_t>(ceil(bufferSize * 4 / 3.0)));
     auto i = 0;
     int j;
     uint8_t charArray3[3];
@@ -107,7 +121,8 @@ std::string Utilities::base64Encode(const std::vector<BYTE>& rawStr)
             charArray4[3] = charArray3[2] & 0x3f;
             for (i = 0; i < 4; i++)
             {
-                result += Base64CharSet[charArray4[i]];
+                const auto idx = charArray4[i];
+                result.push_back(Base64CharSet[idx]);
             }
             i = 0;
         }
@@ -117,7 +132,7 @@ std::string Utilities::base64Encode(const std::vector<BYTE>& rawStr)
     {
         for (j = i; j < 3; j++)
         {
-            charArray3[j] = '\0';
+            charArray3[j] = 0;
         }
         charArray4[0] = (charArray3[0] & 0xfc) >> 2;
         charArray4[1] = ((charArray3[0] & 0x03) << 4) + ((charArray3[1] & 0xf0) >> 4);
@@ -125,18 +140,18 @@ std::string Utilities::base64Encode(const std::vector<BYTE>& rawStr)
         charArray4[3] = charArray3[2] & 0x3f;
         for (j = 0; j < i + 1; j++)
         {
-            result += Base64CharSet[charArray4[j]];
+            const auto idx = charArray4[j];
+            result.push_back(Base64CharSet[idx]);
         }
-
         while (i++ < 3)
         {
-            result += '=';
+            result.push_back('=');
         }
     }
     return result;
 }
 
-cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char *haarCascadeBase64Data)
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeBase64Data)
 {
     auto xmlHaarCascade = base64Decode(haarCascadeBase64Data, strlen(haarCascadeBase64Data));
     auto classifier = std::make_shared<cv::CascadeClassifier>();
@@ -144,7 +159,7 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char *haarCa
     // format that is accepted as an in-memory FileNode
     // Implementation should look like this:
 
-    std::string s(xmlHaarCascade.begin(), xmlHaarCascade.end());
+    const std::string s(xmlHaarCascade.begin(), xmlHaarCascade.end());
     try
     {
         cv::FileStorage fs(s, cv::FileStorage::READ | cv::FileStorage::MEMORY);
@@ -154,36 +169,32 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char *haarCa
             throw std::runtime_error("Failed to load classifier from configuration");
         }
         return classifier;
-
     }
-    catch(std::exception &e)
+    catch (std::exception & e)
     {
         throw e;
     }
-    //static std::mutex g_mutex;
-    //std::lock_guard<std::mutex> lg(g_mutex);
-    //std::string tmpFile = "cascade.xml";
+    // static std::mutex g_mutex;
+    // std::lock_guard<std::mutex> lg(g_mutex);
+    // std::string tmpFile = "cascade.xml";
     //{
     //    std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
     //    oss.write(reinterpret_cast<char *>(xmlHaarCascade.data()), xmlHaarCascade.size());
     //}
-    //classifier->load(tmpFile);
-    //return classifier;
+    // classifier->load(tmpFile);
+    // return classifier;
 }
 
-uint32_t Utilities::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end)
+uint32_t Utilities::crc32(uint32_t crc, const uint8_t * begin, const uint8_t * end)
 {
     /* Table of CRCs of all 8-bit messages. */
     static uint32_t s_crcTable[256];
     static std::once_flag s_crcComputeFlag;
-    std::call_once(s_crcComputeFlag, []()
-    {
-        unsigned long c;
-        int n, k;
-        for (n = 0; n < 256; n++)
+    std::call_once(s_crcComputeFlag, []() {
+        for (auto n = 0; n < 256; n++)
         {
-            c = static_cast<unsigned long>(n);
-            for (k = 0; k < 8; k++)
+            auto c = static_cast<unsigned long>(n);
+            for (auto k = 0; k < 8; k++)
             {
                 if (c & 1)
                 {
@@ -206,18 +217,16 @@ uint32_t Utilities::crc32(uint32_t crc, const uint8_t* begin, const uint8_t* end
     return crc;
 }
 
-
 /* Update a running CRC with the bytes buf[0..len-1]--the CRC
 should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
-uint32_t updateCrc(uint32_t crc, unsigned char *buf, size_t len)
+uint32_t updateCrc(uint32_t crc, unsigned char * buf, size_t len)
 {
     /* Table of CRCs of all 8-bit messages. */
     static uint32_t s_crcTable[256];
     static std::once_flag s_crcComputeFlag;
-    std::call_once(s_crcComputeFlag, []()
-    {
+    std::call_once(s_crcComputeFlag, []() {
         unsigned long c;
         int n, k;
         for (n = 0; n < 256; n++)
@@ -244,7 +253,7 @@ uint32_t updateCrc(uint32_t crc, unsigned char *buf, size_t len)
     return crc;
 }
 
-double Utilities::toMM(double v, const std::string& units)
+double Utilities::toMM(double v, const std::string & units)
 {
     if (units == "mm")
     {
@@ -252,11 +261,11 @@ double Utilities::toMM(double v, const std::string& units)
     }
     if (units == "inch")
     {
-        return v*25.4;
+        return v * 25.4;
     }
     if (units == "cm")
     {
-        return v*10.0;
+        return v * 10.0;
     }
     throw std::runtime_error("Unknown input units when creating the photo standard definition");
 }
@@ -268,7 +277,7 @@ std::pair<cv::Point2d, cv::Point2d> Utilities::pointsAtDistanceNormalToCentreOf(
         throw std::runtime_error("Input points cannot be equal");
     }
 
-    auto p0 = (p1 + p2) / 2.0;
+    const auto p0 = (p1 + p2) / 2.0;
     cv::Point2d pa, pb; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
     if (p1.x == p2.x)
     {
@@ -284,9 +293,10 @@ std::pair<cv::Point2d, cv::Point2d> Utilities::pointsAtDistanceNormalToCentreOf(
     }
     else
     {
-        auto m = (p1.x - p2.x) / (p2.y - p1.y); // m' = -1/m
+        const auto m = (p1.x - p2.x) / (p2.y - p1.y); // m' = -1/m
         auto dx = d / sqrt(1 + m * m);
-        if (m < 0) dx = -dx;
+        if (m < 0)
+            dx = -dx;
         pa.x = p0.x + dx;
         pb.x = p0.x - dx;
         pa.y = m * (pa.x - p0.x) + p0.y;
@@ -301,11 +311,13 @@ cv::Point2d Utilities::pointInLineAtDistance(cv::Point2d p0, cv::Point2d p1, dou
     {
         throw std::runtime_error("Input points cannot be equal");
     }
-    auto ratio = dist / cv::norm(p1 - p0);
+    const auto ratio = dist / norm(p1 - p0);
     return p0 + (p1 - p0) * ratio;
 }
 
-std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> contour, cv::Point2d pline1, cv::Point2d pline2)
+std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> contour,
+                                                            cv::Point2d pline1,
+                                                            cv::Point2d pline2)
 {
     std::vector<cv::Point2d> result;
     auto A2 = pline2.y - pline1.y;
@@ -346,7 +358,6 @@ int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
     printf("\nPerforming the Optimization Operation\n");
     printf("TEST : %f \n", P[134]);
 
-
     printf(" --------------------------------------------------\n");
     printf("Done with Initialization of Gaussian mixture parameters\n");
 
@@ -381,8 +392,12 @@ int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
         mu2[t] = (mu - q1[t] * mu1[t]) / q2[t];
 
         /* ENERGY FUNCTION */
-        var1[t] = (q1[t - 1] * (var1[t - 1] + (mu1[t - 1] - mu1[t]) * (mu1[t - 1] - mu1[t])) + P[t] * (t - mu1[t]) * (t - mu1[t])) / q1[t];
-        var2[t] = (q2[t - 1] * (var2[t - 1] + (mu2[t - 1] - mu2[t]) * (mu2[t - 1] - mu2[t])) - P[t] * (t - mu2[t]) * (t - mu2[t])) / q2[t];
+        var1[t] = (q1[t - 1] * (var1[t - 1] + (mu1[t - 1] - mu1[t]) * (mu1[t - 1] - mu1[t]))
+                   + P[t] * (t - mu1[t]) * (t - mu1[t]))
+            / q1[t];
+        var2[t] = (q2[t - 1] * (var2[t - 1] + (mu2[t - 1] - mu2[t]) * (mu2[t - 1] - mu2[t]))
+                   - P[t] * (t - mu2[t]) * (t - mu2[t]))
+            / q2[t];
 
         H[t] = (q1[t] * log(var1[t]) + q2[t] * log(var2[t])) / 2 - q1[t] * log(q1[t]) - q2[t] * log(q2[t]);
         printf("Energy %d: %lf\n", t, H[t]);
@@ -403,13 +418,12 @@ int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
     }
     printf(" \n\nThe minimum energy function is %lf and the threshold value is %d\n\n", min, opt_threshold);
 
-
     return opt_threshold;
 }
 
-cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
+cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize)
 {
-    if ( kernelSize < 3 || kernelSize % 2 == 0)
+    if (kernelSize < 3 || kernelSize % 2 == 0)
     {
         throw std::logic_error("Kernel size should be a positive odd number greater or equal to 3");
     }
@@ -440,7 +454,7 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
     auto height = inputImg.size().height;
     auto width = inputImg.size().width;
 
-    auto windowSizeSqr = kernelSize*kernelSize;
+    auto windowSizeSqr = kernelSize * kernelSize;
 
     std::vector<double> windowPixelData(windowSizeSqr);
     std::vector<double> wKernel(windowSizeSqr);
@@ -484,26 +498,33 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
             regionMean /= windowSizeSqr;
 
             // SECOND LOOP: count number of pixels bigger/smaller than the mean
-            auto overMeanCnt = std::count_if(windowPixelData.begin(), windowPixelData.end(), [regionMean](double v) {return v > regionMean; });
+            auto overMeanCnt = std::count_if(windowPixelData.begin(), windowPixelData.end(), [regionMean](double v) {
+                return v > regionMean;
+            });
             auto underMeanCnt = windowSizeSqr - overMeanCnt;
             auto above = overMeanCnt > underMeanCnt;
 
             // THIRD LOOP : update filter weights
             auto weightedKernelSum = 0.0;
-            std::transform( windowPixelData.begin(), windowPixelData.end(), kernel.begin(), wKernel.begin(), [regionMean, above, &weightedKernelSum](double v, double kernelValue)
-            {
-                if ((v > regionMean && above == false) || (v < regionMean && above == true))
-                {
-                    return 0.0;
-                }
-                else
-                {
-                    weightedKernelSum += kernelValue;
-                    return kernelValue;
-                }
-            });
+            std::transform(windowPixelData.begin(),
+                           windowPixelData.end(),
+                           kernel.begin(),
+                           wKernel.begin(),
+                           [regionMean, above, &weightedKernelSum](double v, double kernelValue) {
+                               if ((v > regionMean && above == false) || (v < regionMean && above == true))
+                               {
+                                   return 0.0;
+                               }
+                               else
+                               {
+                                   weightedKernelSum += kernelValue;
+                                   return kernelValue;
+                               }
+                           });
             // normalize s.t. sum(filter coeff) = 1
-            std::transform(wKernel.begin(), wKernel.end(), wKernel.begin(), [weightedKernelSum](double v) {return v / weightedKernelSum; });
+            std::transform(wKernel.begin(), wKernel.end(), wKernel.begin(), [weightedKernelSum](double v) {
+                return v / weightedKernelSum;
+            });
 
             // FOURTH LOOP : convolve
             auto pixelValue = std::inner_product(windowPixelData.begin(), windowPixelData.end(), wKernel.begin(), 0.0);
@@ -515,17 +536,17 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat& inputImg, int kernelSize)
     return outputImg;
 }
 
-cv::Point Utilities::convert(const dlib::point& pt)
+cv::Point Utilities::convert(const dlib::point & pt)
 {
     return cv::Point2d(pt.x(), pt.y());
 }
 
-cv::Rect2d Utilities::convert(const dlib::rectangle& r)
+cv::Rect2d Utilities::convert(const dlib::rectangle & r)
 {
     return cv::Rect2d(r.left(), r.top(), r.width(), r.height());
 }
 
-dlib::rectangle Utilities::convert(const cv::Rect2d& r)
+dlib::rectangle Utilities::convert(const cv::Rect2d & r)
 {
     return dlib::rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
 }

@@ -1,8 +1,8 @@
-﻿#include <gtest/gtest.h>
-#include "FaceDetector.h"
+﻿#include "FaceDetector.h"
 #include "TestHelpers.h"
+#include <gtest/gtest.h>
 
-class FaceDetectorTests : public ::testing::Test
+class FaceDetectorTests : public testing::Test
 {
 protected:
     FaceDetectorSPtr m_pFaceDetector;
@@ -17,9 +17,11 @@ protected:
 
 TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
-    auto process = [&](const std::string& imagePrefix, cv::Mat& rgbImage, cv::Mat& grayImage,
-        const LandMarks& manualAnnotations, LandMarks& detectedLandMarks) -> bool
-    {
+    auto process = [&](const std::string & imagePrefix,
+                       cv::Mat & rgbImage,
+                       cv::Mat & grayImage,
+                       const LandMarks & manualAnnotations,
+                       LandMarks & detectedLandMarks) -> bool {
         EXPECT_TRUE(m_pFaceDetector->detectLandMarks(grayImage, detectedLandMarks))
             << "Error detecting face in " << imagePrefix;
 
@@ -35,5 +37,8 @@ TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
     };
 
     std::vector<ResultData> rd;
-    processDatabase(process, std::vector<std::string>(), "research/mugshot_frontal_original_all/via_region_data_dpd.csv", rd);
+    processDatabase(process,
+                    std::vector<std::string>(),
+                    "research/mugshot_frontal_original_all/via_region_data_dpd.csv",
+                    rd);
 }
