@@ -29,10 +29,12 @@ build_script:
   - python build.py --web --emscripten # --test
 
 deploy_script:
-  - cd webapp && npx firebase use --add myphotoidapp --token $FIREBASE_DEPLOY_KEY && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
+  - cd webapp
+  - npx firebase use --token $FIREBASE_DEPLOY_KEY production
+  - npx firebase deploy --token $FIREBASE_DEPLOY_KEY --non-interactive
 
 
-on_finish:
-  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
+# on_finish:
+  #- ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
 
 
