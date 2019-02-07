@@ -8,8 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "start": "server",
-    "serve": "ng serve --proxy-config proxy.conf.json"
+    "serve": "ng serve"
   },
   "private": true,
   "author": "Darien Pardinas",
@@ -50,6 +49,7 @@
     "@types/jasminewd2": "^2.0.6",
     "@types/node": "^10.12.19",
     "codelyzer": "~4.5.0",
+    "firebase-tools": "^6.3.1",
     "jasmine-core": "~3.3.0",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "^4.0.0",

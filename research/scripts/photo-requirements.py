@@ -1,4 +1,11 @@
-standars = ["af_passport_40x45_photo",
+import os
+import re
+from collections import OrderedDict
+import requests
+from bs4 import BeautifulSoup
+import json
+
+standards = ["af_passport_40x45_photo",
             "af_e_tazkira_3x4cm_photo",
             "af_passport_5x5_photo",
             "af_visa_35x45_photo",
@@ -499,30 +506,31 @@ standars = ["af_passport_40x45_photo",
             "zw_passport_35x45mm_photo",
             "un_us_berkley_photo"]
 
-import os
-import re
-from collections import OrderedDict
-import requests
-from bs4 import BeautifulSoup
-import json
-
 data = []
 
-for std in standars:
+re_size = re.compile(r'Width: ([0-9]*\.?[0-9]*)(mm|cm|in|pixel), Height: ([0-9]*\.?[0-9]*)(mm|cm|in|pixel)')
+re_faceHeight = re.compile(r'Head height \(up to the top of the hair\): ([0-9]*\.?[0-9]*)(%|mm|cm|in|pixel)')
+re_crownTop = re.compile(r'Distance from top the of the photo to the top of the hair: ([0-9]*\.?[0-9]*)(%|mm|cm|in|pixel)')
+re_bottomEyeLine = re.compile(r'Distance from the bottom of the photo to the eye line: ([0-9]*\.?[0-9]*)(%|mm|cm|in|pixel)')
+re_chinEyeLine = re.compile(r'Distance from the bottom of chin to the eye line: ([0-9]*\.?[0-9]*)(%|mm|cm|in|pixel)')
 
-    print ("Processing " + std)
+this_dir = os.path.dirname(os.path.realpath(__file__))
 
-    local_file = std + '.html'
+i = 0
+for std in standards:
+    i += 1
+    print(f'Processing {std} .. [{i}/{len(standards)}]')
+    local_file = os.path.join(this_dir, std + '.html')
     if os.path.isfile(local_file):
-        with open(local_file) as fp:
-            page_content = fp.read()
+        with open(local_file, 'rb') as fp:
+            page_content = fp.read().decode('utf8')
     else:
         url = 'https://visafoto.com/' + std
         page = requests.get(url)
         if page.status_code != 200:
             raise Exception('Unable to download "' + url + '"')
         page_content = page.content
-        with open(local_file, 'w') as fp:
+        with open(local_file, 'wb') as fp:
             fp.write(page_content)
 
     soup = BeautifulSoup(page_content, 'html.parser')
@@ -543,17 +551,76 @@ for std in standars:
                     style = td[0].find('span')['style']
                     m = re.search('background: ([#A-z0-9]+);', style)
                     prop_value = m.group(1)
+                elif prop_name == 'Web links to official documents':
+                    prop_value = [a['href'] for a in td[0].find_all('a')]
+                elif prop_name == 'Resolution (dpi)':
+                    prop_value = float(prop_value)
+                elif prop_name == 'Passport picture size' or prop_name == 'Size':
+                    prop_name = 'Size'
+                    m = re_size.search(prop_value)
+                    if m:
+                        if m.group(2) != m.group(4):
+                            raise Exception('Not same units')
+                        prop_value = {
+                            "width": float(m.group(1)),
+                            "height": float(m.group(3)),
+                            "units": m.group(2)
+                        }
+                    else:
+                        raise Exception('Improve the REGEX for  "' + prop_value + '"')
+                elif prop_name == 'Image definition parameters':
+                    a = prop_value
+                    m1 = (re_faceHeight.search(prop_value), 'faceHeight')
+                    m2 = (re_crownTop.search(prop_value), 'crownTop')
+                    m3 = (re_bottomEyeLine.search(prop_value), 'bottomEyeLine')
+                    m4 = (re_chinEyeLine.search(prop_value), 'chinEyeLine')
 
-                if prop_name == 
-
+                    prop_value = {}
+                    for m, v in [m1, m2, m3, m4]:
+                        if m:
+                            dim = float(m.group(1))
+                            units = m.group(2)
+                            if units == '%':
+                                units = entry['Size']['units']
+                                height = entry['Size']['height']
+                                dim = height * dim / 100.0
+                            if 'units' in prop_value:
+                                if prop_value['units'] != units:
+                                    raise Exception('Bad units')
+                            else:
+                                prop_value['units'] = units
+                            prop_value[v] = dim
+                    if prop_value and len(prop_value) < 3:
+                        raise Exception('Not all values are set for a definition')
+                    entry['Size'].update(prop_value)
+                    continue
                 entry[prop_name] = prop_value
-
         data.append(entry)
     else:
         print('Problem processing "' + std + '"')
 
+data.append({
+        "name": "cu_2x2in_photo",
+        "Country": "Cuba",
+        "Document Type": "Passport/Visa",
+        "Size": {
+            "width": 2,
+            "height": 2,
+            "units": "in",
+            "faceHeight": 1.29,
+            "bottomEyeLine": 1.18
+        },
+        "Resolution (dpi)": 300.0,
+        "Background color": "#ffffff",
+        "Printable?": "Yes",
+        "Suitable for online submission?": "Yes",
+        "Web links to official documents": [],
+        "Comments": " "
+    })
+
 # Save all the data we have right now
-with open('photorequirements.json', 'w') as fp:
-    json.dump(data, fp)
+out_file = os.path.join(this_dir, '../../webapp/src/assets/photo-standards.json')
+with open(out_file, 'w') as fp:
+    json.dump(data, fp, indent=4)
 
 print("All data now saved. Time to start processing it.")

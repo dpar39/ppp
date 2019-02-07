@@ -1,12 +1,9 @@
 # [PassPort Photo app](https://passport-photo.azurewebsites.net)
-Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp)
+<!-- Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) -->
 
-AppVeyor Build Status:
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
+AppVeyor Build Status: [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
 
-Recruiters please read [here](https://github.com/dpar39/ppp/wiki/Recruiters-README) for information on the skills demonstrated in this project.
-
-This app allows users to create passport photo prints with automatic picture size and rotation cropped to comply with the standards accepted in most countries. Users get a tiled photo in your favorite print format (e.g. 4"x6" or 5"x7") with the appropriate resolution ready for printing.
+This app allows users to create passport photos with automatic picture size and rotation cropped to comply with the standards accepted in most countries. Users get a tiled photo in your favorite print format (e.g. 4"x6" or 5"x7") with the appropriate resolution ready for printing.
 
 The main motivation for this app is how expensive passport photo services can be in many countries. For instance, OfficeWorks in Australia currently charges [$14.95](http://www.officeworks.com.au/print/print-and-copy/print-services/passport-and-id-photo) for four passport photos. Walgreens near my home charged me [$13.99](https://photo.walgreens.com/walgreens/pdpsdpitems/type=passport_photos) for only two a few weeks ago. Obviously, not all photos taken at home with a smartphone camera will have the quality to meet the standards, but if you are on the budget and/or have the time to ensure you capture a picture of yourself with good resolution, proper focus and low noise, then this app will do the maths to prepare an output tiled photo ready to be printed for less than a dollar at your closest photo center.
 
@@ -17,12 +14,11 @@ The software can be built and run in either Windows or Unix based operating syst
 
 ## Dependencies (platform independent)
 - Python 2.7 or higher
-- CMake 2.8 or higher
-- node.js 6.x
-- node-gyp (npm install -g node-gyp)
+- CMake 3.5.1 or higher
+- node.js 8.x
 
 #### Windows-specific dependencies
-- Visual Studio 2012, 2013 or 2015
+- Visual Studio 2015 or 2017
 
 #### Linux-specific dependencies
 - gcc 4.8 or above (C++11 compiler)

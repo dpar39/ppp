@@ -684,40 +684,37 @@ class Builder(object):
             shutil.copyfile(self.build_path('libppp/libppp.js'), self.repo_path('webapp/src/assets/libppp.js'))
             shutil.copyfile(self.build_path('libppp/libppp.wasm'), self.repo_path('webapp/src/assets/libppp.wasm'))
 
-        # Copy libppp artifacts to the webapp directory
-        dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
-        for dist_file in dist_files:
-            src_file_path = os.path.join(self._install_dir, dist_file)
-            dst_link = self.webapp_path(dist_file)
-            if os.path.exists(src_file_path):
-                link_file(src_file_path, dst_link)
+        # # Copy libppp artifacts to the webapp directory
+        # dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
+        # for dist_file in dist_files:
+        #     src_file_path = os.path.join(self._install_dir, dist_file)
+        #     dst_link = self.webapp_path(dist_file)
+        #     if os.path.exists(src_file_path):
+        #         link_file(src_file_path, dst_link)
+        # # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
+        # libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
+        # dst_link = self.webapp_path('src/assets/config.bundle.json')
+        # link_file(libpp_config_file, dst_link)
 
-        # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
-        dst_link = self.webapp_path('src/assets/config.bundle.json')
-        link_file(libpp_config_file, dst_link)
+    # def deploy_libppp(self, dst_path, symlink=False):
+    #     # Copy libppp artifacts to the webapp directory
+    #     artifact_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib', 'libpppwrapper.py', 'config.bundle.json']
+    #     for artifact in artifact_files:
+    #         src_file_path = os.path.join(self._install_dir, artifact)
+    #         dst_link = os.path.join(dst_path, artifact)
+    #         if os.path.exists(src_file_path):
+    #             link_file(src_file_path, dst_link)
 
-    def deploy_libppp(self, dst_path, symlink=False):
-        # Copy libppp artifacts to the webapp directory
-        artifact_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib', 'libpppwrapper.py', 'config.bundle.json']
-        for artifact in artifact_files:
-            src_file_path = os.path.join(self._install_dir, artifact)
-            dst_link = os.path.join(dst_path, artifact)
-            if os.path.exists(src_file_path):
-                link_file(src_file_path, dst_link)
-
-        # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
-        dst_link = self.webapp_path('src/assets/config.bundle.json')
-        link_file(libpp_config_file, dst_link)
+    #     # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
+    #     libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
+    #     dst_link = self.webapp_path('src/assets/config.bundle.json')
+    #     link_file(libpp_config_file, dst_link)
 
     def build_android(self):
         """
         Builds android app
         """
         if self._android_build:
-            # Create swig code
-            self.run_cmd('swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i')
             # Build android project
             self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
 
@@ -748,28 +745,22 @@ class Builder(object):
             self.run_cmd('npx ng build --prod')
             os.chdir(self._root_dir)
 
-    def deploy_to_azure(self):
-        """
-        Deploys the webserver to azure
-        """
-        if not self._azure_deploy:
-            return
+    # def deploy_to_azure(self):
+    #     """
+    #     Deploys the webserver to azure
+    #     """
+    #     if not self._azure_deploy:
+    #         return
 
-        azure_dir = os.path.join(self._root_dir, 'azure')
-        if not os.path.exists(azure_dir):
-            self.run_cmd('git clone https://dpar39@passportphoto.scm.azurewebsites.net:443/passportphoto.git azure')
-        shutil.copytree('webapp/dist', os.path.join(azure_dir, 'dist'))
-        shutil.copy('webapp/config.bundle.json', azure_dir)
-        for file in glob.glob('webapp/*libppp*'):
-            shutil.copy(file, azure_dir)
-        for file in glob.glob('webapp/*.py'):
-            shutil.copy(file, azure_dir)
-
-    def setup_dev_env(self):
-        """
-        """
-        # curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-        return
+    #     azure_dir = os.path.join(self._root_dir, 'azure')
+    #     if not os.path.exists(azure_dir):
+    #         self.run_cmd('git clone https://dpar39@passportphoto.scm.azurewebsites.net:443/passportphoto.git azure')
+    #     shutil.copytree('webapp/dist', os.path.join(azure_dir, 'dist'))
+    #     shutil.copy('webapp/config.bundle.json', azure_dir)
+    #     for file in glob.glob('webapp/*libppp*'):
+    #         shutil.copy(file, azure_dir)
+    #     for file in glob.glob('webapp/*.py'):
+    #         shutil.copy(file, azure_dir)
 
     def __init__(self):
         # Detect OS version
@@ -805,7 +796,7 @@ class Builder(object):
         self.build_android()
 
         # Deploy webapp to the cloud
-        self.deploy_to_azure()
+        # self.deploy_to_azure()
 
 
 BUILDER = Builder()

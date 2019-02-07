@@ -112,7 +112,7 @@ include_directories(${MODULE_INC_DIRS})
 if (DEFINED EMSCRIPTEN)
     add_executable(${LIB_NAME} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 else()
-    add_library(${LIB_NAME} SHARED ${LIB_SRC_FILES} ${LIB_INC_FILES})
+    add_library(${LIB_NAME} ${LIB_SRC_FILES} ${LIB_INC_FILES})
 endif()
 target_link_libraries(${LIB_NAME} ${MODULE_LIB_DEPS})
 
@@ -124,11 +124,17 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/share/config.bundle.json DESTINATION ${CMAKE_INSTALL_PREFIX})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python/libpppwrapper.py DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
-    enable_testing()
-    find_package(GTest REQUIRED)
-    set(GTEST_GMOCK_LIBRARY ${GTEST_LIBRARY} )
-    string(REGEX REPLACE "gtest" "gmock" GTEST_GMOCK_LIBRARY ${GTEST_GMOCK_LIBRARY})
+    set(GTest_DIR ${THIRD_PARTY_DIR}/install_${BUILD_NAME_SUFFIX})
+    set(GTest_INCLUDE_DIRS ${GTest_DIR}/include)
+    set(DEBUG_SUFFIX "")
+    if(${BUILD_TYPE} STREQUAL debug)
+        set(DEBUG_SUFFIX "d")
+    endif()
+    if (MSVC)
+        set(GTest_LIBRARIES ${GTest_DIR}/lib/gtest${DEBUG_SUFFIX}.lib ${GTest_DIR}/lib/gmock${DEBUG_SUFFIX}.lib)
+    else()
+        set(GTest_LIBRARIES ${GTest_DIR}/lib/libgtest${DEBUG_SUFFIX}.a ${GTest_DIR}/lib/gmock${DEBUG_SUFFIX}.a)
+    endif()
 
     #-----------------------------
     # Build the module tests
@@ -149,13 +155,11 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
         ${MODULE_LIB_DEPS}
         ${LIB_NAME}
         ${Boost_LIBRARIES}
-        ${GTEST_LIBRARY}
-        ${GTEST_GMOCK_LIBRARY}
+        ${GTest_LIBRARIES}
     )
 
     add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
     target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
     target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
-
     install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
