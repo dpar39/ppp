@@ -30,7 +30,7 @@ build_script:
 
 deploy_script:
   - cd webapp
-  - npx firebase use --token %FIREBASE_DEPLOY_KEY% production
+  - npx firebase use --token %FIREBASE_DEPLOY_KEY% myphotoidapp
   - npx firebase deploy --token %FIREBASE_DEPLOY_KEY% --non-interactive
 
 
