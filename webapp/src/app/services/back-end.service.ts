@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Plugins } from '@capacitor/core';
@@ -8,32 +8,38 @@ import { TiledPhotoRequest } from '../model/datatypes';
 
 @Injectable()
 export class BackEndService {
+
+    runtimeInitialized: EventEmitter<boolean> = new EventEmitter();
+
     _isMobilePlatform = false;
     _module: any;
     _runtimeInitialized = false;
     worker: Worker;
 
-    _onImageSet: (imgId: string) => void;
-    _onLandmarksDetected: (landmarks: object) => void;
-    _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
+
+
+    private _onImageSet: (imgId: string) => void;
+    private _onLandmarksDetected: (landmarks: object) => void;
+    private _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
 
     constructor(private sanitizer: DomSanitizer, private plt: Platform) {
         this.plt.ready().then((readySource) => {
             this._isMobilePlatform = this.plt.is('ios') || this.plt.is('android');
         });
 
-        this.worker = new Worker("assets/wasm-worker.js");
+        this.worker = new Worker('assets/wasm-worker.js');
         this.worker.postMessage({'cmd': 'start'}); // Start the worker.
 
-        this.worker.addEventListener('message',(e: MessageEvent) =>{
-            switch(e.data.cmd) {
+        this.worker.addEventListener('message', (e: MessageEvent) => {
+            switch (e.data.cmd) {
                 case 'onRuntimeInitilized':
                     this._runtimeInitialized = true;
+                    this.runtimeInitialized.emit(true);
                     console.log('All good and configured');
                     break;
                 case 'onImageSet':
-                    console.log(`Image has been set: ${e.data.imgKey}`)
-                    this._onImageSet(e.data.imgKey)
+                    console.log(`Image has been set: ${e.data.imgKey}`);
+                    this._onImageSet(e.data.imgKey);
                     break;
                 case 'onLandmarksDetected':
                      this._onLandmarksDetected(e.data.landmarks);
@@ -41,25 +47,25 @@ export class BackEndService {
                 case 'onCreateTilePrint':
                     const pngArraryBuffer = e.data.pngData;
 
-                    var blob = new Blob( [ pngArraryBuffer ], { type: "image/png" } );
-                    var imageUrl = URL.createObjectURL( blob );
-                    let pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
+                    const blob = new Blob( [ pngArraryBuffer ], { type: 'image/png' } );
+                    const imageUrl = URL.createObjectURL( blob );
+                    const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
                     this._onCreateTiledPrint(pngDataUrl);
                     break;
-                    //const binString = Array.prototype.map.call(pngArraryBuffer, (ch) =>
+                    // const binString = Array.prototype.map.call(pngArraryBuffer, (ch) =>
                     //    String.fromCharCode(ch)).join('');
-                    //let pngDataUrl = 'data:image/png;base64,' + base64String; // btoa(binString);
-                    //this._onCreateTiledPrint(pngDataUrl);
+                    // let pngDataUrl = 'data:image/png;base64,' + base64String; // btoa(binString);
+                    // this._onCreateTiledPrint(pngDataUrl);
             }
         }, false);
     }
 
     uploadImageToServer(file: File): Promise<string> {
         return new Promise((resolve, reject) => {
-            var reader = new FileReader();
+            const reader = new FileReader();
             reader.onload = () => {
-                let arrayBuffer = reader.result;
-                this.worker.postMessage({'cmd': 'setImage', 'imageData': arrayBuffer})
+                const arrayBuffer = reader.result;
+                this.worker.postMessage({'cmd': 'setImage', 'imageData': arrayBuffer});
                 this._onImageSet = resolve;
             };
             reader.readAsArrayBuffer(file);
@@ -102,7 +108,7 @@ export class BackEndService {
     retrieveLandmarks(imgKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this._onLandmarksDetected = resolve;
-            this.worker.postMessage({'cmd': 'detectLandmarks', 'imgKey': imgKey})
+            this.worker.postMessage({'cmd': 'detectLandmarks', 'imgKey': imgKey});
         });
 
         // return new Promise((resolve, reject) => {
@@ -138,7 +144,7 @@ export class BackEndService {
     getTiledPrint(req: TiledPhotoRequest): Promise<SafeResourceUrl> {
         return new Promise((resolve, reject) => {
             this._onCreateTiledPrint = resolve;
-            this.worker.postMessage({'cmd': 'createTiledPrint', 'request': req})
+            this.worker.postMessage({'cmd': 'createTiledPrint', 'request': req});
         });
 
         // return new Promise((resolve, reject) => {

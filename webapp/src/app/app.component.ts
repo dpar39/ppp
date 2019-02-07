@@ -1,5 +1,4 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Http } from '@angular/http';
 
 import {
   CrownChinPointPair,
@@ -12,7 +11,73 @@ import { BackEndService } from './services/back-end.service';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
+  template: `
+    <header>
+      <div class="bg-dark">
+        <h2>{{ echoString }}</h2>
+      </div>
+    </header>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div style="width: 80%; margin: 0 auto;">
+          <app-landmark-editor
+            class="center"
+            [inputPhoto]="imageSrc"
+            [crownChinPointPair]="crownChinPointPair"
+            (edited)="onLandmarksEdited()"
+          >
+          </app-landmark-editor>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="text-center">
+            <button
+              [disabled]="!appReady"
+              type="button"
+              class="btn btn-primary"
+              style="margin-right: 1em"
+              (click)="el.nativeElement.querySelector('#selectImage').click()"
+            >
+              Choose photo
+            </button>
+            <button
+              type="button"
+              [disabled]="!photoUploaded"
+              class="btn btn-primary btn-primary-spacing"
+              (click)="createPrint()"
+            >
+              Create Print
+            </button>
+            <form>
+              <input
+                id="selectImage"
+                type="file"
+                name="uploads[]"
+                accept="image/*"
+                style="visibility: hidden;"
+                (change)="loadImage($event)"
+              />
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-6">
+          <app-passport-standard-selector class="col-sm"> </app-passport-standard-selector>
+        </div>
+      </div>
+
+      <div class="row">
+        <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="col">
+          <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
+        </a>
+      </div>
+    </div>
+  `,
   styles: [
     `
       .fit {
@@ -24,6 +89,9 @@ import { BackEndService } from './services/back-end.service';
 })
 export class AppComponent implements OnInit {
   echoString = 'Welcome to this app';
+
+  appReady = false;
+  photoUploaded = false;
 
   imageKey: string;
   imageSrc: string | ArrayBuffer = '#';
@@ -39,7 +107,11 @@ export class AppComponent implements OnInit {
     units: UnitType.inch
   };
 
-  constructor(public el: ElementRef, private beService: BackEndService) {}
+  constructor(public el: ElementRef, private beService: BackEndService) {
+    beService.runtimeInitialized.subscribe((success: boolean) => {
+      this.appReady = success;
+    });
+  }
 
   ngOnInit(): void {
     //  this.echoString = '' + this.beService._isMobilePlatform;
@@ -52,6 +124,7 @@ export class AppComponent implements OnInit {
       this.crownChinPointPair = null;
       // Upload the file to the server to detect landmarks
       this.beService.uploadImageToServer(file).then(imgKey => {
+        this.photoUploaded = true;
         this.imageKey = imgKey;
         this.retrieveLandmarks();
       });

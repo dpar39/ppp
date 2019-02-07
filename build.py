@@ -34,8 +34,10 @@ elif 'linux' in sys.platform:
 elif sys.platform == 'darwin':
     PLATFORM = 'darwin'
 
-ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
-ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(PLATFORM)
+ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(
+    PLATFORM)
+ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(
+    PLATFORM)
 ANDROID_GRADLE = 'https://services.gradle.org/distributions/gradle-4.10.3-bin.zip'
 
 #  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
@@ -119,7 +121,8 @@ class ShellRunner(object):
             cmd_args = cmd_args.split()
         cmd_all = []
         if IS_WINDOWS and not self._is_emscripten:
-            cmd_all = [self._vcvarsbat, self._arch_name, '&&', 'set', 'CL=/MP', '&&']
+            cmd_all = [self._vcvarsbat, self._arch_name,
+                       '&&', 'set', 'CL=/MP', '&&']
         cmd_all = cmd_all + cmd_args
 
         if cmd_print:
@@ -408,14 +411,13 @@ class Builder(object):
                 print('EMSCRIPTEN is not set, exiting ...')
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
-            cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
+            cmake_toolchain = os.path.join(
+                cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
 
-            cxx_flags = ' -std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0' + \
-                ' -s ASSERTIONS=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1' + \
-                ' -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=1073741824 '
-
+            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0'
             extra_definitions += [
-                '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
+                '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' +
+                cmake_toolchain.replace('\\', '/'),
                 '-DCMAKE_MAKE_PROGRAM=ninja',
                 '-DCMAKE_MODULE_PATH=' + cmake_module_path.replace('\\', '/'),
                 '-DCMAKE_CXX_FLAGS="' + cxx_flags + '"',
@@ -582,6 +584,26 @@ class Builder(object):
         self._shell.set_env_var('CC', 'emcc')
         self._shell.set_env_var('CXX', 'em++')
 
+        # Configure settings.js as for some reason flags passed in CMAKE_CXX_FLAGS do not get really used
+        config = {
+            'ASSERTIONS': 2,
+            'ALLOW_MEMORY_GROWTH': 1,
+            'DISABLE_EXCEPTION_CATCHING': 0,
+            'EXTRA_EXPORTED_RUNTIME_METHODS': '["Pointer_stringify"]',
+            'TOTAL_MEMORY': 268435456  # 268MB is too much?
+        }
+        emscripten_dir = os.path.join(emsdk_dir, 'emscripten')
+        settings_file = os.path.join(emscripten_dir, os.listdir(emscripten_dir)[-1], 'src', 'settings.js')
+        with open(settings_file, 'r') as fp:
+            content = fp.read()
+        new_content = content
+        for name in config:
+            new_content = re.sub(r'(var ' + name + r'\s?=\s?)([A-z0-9\[\]"]+);', \
+                r'\g<1>' + str(config[name]) + r';', new_content)
+        if new_content != content:
+            with open(settings_file, 'w') as fp:
+                fp.write(new_content)
+
     def extract_validation_data(self):
         """
         Extracts validation imageset with annotations from a password protected zip file
@@ -680,9 +702,12 @@ class Builder(object):
 
         os.chdir(self._root_dir)
         if self._emscripten:
-            shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'), self.repo_path('webapp/src/assets/config.bundle.json'))
-            shutil.copyfile(self.build_path('libppp/libppp.js'), self.repo_path('webapp/src/assets/libppp.js'))
-            shutil.copyfile(self.build_path('libppp/libppp.wasm'), self.repo_path('webapp/src/assets/libppp.wasm'))
+            shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'),
+                            self.repo_path('webapp/src/assets/config.bundle.json'))
+            shutil.copyfile(self.build_path('libppp/libppp.js'),
+                            self.repo_path('webapp/src/assets/libppp.js'))
+            shutil.copyfile(self.build_path('libppp/libppp.wasm'),
+                            self.repo_path('webapp/src/assets/libppp.wasm'))
 
         # # Copy libppp artifacts to the webapp directory
         # dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
@@ -723,13 +748,13 @@ class Builder(object):
         Builds and test the web application by running shell commands
         """
         #  Copy libppp configurations and build files to the webapp directory
-        dist_files = ['libppp/share/config.bundle.json',
-                      'libppp/python/libpppwrapper.py']
-        for dist_file in dist_files:
-            src_file_path = self.repo_path(dist_file)
-            dst_link = self.webapp_path(os.path.basename(dist_file))
-            if os.path.exists(src_file_path):
-                link_file(src_file_path, dst_link)
+        # dist_files = ['libppp/share/config.bundle.json',
+        #               'libppp/python/libpppwrapper.py']
+        # for dist_file in dist_files:
+        #     src_file_path = self.repo_path(dist_file)
+        #     dst_link = self.webapp_path(os.path.basename(dist_file))
+        #     if os.path.exists(src_file_path):
+        #         link_file(src_file_path, dst_link)
 
         # Install the angular-cli if not found in $PATH
         if not which('npx'):
