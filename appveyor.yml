@@ -29,7 +29,7 @@ build_script:
   - python build.py --test
   - python build.py --web --emscripten --test
 
-deploy:
+deploy_script:
   - cd webapp && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
 
 
