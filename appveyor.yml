@@ -23,11 +23,17 @@ install:
   - ps: Install-Product node $env:nodejs_version
 
 platform:
-  - x86
+  - x64
 
 build_script:
-  - python build.py --arch_name=%PLATFORM% --test
+  - python build.py --test
   - python build.py --web --emscripten --test
+
+deploy:
+  - cd webapp && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
+
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
+
+
