@@ -409,13 +409,17 @@ class Builder(object):
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
             cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
+
+            cxx_flags = ' -std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0' + \
+                ' -s ASSERTIONS=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1' + \
+                ' -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=1073741824 '
+
             extra_definitions += [
                 '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
                 '-DCMAKE_MAKE_PROGRAM=ninja',
                 '-DCMAKE_MODULE_PATH=' + cmake_module_path.replace('\\', '/'),
-                '-DCMAKE_CXX_FLAGS="-std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0' +
-                ' -s ASSERTIONS=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1' +
-                ' -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=1073741824 "'
+                '-DCMAKE_CXX_FLAGS="' + cxx_flags + '"',
+                '-DCMAKE_EXE_LINKER_FLAGS="' + cxx_flags + '"'
             ]
         else:
             pass
