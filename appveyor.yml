@@ -7,7 +7,6 @@ version: 1.0.{build}
 
 cache:
   - thirdparty/install_emscripten
-  - thirdparty/install_windows_release_x86
   - thirdparty/install_windows_release_x64
   - thirdparty/install_linux_release_x64
   - research/mugshot_frontal_original_all
@@ -26,11 +25,11 @@ platform:
   - x64
 
 build_script:
-  - python build.py --test
-  - python build.py --web --emscripten --test
+  # - python build.py --test
+  - python build.py --web --emscripten # --test
 
 deploy_script:
-  - cd webapp && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
+  - cd webapp && firebase use --add myphotoidapp --token $FIREBASE_DEPLOY_KEY && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
 
 
 on_finish:
