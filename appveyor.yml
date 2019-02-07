@@ -29,7 +29,7 @@ build_script:
   - python build.py --web --emscripten # --test
 
 deploy_script:
-  - cd webapp && firebase use --add myphotoidapp --token $FIREBASE_DEPLOY_KEY && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
+  - cd webapp && npx firebase use --add myphotoidapp --token $FIREBASE_DEPLOY_KEY && npx firebase deploy --token $FIREBASE_DEPLOY_KEY
 
 
 on_finish:
