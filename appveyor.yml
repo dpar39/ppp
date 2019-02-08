@@ -31,6 +31,7 @@ deploy_script:
   - cd webapp
   - npx firebase use --token %FIREBASE_DEPLOY_KEY% myphotoidapp
   - npx firebase deploy --token %FIREBASE_DEPLOY_KEY% --non-interactive
+  - cd ..
 
 on_finish:
   - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
