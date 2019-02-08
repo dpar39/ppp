@@ -598,7 +598,7 @@ class Builder(object):
             content = fp.read()
         new_content = content
         for name in config:
-            new_content = re.sub(r'(var ' + name + r'\s?=\s?)([A-z0-9\[\]"]+);', \
+            new_content = re.sub(r'(var ' + name + r'\s?=\s?)([A-z0-9\[\]"]+);',
                 r'\g<1>' + str(config[name]) + r';', new_content)
         if new_content != content:
             with open(settings_file, 'w') as fp:

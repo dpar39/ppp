@@ -8,7 +8,6 @@ version: 1.0.{build}
 cache:
   - thirdparty/install_emscripten
   - thirdparty/install_windows_release_x64
-  - thirdparty/install_linux_release_x64
   - research/mugshot_frontal_original_all
   - webapp/node_modules  -> webapp/package.json
 
@@ -25,16 +24,15 @@ platform:
   - x64
 
 build_script:
-  # - python build.py --test
-  - python build.py --web --emscripten # --test
+  - python build.py --test
+  - python build.py --web --emscripten --test
 
 deploy_script:
   - cd webapp
   - npx firebase use --token %FIREBASE_DEPLOY_KEY% myphotoidapp
   - npx firebase deploy --token %FIREBASE_DEPLOY_KEY% --non-interactive
 
-
-# on_finish:
-  #- ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
+on_finish:
+  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
 
 

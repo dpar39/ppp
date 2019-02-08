@@ -534,12 +534,13 @@ for std in standards:
             fp.write(page_content)
 
     soup = BeautifulSoup(page_content, 'html.parser')
-    photo_type = soup.find_all('h1')[0].get_text()
+    photo_title = soup.find_all('h1')[0].get_text().replace(' Photo Requirements and Online Tool', '')
 
     table = soup.find_all('table', class_="table table-bordered docTable")
     if table:
         entry = OrderedDict()
         entry['name'] = std
+        entry['title'] = photo_title
         trs = table[0].find_all('tr')
         for row in trs:
             th = row.find_all('th')
@@ -551,6 +552,8 @@ for std in standards:
                     style = td[0].find('span')['style']
                     m = re.search('background: ([#A-z0-9]+);', style)
                     prop_value = m.group(1)
+                elif prop_name == 'Comments':
+                    prop_value = prop_value.strip()
                 elif prop_name == 'Web links to official documents':
                     prop_value = [a['href'] for a in td[0].find_all('a')]
                 elif prop_name == 'Resolution (dpi)':
