@@ -1,7 +1,7 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 1000,
+    "files.autoSaveDelay": 2000,
     "files.associations": {
         "cmakeccompilerid.c": "cpp",
         "exception": "cpp",
@@ -25,11 +25,11 @@
     "files.trimTrailingWhitespace": true,
     "editor.codeLens": false,
     "editor.autoIndent": true,
-    "cmake.configureOnOpen": false,
     "python.pythonPath": "env\\Scripts\\python.exe",
     "python.linting.pep8Enabled": true,
      "python.linting.pep8Args": [
-         "--ignore=E501"
+         "--ignore=E501",
+         "--max-line-length=100"
      ]
      ,
     "prettier.singleQuote": true,

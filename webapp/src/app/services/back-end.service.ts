@@ -16,8 +16,6 @@ export class BackEndService {
     _runtimeInitialized = false;
     worker: Worker;
 
-
-
     private _onImageSet: (imgId: string) => void;
     private _onLandmarksDetected: (landmarks: object) => void;
     private _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
@@ -46,16 +44,11 @@ export class BackEndService {
                     break;
                 case 'onCreateTilePrint':
                     const pngArraryBuffer = e.data.pngData;
-
                     const blob = new Blob( [ pngArraryBuffer ], { type: 'image/png' } );
                     const imageUrl = URL.createObjectURL( blob );
                     const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
                     this._onCreateTiledPrint(pngDataUrl);
                     break;
-                    // const binString = Array.prototype.map.call(pngArraryBuffer, (ch) =>
-                    //    String.fromCharCode(ch)).join('');
-                    // let pngDataUrl = 'data:image/png;base64,' + base64String; // btoa(binString);
-                    // this._onCreateTiledPrint(pngDataUrl);
             }
         }, false);
     }

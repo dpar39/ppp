@@ -1,4 +1,3 @@
-import { TouchSequence } from "selenium-webdriver";
 
 export class Point {
     x: number;
@@ -15,21 +14,29 @@ export enum UnitType {
     inch = 'inch'
 }
 
-export class PassportStandard {
-
-    constructor(
-        public pictureWidth: number,
-        public pictureHeight: number,
-        public faceHeight: number,
-        public units: UnitType,
-        public name: string = 'Custom') {
-    }
-
-    sizestring() {
-        const unitStr: string = this.units === UnitType.inch ? '"' : '' + this.units;
-        return `${this.pictureWidth} x ${this.pictureHeight}${unitStr}`;
-    }
+export class PhotoDimensions {
+  pictureWidth: number;
+  pictureHeight: number;
+  units: string;
+  faceHeight?: number;
+  crownTop?: number;
+  dpi: number;
 }
+
+export class PhotoStandard {
+  name: string;
+  title: string;
+  country: string;
+  docType: string;
+  dimensions: PhotoDimensions;
+
+  backgroundColor?: string;
+  pritable?: boolean;
+  digital?: boolean;
+  officialLinks: string[];
+  comments?: string;
+}
+
 
 export class Canvas {
     height: number;
@@ -52,12 +59,12 @@ export class CrownChinPointPair {
 
 export class TiledPhotoRequest {
     imgKey: string;
-    standard: PassportStandard;
+    standard: PhotoDimensions;
     canvas: Canvas;
     crownPoint: Point;
     chinPoint: Point;
 
-    constructor(imgKey: string, ps: PassportStandard, canvas: Canvas, ccPoints: CrownChinPointPair) {
+    constructor(imgKey: string, ps: PhotoDimensions, canvas: Canvas, ccPoints: CrownChinPointPair) {
         this.imgKey = imgKey;
         this.standard = ps;
         this.canvas = canvas;

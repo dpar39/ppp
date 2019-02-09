@@ -8,10 +8,10 @@ import { Point, CrownChinPointPair } from '../model/datatypes';
 @Component({
   selector: 'app-landmark-editor',
   template: `
-    <div id="container" class="bg-dark">
+    <div id="viewport" class="bg-dark">
       <img id="photo" alt="" title="Input picture" [src]="inputPhoto" />
-      <div class="landmark" id="crownMark"></div>
-      <div class="landmark" id="chinMark"></div>
+      <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
+      <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility" ></div>
     </div>
   `,
   styles: [
@@ -32,9 +32,9 @@ import { Point, CrownChinPointPair } from '../model/datatypes';
         position: absolute;
       }
 
-      #container {
+      #viewport {
         max-height: 50vh;
-        height: 300px;
+        min-height: 30vh;
         border: 1px solid #363434;
         border-radius: 5px;
         margin: 1em auto;
@@ -65,10 +65,15 @@ export class LandmarkEditorComponent implements OnInit {
   chinPoint: Point;
   crownPoint: Point;
 
+  landmarkVisibility = 'hidden';
+
   private _inputPhoto = '#';
   @Input()
   set inputPhoto(value: string) {
     const newImg = new Image();
+
+
+
     newImg.onload = () => {
       this._imageWidth = newImg.width;
       this._imageHeight = newImg.height;
@@ -107,7 +112,7 @@ export class LandmarkEditorComponent implements OnInit {
 
   ngOnInit() {
     this._imgElmt = this.el.nativeElement.querySelector('#photo');
-    this._containerElmt = this.el.nativeElement.querySelector('#container');
+    this._containerElmt = this.el.nativeElement.querySelector('#viewport');
     this._crownMarkElmt = this.el.nativeElement.querySelector('#crownMark');
     this._chinMarkElmt = this.el.nativeElement.querySelector('#chinMark');
 
@@ -201,9 +206,9 @@ export class LandmarkEditorComponent implements OnInit {
       const p2 = this.pixelToScreen(this._chinMarkElmt, this.chinPoint);
       this.translateElement(this._crownMarkElmt, p1);
       this.translateElement(this._chinMarkElmt, p2);
-      $('.landmark').css('visibility', 'visible');
+      this.landmarkVisibility = 'visible';
     } else {
-      $('.landmark').css('visibility', 'hidden');
+      this.landmarkVisibility = 'hidden';
     }
   }
 

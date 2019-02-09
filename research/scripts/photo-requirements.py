@@ -548,44 +548,52 @@ for std in standards:
             if th and td:
                 prop_name = th[0].get_text()
                 prop_value = td[0].get_text()
-                if prop_name == 'Background color':
+
+                if prop_name == 'Country':
+                    entry['country']=prop_value
+                elif prop_name == 'Document Type':
+                    entry['docType']=prop_value
+                elif prop_name == 'Background color':
                     style = td[0].find('span')['style']
                     m = re.search('background: ([#A-z0-9]+);', style)
-                    prop_value = m.group(1)
+                    entry['backgroundColor'] =  m.group(1)
                 elif prop_name == 'Comments':
-                    prop_value = prop_value.strip()
+                    entry['comments'] = prop_value.strip()
+                elif prop_name == 'Printable?':
+                    entry['pritable'] = 'yes' in prop_value.lower()
+                elif prop_name == 'Suitable for online submission?':
+                    entry['pritable'] = 'yes' in prop_value.lower()
                 elif prop_name == 'Web links to official documents':
-                    prop_value = [a['href'] for a in td[0].find_all('a')]
-                elif prop_name == 'Resolution (dpi)':
-                    prop_value = float(prop_value)
+                    entry['officialLinks'] = [a['href'] for a in td[0].find_all('a')]
                 elif prop_name == 'Passport picture size' or prop_name == 'Size':
-                    prop_name = 'Size'
                     m = re_size.search(prop_value)
                     if m:
                         if m.group(2) != m.group(4):
                             raise Exception('Not same units')
                         prop_value = {
-                            "width": float(m.group(1)),
-                            "height": float(m.group(3)),
+                            "pictureWidth": float(m.group(1)),
+                            "pictureHeight": float(m.group(3)),
                             "units": m.group(2)
                         }
                     else:
                         raise Exception('Improve the REGEX for  "' + prop_value + '"')
+                    entry['dimensions'] = prop_value
+                elif prop_name == 'Resolution (dpi)':
+                    entry['dimensions']['dpi'] = float(prop_value)
                 elif prop_name == 'Image definition parameters':
                     a = prop_value
                     m1 = (re_faceHeight.search(prop_value), 'faceHeight')
                     m2 = (re_crownTop.search(prop_value), 'crownTop')
                     m3 = (re_bottomEyeLine.search(prop_value), 'bottomEyeLine')
                     m4 = (re_chinEyeLine.search(prop_value), 'chinEyeLine')
-
                     prop_value = {}
                     for m, v in [m1, m2, m3, m4]:
                         if m:
                             dim = float(m.group(1))
                             units = m.group(2)
                             if units == '%':
-                                units = entry['Size']['units']
-                                height = entry['Size']['height']
+                                units = entry['dimensions']['units']
+                                height = entry['dimensions']['pictureHeight']
                                 dim = height * dim / 100.0
                             if 'units' in prop_value:
                                 if prop_value['units'] != units:
@@ -595,9 +603,11 @@ for std in standards:
                             prop_value[v] = dim
                     if prop_value and len(prop_value) < 3:
                         raise Exception('Not all values are set for a definition')
-                    entry['Size'].update(prop_value)
-                    continue
-                entry[prop_name] = prop_value
+                    entry['dimensions'].update(prop_value)
+                elif prop_name == 'Required Size in Kilobytes':
+                    pass
+                else:
+                    raise Exception('Unprocessed attribute')
         data.append(entry)
     else:
         print('Problem processing "' + std + '"')

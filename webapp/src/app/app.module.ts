@@ -12,6 +12,7 @@ import { PassportStandardSelectorComponent } from './components/passport-standar
 import { BackEndService } from './services/back-end.service';
 import { OnlyNumberDirective } from './directives/onlynumbers-directive';
 import { Platform } from '@ionic/angular';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { Platform } from '@ionic/angular';
   imports: [
     BrowserModule,
     HttpModule,
+    HttpClientModule,
     BsDropdownModule.forRoot(),
     TooltipModule.forRoot(),
     ModalModule.forRoot()

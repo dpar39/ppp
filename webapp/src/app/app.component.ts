@@ -3,7 +3,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import {
   CrownChinPointPair,
   TiledPhotoRequest,
-  PassportStandard,
+  PhotoStandard,
   UnitType,
   Canvas
 } from './model/datatypes';
@@ -20,57 +20,61 @@ import { BackEndService } from './services/back-end.service';
 
     <div class="container-fluid">
       <div class="row">
-        <div style="width: 80%; margin: 0 auto;">
-          <app-landmark-editor
-            class="center"
-            [inputPhoto]="imageSrc"
-            [crownChinPointPair]="crownChinPointPair"
-            (edited)="onLandmarksEdited()"
-          >
-          </app-landmark-editor>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <div class="text-center">
-            <button
-              [disabled]="!appReady"
-              type="button"
-              class="btn btn-primary"
-              style="margin-right: 1em"
-              (click)="el.nativeElement.querySelector('#selectImage').click()"
-            >
-              Choose photo
-            </button>
-            <button
-              type="button"
-              [disabled]="!photoUploaded"
-              class="btn btn-primary btn-primary-spacing"
-              (click)="createPrint()"
-            >
-              Create Print
-            </button>
-            <form>
-              <input
-                id="selectImage"
-                type="file"
-                name="uploads[]"
-                accept="image/*"
-                style="visibility: hidden;"
-                (change)="loadImage($event)"
-              />
-            </form>
+        <div class="col-sm-12 col-md-6 col-lg-4">
+          <div class="container-fluid">
+            <div class="row">
+              <app-landmark-editor
+                class="col"
+                style="margin: 0 auto;"
+                [inputPhoto]="imageSrc"
+                [crownChinPointPair]="crownChinPointPair"
+                (edited)="onLandmarksEdited()"
+              >
+              </app-landmark-editor>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="text-center">
+                  <button
+                    [disabled]="!appReady"
+                    type="button"
+                    class="btn btn-primary"
+                    style="margin-right: 1em"
+                    (click)="el.nativeElement.querySelector('#selectImage').click()"
+                  >
+                    Choose photo
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="!photoUploaded"
+                    class="btn btn-primary btn-primary-spacing"
+                    (click)="createPrint()"
+                  >
+                    Create Print
+                  </button>
+                  <form>
+                    <input
+                      id="selectImage"
+                      type="file"
+                      name="uploads[]"
+                      accept="image/*"
+                      style="visibility: hidden;"
+                      (change)="loadImage($event)"
+                    />
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="row">
-        <div class="col-6">
-          <app-passport-standard-selector class="col-sm"> </app-passport-standard-selector>
+        <div class="col-md-6 col-lg-4 col-sm-12">
+          <app-passport-standard-selector
+            class="col-sm"
+            (photoStandandardSelected)="onPhotoStandardSelected($event)"
+          >
+          </app-passport-standard-selector>
         </div>
       </div>
-
       <div class="row">
         <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="col">
           <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
@@ -99,7 +103,7 @@ export class AppComponent implements OnInit {
 
   // Model data
   crownChinPointPair: CrownChinPointPair;
-  passportStandard: PassportStandard = new PassportStandard(35, 45, 34, UnitType.mm);
+  photoStandard: PhotoStandard;
   canvas: Canvas = {
     height: 4,
     width: 6,
@@ -151,13 +155,16 @@ export class AppComponent implements OnInit {
     });
   }
 
+  onPhotoStandardSelected(photo) {
+    this.photoStandard = photo;
+  }
   onLandmarksEdited() {}
 
   createPrint() {
     console.log('Creating print output');
     const req = new TiledPhotoRequest(
       this.imageKey,
-      this.passportStandard,
+      this.photoStandard.dimensions,
       this.canvas,
       this.crownChinPointPair
     );
