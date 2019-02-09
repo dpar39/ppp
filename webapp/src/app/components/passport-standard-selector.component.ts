@@ -1,5 +1,5 @@
 import { Component, OnInit, Output, Input } from '@angular/core';
-import { PassportStandard as PhotoStandard, UnitType } from '../model/datatypes';
+import { PhotoStandard, UnitType } from '../model/datatypes';
 import { EventEmitter } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
@@ -77,9 +77,5 @@ export class PassportStandardSelectorComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.photoIdType = {
-      name: 'US Passport',
-      dimensions: '2" x 2"'
-    };
   }
 }
