@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PassportStandardSelectorComponent } from './passport-standard-selector.component';
-
+import { HttpClientModule } from '@angular/common/http';
 
 
 
@@ -15,6 +15,7 @@ describe('PassportStandardSelectorComponent', () => {
         PassportStandardSelectorComponent
       ],
       imports: [
+        HttpClientModule
       ]
     })
     .compileComponents();

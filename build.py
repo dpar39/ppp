@@ -763,8 +763,8 @@ class Builder(object):
         # Build the web app
         if self._web_build:
             os.chdir(self.webapp_path())
-            if not os.path.isdir(self.webapp_path('node_modules')):
-                self.run_cmd('npm install')
+            # if not os.path.isdir(self.webapp_path('node_modules')):
+            self.run_cmd('npm install')
             if self._run_tests:
                 self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
             self.run_cmd('npx ng build --prod')
