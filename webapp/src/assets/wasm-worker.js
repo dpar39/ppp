@@ -53,7 +53,7 @@ if( 'function' === typeof importScripts) {
 
         const success = Module._set_image(imagePtr, numBytes, imgKeyPtr);
 
-        const imgKey = Pointer_stringify(imgKeyPtr);
+        const imgKey = UTF8ToString(imgKeyPtr, numBytes);
         Module._free(imgKeyPtr);
         Module._free(imagePtr);
         postMessage({'cmd': 'onImageSet', 'imgKey' : imgKey });
@@ -66,7 +66,7 @@ if( 'function' === typeof importScripts) {
 
         const success = Module._detect_landmarks(imgKeyPtr, landMarksPtr);
 
-        const landMarksStr = Pointer_stringify(landMarksPtr);
+        const landMarksStr = UTF8ToString(landMarksPtr, 1000000);
         Module._free(imgKeyPtr);
         Module._free(landMarksStr);
         postMessage({'cmd': 'onLandmarksDetected', 'landmarks' : JSON.parse(landMarksStr)});
