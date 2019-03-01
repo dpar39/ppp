@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.2.0)
 set(MODULE_NAME ppp)
 project(${MODULE_NAME} CXX)
 set(LIB_NAME lib${MODULE_NAME})
+set(APP_NAME app${MODULE_NAME})
 set(TEST_NAME ${MODULE_NAME}_test)
 
 message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
@@ -158,8 +159,26 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
         ${GTest_LIBRARIES}
     )
 
-    add_executable(${TEST_NAME} ${TEST_SRC_FILES} ${DLIB_TRAIN_SRC_FILES} ${TEST_INC_FILES})
+    add_executable(${TEST_NAME} ${TEST_SRC_FILES}  ${TEST_INC_FILES})
     target_include_directories(${TEST_NAME} PUBLIC ${TEST_INC_DIRS})
     target_link_libraries(${TEST_NAME} ${TEST_LIB_DEPS})
     install(TARGETS ${TEST_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
+
+# Command line app
+if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
+    file(GLOB APP_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/app/*.cpp")
+    file(GLOB APP_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/app/*.h")
+    set(APP_INC_DIRS
+        ${MODULE_INC_DIRS}
+    )
+    set(APP_LIB_DEPS
+        ${MODULE_LIB_DEPS}
+        ${LIB_NAME}
+    )
+
+    add_executable(${APP_NAME} ${APP_SRC_FILES} ${APP_INC_FILES})
+    target_include_directories(${APP_NAME} PUBLIC ${APP_INC_DIRS})
+    target_link_libraries(${APP_NAME} ${APP_LIB_DEPS})
+    install(TARGETS ${APP_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
