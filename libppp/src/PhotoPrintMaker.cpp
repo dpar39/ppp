@@ -1,6 +1,6 @@
-#include "PhotoStandard.h"
-#include "CanvasDefinition.h"
 #include "PhotoPrintMaker.h"
+#include "CanvasDefinition.h"
+#include "PhotoStandard.h"
 
 #include "Utilities.h"
 
@@ -8,73 +8,78 @@
 
 using namespace cv;
 
-void PhotoPrintMaker::configure(rapidjson::Value& cfg)
+void PhotoPrintMaker::configure(rapidjson::Value & cfg)
 {
-    auto &ppmConfig = cfg["photoPrintMaker"];
-    auto rgbArr = ppmConfig["background"].GetArray();
+    auto & ppmConfig = cfg["photoPrintMaker"];
+    const auto rgbArr = ppmConfig["background"].GetArray();
     m_backgroundColor = Scalar(rgbArr[0].GetInt(), rgbArr[1].GetInt(), rgbArr[2].GetInt());
 }
 
-cv::Mat PhotoPrintMaker::cropPicture(const cv::Mat& originalImage,
-                                     const cv::Point& crownPoint,
-                                     const cv::Point& chinPoint,
-                                     const PhotoStandard& ps)
+Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
+                                 const Point & crownPoint,
+                                 const Point & chinPoint,
+                                 const PhotoStandard & ps)
 {
+    const auto centerCrop = centerCropEstimation(ps, crownPoint, chinPoint);
 
-    auto centerCrop = centerCropEstimation(ps, crownPoint, chinPoint);
+    const auto chinCrownVec = crownPoint - chinPoint;
 
+    const auto faceHeightPix = norm(chinCrownVec);
 
-    auto chinCrownVec = crownPoint - chinPoint;
+    const auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;
+    const auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
 
-    auto faceHeightPix = cv::norm(chinCrownVec);
+    const auto centerTop = centerCrop + Point2d(chinCrownVec * (cropHeightPix / faceHeightPix / 2.0));
 
-    auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;
-    auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
+    const auto chinCrown90degRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
+    const auto centerLeft = centerCrop + chinCrown90degRotated * (cropWidthPix / faceHeightPix / 2.0);
 
-    auto centerTop = centerCrop + cv::Point2d(chinCrownVec*(cropHeightPix / faceHeightPix/ 2.0));
-
-    auto chinCrown90degRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
-    auto centerLeft = centerCrop + chinCrown90degRotated*(cropWidthPix / faceHeightPix / 2.0);
-
-    const Point2f srcs[3] = {centerCrop, centerLeft, centerTop};
-    const Point2f dsts[3] = {Point2d(cropWidthPix / 2.0, cropHeightPix / 2.0), Point2d(0.0, cropHeightPix / 2.0), Point2d(cropWidthPix / 2.0, 0.0)};
-    auto tform = getAffineTransform(srcs, dsts);
+    const Point2f srcs[3] = { centerCrop, centerLeft, centerTop };
+    const Point2f dsts[3] = { Point2d(cropWidthPix / 2.0, cropHeightPix / 2.0),
+                              Point2d(0.0, cropHeightPix / 2.0),
+                              Point2d(cropWidthPix / 2.0, 0.0) };
+    const auto tform = getAffineTransform(srcs, dsts);
 
     Mat cropImage;
-    warpAffine(originalImage, cropImage, tform, cv::Size(ROUND_INT(cropWidthPix), ROUND_INT(cropHeightPix)));
+    warpAffine(originalImage, cropImage, tform, Size(ROUND_INT(cropWidthPix), ROUND_INT(cropHeightPix)));
     return cropImage;
 }
 
-cv::Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition& canvas, const PhotoStandard& ps, const cv::Mat& croppedImage)
+Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
+                                      const PhotoStandard & ps,
+                                      const Mat & croppedImage)
 {
-    auto canvasWidthPixels = CEIL_INT(canvas.resolutionPixelsPerMM()*canvas.width());
-    auto canvasHeightPixels = CEIL_INT(canvas.resolutionPixelsPerMM()*canvas.height());
+    const auto canvasWidthPixels = CEIL_INT(canvas.resolutionPixelsPerMM() * canvas.width());
+    const auto canvasHeightPixels = CEIL_INT(canvas.resolutionPixelsPerMM() * canvas.height());
 
-    auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
-    auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
+    const auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
+    const auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
 
-    cv::Size tileSizePixels(ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoWidthMM()), ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoHeightMM()));
+    const Size tileSizePixels(ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoWidthMM()),
+                              ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoHeightMM()));
 
     // Resize input crop to the canvas output
-    cv::Mat tileInCanvas;
-    cv::resize(croppedImage, tileInCanvas, tileSizePixels);
+    Mat tileInCanvas;
+    resize(croppedImage, tileInCanvas, tileSizePixels);
 
-    cv::Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
+    Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
 
-    auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border())*canvas.resolutionPixelsPerMM());
-    auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border())*canvas.resolutionPixelsPerMM());
+    const auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border()) * canvas.resolutionPixelsPerMM());
+    const auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border()) * canvas.resolutionPixelsPerMM());
     for (size_t row = 0; row < numPhotoRows; ++row)
     {
         for (size_t col = 0; col < numPhotoCols; ++col)
         {
-            cv::Point topLeft(static_cast<int>(col)*dx, static_cast<int>(row)*dy);
-            tileInCanvas.copyTo(printPhoto(cv::Rect(topLeft, tileSizePixels)));
+            Point topLeft(static_cast<int>(col) * dx, static_cast<int>(row) * dy);
+            tileInCanvas.copyTo(printPhoto(Rect(topLeft, tileSizePixels)));
         }
     }
     return printPhoto;
 }
 
-cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const cv::Point& crownPoint, const cv::Point& chinPoint) const
+Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard & ps,
+                                              const Point & crownPoint,
+                                              const Point & chinPoint) const
 {
     if (ps.eyesHeightMM() <= 0)
     {
@@ -84,13 +89,13 @@ cv::Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard& ps, const
 
     const auto eyeCrownToFaceHeightRatio = 0.5;
 
-    auto crownToPictureBottomMM = eyeCrownToFaceHeightRatio * ps.faceHeightMM() + ps.eyesHeightMM();
+    const auto crownToPictureBottomMM = eyeCrownToFaceHeightRatio * ps.faceHeightMM() + ps.eyesHeightMM();
 
-    auto crownToCenterMM = crownToPictureBottomMM - ps.photoHeightMM() / 2;
+    const auto crownToCenterMM = crownToPictureBottomMM - ps.photoHeightMM() / 2;
 
-    auto mmToPixRatio = cv::norm(crownPoint - chinPoint)/ps.faceHeightMM();
+    const auto mmToPixRatio = norm(crownPoint - chinPoint) / ps.faceHeightMM();
 
-    auto crownToCenterPix = mmToPixRatio*crownToCenterMM;
+    const auto crownToCenterPix = mmToPixRatio * crownToCenterMM;
 
     return Utilities::pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }

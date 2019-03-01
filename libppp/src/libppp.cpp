@@ -53,20 +53,21 @@ std::string PublicPppEngine::setImage(const char * bufferData, size_t bufferLeng
         auto dataLen = strlen(bufferData);
 
         regex re("^data:([a-z]+\\/[a-z]+(;[a-z\\-]+\\=[a-z\\-]+)?)?(;base64)?,");
-        std::cmatch cm;    // same as std::match_results<const char*> cm;
-        if (std::regex_search (bufferData, cm, re)) {
+        std::cmatch cm; // same as std::match_results<const char*> cm;
+        if (std::regex_search(bufferData, cm, re))
+        {
             offset = cm[0].length();
             dataLen -= offset;
         }
 
         auto decodedBytes = Utilities::base64Decode(bufferData + offset, dataLen);
-        cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
-        inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
+        const cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
+        inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
     }
     else
     {
-        cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
-        inputImage = cv::imdecode(inputArray, cv::IMREAD_COLOR);
+        const cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
+        inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
     }
     return m_pPppEngine->setInputImage(inputImage);
 }
@@ -97,7 +98,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
 
     std::vector<BYTE> pictureData;
-    cv::imencode(".png", result, pictureData);
+    imencode(".png", result, pictureData);
 
     // Add image resolution to output
     setPngResolutionDpi(pictureData, canvas->resolutionPixelsPerMM());
@@ -129,7 +130,7 @@ pHYs has to go before IDAT chunk
 */
 void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm)
 {
-    auto chunkLenBytes = toBytes(9);
+    const auto chunkLenBytes = toBytes(9);
     auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
     const string physStr = "pHYs";
 
@@ -144,8 +145,7 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, doubl
     pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
 
     string idat = "IDAT";
-    auto it = search(imageStream.begin(), imageStream.end(), idat.begin(), idat.end());
-
+    const auto it = search(imageStream.begin(), imageStream.end(), idat.begin(), idat.end());
     if (it != imageStream.end())
     {
         // Insert the chunk in the stream
@@ -158,12 +158,12 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, doubl
     try                                                                                                                \
     {                                                                                                                  \
         statements;                                                                                                    \
-        std::cout << "Method '"<< __FUNCTION__ << "' called successfully" << std::endl;                                \
+        std::cout << "Method '" << __FUNCTION__ << "' called successfully" << std::endl;                               \
         return true;                                                                                                   \
     }                                                                                                                  \
     catch (const std::exception & ex)                                                                                  \
     {                                                                                                                  \
-        std::cout << "Method '"<< __FUNCTION__ << "' failed: " << ex.what() << std::endl;                              \
+        std::cout << "Method '" << __FUNCTION__ << "' failed: " << ex.what() << std::endl;                             \
         g_last_error = ex.what();                                                                                      \
         return false;                                                                                                  \
     }

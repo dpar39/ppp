@@ -2,62 +2,66 @@
 #include "LandMarks.h"
 
 // Implementations injected by default
+#include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
 #include "LipsDetector.h"
-#include "CrownChinEstimator.h"
 
 #include "ImageStore.h"
 #include "PhotoPrintMaker.h"
 
-#include "PhotoStandard.h"
 #include "CanvasDefinition.h"
+#include "PhotoStandard.h"
 
-#include <opencv2/imgproc/imgproc.hpp>
 #include <dlib/image_processing/shape_predictor.h>
 #include <dlib/opencv/cv_image.h>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "Utilities.h"
 
 using namespace std;
 
-PppEngine::PppEngine(IDetectorSPtr pFaceDetector /*= nullptr*/
-                     , IDetectorSPtr pEyesDetector /*= nullptr*/
-                     , IDetectorSPtr pLipsDetector /*= nullptr*/
-                     , ICrownChinEstimatorSPtr pCrownChinEstimator /* = nullptr*/
-                     , IPhotoPrintMakerSPtr pPhotoPrintMaker /*= nullptr*/
-                     , IImageStoreSPtr pImageStore /*= nullptr*/)
-    : m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
-      , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
-      , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
-      , m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
-      , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
-      , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
-      , m_useDlibLandmarkDetection(false)
+PppEngine::PppEngine(IDetectorSPtr pFaceDetector,
+                     IDetectorSPtr pEyesDetector,
+                     IDetectorSPtr pLipsDetector,
+                     ICrownChinEstimatorSPtr pCrownChinEstimator,
+                     IPhotoPrintMakerSPtr pPhotoPrintMaker,
+                     IImageStoreSPtr pImageStore)
+: m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
+, m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
+, m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
+, m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
+, m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
+, m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
+, m_useDlibLandmarkDetection(false)
 {
 }
 
-struct membuf : std::streambuf {
-    membuf(char const* base, size_t size) {
-        char* p(const_cast<char*>(base));
+struct membuf : std::streambuf
+{
+    membuf(char const * base, const size_t size)
+    {
+        char * p(const_cast<char *>(base));
         this->setg(p, p, p + size);
     }
 };
-struct imemstream : virtual membuf, std::istream {
-    imemstream(char const* base, size_t size)
-        : membuf(base, size)
-        , std::istream(static_cast<std::streambuf*>(this)) {
+struct imemstream : virtual membuf, std::istream
+{
+    imemstream(char const * base, const size_t size)
+    : membuf(base, size)
+    , std::istream(static_cast<std::streambuf *>(this))
+    {
     }
 };
 
-bool PppEngine::configure(rapidjson::Value& config)
+bool PppEngine::configure(rapidjson::Value & config)
 {
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);
     m_pLipsDetector->configure(config);
     m_pCrownChinEstimator->configure(config);
 
-    size_t imageStoreSize = config["imageStoreSize"].GetInt();
+    const size_t imageStoreSize = config["imageStoreSize"].GetInt();
     m_pImageStore->setStoreSize(imageStoreSize);
 
     m_pPhotoPrintMaker->configure(config);
@@ -66,19 +70,19 @@ bool PppEngine::configure(rapidjson::Value& config)
 
     if (m_useDlibLandmarkDetection)
     {
-        auto &shapePredictor = config["shapePredictor"];
+        auto & shapePredictor = config["shapePredictor"];
         m_shapePredictor = std::make_shared<dlib::shape_predictor>();
-        auto shapePredictorFile = shapePredictor["file"].GetString();
+        const auto shapePredictorFile = shapePredictor["file"].GetString();
         if (ifstream(shapePredictorFile).good())
         {
             dlib::deserialize(shapePredictorFile) >> *m_shapePredictor;
         }
         else
         {
-            auto shapePredictorFileContent = shapePredictor["data"].GetString();
+            const auto shapePredictorFileContent = shapePredictor["data"].GetString();
             auto spData = Utilities::base64Decode(shapePredictorFileContent, strlen(shapePredictorFileContent));
-            imemstream stream(reinterpret_cast<char*>(&spData[0]), spData.size());
-            dlib::deserialize(*m_shapePredictor, stream);
+            imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
+            deserialize(*m_shapePredictor, stream);
         }
 
         // Prepare landmark mapping
@@ -90,27 +94,26 @@ bool PppEngine::configure(rapidjson::Value& config)
         }
 
         m_landmarkIndexMapping = {
-            { LandMarkType::EYE_LEFT_PUPIL, std::vector<int>{ 38, 39, 41, 42} },
-            { LandMarkType::EYE_RIGHT_PUPIL, std::vector<int>{ 44, 45, 47, 48} },
-            { LandMarkType::LIPS_LEFT_CORNER, std::vector<int>{ 49 } },
-            { LandMarkType::LIPS_RIGHT_CORNER, std::vector<int>{ 55 } },
-            { LandMarkType::CHIN_LOWEST_POINT, std::vector<int>{ 9 } },
+            { LandMarkType::EYE_LEFT_PUPIL, std::vector<int> { 38, 39, 41, 42 } },
+            { LandMarkType::EYE_RIGHT_PUPIL, std::vector<int> { 44, 45, 47, 48 } },
+            { LandMarkType::LIPS_LEFT_CORNER, std::vector<int> { 49 } },
+            { LandMarkType::LIPS_RIGHT_CORNER, std::vector<int> { 55 } },
+            { LandMarkType::CHIN_LOWEST_POINT, std::vector<int> { 9 } },
         };
 
-        for (auto &kv : m_landmarkIndexMapping)
+        for (auto & kv : m_landmarkIndexMapping)
         {
-            for (auto &idx : kv.second)
+            for (auto & idx : kv.second)
             {
-                auto offset = std::distance(missingLandMarks.begin(), missingLandMarks.upper_bound(idx));
+                const auto offset = std::distance(missingLandMarks.begin(), missingLandMarks.upper_bound(idx));
                 idx -= offset + 1;
             }
         }
-
     }
     return true;
 }
 
-void PppEngine::verifyImageExists(const string& imageKey) const
+void PppEngine::verifyImageExists(const string & imageKey) const
 {
     if (!m_pImageStore->containsImage(imageKey))
     {
@@ -118,18 +121,17 @@ void PppEngine::verifyImageExists(const string& imageKey) const
     }
 }
 
-string PppEngine::setInputImage(const cv::Mat& inputImage) const
+string PppEngine::setInputImage(const cv::Mat & inputImage) const
 {
     return m_pImageStore->setImage(inputImage);
 }
 
-
-bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) const
+bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) const
 {
     verifyImageExists(imageKey);
     // Convert the image to gray scale as needed by some algorithms
 
-    const auto& inputImage = m_pImageStore->getImage(imageKey);
+    const auto & inputImage = m_pImageStore->getImage(imageKey);
     cv::Mat grayImage;
     cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
 
@@ -163,7 +165,7 @@ bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) co
         }
         array2d<bgr_pixel> dlibImage;
         assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
-        auto faceRect = Utilities::convert(landMarks.vjFaceRect);
+        const auto faceRect = Utilities::convert(landMarks.vjFaceRect);
         auto shape = (*m_shapePredictor)(dlibImage, faceRect);
 
         landMarks.vjFaceRect = Utilities::convert(faceRect);
@@ -184,12 +186,11 @@ bool PppEngine::detectLandMarks(const string& imageKey, LandMarks& landMarks) co
     return m_pCrownChinEstimator->estimateCrownChin(landMarks);
 }
 
-
-cv::Point PppEngine::getLandMark(const dlib::full_object_detection &shape, LandMarkType type) const
+cv::Point PppEngine::getLandMark(const dlib::full_object_detection & shape, LandMarkType type) const
 {
-    const auto &indices = m_landmarkIndexMapping.at(type);
+    const auto & indices = m_landmarkIndexMapping.at(type);
     cv::Point result;
-    for (const auto &idx : indices)
+    for (const auto & idx : indices)
     {
         result += Utilities::convert(shape.part(idx));
     }
@@ -197,14 +198,17 @@ cv::Point PppEngine::getLandMark(const dlib::full_object_detection &shape, LandM
     return result;
 }
 
-cv::Mat PppEngine::createTiledPrint(const string& imageKey, PhotoStandard& ps, CanvasDefinition& canvas,
-                                    cv::Point& crownMark, cv::Point& chinMark) const
+cv::Mat PppEngine::createTiledPrint(const string & imageKey,
+                                    PhotoStandard & ps,
+                                    CanvasDefinition & canvas,
+                                    cv::Point & crownMark,
+                                    cv::Point & chinMark) const
 {
     verifyImageExists(imageKey);
 
-    const auto& inputImage = m_pImageStore->getImage(imageKey);
+    const auto & inputImage = m_pImageStore->getImage(imageKey);
 
-    auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
+    const auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
 
     auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
 

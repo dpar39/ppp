@@ -4,15 +4,15 @@
 
 #include <vector>
 
+#include <dlib/opencv/cv_image.h>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
-#include <dlib/opencv/cv_image.h>
 
 using namespace std;
 using namespace cv;
 
-bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landmarks)
+bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmarks)
 {
     if (m_useDlibFaceDetection)
     {
@@ -27,13 +27,14 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
             return false; // No face was found
         }
 
-        auto &faceRect = dets.front();
+        auto & faceRect = dets.front();
         if (dets.size() > 1)
         {
-            auto biggestFacePtr = std::max_element(dets.begin(), dets.end(), [](const dlib::rectangle &r1, const dlib::rectangle &r2)
-            {
-                return r1.area() < r2.area();
-            });
+            const auto biggestFacePtr = std::max_element(dets.begin(),
+                                                         dets.end(),
+                                                         [](const dlib::rectangle & r1, const dlib::rectangle & r2) {
+                                                             return r1.area() < r2.area();
+                                                         });
             faceRect = *biggestFacePtr;
         }
         landmarks.vjFaceRect = Utilities::convert(faceRect);
@@ -53,15 +54,19 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
 
         if (inputPicture.channels() != 1)
         {
-            cv::cvtColor(inputPicture, grayImage, COLOR_BGR2GRAY);
+            cvtColor(inputPicture, grayImage, COLOR_BGR2GRAY);
         }
 
         vector<Rect> facesRects;
         vector<int> rejectLevels;
         vector<double> levelWeights;
-        m_pFaceCascadeClassifier->detectMultiScale(grayImage, facesRects, 1.05, 3,
-            CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
-            minFaceSize, maxFaceSize);
+        m_pFaceCascadeClassifier->detectMultiScale(grayImage,
+                                                   facesRects,
+                                                   1.05,
+                                                   3,
+                                                   CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
+                                                   minFaceSize,
+                                                   maxFaceSize);
 
         if (facesRects.size() == 0)
         {
@@ -72,8 +77,11 @@ bool FaceDetector::detectLandMarks(const cv::Mat& inputPicture, LandMarks& landm
     return true;
 }
 
-
-void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFaceRatio, double maxFaceRatio, Size& minFaceSize, Size& maxFaceSize) const
+void FaceDetector::calculateScaleSearch(const Size & inputImageSize,
+                                        double minFaceRatio,
+                                        double maxFaceRatio,
+                                        Size & minFaceSize,
+                                        Size & maxFaceSize) const
 {
     auto dim = std::minmax(inputImageSize.height, inputImageSize.width);
     auto minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);
@@ -82,7 +90,7 @@ void FaceDetector::calculateScaleSearch(const Size& inputImageSize, double minFa
     maxFaceSize = Size(maxFaceSizePix, maxFaceSizePix);
 }
 
-void FaceDetector::configure(rapidjson::Value& config)
+void FaceDetector::configure(rapidjson::Value & config)
 {
     auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
     m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);

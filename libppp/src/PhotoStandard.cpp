@@ -1,12 +1,11 @@
 #include "PhotoStandard.h"
 #include "Utilities.h"
 
-
-std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfig)
+std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value & psConfig)
 {
-    auto picHeight = psConfig["pictureHeight"].GetDouble();
-    auto picWidth = psConfig["pictureWidth"].GetDouble();
-    auto faceLength = psConfig["faceHeight"].GetDouble();
+    const auto picHeight = psConfig["pictureHeight"].GetDouble();
+    const auto picWidth = psConfig["pictureWidth"].GetDouble();
+    const auto faceLength = psConfig["faceHeight"].GetDouble();
 
     auto eyesHeight = 0.0;
 
@@ -15,7 +14,7 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value& psConfi
         eyesHeight = psConfig["eyesHeight"].GetDouble();
     }
 
-    auto units = psConfig["units"].GetString();
+    const auto units = psConfig["units"].GetString();
 
     return std::make_shared<PhotoStandard>(Utilities::toMM(picWidth, units),
                                            Utilities::toMM(picHeight, units),

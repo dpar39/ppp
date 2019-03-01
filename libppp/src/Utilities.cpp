@@ -227,12 +227,10 @@ uint32_t updateCrc(uint32_t crc, unsigned char * buf, size_t len)
     static uint32_t s_crcTable[256];
     static std::once_flag s_crcComputeFlag;
     std::call_once(s_crcComputeFlag, []() {
-        unsigned long c;
-        int n, k;
-        for (n = 0; n < 256; n++)
+        for (auto n = 0; n < 256; n++)
         {
-            c = static_cast<unsigned long>(n);
-            for (k = 0; k < 8; k++)
+            auto c = static_cast<unsigned long>(n);
+            for (auto k = 0; k < 8; k++)
             {
                 if (c & 1)
                 {
@@ -320,31 +318,31 @@ std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv
                                                             cv::Point2d pline2)
 {
     std::vector<cv::Point2d> result;
-    auto A2 = pline2.y - pline1.y;
-    auto B2 = pline1.x - pline2.x;
-    auto C2 = A2 * pline1.x + B2 * pline1.y;
+    const auto A2 = pline2.y - pline1.y;
+    const auto B2 = pline1.x - pline2.x;
+    const auto C2 = A2 * pline1.x + B2 * pline1.y;
 
-    auto numVertex = contour.size();
-    auto numSegments = contour.front() == contour.back() ? numVertex - 1 : numVertex;
+    const auto numVertex = contour.size();
+    const auto numSegments = contour.front() == contour.back() ? numVertex - 1 : numVertex;
     for (size_t i = 0; i < numSegments; i++)
     {
         cv::Point2d pSeg1 = contour[i];
         cv::Point2d pSeg2 = contour[(i + 1) % numVertex];
-        auto A1 = pSeg2.y - pSeg1.y;
-        auto B1 = pSeg1.x - pSeg2.x;
-        auto C1 = A1 * pSeg1.x + B1 * pSeg1.y;
-        auto det = A1 * B2 - A2 * B1;
+        const auto A1 = pSeg2.y - pSeg1.y;
+        const auto B1 = pSeg1.x - pSeg2.x;
+        const auto C1 = A1 * pSeg1.x + B1 * pSeg1.y;
+        const auto det = A1 * B2 - A2 * B1;
         if (det != 0)
         {
-            auto x = (B2 * C1 - B1 * C2) / det;
-            auto y = (A1 * C2 - A2 * C1) / det;
+            const auto x = (B2 * C1 - B1 * C2) / det;
+            const auto y = (A1 * C2 - A2 * C1) / det;
             // Test if the intersection is in the segment
-            auto x1 = pSeg1.x < pSeg2.x ? pSeg1.x : pSeg2.x;
-            auto x2 = pSeg1.x > pSeg2.x ? pSeg1.x : pSeg2.x;
-            auto y1 = pSeg1.y < pSeg2.y ? pSeg1.y : pSeg2.y;
-            auto y2 = pSeg1.y > pSeg2.y ? pSeg1.y : pSeg2.y;
+            const auto x1 = pSeg1.x < pSeg2.x ? pSeg1.x : pSeg2.x;
+            const auto x2 = pSeg1.x > pSeg2.x ? pSeg1.x : pSeg2.x;
+            const auto y1 = pSeg1.y < pSeg2.y ? pSeg1.y : pSeg2.y;
+            const auto y2 = pSeg1.y > pSeg2.y ? pSeg1.y : pSeg2.y;
             if (x >= x1 && x <= x2 && y >= y1 && y <= y2)
-                result.push_back(cv::Point2d(x, y));
+                result.emplace_back(x, y);
         }
     }
     return result;
