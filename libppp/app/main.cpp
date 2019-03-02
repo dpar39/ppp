@@ -1,13 +1,13 @@
+#include <fstream>
 #include <iostream>
 
-#include <fstream>
+#include <opencv2/imgcodecs.hpp>
+#include <tclap/CmdLine.h>
 
 #include "CanvasDefinition.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
 #include "PppEngine.h"
-#include <opencv2/imgcodecs.hpp>
-#include <tclap/CmdLine.h>
 
 using namespace std;
 
