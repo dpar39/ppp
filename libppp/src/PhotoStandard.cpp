@@ -1,23 +1,49 @@
 #include "PhotoStandard.h"
 #include "Utilities.h"
 
-std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value & psConfig)
+PhotoStandard::PhotoStandard(const double picWidth,
+                             const double picHeight,
+                             const double faceHeight,
+                             const double eyesHeight,
+                             const std::string & units)
 {
-    const auto picHeight = psConfig["pictureHeight"].GetDouble();
-    const auto picWidth = psConfig["pictureWidth"].GetDouble();
-    const auto faceLength = psConfig["faceHeight"].GetDouble();
+    m_picWidth_mm = Utilities::toMM(picWidth, units);
+    m_picHeight_mm = Utilities::toMM(picHeight, units);
+    m_faceHeight_mm = Utilities::toMM(faceHeight, units);
+    m_eyesHeight_mm = Utilities::toMM(eyesHeight, units);
+}
 
+double PhotoStandard::photoWidthMM() const
+{
+    return m_picWidth_mm;
+}
+
+double PhotoStandard::photoHeightMM() const
+{
+    return m_picHeight_mm;
+}
+
+double PhotoStandard::faceHeightMM() const
+{
+    return m_faceHeight_mm;
+}
+
+double PhotoStandard::eyesHeightMM() const
+{
+    return m_eyesHeight_mm;
+}
+
+std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value & photoStandardJson)
+{
+    const auto picHeight = photoStandardJson["pictureHeight"].GetDouble();
+    const auto picWidth = photoStandardJson["pictureWidth"].GetDouble();
+    const auto faceHeight = photoStandardJson["faceHeight"].GetDouble();
     auto eyesHeight = 0.0;
-
-    if (psConfig.HasMember("eyesHeight"))
+    if (photoStandardJson.HasMember("eyesHeight"))
     {
-        eyesHeight = psConfig["eyesHeight"].GetDouble();
+        eyesHeight = photoStandardJson["eyesHeight"].GetDouble();
     }
+    const auto units = photoStandardJson["units"].GetString();
 
-    const auto units = psConfig["units"].GetString();
-
-    return std::make_shared<PhotoStandard>(Utilities::toMM(picWidth, units),
-                                           Utilities::toMM(picHeight, units),
-                                           Utilities::toMM(faceLength, units),
-                                           Utilities::toMM(eyesHeight, units));
+    return std::make_shared<PhotoStandard>(picWidth, picHeight, faceHeight, eyesHeight, units);
 }

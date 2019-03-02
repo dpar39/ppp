@@ -54,8 +54,12 @@ struct imemstream : virtual membuf, std::istream
     }
 };
 
-bool PppEngine::configure(rapidjson::Value & config)
+bool PppEngine::configure(const std::string & configString)
 {
+
+    rapidjson::Document config;
+    config.Parse(configString.c_str());
+
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);
     m_pLipsDetector->configure(config);

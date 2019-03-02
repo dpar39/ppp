@@ -10,23 +10,28 @@ protected:
     void SetUp() override
     {
         m_pFaceDetector = std::make_shared<FaceDetector>();
-        auto config = readConfigFromFile();
+        std::string configString;
+        readConfigFromFile("", configString);
+
+        rapidjson::Document config;
+        config.Parse(configString.c_str());
+
         m_pFaceDetector->configure(config);
     }
 };
 
 TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
-    auto process = [&](const std::string & imagePrefix,
-                       cv::Mat & rgbImage,
-                       cv::Mat & grayImage,
-                       const LandMarks & manualAnnotations,
-                       LandMarks & detectedLandMarks) -> bool {
+    const auto process = [&](const std::string & imagePrefix,
+                             cv::Mat & rgbImage,
+                             cv::Mat & grayImage,
+                             const LandMarks & manualAnnotations,
+                             LandMarks & detectedLandMarks) -> bool {
         EXPECT_TRUE(m_pFaceDetector->detectLandMarks(grayImage, detectedLandMarks))
             << "Error detecting face in " << imagePrefix;
 
         // Check that the rectangle contains both eyes and mouth points
-        auto faceRect = detectedLandMarks.vjFaceRect;
+        const auto faceRect = detectedLandMarks.vjFaceRect;
 
         EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.eyeLeftPupil));
         EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.eyeRightPupil));

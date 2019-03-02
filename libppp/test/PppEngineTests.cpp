@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "PhotoStandard.h"
-#include "LandMarks.h"
 #include "CanvasDefinition.h"
+#include "LandMarks.h"
+#include "PhotoStandard.h"
 
-#include "PppEngine.h"
-#include "MockDetector.h"
-#include "MockPhotoPrintMaker.h"
-#include "MockImageStore.h"
 #include "MockCrownChinEstimator.h"
+#include "MockDetector.h"
+#include "MockImageStore.h"
+#include "MockPhotoPrintMaker.h"
+#include "PppEngine.h"
 
 using namespace testing;
 
@@ -53,25 +53,16 @@ public:
 
 TEST_F(PppEngineTests, DISABLED_ConfigureWorks)
 {
-    // Arrange
-    const int imageStoreSize = 42;
-    rapidjson::Document config;
-    config.SetObject();
-    auto& alloc = config.GetAllocator();
-    config.AddMember("imageStoreSize", imageStoreSize, alloc);
+    EXPECT_CALL(*m_pFaceDetector, configure(_)).Times(1);
+    EXPECT_CALL(*m_pEyesDetector, configure(_)).Times(1);
+    EXPECT_CALL(*m_pLipsDetector, configure(_)).Times(1);
+    EXPECT_CALL(*m_pCrownChinEstimator, configure(_)).Times(1);
 
+    EXPECT_CALL(*m_pImageStore, setStoreSize(42));
 
-    EXPECT_CALL(*m_pFaceDetector, configure(Ref(config))).Times(1);
-    EXPECT_CALL(*m_pEyesDetector, configure(Ref(config))).Times(1);
-    EXPECT_CALL(*m_pLipsDetector, configure(Ref(config))).Times(1);
-    EXPECT_CALL(*m_pCrownChinEstimator, configure(Ref(config))).Times(1);
+    EXPECT_CALL(*m_pPhotoPrintMaker, configure(_)).Times(1);
 
-    EXPECT_CALL(*m_pImageStore, setStoreSize(imageStoreSize));
-
-    EXPECT_CALL(*m_pPhotoPrintMaker, configure(Ref(config))).Times(1);
-
-    // Act
-    m_pppEngine->configure(config);
+    m_pppEngine->configure("{ imageStoreSize: 42 }");
 }
 
 TEST_F(PppEngineTests, CanSetInputImage)
@@ -82,7 +73,7 @@ TEST_F(PppEngineTests, CanSetInputImage)
 
     EXPECT_CALL(*m_pImageStore, setImage(Ref(dummyImage1))).WillOnce(Return(crc1e));
 
-    auto crc1 = m_pppEngine->setInputImage(dummyImage1);
+    const auto crc1 = m_pppEngine->setInputImage(dummyImage1);
 
     ASSERT_EQ(crc1e, crc1) << "CRC should be returned by the mocked image store as per setup";
 }

@@ -181,15 +181,11 @@ void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual)
     ASSERT_EQ(0, cv::countNonZero(cv::abs(expected - actual))) << "Images are not the same pixel by pixel";
 }
 
-rapidjson::Document readConfigFromFile(const std::string & configFile)
+void readConfigFromFile(const std::string & configFile, std::string & configString)
 {
-    auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.bundle.json") : configFile;
-
+    const auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.bundle.json") : configFile;
     std::ifstream fs(configFilePath, std::ios_base::in);
-    std::string jsonstr((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
-    rapidjson::Document d;
-    d.Parse(jsonstr.c_str());
-    return d;
+    configString.assign((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
 }
 
 void processDatabase(const DetectionCallback & callback,

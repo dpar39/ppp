@@ -38,12 +38,12 @@ bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output);
 
 void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual);
 
-rapidjson::Document readConfigFromFile(const std::string & configFile = "");
+void readConfigFromFile(const std::string & configFile, std::string & configString);
 
 void processDatabase(const DetectionCallback & callback,
                      const std::vector<std::string> & ignoredImages,
                      const std::string & landmarksPath,
-                     std::vector<ResultData> & dr);
+                     std::vector<ResultData> & rd);
 
 void adjustCrownChinCoeffs(const std::vector<LandMarks> & groundTruthAnnotations);
 

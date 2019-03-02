@@ -72,9 +72,9 @@ protected:
 
     void SetUp() override
     {
-        rapidjson::Document config;
-        EXPECT_NO_THROW(config = readConfigFromFile());
-        EXPECT_NO_THROW(m_pPppEngine->configure(config));
+        std::string configString;
+        readConfigFromFile("", configString);
+        m_pPppEngine->configure(configString);
     }
 
     void processResults(const std::vector<ResultData> & resultsData) const

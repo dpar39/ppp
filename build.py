@@ -145,9 +145,9 @@ class ShellRunner(object):
         """
         vc_releases = [
             ('Visual Studio 15 2017',
-             r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
-            ('Visual Studio 15 2017',
              r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
+            ('Visual Studio 15 2017',
+             r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
             ('Visual Studio 14 2015', r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat')]
         for (vsgenerator, vcvarsbat) in vc_releases:
             if os.path.exists(vcvarsbat):
@@ -476,7 +476,8 @@ class Builder(object):
         self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
         self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
         self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
+        self._third_party_install_dir = os.path.join(
+            self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
 
         shell = ShellRunner(self._arch_name, self._emscripten)
 
@@ -599,7 +600,7 @@ class Builder(object):
         new_content = content
         for name in config:
             new_content = re.sub(r'(var ' + name + r'\s?=\s?)([A-z0-9\[\]"]+);',
-                r'\g<1>' + str(config[name]) + r';', new_content)
+                                 r'\g<1>' + str(config[name]) + r';', new_content)
         if new_content != content:
             with open(settings_file, 'w') as fp:
                 fp.write(new_content)

@@ -38,9 +38,8 @@ PublicPppEngine::~PublicPppEngine()
 
 bool PublicPppEngine::configure(const char * jsonConfig) const
 {
-    rapidjson::Document parser;
-    parser.Parse(jsonConfig);
-    return m_pPppEngine->configure(parser);
+
+    return m_pPppEngine->configure(jsonConfig);
 }
 
 std::string PublicPppEngine::setImage(const char * bufferData, size_t bufferLength) const
