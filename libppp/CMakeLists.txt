@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.2.0)
 
 set(MODULE_NAME ppp)
 project(${MODULE_NAME} CXX)
-set(LIB_NAME lib${MODULE_NAME})
-set(APP_NAME app${MODULE_NAME})
+set(LIB_NAME  lib${MODULE_NAME})
+set(APP_NAME  ${MODULE_NAME}_app)
 set(TEST_NAME ${MODULE_NAME}_test)
 
 message(STATUS "-------- CMake for module ${MODULE_NAME} --------")
