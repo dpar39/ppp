@@ -20,24 +20,22 @@ class CanvasDefinition
     double m_resolution_ppmm; ///<- Resolution in pixels per mm
     double m_border_mm; ///<- Separation between passport photos in the canvas in mm
 public:
-    CanvasDefinition(double canvasWidth, double canvasHeight, double resolution, const std::string & units = "mm");
+    CanvasDefinition(double canvasWidth, double canvasHeight, double dpi, const std::string & units = "mm");
 
-    double height() const
-    {
-        return m_canvasHeight_mm;
-    }
-    double width() const
-    {
-        return m_canvasWidth_mm;
-    }
-    double resolutionPixelsPerMM() const
-    {
-        return m_resolution_ppmm;
-    }
+    double height_mm() const;
+
+    double width_mm() const;
+
+    double resolution_ppmm() const;
+
     double border() const
     {
         return m_border_mm;
     }
+
+    int widthPixels() const;
+
+    int heightPixels() const;
 
     // canvas:
     // {

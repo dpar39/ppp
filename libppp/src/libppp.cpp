@@ -100,7 +100,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     imencode(".png", result, pictureData);
 
     // Add image resolution to output
-    setPngResolutionDpi(pictureData, canvas->resolutionPixelsPerMM());
+    setPngResolutionDpi(pictureData, canvas->resolution_ppmm());
 
     if (asBase64Encode)
     {

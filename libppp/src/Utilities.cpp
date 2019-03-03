@@ -5,6 +5,7 @@
 #include <numeric>
 
 #include <base64_kernel_1.h>
+#include <dlib/geometry/rectangle.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 

@@ -60,6 +60,11 @@ public:
 
     bool detectLandMarks(const std::string & imageKey, LandMarks & landMarks) const;
     cv::Point getLandMark(const dlib::full_object_detection & shape, LandMarkType type) const;
+    cv::Mat cropPicture(const std::string & imageKey,
+                        PhotoStandard & ps,
+                        CanvasDefinition & canvas,
+                        cv::Point & crownMark,
+                        cv::Point & chinMark) const;
 
     cv::Mat createTiledPrint(const std::string & imageKey,
                              PhotoStandard & ps,

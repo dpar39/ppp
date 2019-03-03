@@ -202,17 +202,25 @@ cv::Point PppEngine::getLandMark(const dlib::full_object_detection & shape, Land
     return result;
 }
 
+cv::Mat PppEngine::cropPicture(const string & imageKey,
+                               PhotoStandard & ps,
+                               CanvasDefinition & canvas,
+                               cv::Point & crownMark,
+                               cv::Point & chinMark) const
+{
+    verifyImageExists(imageKey);
+    const auto & inputImage = m_pImageStore->getImage(imageKey);
+    return m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
+}
+
 cv::Mat PppEngine::createTiledPrint(const string & imageKey,
                                     PhotoStandard & ps,
                                     CanvasDefinition & canvas,
                                     cv::Point & crownMark,
                                     cv::Point & chinMark) const
 {
-    verifyImageExists(imageKey);
 
-    const auto & inputImage = m_pImageStore->getImage(imageKey);
-
-    const auto croppedImage = m_pPhotoPrintMaker->cropPicture(inputImage, crownMark, chinMark, ps);
+    const auto croppedImage = cropPicture(imageKey, ps, canvas, crownMark, chinMark);
 
     auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
 

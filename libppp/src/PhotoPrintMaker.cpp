@@ -49,14 +49,14 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
                                       const PhotoStandard & ps,
                                       const Mat & croppedImage)
 {
-    const auto canvasWidthPixels = CEIL_INT(canvas.resolutionPixelsPerMM() * canvas.width());
-    const auto canvasHeightPixels = CEIL_INT(canvas.resolutionPixelsPerMM() * canvas.height());
+    const auto canvasWidthPixels = canvas.widthPixels();
+    const auto canvasHeightPixels = canvas.heightPixels();
 
-    const auto numPhotoRows = static_cast<size_t>(canvas.height() / (ps.photoHeightMM() + canvas.border()));
-    const auto numPhotoCols = static_cast<size_t>(canvas.width() / (ps.photoWidthMM() + canvas.border()));
+    const auto numPhotoRows = static_cast<int>(canvas.height_mm() / (ps.photoHeightMM() + canvas.border()));
+    const auto numPhotoCols = static_cast<int>(canvas.width_mm() / (ps.photoWidthMM() + canvas.border()));
 
-    const Size tileSizePixels(ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoWidthMM()),
-                              ROUND_INT(canvas.resolutionPixelsPerMM() * ps.photoHeightMM()));
+    const Size tileSizePixels(ROUND_INT(canvas.resolution_ppmm() * ps.photoWidthMM()),
+                              ROUND_INT(canvas.resolution_ppmm() * ps.photoHeightMM()));
 
     // Resize input crop to the canvas output
     Mat tileInCanvas;
@@ -64,13 +64,13 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
 
     Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
 
-    const auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border()) * canvas.resolutionPixelsPerMM());
-    const auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border()) * canvas.resolutionPixelsPerMM());
-    for (size_t row = 0; row < numPhotoRows; ++row)
+    const auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border()) * canvas.resolution_ppmm());
+    const auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border()) * canvas.resolution_ppmm());
+    for (auto row = 0; row < numPhotoRows; ++row)
     {
-        for (size_t col = 0; col < numPhotoCols; ++col)
+        for (auto col = 0; col < numPhotoCols; ++col)
         {
-            Point topLeft(static_cast<int>(col) * dx, static_cast<int>(row) * dy);
+            Point topLeft(col * dx, row * dy);
             tileInCanvas.copyTo(printPhoto(Rect(topLeft, tileSizePixels)));
         }
     }
