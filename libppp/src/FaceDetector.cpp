@@ -47,7 +47,8 @@ bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmar
         const auto maxFaceRatio = 0.85;
 
         // Calculate search domain on the image
-        Size minFaceSize, maxFaceSize, imgSize = inputPicture.size();
+        Size minFaceSize, maxFaceSize;
+        const auto imgSize = inputPicture.size();
         calculateScaleSearch(imgSize, minFaceRatio, maxFaceRatio, minFaceSize, maxFaceSize);
 
         auto grayImage = inputPicture;
@@ -68,7 +69,7 @@ bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmar
                                                    minFaceSize,
                                                    maxFaceSize);
 
-        if (facesRects.size() == 0)
+        if (facesRects.empty())
         {
             return false;
         }
@@ -83,16 +84,16 @@ void FaceDetector::calculateScaleSearch(const Size & inputImageSize,
                                         Size & minFaceSize,
                                         Size & maxFaceSize) const
 {
-    auto dim = std::minmax(inputImageSize.height, inputImageSize.width);
-    auto minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);
-    auto maxFaceSizePix = static_cast<int>(dim.second * maxFaceRatio);
+    const auto dim = std::minmax(inputImageSize.height, inputImageSize.width);
+    const auto minFaceSizePix = static_cast<int>(dim.first * minFaceRatio);
+    const auto maxFaceSizePix = static_cast<int>(dim.second * maxFaceRatio);
     minFaceSize = Size(minFaceSizePix, minFaceSizePix);
     maxFaceSize = Size(maxFaceSizePix, maxFaceSizePix);
 }
 
 void FaceDetector::configure(rapidjson::Value & config)
 {
-    auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
+    const auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
     m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
 
     m_useDlibFaceDetection = config["useDlibFaceDetection"].GetBool();
