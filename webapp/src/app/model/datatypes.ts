@@ -23,17 +23,23 @@ export class PhotoDimensions {
 }
 
 export class PhotoStandard {
-    name: string;
-    title: string;
-    country: string;
-    docType: string;
+    id: string;
+    text: string;
+    country: string = '';
+    docType: string = '';
     dimensions: PhotoDimensions;
 
     backgroundColor?: string;
     pritable?: boolean;
     digital?: boolean;
-    officialLinks: string[];
+    officialLinks: string[] = [];
     comments?: string;
+
+    constructor(id, text) {
+        this.id = id;
+        this.text = text;
+        this.dimensions = null;
+    }
 }
 
 export class Canvas {
@@ -52,6 +58,10 @@ export class LandMarks {
 export class CrownChinPointPair {
     crownPoint: Point;
     chinPoint: Point;
+    constructor(crownPoint = null, chinPoint = null) {
+        this.crownPoint = crownPoint;
+        this.chinPoint = chinPoint;
+    }
 }
 
 export class TiledPhotoRequest {

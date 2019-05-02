@@ -10,6 +10,7 @@ import { TiledPhotoRequest } from '../model/datatypes';
 export class BackEndService {
 
     runtimeInitialized: EventEmitter<boolean> = new EventEmitter();
+    appLoadingProgressReported: EventEmitter<number> = new EventEmitter();
 
     _isMobilePlatform = false;
     _module: any;
@@ -19,6 +20,7 @@ export class BackEndService {
     private _onImageSet: (imgId: string) => void;
     private _onLandmarksDetected: (landmarks: object) => void;
     private _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
+
 
     constructor(private sanitizer: DomSanitizer, private plt: Platform) {
         this.plt.ready().then((readySource) => {
@@ -30,7 +32,7 @@ export class BackEndService {
 
         this.worker.addEventListener('message', (e: MessageEvent) => {
             switch (e.data.cmd) {
-                case 'onRuntimeInitilized':
+                case 'onRuntimeInitialized':
                     this._runtimeInitialized = true;
                     this.runtimeInitialized.emit(true);
                     console.log('All good and configured');
@@ -48,6 +50,9 @@ export class BackEndService {
                     const imageUrl = URL.createObjectURL( blob );
                     const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
                     this._onCreateTiledPrint(pngDataUrl);
+                    break;
+                case 'onAppDataLoadingProgress':
+                    this.appLoadingProgressReported.emit(e.data.progressPct);
                     break;
             }
         }, false);

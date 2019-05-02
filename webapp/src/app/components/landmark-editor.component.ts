@@ -1,14 +1,13 @@
 import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
 import {Input, Output, EventEmitter} from '@angular/core';
 
-import * as $ from 'jquery';
 import * as interact from 'interactjs';
 import {Point, CrownChinPointPair} from '../model/datatypes';
 
 @Component({
     selector: 'app-landmark-editor',
     template: `
-        <div id="viewport" class="bg-dark">
+        <div id="viewport">
             <img id="photo" alt="" title="Input picture" [src]="inputPhoto" />
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
             <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility"></div>
@@ -34,10 +33,11 @@ import {Point, CrownChinPointPair} from '../model/datatypes';
 
             #viewport {
                 max-height: 50vh;
-                min-height: 30vh;
+                min-height: 40vh;
                 border: 1px solid #363434;
                 border-radius: 5px;
                 margin: 1em auto;
+                background: #333;
             }
 
             img {
@@ -52,8 +52,8 @@ export class LandmarkEditorComponent implements OnInit {
     private _viewPortWidth = 0;
     private _viewPortHeight = 0;
 
-    private _xleft = 0; // Offset in screen pixels
-    private _ytop = 0;
+    private _xLeft = 0; // Offset in screen pixels
+    private _yTop = 0;
     private _zoom = 0;
     private _ratio = 0; // Ratio between image pixels and screen pixels
 
@@ -144,8 +144,8 @@ export class LandmarkEditorComponent implements OnInit {
         const xratio = this._viewPortWidth / this._imageWidth;
         const yratio = this._viewPortHeight / this._imageHeight;
         this._ratio = xratio < yratio ? xratio : yratio;
-        this._xleft = this._viewPortWidth / 2 - (this._ratio * this._imageWidth) / 2;
-        this._ytop = this._viewPortHeight / 2 - (this._ratio * this._imageHeight) / 2;
+        this._xLeft = this._viewPortWidth / 2 - (this._ratio * this._imageWidth) / 2;
+        this._yTop = this._viewPortHeight / 2 - (this._ratio * this._imageHeight) / 2;
     }
 
     calculateViewPort(): void {
@@ -172,7 +172,7 @@ export class LandmarkEditorComponent implements OnInit {
         const yh = this._imageHeight * this._ratio;
         this._imgElmt.width = xw;
         this._imgElmt.height = yh;
-        this.translateElement(this._imgElmt, new Point(this._xleft, this._ytop));
+        this.translateElement(this._imgElmt, new Point(this._xLeft, this._yTop));
     }
 
     translateElement(elmt: any, pt: Point) {
@@ -212,24 +212,21 @@ export class LandmarkEditorComponent implements OnInit {
 
     pixelToScreen(elmt: any, pt: Point): Point {
         return new Point(
-            this._xleft + pt.x * this._ratio - elmt.clientWidth / 2,
-            this._ytop + pt.y * this._ratio - elmt.clientHeight / 2
+            this._xLeft + pt.x * this._ratio - elmt.clientWidth / 2,
+            this._yTop + pt.y * this._ratio - elmt.clientHeight / 2
         );
     }
 
     screenToPixel(elmt: any): Point {
         return new Point(
-            (parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xleft) / this._ratio,
-            (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._ytop) / this._ratio
+            (parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xLeft) / this._ratio,
+            (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._yTop) / this._ratio
         );
     }
 
     updateLandMarks() {
         this.crownPoint = this.screenToPixel(this._crownMarkElmt);
         this.chinPoint = this.screenToPixel(this._chinMarkElmt);
-        this.edited.emit({
-            crownPoint: this.crownPoint,
-            chinPoint: this.chinPoint
-        });
+        this.edited.emit(new CrownChinPointPair(this.crownPoint, this.chinPoint));
     }
 }

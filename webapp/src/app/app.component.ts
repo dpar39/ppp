@@ -6,15 +6,24 @@ import {BackEndService} from './services/back-end.service';
 @Component({
     selector: 'app-root',
     template: `
-        <header>
-            <div class="bg-dark">
-                <h2>{{ echoString }}</h2>
+        <div class="container-fluid">
+            <div class="row">
+                <h2 class="col text-center">A photo ID creation tool</h2>
             </div>
-        </header>
+            <div class="progress" style="height: 3px;">
+                <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    [style.width]="appDataLoadingProgress"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                ></div>
+            </div>
+        </div>
 
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm-12 col-md-6 col-lg-4">
+                <div class="col-sm-12 col-md-6">
                     <div class="container-fluid">
                         <div class="row">
                             <app-landmark-editor
@@ -22,7 +31,7 @@ import {BackEndService} from './services/back-end.service';
                                 style="margin: 0 auto;"
                                 [inputPhoto]="imageSrc"
                                 [crownChinPointPair]="crownChinPointPair"
-                                (edited)="onLandmarksEdited()"
+                                (edited)="onLandmarksEdited($event)"
                             >
                             </app-landmark-editor>
                         </div>
@@ -64,7 +73,7 @@ import {BackEndService} from './services/back-end.service';
                 <div class="col-md-6 col-lg-4 col-sm-12">
                     <app-passport-standard-selector
                         class="col-sm"
-                        (photoStandandardSelected)="onPhotoStandardSelected($event)"
+                        (photoStandardSelected)="onPhotoStandardSelected($event)"
                     >
                     </app-passport-standard-selector>
                 </div>
@@ -89,6 +98,7 @@ export class AppComponent implements OnInit {
     echoString = 'Welcome to this app';
 
     appReady = false;
+    appDataLoadingProgress = '0%';
     photoUploaded = false;
 
     imageKey: string;
@@ -103,6 +113,11 @@ export class AppComponent implements OnInit {
     constructor(public el: ElementRef, private beService: BackEndService) {
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
+            this.appDataLoadingProgress = '100%';
+        });
+
+        beService.appLoadingProgressReported.subscribe((progressPct: number) => {
+            this.appDataLoadingProgress = '' + progressPct + '%';
         });
     }
 
@@ -124,8 +139,7 @@ export class AppComponent implements OnInit {
             // Read the image and display it
             const reader = new FileReader();
             reader.onload = () => {
-                const imgdata = reader.result;
-                this.imageSrc = imgdata;
+                this.imageSrc = reader.result;
             };
             reader.readAsDataURL(file);
         }
@@ -144,10 +158,13 @@ export class AppComponent implements OnInit {
         });
     }
 
-    onPhotoStandardSelected(photo) {
+    onPhotoStandardSelected(photo: PhotoStandard) {
         this.photoStandard = photo;
     }
-    onLandmarksEdited() {}
+
+    onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
+        this.crownChinPointPair = crownChinPointPair;
+    }
 
     createPrint() {
         console.log('Creating print output');
@@ -157,6 +174,8 @@ export class AppComponent implements OnInit {
             this.canvas,
             this.crownChinPointPair
         );
+        console.log(req);
+
         this.beService.getTiledPrint(req).then(outputDataUrl => {
             this.outImgSrc = outputDataUrl;
         });
