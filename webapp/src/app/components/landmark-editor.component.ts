@@ -219,8 +219,8 @@ export class LandmarkEditorComponent implements OnInit {
 
     screenToPixel(elmt: any): Point {
         return new Point(
-            (parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xLeft) / this._ratio,
-            (parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._yTop) / this._ratio
+            Math.round((parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xLeft) / this._ratio),
+            Math.round((parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._yTop) / this._ratio)
         );
     }
 
