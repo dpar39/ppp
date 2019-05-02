@@ -25,7 +25,7 @@
     "files.trimTrailingWhitespace": true,
     "editor.codeLens": false,
     "editor.autoIndent": true,
-    "python.pythonPath": "env\\Scripts\\python.exe",
+    "python.pythonPath": "C:\\Python27\\python.exe",
     "python.linting.pep8Enabled": true,
      "python.linting.pep8Args": [
          "--ignore=E501",

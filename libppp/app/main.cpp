@@ -40,6 +40,7 @@ std::string setImage(const string & inputImagePath, const PppEngine & engine)
 
 void checkLicense()
 {
+    return; // This is FREE software no license check :)
     const auto today = std::chrono::system_clock::now();
 
     const auto stringToTime = [](const std::string & str) {

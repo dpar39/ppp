@@ -156,10 +156,6 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarC
 {
     auto xmlHaarCascade = base64Decode(haarCascadeBase64Data, strlen(haarCascadeBase64Data));
     auto classifier = std::make_shared<cv::CascadeClassifier>();
-    // Workaround until there I find a way to convert to the new
-    // format that is accepted as an in-memory FileNode
-    // Implementation should look like this:
-
     const std::string s(xmlHaarCascade.begin(), xmlHaarCascade.end());
     try
     {
