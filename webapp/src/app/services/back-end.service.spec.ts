@@ -1,15 +1,15 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {TestBed, inject} from '@angular/core/testing';
 
-import { BackEndService } from './back-end.service';
+import {BackEndService} from './back-end.service';
 
 describe('BackEndServiceService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [BackEndService]
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [BackEndService]
+        });
     });
-  });
 
-  it('should be created', inject([BackEndService], (service: BackEndService) => {
-    expect(service).toBeTruthy();
-  }));
+    it('should be created', inject([BackEndService], (service: BackEndService) => {
+        expect(service).toBeTruthy();
+    }));
 });

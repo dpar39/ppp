@@ -1,4 +1,3 @@
-
 export class Point {
     x: number;
     y: number;
@@ -15,28 +14,27 @@ export enum UnitType {
 }
 
 export class PhotoDimensions {
-  pictureWidth: number;
-  pictureHeight: number;
-  units: string;
-  faceHeight?: number;
-  crownTop?: number;
-  dpi: number;
+    pictureWidth: number;
+    pictureHeight: number;
+    units: string;
+    faceHeight?: number;
+    crownTop?: number;
+    dpi: number;
 }
 
 export class PhotoStandard {
-  name: string;
-  title: string;
-  country: string;
-  docType: string;
-  dimensions: PhotoDimensions;
+    name: string;
+    title: string;
+    country: string;
+    docType: string;
+    dimensions: PhotoDimensions;
 
-  backgroundColor?: string;
-  pritable?: boolean;
-  digital?: boolean;
-  officialLinks: string[];
-  comments?: string;
+    backgroundColor?: string;
+    pritable?: boolean;
+    digital?: boolean;
+    officialLinks: string[];
+    comments?: string;
 }
-
 
 export class Canvas {
     height: number;
@@ -46,7 +44,6 @@ export class Canvas {
 }
 
 export class LandMarks {
-
     crownPoint: Point;
     chinPoint: Point;
     errorMsg: string;
