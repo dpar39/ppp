@@ -1,4 +1,4 @@
-# [A photo ID generation tool](https://passport-photo.azurewebsites.net)
+# [A photo ID generation tool](https://myphotoidapp.firebaseapp.com/)
 <!-- Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) -->
 
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
@@ -68,3 +68,7 @@ sudo apt-get install oracle-java8-installer
 sudo apt install oracle-java8-set-default
 
 sudo apt-get install libpcap0.8-dev
+
+### Older version of the app (build with Backbone.js)
+
+[Deprecated version](https://passport-photo.azurewebsites.net)
