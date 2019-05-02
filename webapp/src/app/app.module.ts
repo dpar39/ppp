@@ -10,13 +10,21 @@ import {SelectModule} from 'ng2-select';
 import {AppComponent} from './app.component';
 import {LandmarkEditorComponent} from './components/landmark-editor.component';
 import {PassportStandardSelectorComponent} from './components/passport-standard-selector.component';
+import {PrintDefinitionSelectorComponent} from './components/print-definition-selector.component';
+
 import {BackEndService} from './services/back-end.service';
 import {OnlyNumberDirective} from './directives/onlynumbers-directive';
 import {Platform} from '@ionic/angular';
 import {HttpClientModule} from '@angular/common/http';
 
 @NgModule({
-    declarations: [AppComponent, LandmarkEditorComponent, PassportStandardSelectorComponent, OnlyNumberDirective],
+    declarations: [
+        AppComponent,
+        LandmarkEditorComponent,
+        PassportStandardSelectorComponent,
+        PrintDefinitionSelectorComponent,
+        OnlyNumberDirective
+    ],
     imports: [
         FormsModule,
         BrowserModule,

@@ -25,28 +25,34 @@ export class PhotoDimensions {
 export class PhotoStandard {
     id: string;
     text: string;
-    country: string = '';
-    docType: string = '';
+    country: string;
+    docType: string;
     dimensions: PhotoDimensions;
 
     backgroundColor?: string;
-    pritable?: boolean;
+    printable?: boolean;
     digital?: boolean;
     officialLinks: string[] = [];
     comments?: string;
 
-    constructor(id, text) {
+    constructor(id: string, text: string) {
         this.id = id;
         this.text = text;
-        this.dimensions = null;
     }
 }
 
 export class Canvas {
+    id: string;
+    text: string;
     height: number;
     width: number;
     resolution: number;
     units: UnitType;
+
+    constructor(id: string, text: string) {
+        this.id = id;
+        this.text = text;
+    }
 }
 
 export class LandMarks {

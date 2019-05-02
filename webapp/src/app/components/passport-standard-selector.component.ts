@@ -7,11 +7,11 @@ import {HttpClient} from '@angular/common/http';
 @Component({
     selector: 'app-passport-standard-selector',
     template: `
+        <p>Select a photo standard from the list</p>
         <ng-select [allowClear]="false"
               [items]="_allStandards"
               [active]="[photoStandard]"
               (selected)="selected($event)"
-              
               placeholder="No photo standard selected">
         </ng-select>
     `,

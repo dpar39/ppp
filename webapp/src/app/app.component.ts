@@ -26,14 +26,16 @@ import {BackEndService} from './services/back-end.service';
                 <div class="col-sm-12 col-md-6">
                     <div class="container-fluid">
                         <div class="row">
-                            <app-landmark-editor
-                                class="col"
-                                style="margin: 0 auto;"
-                                [inputPhoto]="imageSrc"
-                                [crownChinPointPair]="crownChinPointPair"
-                                (edited)="onLandmarksEdited($event)"
-                            >
-                            </app-landmark-editor>
+                            <div class="col">
+                                <app-landmark-editor
+                                    style="margin: 0 auto;"
+                                    [inputPhoto]="imageSrc"
+                                    [crownChinPointPair]="crownChinPointPair"
+                                    (edited)="onLandmarksEdited($event)"
+                                >
+                                </app-landmark-editor>
+
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col">
@@ -76,10 +78,14 @@ import {BackEndService} from './services/back-end.service';
                         (photoStandardSelected)="onPhotoStandardSelected($event)"
                     >
                     </app-passport-standard-selector>
+                    <app-print-definition-selector
+                    class="col-sm"
+                    (printDefinitionSelected)="onPrintDefinitionSelected($event)">
+                    </app-print-definition-selector>
                 </div>
             </div>
             <div class="row">
-                <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="col">
+                <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="col-lg-8 col-sm-12">
                     <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
                 </a>
             </div>
@@ -108,7 +114,7 @@ export class AppComponent implements OnInit {
     // Model data
     crownChinPointPair: CrownChinPointPair;
     photoStandard: PhotoStandard;
-    canvas: Canvas = {height: 4, width: 6, resolution: 300, units: UnitType.inch};
+    canvas: Canvas;
 
     constructor(public el: ElementRef, private beService: BackEndService) {
         beService.runtimeInitialized.subscribe((success: boolean) => {
@@ -161,6 +167,11 @@ export class AppComponent implements OnInit {
     onPhotoStandardSelected(photo: PhotoStandard) {
         this.photoStandard = photo;
     }
+
+    onPrintDefinitionSelected(canvas: Canvas) {
+        this.canvas = canvas;
+    }
+
 
     onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
         this.crownChinPointPair = crownChinPointPair;
