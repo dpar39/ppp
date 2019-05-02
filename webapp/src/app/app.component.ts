@@ -1,13 +1,7 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import {Component, ElementRef, OnInit} from '@angular/core';
 
-import {
-  CrownChinPointPair,
-  TiledPhotoRequest,
-  PhotoStandard,
-  UnitType,
-  Canvas
-} from './model/datatypes';
-import { BackEndService } from './services/back-end.service';
+import {Canvas, CrownChinPointPair, PhotoStandard, TiledPhotoRequest, UnitType} from './model/datatypes';
+import {BackEndService} from './services/back-end.service';
 
 @Component({
   selector: 'app-root',
@@ -82,14 +76,12 @@ import { BackEndService } from './services/back-end.service';
       </div>
     </div>
   `,
-  styles: [
-    `
+  styles: [`
       .fit {
         max-width: 99%;
         max-height: 99%;
       }
-    `
-  ]
+    `]
 })
 export class AppComponent implements OnInit {
   echoString = 'Welcome to this app';
@@ -98,18 +90,13 @@ export class AppComponent implements OnInit {
   photoUploaded = false;
 
   imageKey: string;
-  imageSrc: string | ArrayBuffer = '#';
+  imageSrc: string|ArrayBuffer = '#';
   outImgSrc: any = '#';
 
   // Model data
   crownChinPointPair: CrownChinPointPair;
   photoStandard: PhotoStandard;
-  canvas: Canvas = {
-    height: 4,
-    width: 6,
-    resolution: 300,
-    units: UnitType.inch
-  };
+  canvas: Canvas = {height: 4, width: 6, resolution: 300, units: UnitType.inch};
 
   constructor(public el: ElementRef, private beService: BackEndService) {
     beService.runtimeInitialized.subscribe((success: boolean) => {
@@ -163,11 +150,8 @@ export class AppComponent implements OnInit {
   createPrint() {
     console.log('Creating print output');
     const req = new TiledPhotoRequest(
-      this.imageKey,
-      this.photoStandard.dimensions,
-      this.canvas,
-      this.crownChinPointPair
-    );
+        this.imageKey, this.photoStandard.dimensions, this.canvas,
+        this.crownChinPointPair);
     this.beService.getTiledPrint(req).then(outputDataUrl => {
       this.outImgSrc = outputDataUrl;
     });
