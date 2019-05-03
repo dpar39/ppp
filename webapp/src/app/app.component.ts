@@ -73,11 +73,11 @@ import {BackEndService} from './services/back-end.service';
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4 col-sm-12">
-                    <app-passport-standard-selector
+                    <app-photo-standard-selector
                         class="col-sm"
                         (photoStandardSelected)="onPhotoStandardSelected($event)"
                     >
-                    </app-passport-standard-selector>
+                    </app-photo-standard-selector>
                     <app-print-definition-selector
                     class="col-sm"
                     (printDefinitionSelected)="onPrintDefinitionSelected($event)">

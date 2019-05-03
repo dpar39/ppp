@@ -5,26 +5,25 @@ import {EventEmitter} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 
 @Component({
-    selector: 'app-passport-standard-selector',
+    selector: 'app-photo-standard-selector',
     template: `
         <p>Select a photo standard from the list</p>
-        <ng-select [allowClear]="false"
-              [items]="_allStandards"
-              [active]="[photoStandard]"
-              (selected)="selected($event)"
-              placeholder="No photo standard selected">
+        <ng-select
+            [items]="allPhotoStandards"
+            [active]="[photoStandard]"
+            (selected)="selected($event)"
+            placeholder="No photo standard selected"
+        >
         </ng-select>
     `,
-    styles: [
-
-    ]
+    styles: []
 })
 export class PassportStandardSelectorComponent {
     constructor(httpClient: HttpClient) {
         httpClient.get<PhotoStandard[]>('/assets/photo-standards.json').subscribe(
             result => {
                 this._allStandards = result;
-                this.photoStandard = this._allStandards.find((ps) => {
+                this.photoStandard = this._allStandards.find(ps => {
                     return ps.id === 'us_passport_photo';
                 });
                 this.photoStandardSelected.emit(this.photoStandard);
@@ -35,6 +34,10 @@ export class PassportStandardSelectorComponent {
     private _standard: PhotoStandard = new PhotoStandard('__unknown__', 'Loading ...');
 
     public _allStandards: PhotoStandard[];
+
+    public get allPhotoStandards() {
+        return this._allStandards;
+    }
 
     @Output()
     photoStandardSelected: EventEmitter<PhotoStandard> = new EventEmitter();
@@ -49,7 +52,7 @@ export class PassportStandardSelectorComponent {
     }
 
     public selected(value): void {
-        this.photoStandard = this._allStandards.find((ps) => {
+        this.photoStandard = this._allStandards.find(ps => {
             return ps.id === value.id;
         });
     }

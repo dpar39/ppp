@@ -9,7 +9,7 @@ import {SelectModule} from 'ng2-select';
 
 import {AppComponent} from './app.component';
 import {LandmarkEditorComponent} from './components/landmark-editor.component';
-import {PassportStandardSelectorComponent} from './components/passport-standard-selector.component';
+import {PassportStandardSelectorComponent} from './components/photo-standard-selector.component';
 import {PrintDefinitionSelectorComponent} from './components/print-definition-selector.component';
 
 import {BackEndService} from './services/back-end.service';
