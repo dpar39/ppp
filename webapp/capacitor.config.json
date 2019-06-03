@@ -1,6 +1,6 @@
 {
   "appId": "org.pardinas.ppp",
-  "appName": "PassportPhotoApp",
+  "appName": "Photo ID Creator",
   "bundledWebRuntime": false,
   "webDir": "dist"
 }
