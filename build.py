@@ -22,6 +22,7 @@ except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
 # Configuration
+EMSDK_VERSION = 'sdk-1.38.33-64bit'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
@@ -34,10 +35,7 @@ elif 'linux' in sys.platform:
 elif sys.platform == 'darwin':
     PLATFORM = 'darwin'
 
-ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(
-    PLATFORM)
-ANDROID_NDK = 'https://dl.google.com/android/repository/android-ndk-r15c-{}-x86_64.zip'.format(
-    PLATFORM)
+ANDROID_SDK_TOOLS = 'https://dl.google.com/android/repository/sdk-tools-{}-4333796.zip'.format(PLATFORM)
 ANDROID_GRADLE = 'https://services.gradle.org/distributions/gradle-4.10.3-bin.zip'
 
 #  swig -c++ -java -package swig -Ilibppp/include -outdir webapp/android/app/src/main/java/swig -module libppp -o libppp/swig/libppp_java_wrap.cxx libppp/swig/libppp.i
@@ -128,7 +126,7 @@ class ShellRunner(object):
         if cmd_print:
             print(' '.join(cmd_args))
 
-        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, shell=True,
+        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, shell=False,
                              stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         if input:
             p.communicate(input=input)
@@ -455,7 +453,6 @@ class Builder(object):
                             action="store_true")
         parser.add_argument('--android', help='Builds the android app', action="store_true")
         parser.add_argument('--web', help='Builds the web app', action="store_true")
-        parser.add_argument('--azure', help='Deploys the app to azure', action="store_true")
         parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
 
         args = parser.parse_args()
@@ -468,8 +465,7 @@ class Builder(object):
         self._run_install = not args.skip_install
         self._android_build = args.android
         self._web_build = args.web
-        self._azure_deploy = args.azure
-        self._emscripten = args.emscripten
+        self._emscripten = args.emscripten or self._android_build or self._web_build
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
@@ -557,8 +553,8 @@ class Builder(object):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
         os.chdir(emsdk_dir)
-        self.run_cmd('python emsdk install latest')
-        self.run_cmd('python emsdk activate latest')
+        self.run_cmd('python emsdk install ' + EMSDK_VERSION)
+        self.run_cmd('python emsdk activate ' + EMSDK_VERSION)
         process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
@@ -590,10 +586,15 @@ class Builder(object):
             'ASSERTIONS': 2,
             'ALLOW_MEMORY_GROWTH': 1,
             'DISABLE_EXCEPTION_CATCHING': 0,
-            'EXTRA_EXPORTED_RUNTIME_METHODS': '["Pointer_stringify"]',
             'TOTAL_MEMORY': 268435456  # 268MB is too much?
         }
-        emscripten_dir = os.path.join(emsdk_dir, 'emscripten')
+        emscripten_dir = None
+        for p in ['emscripten', 'fastcomp/emscripten']:
+            emscripten_dir = os.path.join(emsdk_dir, p)
+            if os.path.isdir(emscripten_dir):
+                break
+        if not emscripten_dir:
+            print('Unable to find emscripten\'s settings')
         settings_file = os.path.join(emscripten_dir, os.listdir(emscripten_dir)[-1], 'src', 'settings.js')
         with open(settings_file, 'r') as fp:
             content = fp.read()
@@ -770,23 +771,6 @@ class Builder(object):
                 self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
             self.run_cmd('npx ng build --prod')
             os.chdir(self._root_dir)
-
-    # def deploy_to_azure(self):
-    #     """
-    #     Deploys the webserver to azure
-    #     """
-    #     if not self._azure_deploy:
-    #         return
-
-    #     azure_dir = os.path.join(self._root_dir, 'azure')
-    #     if not os.path.exists(azure_dir):
-    #         self.run_cmd('git clone https://dpar39@passportphoto.scm.azurewebsites.net:443/passportphoto.git azure')
-    #     shutil.copytree('webapp/dist', os.path.join(azure_dir, 'dist'))
-    #     shutil.copy('webapp/config.bundle.json', azure_dir)
-    #     for file in glob.glob('webapp/*libppp*'):
-    #         shutil.copy(file, azure_dir)
-    #     for file in glob.glob('webapp/*.py'):
-    #         shutil.copy(file, azure_dir)
 
     def __init__(self):
         # Detect OS version
