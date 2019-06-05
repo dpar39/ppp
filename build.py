@@ -126,7 +126,8 @@ class ShellRunner(object):
         if cmd_print:
             print(' '.join(cmd_args))
 
-        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, shell=False,
+        use_shell = os.name == 'nt'
+        p = subprocess.Popen(cmd_all, env=self._env, cwd=cwd, shell=use_shell,
                              stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         if input:
             p.communicate(input=input)
