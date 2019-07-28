@@ -5,6 +5,7 @@
     "author": "Darien Pardinas",
     "license": "MIT",
     "scripts": {
+        "gen-pwa-icons": "npx ngx-pwa-icons -i src/favicon.png",
         "ng": "ng",
         "start": "ng serve",
         "build": "ng build",

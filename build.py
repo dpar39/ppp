@@ -770,6 +770,7 @@ class Builder(object):
             self.run_cmd('npm install')
             if self._run_tests:
                 self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
+            self.run_cmd('npm run gen-pwa-icons')
             self.run_cmd('npx ng build --prod')
             os.chdir(self._root_dir)
 
