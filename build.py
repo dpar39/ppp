@@ -759,24 +759,32 @@ class Builder(object):
         #     if os.path.exists(src_file_path):
         #         link_file(src_file_path, dst_link)
 
-        # Install the angular-cli if not found in $PATH
-        if not which('npx'):
-            self.run_cmd('npm install npx -g')
-
         # Build the web app
         if self._web_build:
             os.chdir(self.webapp_path())
-            # if not os.path.isdir(self.webapp_path('node_modules')):
-            self.run_cmd('npm install')
             if self._run_tests:
                 self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
             self.run_cmd('npm run gen-pwa-icons')
             self.run_cmd('npx ng build --prod')
             os.chdir(self._root_dir)
 
+    def setup_webapp(self):
+        if not which('npx'):
+            self.run_cmd('npm install npx -g')
+
+        # Build the web app
+        if self._web_build:
+            os.chdir(self.webapp_path())
+            self.run_cmd('npm install --no-optional')
+            os.chdir(self._root_dir)
+
     def __init__(self):
         # Detect OS version
         self.parse_arguments()
+
+        # Setup web app tools
+        if self._web_build:
+            self.setup_webapp()
 
         # Setup android tools
         if self._android_build:
