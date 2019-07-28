@@ -1,7 +1,7 @@
 import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
 import {Input, Output, EventEmitter} from '@angular/core';
 
-import * as interact from 'interactjs';
+import interact from 'interactjs';
 import {Point, CrownChinPointPair} from '../model/datatypes';
 
 @Component({

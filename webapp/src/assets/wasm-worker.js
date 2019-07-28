@@ -52,8 +52,6 @@ if ('function' === typeof importScripts) {
                     }
                 } else {
                     console.error('Unable to provide download progress');
-                    alert('Unable to download application data from the server. Try reloading the page');
-                    reject();
                 }
             };
             xhr.onload = e => {

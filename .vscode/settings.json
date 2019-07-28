@@ -17,10 +17,12 @@
         "./thirdparty/opencv-3.4.3": true,
         "./thirdparty/install_release_x64": true,
         "./thirdparty/install_debug_x64": true,
-        "**/node_modules": true,
         "./thirdparty/android-ndk-r15c": true,
-        "./thirdparty/sdk-tools-*": true,
-
+        "./thirdparty/sdk-tools-*": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true
     },
     "files.trimTrailingWhitespace": true,
     "editor.codeLens": false,
@@ -34,4 +36,8 @@
      ,
     "prettier.singleQuote": true,
     "prettier.printWidth": 100,
+    "cSpell.words": [
+        "elmt",
+        "wasm"
+    ],
 }
