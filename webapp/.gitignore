@@ -52,3 +52,4 @@ liblibppp.so
 liblibppp.dylib
 libpppwrapper.py
 src/assets/icons
+package-lock.json
