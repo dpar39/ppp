@@ -119,11 +119,14 @@ export class LandmarkEditorComponent implements OnInit {
             // enable inertial throwing
             inertia: false,
             // keep the element within the area of it's parent
-            restrict: {
-                restriction: 'parent',
-                endOnly: true,
-                elementRect: {top: 0, left: 0, bottom: 1, right: 1}
-            },
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent',
+                    endOnly: true,
+                    elementRect: {top: 0, left: 0, bottom: 1, right: 1}
+                })
+            ],
+
             // call this function on every dragmove event
             onmove: function(event) {
                 const target = event.target;
