@@ -570,7 +570,7 @@ class Builder(object):
             if m:
                 path = m.group(1)
                 path = path.replace('\\', '/')
-                self._shell.add_system_path(path, at_end=False)
+                self._shell.add_system_path(path, at_end=True)
                 continue
             m = envvar_re.search(line)
             if m:
