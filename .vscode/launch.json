@@ -2,28 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Terminal (integrated)",
-            "type": "python",
+            "name": "PPP UT (Windows)",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Flask Server",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
-            "module": "flask",
-            "cwd": "${workspaceFolder}/webapp",
-            "env": {
-                "FLASK_APP": "server.py"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload"
-            ]
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build Debug",
+            "program": "build_windows_debug_x64/libppp/ppp_test.exe",
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "logging": {
+                "traceResponse": true,
+                "engineLogging": true,
+                "trace": true
+            }
         },
         {
             "name": "Python Build Script",
@@ -35,24 +26,6 @@
                 "--emscripten",
                 "--build_config=release"
             ]
-        },
-        {
-            "name": "Start node.js server",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/webapp/server.js",
-            "stopOnEntry": false,
-            "args": [],
-            "cwd": "${workspaceRoot}/webapp",
-            "preLaunchTask": null,
-            "runtimeExecutable": null,
-            "runtimeArgs": [
-                "--nolazy"
-            ],
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "sourceMaps": false
         }
     ]
 }

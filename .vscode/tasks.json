@@ -1,9 +1,46 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "0.1.0",
-    "command": "python",
-    "isShellCommand": true,
-    "args": ["build.py", "--build_config=release", "--arch_name=x64"],
-    "showOutput": "always"
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "command": "python",
+            "type": "process",
+            "args": [
+                "build.py",
+                "--build_config=debug",
+                "--arch_name=x64"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Release",
+            "command": "python",
+            "type": "process",
+            "args": [
+                "build.py",
+                "--build_config=release",
+                "--arch_name=x64"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Android",
+            "command": "python",
+            "type": "process",
+            "args": [
+                "build.py",
+                "--android",
+            ],
+            "problemMatcher": []
+
+        }
+    ]
 }

@@ -6,7 +6,8 @@
         "cmakeccompilerid.c": "cpp",
         "exception": "cpp",
         "cstddef": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "tuple": "cpp"
     },
     "files.exclude": {
         "**/.git": true,
@@ -29,15 +30,28 @@
     "editor.autoIndent": true,
     "python.pythonPath": "C:\\Python27\\python.exe",
     "python.linting.pep8Enabled": true,
-     "python.linting.pep8Args": [
-         "--ignore=E501",
-         "--max-line-length=100"
-     ]
-     ,
+    "python.linting.pep8Args": [
+        "--ignore=E501",
+        "--max-line-length=100"
+    ],
     "prettier.singleQuote": true,
     "prettier.printWidth": 100,
     "cSpell.words": [
         "elmt",
         "wasm"
     ],
+    "catch2TestExplorer.executables": [
+        {
+            "name": "Unit Tests Debug",
+            "description": "${relDirpath}/",
+            "pattern": "{build_*debug*}/libppp/*{_test}*",
+            "dependsOn": ["Build Debug"]
+
+        },
+        {
+            "name": "Unit Tests Release",
+            "description": "${relDirpath}/",
+            "pattern": "{build_*release*}/libppp/*{_test}*"
+        }
+    ]
 }
