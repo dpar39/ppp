@@ -134,7 +134,7 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     if (MSVC)
         set(GTest_LIBRARIES ${GTest_DIR}/lib/gtest${DEBUG_SUFFIX}.lib ${GTest_DIR}/lib/gmock${DEBUG_SUFFIX}.lib)
     else()
-        set(GTest_LIBRARIES ${GTest_DIR}/lib/libgtest${DEBUG_SUFFIX}.a ${GTest_DIR}/lib/gmock${DEBUG_SUFFIX}.a)
+        set(GTest_LIBRARIES ${GTest_DIR}/lib/libgtest${DEBUG_SUFFIX}.a ${GTest_DIR}/lib/libgmock${DEBUG_SUFFIX}.a)
     endif()
 
     #-----------------------------
