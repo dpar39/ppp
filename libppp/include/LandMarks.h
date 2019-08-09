@@ -23,6 +23,8 @@ struct LandMarks
     cv::Rect  vjLeftEyeRect;  ///<- Rectangle where the left eye was detected using Viola Jones algorithm
     cv::Rect  vjRightEyeRect; ///<- Rectangle where the left eye was detected using Viola Jones algorithm
 
+    int imageRotation;  ///<- Possible values are 0, 90, -90, 180
+
     // Mouth marks
     cv::Point lipUpperCenter;
     cv::Point lipLowerCenter;

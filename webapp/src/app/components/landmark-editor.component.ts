@@ -3,12 +3,13 @@ import {Input, Output, EventEmitter} from '@angular/core';
 
 import interact from 'interactjs';
 import {Point, CrownChinPointPair} from '../model/datatypes';
+import {ImageLoadResult} from '../services/back-end.service';
 
 @Component({
     selector: 'app-landmark-editor',
     template: `
         <div id="viewport">
-            <img id="photo" alt="" title="Input picture" [src]="inputPhoto" />
+            <img id="photo" alt="" title="Input picture" [src]="getImageDataUrl()" />
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
             <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility"></div>
         </div>
@@ -67,26 +68,28 @@ export class LandmarkEditorComponent implements OnInit {
 
     landmarkVisibility = 'hidden';
 
-    private _inputPhoto = '#';
-    @Input()
-    set inputPhoto(value: string) {
-        const newImg = new Image();
+    private _imageLoadResult: ImageLoadResult;
 
-        newImg.onload = () => {
-            this._imageWidth = newImg.width;
-            this._imageHeight = newImg.height;
-            this._inputPhoto = value;
-            if (this._imageWidth > 100 && this._imageHeight > 100) {
-                this.calculateViewPort();
-                this.zoomFit();
-                this.renderImage();
-                this.renderLandMarks();
-            }
-        };
-        newImg.src = value;
+    @Input()
+    set inputPhoto(value: ImageLoadResult) {
+        this._imageLoadResult = value;
+        if (value) {
+            const newImg = new Image();
+            newImg.onload = () => {
+                this._imageWidth = newImg.width;
+                this._imageHeight = newImg.height;
+                if (this._imageWidth > 100 && this._imageHeight > 100) {
+                    this.calculateViewPort();
+                    this.zoomFit();
+                    this.renderImage();
+                    this.renderLandMarks();
+                }
+            };
+            newImg.src = this._imageLoadResult.imgDataUrl;
+        }
     }
-    get inputPhoto(): string {
-        return this._inputPhoto;
+    get inputPhoto(): ImageLoadResult {
+        return this._imageLoadResult;
     }
 
     landMarksVisible = false;
@@ -143,10 +146,17 @@ export class LandmarkEditorComponent implements OnInit {
         });
     }
 
+    getImageDataUrl() {
+        if (!this._imageLoadResult || !this._imageLoadResult.imgDataUrl) {
+            return '#';
+        }
+        return this._imageLoadResult.imgDataUrl;
+    }
+
     zoomFit(): void {
-        const xratio = this._viewPortWidth / this._imageWidth;
-        const yratio = this._viewPortHeight / this._imageHeight;
-        this._ratio = xratio < yratio ? xratio : yratio;
+        const xRatio = this._viewPortWidth / this._imageWidth;
+        const yRatio = this._viewPortHeight / this._imageHeight;
+        this._ratio = xRatio < yRatio ? xRatio : yRatio;
         this._xLeft = this._viewPortWidth / 2 - (this._ratio * this._imageWidth) / 2;
         this._yTop = this._viewPortHeight / 2 - (this._ratio * this._imageHeight) / 2;
     }

@@ -80,6 +80,8 @@ public:
      */
     static int kittlerOptimumThreshold(std::vector<double> P, float mu);
 
+    static cv::Mat rotateImage(const cv::Mat & inputImage, int rotAngelDegrees);
+
     static cv::Mat selfCoefficientImage(const cv::Mat & inputImage, int kernelSize);
 
     static cv::Point convert(const dlib::point & pt);

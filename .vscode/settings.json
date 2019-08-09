@@ -53,5 +53,10 @@
             "description": "${relDirpath}/",
             "pattern": "{build_*release*}/libppp/*{_test}*"
         }
+    ],
+    "cmake.buildDirectory": "${workspaceRoot}/build_windows_debug_x64",
+    "cmake.installPrefix": "${workspaceRoot}/install_windows_debug_x64",
+    "cmake.generator": "ninja",
+    "cmake.configureArgs": [
     ]
 }

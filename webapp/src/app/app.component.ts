@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnInit} from '@angular/core';
 
 import {Canvas, CrownChinPointPair, PhotoStandard, TiledPhotoRequest, UnitType} from './model/datatypes';
-import {BackEndService} from './services/back-end.service';
+import {BackEndService, ImageLoadResult} from './services/back-end.service';
 
 @Component({
     selector: 'app-root',
@@ -29,7 +29,7 @@ import {BackEndService} from './services/back-end.service';
                             <div class="col">
                                 <app-landmark-editor
                                     style="margin: 0 auto;"
-                                    [inputPhoto]="imageSrc"
+                                    [inputPhoto]="imageLoadResult"
                                     [crownChinPointPair]="crownChinPointPair"
                                     (edited)="onLandmarksEdited($event)"
                                 >
@@ -107,8 +107,7 @@ export class AppComponent implements OnInit {
     appDataLoadingProgress = '0%';
     photoUploaded = false;
 
-    imageKey: string;
-    imageSrc: string | ArrayBuffer = '#';
+    imageLoadResult: ImageLoadResult;
     outImgSrc: any = '#';
 
     // Model data
@@ -136,23 +135,18 @@ export class AppComponent implements OnInit {
         if (fileList && fileList[0]) {
             const file = fileList[0];
             this.crownChinPointPair = null;
+            this.imageLoadResult = null;
             // Upload the file to the server to detect landmarks
-            this.beService.uploadImageToServer(file).then(imgKey => {
-                this.photoUploaded = true;
-                this.imageKey = imgKey;
+            this.beService.loadImageInMemory(file).then(result => {
+                this.imageLoadResult = result;
                 this.retrieveLandmarks();
             });
-            // Read the image and display it
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.imageSrc = reader.result;
-            };
-            reader.readAsDataURL(file);
+
         }
     }
 
     retrieveLandmarks() {
-        this.beService.retrieveLandmarks(this.imageKey).then(landmarks => {
+        this.beService.retrieveLandmarks(this.imageLoadResult.imgKey).then(landmarks => {
             if (landmarks.errorMsg) {
                 console.log(landmarks.errorMsg);
             } else {
@@ -180,7 +174,7 @@ export class AppComponent implements OnInit {
     createPrint() {
         console.log('Creating print output');
         const req = new TiledPhotoRequest(
-            this.imageKey,
+            this.imageLoadResult.imgKey,
             this.photoStandard.dimensions,
             this.canvas,
             this.crownChinPointPair
