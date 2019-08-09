@@ -72,7 +72,7 @@ bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmar
             m_pFaceCascadeClassifier->detectMultiScale(rotatedImage,
                                                        facesRects,
                                                        1.05,
-                                                       4.5,
+                                                       5,
                                                        CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
                                                        minFaceSize,
                                                        maxFaceSize);
