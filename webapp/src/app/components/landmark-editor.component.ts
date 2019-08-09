@@ -9,7 +9,13 @@ import {ImageLoadResult} from '../services/back-end.service';
     selector: 'app-landmark-editor',
     template: `
         <div id="viewport">
-            <img id="photo" alt="" title="Input picture" [src]="getImageDataUrl()" />
+            <img
+                id="photo"
+                alt="Input Image"
+                title="Input picture"
+                [src]="getImageDataUrl()"
+                [style.transform]="getImageStyle()"
+            />
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
             <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility"></div>
         </div>
@@ -151,6 +157,13 @@ export class LandmarkEditorComponent implements OnInit {
             return '#';
         }
         return this._imageLoadResult.imgDataUrl;
+    }
+
+    getImageStyle() {
+        if (!this._imageLoadResult || !this._imageLoadResult.imgRotation) {
+            return 'rotate(0deg)';
+        }
+        return this._imageLoadResult.imgRotation;
     }
 
     zoomFit(): void {

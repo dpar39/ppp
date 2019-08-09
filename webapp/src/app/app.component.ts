@@ -51,7 +51,7 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                                     </button>
                                     <button
                                         type="button"
-                                        [disabled]="!photoUploaded"
+                                        [disabled]="!imageLoadResult"
                                         class="btn btn-primary btn-primary-spacing"
                                         (click)="createPrint()"
                                     >
@@ -104,8 +104,7 @@ export class AppComponent implements OnInit {
     echoString = 'Welcome to this app';
 
     appReady = false;
-    appDataLoadingProgress = '0%';
-    photoUploaded = false;
+    appDataLoadingProgress = '1%';
 
     imageLoadResult: ImageLoadResult;
     outImgSrc: any = '#';
@@ -146,6 +145,7 @@ export class AppComponent implements OnInit {
     }
 
     retrieveLandmarks() {
+        console.log(this.imageLoadResult.imgKey);
         this.beService.retrieveLandmarks(this.imageLoadResult.imgKey).then(landmarks => {
             if (landmarks.errorMsg) {
                 console.log(landmarks.errorMsg);

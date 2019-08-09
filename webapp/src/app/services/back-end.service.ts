@@ -67,6 +67,9 @@ export class BackEndService {
     }
 
     loadImageInMemory(file: File): Promise<ImageLoadResult> {
+        this._imageDataUrl = null;
+        this._imageKey = null;
+        this._imageRotation = null;
         return new Promise((resolve, reject) => {
             this._imageDataUrl = null;
             this._onImageSet = resolve;
