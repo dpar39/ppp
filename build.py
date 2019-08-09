@@ -413,14 +413,14 @@ class Builder(object):
             cmake_toolchain = os.path.join(
                 cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
 
-            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --separate-asm --memory-init-file 0'
+            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0'
             extra_definitions += [
                 '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' +
                 cmake_toolchain.replace('\\', '/'),
                 '-DCMAKE_MAKE_PROGRAM=ninja',
                 '-DCMAKE_MODULE_PATH=' + cmake_module_path.replace('\\', '/'),
-                '-DCMAKE_CXX_FLAGS="' + cxx_flags + '"',
-                '-DCMAKE_EXE_LINKER_FLAGS="' + cxx_flags + '"'
+                '-DCMAKE_CXX_FLAGS=' + cxx_flags + '',
+                '-DCMAKE_EXE_LINKER_FLAGS=' + cxx_flags + ''
             ]
         else:
             pass
