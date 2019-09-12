@@ -558,7 +558,7 @@ class Builder(object):
         emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
         self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION)
         self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION)
-        process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['python', 'emsdk.py', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
         if exit_code != 0:
