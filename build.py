@@ -144,6 +144,8 @@ class ShellRunner(object):
         """
         vc_releases = [
             ('Visual Studio 15 2017',
+             r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'),
+            ('Visual Studio 15 2017',
              r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat'),
             ('Visual Studio 15 2017',
              r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'),
