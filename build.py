@@ -595,8 +595,9 @@ class Builder(object):
 
         settings_file = None
         for p in ['emscripten', 'fastcomp/emscripten']:
-            settings_file = os.path.join(emsdk_dir, p, EMSDK_VERSION_NUMBER, 'src', 'settings.js')
-            if os.path.isfile(settings_file):
+            candidate = os.path.join(emsdk_dir, p, EMSDK_VERSION_NUMBER, 'src', 'settings.js')
+            if os.path.isfile(candidate):
+                settings_file = candidate
                 break
 
         if not settings_file:
