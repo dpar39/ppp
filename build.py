@@ -22,7 +22,7 @@ except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
 # Configuration
-EMSDK_VERSION_NUMBER = '1.38.41'
+EMSDK_VERSION_NUMBER = '1.38.24'
 EMSDK_VERSION_NAME = 'sdk-' + EMSDK_VERSION_NUMBER + '-64bit'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
