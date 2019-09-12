@@ -119,8 +119,7 @@ class ShellRunner(object):
             cmd_args = cmd_args.split()
         cmd_all = []
         if IS_WINDOWS and not self._is_emscripten:
-            cmd_all = [self._vcvarsbat, self._arch_name,
-                       '&&', 'set', 'CL=/MP', '&&']
+            cmd_all = [self._vcvarsbat, self._arch_name] + '&& set CC=cl.exe && set CXX=cl.exe'.split(' ')
         cmd_all = cmd_all + cmd_args
 
         if cmd_print:
