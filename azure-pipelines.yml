@@ -14,7 +14,12 @@ stages:
       pool:
         vmImage: 'vs2017-win2016'
       steps:
-       - script: python build.py --test
-       - script: python build.py --web --test
+      - task: CacheBeta@0
+        inputs:
+          key: npm | $(Agent.OS) | webapp/package.json
+          path: webapp/node_modules
+        displayName: Cache node_modules
+      - script: python build.py --test
+      - script: python build.py --web --test
 
 
