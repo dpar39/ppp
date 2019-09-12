@@ -22,7 +22,8 @@ except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
 # Configuration
-EMSDK_VERSION = 'sdk-1.38.41-64bit'
+EMSDK_VERSION_NUMBER = '1.38.41'
+EMSDK_VERSION_NAME = 'sdk-' + EMSDK_VERSION_NUMBER + '-64bit'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
 DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
 GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
@@ -556,8 +557,8 @@ class Builder(object):
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
         os.chdir(emsdk_dir)
         emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
-        self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION)
-        self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION)
+        self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION_NAME)
+        self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION_NAME)
         process = subprocess.Popen(['python', 'emsdk.py', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
@@ -591,14 +592,17 @@ class Builder(object):
             'DISABLE_EXCEPTION_CATCHING': 0,
             'TOTAL_MEMORY': 268435456  # 268MB is too much?
         }
-        emscripten_dir = None
+
+        settings_file = None
         for p in ['emscripten', 'fastcomp/emscripten']:
-            emscripten_dir = os.path.join(emsdk_dir, p)
-            if os.path.isdir(emscripten_dir):
+            settings_file = os.path.join(emsdk_dir, p, EMSDK_VERSION_NUMBER, 'src', 'settings.js')
+            if os.path.isfile(settings_file):
                 break
-        if not emscripten_dir:
-            print('Unable to find emscripten\'s settings')
-        settings_file = os.path.join(emscripten_dir, os.listdir(emscripten_dir)[-1], 'src', 'settings.js')
+
+        if not settings_file:
+            self.run_cmd(['tree', emsdk_dir])
+            raise Exception('Unable to find emscripten\'s settings file')
+
         with open(settings_file, 'r') as fp:
             content = fp.read()
         new_content = content
