@@ -3,9 +3,8 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-- task: NodeTool@0
+- task: UseNode@1
   inputs:
-    versionSpec: '10.x'
 
 trigger:
   - master
