@@ -555,8 +555,9 @@ class Builder(object):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
         os.chdir(emsdk_dir)
-        self.run_cmd('./emsdk install ' + EMSDK_VERSION)
-        self.run_cmd('./emsdk activate ' + EMSDK_VERSION)
+        emsdk_cmd = 'emsdk' if IS_WINDOWS else './emsdk'
+        self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION)
+        self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION)
         process = subprocess.Popen(['python', 'emsdk', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
