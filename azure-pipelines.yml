@@ -20,7 +20,7 @@ stages:
           path: webapp/node_modules
       - task: CacheBeta@0
         inputs:
-          key: emscripten | $(Agent.OS) | thirdparty/install_emscripten
+          key: emscripten | $(Agent.OS)
           path: thirdparty/install_emscripten
       - task: CacheBeta@0
         inputs:
