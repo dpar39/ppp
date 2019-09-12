@@ -3,15 +3,18 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-- task: UseNode@1
-  inputs:
 
 trigger:
   - master
-pool:
-  vmImage: 'vs2017-win2016'
-steps:
-  - script: python build.py --test
-  - script: python build.py --web --test
+
+stages:
+- stage: build
+  jobs:
+    - job: build
+      pool:
+        vmImage: 'vs2017-win2016'
+      steps:
+       - script: python build.py --test
+       - script: python build.py --web --test
 
 
