@@ -7,7 +7,7 @@
 #include "ImageStore.h"
 #include "Utilities.h"
 
-std::string ImageStore::setImage(const cv::Mat & image, const int orientation)
+std::string ImageStore::storeImageData(const cv::Mat & image, const easyexif::EXIFInfoSPtr & exifInfo)
 {
     const auto crc32val = Utilities::crc32(0, image.datastart, image.dataend);
     std::stringstream s;
@@ -17,12 +17,22 @@ std::string ImageStore::setImage(const cv::Mat & image, const int orientation)
     {
         std::lock_guard<std::mutex> lg(m_mutex);
         const auto it = m_imageKeyOrder.insert(m_imageKeyOrder.end(), imageKey);
-        m_imageCollection[imageKey] = ImageOrderPair { image, orientation, it };
+        m_imageCollection[imageKey] = ImageData { image, exifInfo, it };
     }
 
     handleStoreSize();
 
     return imageKey;
+}
+
+easyexif::EXIFInfoSPtr ImageStore::decodeExifInfo(const BYTE * bufferData, const size_t bufferLength)
+{
+    easyexif::EXIFInfoSPtr exifInfo = std::make_shared<easyexif::EXIFInfo>();
+    if (exifInfo->parseFrom((bufferData), bufferLength) != PARSE_EXIF_SUCCESS)
+    {
+        return nullptr;
+    }
+    return exifInfo;
 }
 
 std::string ImageStore::setImage(const std::string & imageFilePath)
@@ -34,8 +44,9 @@ std::string ImageStore::setImage(const std::string & imageFilePath)
 
 std::string ImageStore::setImage(const char * bufferData, const size_t bufferLength)
 {
-    auto orientation = 0;
     cv::Mat inputImage;
+    easyexif::EXIFInfoSPtr exifInfo;
+
     if (bufferLength <= 0)
     {
         // Find out if this is a data url
@@ -54,18 +65,15 @@ std::string ImageStore::setImage(const char * bufferData, const size_t bufferLen
         const auto decodedBytesSize = static_cast<int>(decodedBytes.size());
         const cv::_InputArray inputArray(decodedBytes.data(), decodedBytesSize);
         inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
-        easyexif::EXIFInfo info;
-        if (info.parseFrom(decodedBytes.data(), decodedBytesSize) == PARSE_EXIF_SUCCESS)
-        {
-            orientation = info.Orientation;
-        }
+        exifInfo = decodeExifInfo(decodedBytes.data(), decodedBytesSize);
     }
     else
     {
         const cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
         inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
+        exifInfo = decodeExifInfo(reinterpret_cast<const unsigned char *>(bufferData), bufferLength);
     }
-    return setImage(inputImage, orientation);
+    return storeImageData(inputImage, exifInfo);
 }
 
 bool ImageStore::containsImage(const std::string & imageKey)
@@ -80,6 +88,14 @@ cv::Mat ImageStore::getImage(const std::string & imageKey)
     std::lock_guard<std::mutex> lg(m_mutex);
     boostImageToTopCache(imageKey);
     return m_imageCollection[imageKey].image;
+}
+
+easyexif::EXIFInfoSPtr ImageStore::getExifInfo(const std::string & imageKey)
+
+{
+    std::lock_guard<std::mutex> lg(m_mutex);
+    boostImageToTopCache(imageKey);
+    return m_imageCollection[imageKey].exifInfo;
 }
 
 void ImageStore::setStoreSize(const size_t storeSize)
@@ -109,8 +125,8 @@ void ImageStore::boostImageToTopCache(const std::string & imageKey)
     auto it = m_imageCollection.find(imageKey);
     if (it != m_imageCollection.end())
     {
-        m_imageKeyOrder.erase(it->second.listOrder);
+        m_imageKeyOrder.erase(it->second.storeListOrder);
         const auto newOrderIt = m_imageKeyOrder.insert(m_imageKeyOrder.end(), imageKey);
-        it->second.listOrder = newOrderIt;
+        it->second.storeListOrder = newOrderIt;
     }
 }

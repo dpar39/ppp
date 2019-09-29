@@ -82,3 +82,28 @@ TEST_F(ImageStoreTests, ImagesArePrioritizedByAccess)
     EXPECT_FALSE(m_pImageStore->containsImage(key1));
     EXPECT_FALSE(m_pImageStore->containsImage(key3));
 }
+
+TEST_F(ImageStoreTests, ImageExifDataRetrieval)
+{
+    m_pImageStore->setStoreSize(1);
+
+    // This image has EXIF information
+    const auto imageFileName1 = resolvePath("research/my_database/000.jpg");
+    const auto imageKey1 = m_pImageStore->setImage(imageFileName1);
+    const auto image1 = m_pImageStore->getImage(imageKey1);
+    const auto imgExif1 = m_pImageStore->getExifInfo(imageKey1);
+
+    EXPECT_EQ(image1.cols, 1836);
+    EXPECT_EQ(image1.rows, 3264);
+    ASSERT_TRUE(static_cast<bool>(imgExif1));
+
+    // This image doesn't have EXIF information
+    const auto imageFileName2 = resolvePath("research/my_database/012.png");
+    const auto imageKey2 = m_pImageStore->setImage(imageFileName2);
+    const auto image2 = m_pImageStore->getImage(imageKey2);
+    const auto imgExif2 = m_pImageStore->getExifInfo(imageKey2);
+
+    EXPECT_EQ(image2.cols, 512);
+    EXPECT_EQ(image2.rows, 512);
+    ASSERT_FALSE(imgExif2);
+}

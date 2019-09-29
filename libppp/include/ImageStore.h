@@ -6,14 +6,14 @@
 #include <mutex>
 #include <unordered_map>
 
-struct ImageOrderPair final
+FWD_DECL(ImageStore)
+
+struct ImageData final
 {
     cv::Mat image;
-    int orientation {};
-    std::list<std::string>::iterator listOrder; ///<- Where in the image store order it is located
+    easyexif::EXIFInfoSPtr exifInfo;
+    std::list<std::string>::iterator storeListOrder; ///<- Where in the image store order it is located
 };
-
-FWD_DECL(ImageStore)
 
 class ImageStore final : public IImageStore
 {
@@ -28,9 +28,11 @@ public:
 
     void setStoreSize(size_t storeSize) override;
 
+    easyexif::EXIFInfoSPtr getExifInfo(const std::string & imageKey) override;
+
 private:
     ///<- Stores the images currently being processing
-    std::unordered_map<std::string, ImageOrderPair> m_imageCollection;
+    std::unordered_map<std::string, ImageData> m_imageCollection;
 
     ///<- Store the image keys in the order they were added to the store
     std::list<std::string> m_imageKeyOrder;
@@ -47,5 +49,7 @@ private:
 
     void boostImageToTopCache(const std::string & imageKey);
 
-    std::string setImage(const cv::Mat & image, int orientation = 0);
+    std::string storeImageData(const cv::Mat & image, const easyexif::EXIFInfoSPtr & exifInfo = nullptr);
+
+    static easyexif::EXIFInfoSPtr decodeExifInfo(const BYTE * bufferData, const size_t bufferLength);
 };

@@ -55,10 +55,10 @@ TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
                     rd);
 }
 
-TEST_F(FaceDetectorTests, DetectFaceRotation)
+TEST_F(FaceDetectorTests, DISABLED_DetectFaceRotation)
 {
     const auto imageFileName = resolvePath("research/my_database/000.jpg");
-    auto inputImage = cv::imread(imageFileName);
+    const auto inputImage = cv::imread(imageFileName);
     cv::Mat grayImage;
     cv::cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
 

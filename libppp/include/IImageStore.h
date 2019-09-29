@@ -4,6 +4,10 @@
 #include <opencv2/core/core.hpp>
 
 FWD_DECL(IImageStore)
+namespace easyexif
+{
+FWD_DECL(EXIFInfo);
+}
 
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
@@ -18,6 +22,9 @@ public:
 
     /*!@brief Gets a copy the image from the store !*/
     virtual cv::Mat getImage(const std::string & imageKey) = 0;
+
+    /*!@brief Gets the image EXIF info if available !*/
+    virtual easyexif::EXIFInfoSPtr getExifInfo(const std::string & imageKey) = 0;
 
     /*!@brief Returns whether an image with the specified key is in the store !*/
     virtual bool containsImage(const std::string & imageKey) = 0;
