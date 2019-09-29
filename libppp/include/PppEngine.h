@@ -56,8 +56,6 @@ public:
     // Native interface
     bool configure(const std::string & configString);
 
-    std::string setInputImage(const cv::Mat & inputImage) const;
-
     bool detectLandMarks(const std::string & imageKey, LandMarks & landMarks) const;
     cv::Point getLandMark(const dlib::full_object_detection & shape, LandMarkType type) const;
     cv::Mat cropPicture(const std::string & imageKey,
@@ -71,6 +69,7 @@ public:
                              CanvasDefinition & canvas,
                              cv::Point & crownMark,
                              cv::Point & chinMark) const;
+    IImageStoreSPtr getImageStore() const;
 
 private:
     IDetectorSPtr m_pFaceDetector;

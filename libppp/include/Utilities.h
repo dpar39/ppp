@@ -80,7 +80,7 @@ public:
      */
     static int kittlerOptimumThreshold(std::vector<double> P, float mu);
 
-    static cv::Mat rotateImage(const cv::Mat & inputImage, int rotAngelDegrees);
+    static cv::Mat rotateImage(const cv::Mat & inputImage, int rotationAngleDegrees);
 
     static cv::Mat selfCoefficientImage(const cv::Mat & inputImage, int kernelSize);
 

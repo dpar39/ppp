@@ -65,22 +65,9 @@ TEST_F(PppEngineTests, DISABLED_ConfigureWorks)
     m_pppEngine->configure("{ imageStoreSize: 42 }");
 }
 
-TEST_F(PppEngineTests, CanSetInputImage)
-{
-    cv::Mat dummyImage1(3, 3, CV_8UC3, cv::Scalar(0, 0, 0));
-
-    const auto crc1e = "1a7a52b3";
-
-    EXPECT_CALL(*m_pImageStore, setImage(Ref(dummyImage1))).WillOnce(Return(crc1e));
-
-    const auto crc1 = m_pppEngine->setInputImage(dummyImage1);
-
-    ASSERT_EQ(crc1e, crc1) << "CRC should be returned by the mocked image store as per setup";
-}
-
 TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
 {
-    cv::Mat dummyImage(2, 3, CV_8UC3, cv::Scalar(10, 20, 30));
+    const cv::Mat dummyImage(2, 3, CV_8UC3, cv::Scalar(10, 20, 30));
 
     std::string imgKey = "a1b2c3d4";
 

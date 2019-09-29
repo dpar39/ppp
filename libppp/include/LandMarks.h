@@ -1,29 +1,29 @@
 #pragma once
 
-#include <sstream>
 #include <opencv2/core/core.hpp>
 
-//template <class T>
-inline std::ostream & operator<<(std::ostream &stream, const cv::Point &p)
+// template <class T>
+inline std::ostream & operator<<(std::ostream & stream, const cv::Point & p)
 {
     return stream << p.x << " " << p.y << std::endl;
 }
 
-//template <class T>
-inline std::ostream & operator<<(std::ostream &stream, const cv::Rect &r)
+// template <class T>
+inline std::ostream & operator<<(std::ostream & stream, const cv::Rect & r)
 {
     return stream << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
 }
 
-struct LandMarks
+struct LandMarks final
 {
+    std::string imageKey; ///<- Image ID that uniquely identifies the image being annotated
     // Eye Land marks
-    cv::Point eyeLeftPupil;  ///<- Position of the left eye pupil
+    cv::Point eyeLeftPupil; ///<- Position of the left eye pupil
     cv::Point eyeRightPupil; ///<- Position of the right eye pupil
-    cv::Rect  vjLeftEyeRect;  ///<- Rectangle where the left eye was detected using Viola Jones algorithm
-    cv::Rect  vjRightEyeRect; ///<- Rectangle where the left eye was detected using Viola Jones algorithm
+    cv::Rect vjLeftEyeRect; ///<- Rectangle where the left eye was detected using Viola Jones algorithm
+    cv::Rect vjRightEyeRect; ///<- Rectangle where the left eye was detected using Viola Jones algorithm
 
-    int imageRotation;  ///<- Possible values are 0, 90, -90, 180
+    int imageRotation; ///<- Possible values are 0, 90, -90, 180
 
     // Mouth marks
     cv::Point lipUpperCenter;
@@ -32,7 +32,7 @@ struct LandMarks
     cv::Point lipRightCorner;
     cv::Rect vjMouthRect;
 
-    cv::Rect  vjFaceRect;
+    cv::Rect vjFaceRect;
     cv::Point crownPoint;
     cv::Point chinPoint;
     std::vector<cv::Point> lipContour1st;

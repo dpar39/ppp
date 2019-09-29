@@ -154,7 +154,7 @@ export class LandmarkEditorComponent implements OnInit {
 
     getImageDataUrl() {
         if (!this._imageLoadResult || !this._imageLoadResult.imgDataUrl) {
-            return '#';
+            return 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
         }
         return this._imageLoadResult.imgDataUrl;
     }

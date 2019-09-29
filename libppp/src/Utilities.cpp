@@ -214,20 +214,20 @@ uint32_t Utilities::crc32(uint32_t crc, const uint8_t * begin, const uint8_t * e
     return crc;
 }
 
-cv::Mat Utilities::rotateImage(const cv::Mat & inputImage, int rotAngleDegrees)
+cv::Mat Utilities::rotateImage(const cv::Mat & inputImage, int rotationAngleDegrees)
 {
-    if (rotAngleDegrees == 0)
+    if (rotationAngleDegrees == 0)
         return inputImage;
 
-    static const std::set<int> validAngles = {90, 180, 270 };
-    const auto absAngle = std::abs(rotAngleDegrees);
+    static const std::set<int> validAngles = { 90, 180, 270 };
+    const auto absAngle = std::abs(rotationAngleDegrees);
     if (validAngles.find(absAngle) == validAngles.end())
         throw std::logic_error("Provided rotation angle is not supported.");
 
     const auto h = inputImage.size().height;
     const auto w = inputImage.size().width;
 
-    const auto M = cv::getRotationMatrix2D(cv::Point2f(h / 2.0, w / 2.0), rotAngleDegrees, 1);
+    const auto M = cv::getRotationMatrix2D(cv::Point2f(h / 2.0, w / 2.0), rotationAngleDegrees, 1);
     const auto size = absAngle == 90 || absAngle == 270 ? cv::Size(h, w) : cv::Size(w, h);
     cv::Mat rotatedImage;
     cv::warpAffine(inputImage, rotatedImage, M, size);

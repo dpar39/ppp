@@ -125,11 +125,6 @@ void PppEngine::verifyImageExists(const string & imageKey) const
     }
 }
 
-string PppEngine::setInputImage(const cv::Mat & inputImage) const
-{
-    return m_pImageStore->setImage(inputImage);
-}
-
 bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) const
 {
     verifyImageExists(imageKey);
@@ -225,4 +220,9 @@ cv::Mat PppEngine::createTiledPrint(const string & imageKey,
     auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
 
     return tiledPrintPhoto;
+}
+
+IImageStoreSPtr PppEngine::getImageStore() const
+{
+    return m_pImageStore;
 }

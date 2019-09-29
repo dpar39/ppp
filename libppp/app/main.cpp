@@ -5,6 +5,7 @@
 #include <tclap/CmdLine.h>
 
 #include "CanvasDefinition.h"
+#include "IImageStore.h"
 #include "LandMarks.h"
 
 #include "PhotoDecorator.h"
@@ -29,13 +30,7 @@ void configureEngine(const string & configFilePath, PppEngine & engine)
 
 std::string setImage(const string & inputImagePath, const PppEngine & engine)
 {
-    const auto inputImage = cv::imread(inputImagePath);
-    if (!inputImage.size.dims())
-    {
-        std::cerr << "Unable to load image in vision engine. Exiting " << std::endl;
-        std::terminate();
-    }
-    return engine.setInputImage(inputImage);
+    return engine.getImageStore()->setImage(inputImagePath);
 }
 
 void checkLicense()

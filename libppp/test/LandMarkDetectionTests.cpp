@@ -7,6 +7,7 @@
 
 #include "TestHelpers.h"
 
+#include "IImageStore.h"
 #include <FaceDetector.h>
 #include <numeric>
 #include <opencv2/imgcodecs.hpp>
@@ -105,12 +106,6 @@ protected:
         std::cout << "Scale errors" << s << std::endl;
         std::cout << "Crown-Chin estimation relative error: " << crownChinStats << std::endl;
     }
-
-    bool runLandMarkDetection(const Mat & rgbImage, LandMarks & detectedLandMarks) const
-    {
-        const auto imgKey = m_pPppEngine->setInputImage(rgbImage);
-        return m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
-    }
 };
 
 TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
@@ -119,14 +114,16 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     std::vector<double> leftLipsErrors, rightLipsErrors;
     std::vector<double> relativeErrors;
 
-    const auto process = [&](const std::string & imagePrefix,
-                             Mat & rgbImage,
-                             Mat & grayImage,
+    const auto process = [&](const std::string & imageFileName,
                              const LandMarks & annotations,
-                             LandMarks & detectedLandMarks) -> bool {
-        auto imgKey = m_pPppEngine->setInputImage(rgbImage);
+                             LandMarks & detectedLandMarks) -> std::pair<bool, cv::Mat> {
+        const auto imagePrefix = getFileName(imageFileName);
+        const auto & imageStore = m_pPppEngine->getImageStore();
+        const auto imgKey = imageStore->setImage(imageFileName);
+        const auto rgbImage = imageStore->getImage(imgKey);
 
-        const auto success = runLandMarkDetection(rgbImage, detectedLandMarks);
+        const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+
         EXPECT_TRUE(success) << "Error detecting landmarks in " << imagePrefix;
 
         const double maxEyeAllowedError = 25;
@@ -172,7 +169,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         {
             std::cout << " *** Estimation of face height too large for image " << imagePrefix << std::endl;
         }
-        return accepted;
+        return { accepted, rgbImage };
     };
 
     std::vector<int> excludeList = {
@@ -208,11 +205,13 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
 
 TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 {
-    auto imageFileName = resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg");
+    const auto imageFileName = resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg");
     auto inputImage = imread(imageFileName);
 
     LandMarks detectedLandMarks;
-    auto success = runLandMarkDetection(inputImage, detectedLandMarks);
+
+    const auto imgKey = m_pPppEngine->getImageStore()->setImage(imageFileName);
+    const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
 
     EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
 
@@ -220,7 +219,7 @@ TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 
     if (true)
     {
-        Scalar detectionColor(250, 30, 0);
+        const Scalar detectionColor(250, 30, 0);
         rectangle(inputImage, detectedLandMarks.vjFaceRect, Scalar(0, 128, 0), 2);
         rectangle(inputImage, detectedLandMarks.vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
         rectangle(inputImage, detectedLandMarks.vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);

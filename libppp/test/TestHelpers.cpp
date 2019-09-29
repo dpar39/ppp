@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
 
+#include "ImageStore.h"
 #include "TestHelpers.h"
 #include <map>
 
@@ -45,7 +45,7 @@ std::string pathCombine(const std::string & prefix, const std::string & suffix)
     return (fs::path(prefix) / fs::path(suffix)).string();
 }
 
-void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFilenames)
+void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFileNames)
 {
     std::vector<std::string> supportedImageExtensions = { ".jpg", /*".png",*/ ".bmp" };
     fs::directory_iterator endIter;
@@ -63,7 +63,7 @@ void getImageFiles(const std::string & testImagesDir, std::vector<std::string> &
             if (std::find(supportedImageExtensions.begin(), supportedImageExtensions.end(), fileExt)
                 != supportedImageExtensions.end())
             {
-                imageFilenames.push_back(filePath.string());
+                imageFileNames.push_back(filePath.string());
             }
         }
     }
@@ -83,7 +83,7 @@ std::string getDirectory(const std::string & fullPath)
  * \brief Loads the landmarks manually annotated from a CSV file
  * \param csvFilePath Path to the CSV file containing the annotation in VIA format
  * \param landMarksMap image name to landmarks map
- * \return true if the  method succeeeds importing the data, false otherwise.
+ * \return true if the method succeeds importing the data, false otherwise.
  */
 void importLandMarks(const std::string & csvFilePath, std::map<std::string, LandMarks> & landMarksMap)
 {
@@ -178,14 +178,15 @@ bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output)
 void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual)
 {
     ASSERT_EQ(expected.size, actual.size) << "Images have different sizes";
-    ASSERT_EQ(0, cv::countNonZero(cv::abs(expected - actual))) << "Images are not the same pixel by pixel";
+    const auto diff = expected != actual;
+    ASSERT_EQ(0, cv::countNonZero(diff)) << "Images are not the same pixel by pixel";
 }
 
 void readConfigFromFile(const std::string & configFile, std::string & configString)
 {
     const auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.bundle.json") : configFile;
     std::ifstream fs(configFilePath, std::ios_base::in);
-    configString.assign((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
+    configString.assign(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
 }
 
 void processDatabase(const DetectionCallback & callback,
@@ -194,14 +195,16 @@ void processDatabase(const DetectionCallback & callback,
                      std::vector<ResultData> & rd)
 {
 #ifdef _DEBUG
-    auto annotateResults = true;
+    const auto annotateResults = true;
 #else
-    auto annotateResults = false;
+    const auto annotateResults = false;
 #endif
 
-    auto annotationFile = resolvePath(landmarksPath);
+    const auto annotationFile = resolvePath(landmarksPath);
     std::map<std::string, LandMarks> landMarksSet;
     importLandMarks(annotationFile, landMarksSet);
+
+    const auto imageStore = std::make_shared<ImageStore>();
     for (auto & annotatedImage : landMarksSet)
     {
         auto & imageFileName = annotatedImage.first;
@@ -223,29 +226,25 @@ void processDatabase(const DetectionCallback & callback,
             continue; // Skip processing this image
         }
 
-        auto inputImage = cv::imread(imageFileName);
-        cv::Mat grayImage;
-        cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
-
         auto imagePrefix = imageFileName.substr(0, imageFileName.find_last_of('.'));
         auto annotatedLandMarkFiles = imagePrefix + ".pos";
         cv::Mat landMarksAnn;
 
         auto imageName = getFileName(imageFileName);
 
-        auto isSuccess = callback(imageName, inputImage, grayImage, annotations, results);
+        auto [isSuccess, inputImage] = callback(imageFileName, annotations, results);
 
         if (annotateResults)
         {
-            cv::Scalar annnotationColor(0, 30, 255);
+            cv::Scalar annotationColor(0, 30, 255);
             cv::Scalar detectionColor(250, 30, 0);
 
-            circle(inputImage, annotations.eyeLeftPupil, 5, annnotationColor, 2);
-            circle(inputImage, annotations.eyeRightPupil, 5, annnotationColor, 2);
-            circle(inputImage, annotations.lipLeftCorner, 5, annnotationColor, 2);
-            circle(inputImage, annotations.lipRightCorner, 5, annnotationColor, 2);
-            circle(inputImage, annotations.crownPoint, 5, annnotationColor, 2);
-            circle(inputImage, annotations.chinPoint, 5, annnotationColor, 2);
+            circle(inputImage, annotations.eyeLeftPupil, 5, annotationColor, 2);
+            circle(inputImage, annotations.eyeRightPupil, 5, annotationColor, 2);
+            circle(inputImage, annotations.lipLeftCorner, 5, annotationColor, 2);
+            circle(inputImage, annotations.lipRightCorner, 5, annotationColor, 2);
+            circle(inputImage, annotations.crownPoint, 5, annotationColor, 2);
+            circle(inputImage, annotations.chinPoint, 5, annotationColor, 2);
 
             rectangle(inputImage, results.vjFaceRect, cv::Scalar(0, 128, 0), 2);
             rectangle(inputImage, results.vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
@@ -267,11 +266,11 @@ void processDatabase(const DetectionCallback & callback,
             circle(inputImage, results.chinPoint, 5, detectionColor, 2);
         }
 
-        rd.push_back(ResultData(imageFileName, annotations, results, isSuccess));
+        rd.emplace_back(imageFileName, annotations, results, isSuccess);
     }
 }
 
-void adjustCrownChinCoeffs(const std::vector<LandMarks> & groundTruthAnnotations)
+void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnotations)
 {
     std::vector<double> c1, c2;
     for (const auto & lm : groundTruthAnnotations)
@@ -299,9 +298,10 @@ TEST(Research, ModelCoefficientsCalculation)
     importLandMarks(annCsvFile, landMarksMap);
 
     std::vector<LandMarks> annotations;
+    annotations.reserve(landMarksMap.size());
     for (const auto & kv : landMarksMap)
     {
         annotations.push_back(kv.second);
     }
-    adjustCrownChinCoeffs(annotations);
+    adjustCrownChinCoefficients(annotations);
 }

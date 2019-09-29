@@ -1,14 +1,15 @@
+//
+//
 #include "libppp.h"
 #include "CanvasDefinition.h"
-#include "CommonHelpers.h"
+#include "ImageStore.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
 #include "PppEngine.h"
 #include "Utilities.h"
 
-#include <regex>
-
 #include <opencv2/imgcodecs.hpp>
+#include <regex>
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -42,33 +43,10 @@ bool PublicPppEngine::configure(const char * jsonConfig) const
     return m_pPppEngine->configure(jsonConfig);
 }
 
-std::string PublicPppEngine::setImage(const char * bufferData, size_t bufferLength) const
+std::string PublicPppEngine::setImage(const char * bufferData, const size_t bufferLength) const
 {
-    cv::Mat inputImage;
-    if (bufferLength <= 0)
-    {
-        // Find out if this is a data url
-        auto offset = 0;
-        auto dataLen = strlen(bufferData);
-
-        regex re("^data:([a-z]+\\/[a-z]+(;[a-z\\-]+\\=[a-z\\-]+)?)?(;base64)?,");
-        std::cmatch cm; // same as std::match_results<const char*> cm;
-        if (std::regex_search(bufferData, cm, re))
-        {
-            offset = cm[0].length();
-            dataLen -= offset;
-        }
-
-        auto decodedBytes = Utilities::base64Decode(bufferData + offset, dataLen);
-        const cv::_InputArray inputArray(decodedBytes.data(), static_cast<int>(decodedBytes.size()));
-        inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
-    }
-    else
-    {
-        const cv::_InputArray inputArray(bufferData, static_cast<int>(bufferLength));
-        inputImage = imdecode(inputArray, cv::IMREAD_COLOR);
-    }
-    return m_pPppEngine->setInputImage(inputImage);
+    const auto & imageStore = m_pPppEngine->getImageStore();
+    return imageStore->setImage(bufferData, bufferLength);
 }
 
 std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const

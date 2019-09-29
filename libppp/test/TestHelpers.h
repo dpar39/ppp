@@ -1,18 +1,22 @@
 #pragma once
 
+#include "CommonHelpers.h"
 #include "LandMarks.h"
 #include <functional>
 #include <rapidjson/document.h>
+#include <utility>
+
+FWD_DECL(IImageStore)
 
 // image name prefix, rgb image, gray image, annotated landmarks, detected landmarks
-typedef std::function<bool(const std::string &, cv::Mat &, cv::Mat &, const LandMarks &, LandMarks &)> DetectionCallback;
+using DetectionCallback = std::function<std::pair<bool, cv::Mat>(const std::string &, const LandMarks &, LandMarks &)>;
 
-struct ResultData
+struct ResultData final
 {
-    ResultData(const std::string & imgName, const LandMarks & annotated, const LandMarks & detected, bool isSuccess)
-    : imageName(imgName)
-    , annotation(annotated)
-    , detection(detected)
+    ResultData(std::string imgName, LandMarks annotated, LandMarks detected, const bool isSuccess)
+    : imageName(std::move(imgName))
+    , annotation(std::move(annotated))
+    , detection(std::move(detected))
     , isSuccess(isSuccess)
     {
     }
@@ -30,7 +34,7 @@ std::string resolvePath(const std::string & relPath);
 
 std::string pathCombine(const std::string & prefix, const std::string & suffix);
 
-void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFilenames);
+void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFileNames);
 
 std::string getFileName(const std::string & filePath);
 
@@ -45,13 +49,13 @@ void processDatabase(const DetectionCallback & callback,
                      const std::string & landmarksPath,
                      std::vector<ResultData> & rd);
 
-void adjustCrownChinCoeffs(const std::vector<LandMarks> & groundTruthAnnotations);
+void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnotations);
 
 template <typename T>
 static double median(std::vector<T> scores)
 {
     double median;
-    size_t size = scores.size();
+    const size_t size = scores.size();
     sort(scores.begin(), scores.end());
     if (size % 2 == 0)
     {

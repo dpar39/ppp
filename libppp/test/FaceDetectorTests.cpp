@@ -3,6 +3,7 @@
 #include "Utilities.h"
 #include <gtest/gtest.h>
 
+#include "ImageStore.h"
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -26,13 +27,15 @@ protected:
 
 TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
-    const auto process = [&](const std::string & imagePrefix,
-                             cv::Mat & rgbImage,
-                             cv::Mat & grayImage,
+    const auto imageStore = std::make_shared<ImageStore>();
+    const auto process = [&](const std::string & imageFilePath,
                              const LandMarks & manualAnnotations,
-                             LandMarks & detectedLandMarks) -> bool {
-        EXPECT_TRUE(m_pFaceDetector->detectLandMarks(grayImage, detectedLandMarks))
-            << "Error detecting face in " << imagePrefix;
+                             LandMarks & detectedLandMarks) -> std::pair<bool, cv::Mat> {
+        const auto imageKey = imageStore->setImage(imageFilePath);
+        const auto rgbImage = imageStore->getImage(imageKey);
+
+        EXPECT_TRUE(m_pFaceDetector->detectLandMarks(rgbImage, detectedLandMarks))
+            << "Error detecting face in " << imageFilePath;
 
         // Check that the rectangle contains both eyes and mouth points
         const auto faceRect = detectedLandMarks.vjFaceRect;
@@ -42,7 +45,7 @@ TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
         EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.lipLeftCorner));
         EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.lipRightCorner));
 
-        return true;
+        return { true, rgbImage };
     };
 
     std::vector<ResultData> rd;
@@ -52,7 +55,7 @@ TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
                     rd);
 }
 
-TEST_F(FaceDetectorTests, DISABLED_DetectFaceRotation)
+TEST_F(FaceDetectorTests, DetectFaceRotation)
 {
     const auto imageFileName = resolvePath("research/my_database/000.jpg");
     auto inputImage = cv::imread(imageFileName);
@@ -68,6 +71,6 @@ TEST_F(FaceDetectorTests, DISABLED_DetectFaceRotation)
             << "Unable to detect a face in this image";
 
         const auto angleSum = angle + detectedLandMarks.imageRotation;
-        EXPECT_TRUE(angleSum == 0 || angleSum == 360);
+        EXPECT_EQ(detectedLandMarks.imageRotation, angle);
     }
 }
