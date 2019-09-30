@@ -1,8 +1,6 @@
 #pragma once
 
 #include "CommonHelpers.h"
-#include "Utilities.h"
-#include <memory>
 #include <rapidjson/document.h>
 
 /*!\class PhotoStandard
@@ -12,7 +10,7 @@ face height must be 34mm with +/- 2mm of tolerance
  */
 FWD_DECL(PhotoStandard)
 
-class PhotoStandard
+class PhotoStandard final
 {
 private:
     double m_picHeight_mm; ///<- Height of the passport photo in mm

@@ -34,6 +34,7 @@
 #ifndef __EXIF_H
 #define __EXIF_H
 
+#include <rapidjson/document.h>
 #include <string>
 
 namespace easyexif
@@ -49,7 +50,7 @@ public:
     //
     // PARAM 'data': A pointer to a JPEG image.
     // PARAM 'length': The length of the JPEG image.
-    // RETURN:  PARSE_EXIF_SUCCESS (0) on succes with 'result' filled out
+    // RETURN:  PARSE_EXIF_SUCCESS (0) on success with 'result' filled out
     //          error code otherwise, as defined by the PARSE_EXIF_ERROR_* macros
     int parseFrom(const unsigned char * data, unsigned length);
     int parseFrom(const std::string & data);
@@ -155,6 +156,9 @@ public:
     {
         clear();
     }
+    std::string toJson() const;
+
+    rapidjson::Value populate(rapidjson::Document::AllocatorType & alloc) const;
 };
 
 } // namespace easyexif

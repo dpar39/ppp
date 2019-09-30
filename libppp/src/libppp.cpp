@@ -2,6 +2,7 @@
 //
 #include "libppp.h"
 #include "CanvasDefinition.h"
+#include "EasyExif.h"
 #include "ImageStore.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
@@ -46,7 +47,33 @@ bool PublicPppEngine::configure(const char * jsonConfig) const
 std::string PublicPppEngine::setImage(const char * bufferData, const size_t bufferLength) const
 {
     const auto & imageStore = m_pPppEngine->getImageStore();
-    return imageStore->setImage(bufferData, bufferLength);
+    const auto imageKey = imageStore->setImage(bufferData, bufferLength);
+
+    using namespace rapidjson;
+    Document d;
+    d.SetObject();
+    auto & alloc = d.GetAllocator();
+
+    d.AddMember("imgKey", imageKey, alloc);
+
+    const auto exifInfo = imageStore->getExifInfo(imageKey);
+    if (exifInfo)
+    {
+        d.AddMember("EXIFInfo", exifInfo->populate(alloc), alloc);
+    }
+
+    return Utilities::serializeJson(d);
+}
+
+std::string PublicPppEngine::getImage(const std::string & imageKey) const
+{
+    const auto & imageStore = m_pPppEngine->getImageStore();
+    if (!imageStore->containsImage(imageKey))
+    {
+        return "";
+    }
+    const auto & image = imageStore->getImage(imageKey);
+    return Utilities::encodeImageAsPng(image, false);
 }
 
 std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const
@@ -63,7 +90,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
 
     const auto ps = PhotoStandard::fromJson(d["standard"]);
     const auto canvas = CanvasDefinition::fromJson(d["canvas"]);
-    auto cronwPoint = fromJson(d["crownPoint"]);
+    auto crownPoint = fromJson(d["crownPoint"]);
     auto chinPoint = fromJson(d["chinPoint"]);
     auto asBase64Encode = false;
 
@@ -72,62 +99,8 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
         asBase64Encode = d["asBase64"].GetBool();
     }
 
-    const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, cronwPoint, chinPoint);
-
-    std::vector<BYTE> pictureData;
-    imencode(".png", result, pictureData);
-
-    // Add image resolution to output
-    setPngResolutionDpi(pictureData, canvas->resolution_ppmm());
-
-    if (asBase64Encode)
-    {
-        return Utilities::base64Encode(pictureData);
-    }
-    return std::string(pictureData.begin(), pictureData.end());
-}
-
-template <typename T>
-std::vector<BYTE> toBytes(const T & x)
-{
-    vector<BYTE> v(static_cast<const BYTE *>(static_cast<const void *>(&x)),
-                   static_cast<const BYTE *>(static_cast<const void *>(&x)) + sizeof(x));
-    reverse(v.begin(), v.end()); // Little endian notation
-    return v;
-}
-
-/*  The pHYs chunk specifies the intended pixel size or aspect ratio for display of the image. It contains:
-    Pixels per unit, X axis: 4 bytes (unsigned integer)
-    Pixels per unit, Y axis: 4 bytes (unsigned integer)
-    Unit specifier:          1 byte
-The following values are defined for the unit specifier:
-    0: unit is unknown
-    1: unit is the meter
-pHYs has to go before IDAT chunk
-*/
-void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm)
-{
-    const auto chunkLenBytes = toBytes(9);
-    auto resolBytes = toBytes(ROUND_INT(resolution_ppmm * 1000));
-    const string physStr = "pHYs";
-
-    auto pHYsChunk(chunkLenBytes);
-    pHYsChunk.insert(pHYsChunk.end(), physStr.begin(), physStr.end());
-
-    pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
-    pHYsChunk.insert(pHYsChunk.end(), resolBytes.begin(), resolBytes.end());
-    pHYsChunk.push_back(1); // Unit is the meter
-
-    auto crcBytes = toBytes(Utilities::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
-    pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
-
-    string idat = "IDAT";
-    const auto it = search(imageStream.begin(), imageStream.end(), idat.begin(), idat.end());
-    if (it != imageStream.end())
-    {
-        // Insert the chunk in the stream
-        imageStream.insert(it - 4, pHYsChunk.begin(), pHYsChunk.end());
-    }
+    const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, crownPoint, chinPoint);
+    return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolution_ppmm());
 }
 
 #pragma region C Interface
@@ -146,9 +119,10 @@ void PublicPppEngine::setPngResolutionDpi(std::vector<BYTE> & imageStream, doubl
     }
 
 EMSCRIPTEN_KEEPALIVE
-bool set_image(const char * img_buf, int img_buf_size, char * img_id)
+bool set_image(const char * img_buf, int img_buf_size, char * img_metadata)
 {
-    TRYRUN(auto imgId = g_c_pppInstance.setImage(img_buf, img_buf_size); strcpy(img_id, imgId.c_str()););
+    TRYRUN(auto imgMetadata = g_c_pppInstance.setImage(img_buf, img_buf_size);
+           strcpy(img_metadata, imgMetadata.c_str()););
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -169,6 +143,23 @@ int create_tiled_print(const char * img_id, const char * request, char * out_buf
     try
     {
         auto output = g_c_pppInstance.createTiledPrint(img_id, request);
+        const auto out_size = static_cast<int>(output.size());
+        copy(output.begin(), output.end(), out_buf);
+        return out_size;
+    }
+    catch (const std::exception & ex)
+    {
+        g_last_error = ex.what();
+        return 0;
+    }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int get_image(const char * img_id, char * out_buf)
+{
+    try
+    {
+        auto output = g_c_pppInstance.getImage(img_id);
         const auto out_size = static_cast<int>(output.size());
         copy(output.begin(), output.end(), out_buf);
         return out_size;

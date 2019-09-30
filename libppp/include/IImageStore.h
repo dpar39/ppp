@@ -11,7 +11,7 @@ FWD_DECL(EXIFInfo);
 
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
-class IImageStore : noncopyable
+class IImageStore : NonCopyable
 {
 public:
     /*!@brief Loads an image from file and returns the imageKey for later retrieval !*/

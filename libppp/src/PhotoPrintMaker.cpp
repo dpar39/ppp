@@ -1,7 +1,6 @@
 #include "PhotoPrintMaker.h"
 #include "CanvasDefinition.h"
 #include "PhotoStandard.h"
-
 #include "Utilities.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -41,7 +40,7 @@ Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
     const auto tform = getAffineTransform(srcs, dsts);
 
     Mat cropImage;
-    warpAffine(originalImage, cropImage, tform, Size(ROUND_INT(cropWidthPix), ROUND_INT(cropHeightPix)));
+    warpAffine(originalImage, cropImage, tform, Size(roundInteger(cropWidthPix), roundInteger(cropHeightPix)));
     return cropImage;
 }
 
@@ -55,8 +54,8 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
     const auto numPhotoRows = static_cast<int>(canvas.height_mm() / (ps.photoHeightMM() + canvas.border()));
     const auto numPhotoCols = static_cast<int>(canvas.width_mm() / (ps.photoWidthMM() + canvas.border()));
 
-    const Size tileSizePixels(ROUND_INT(canvas.resolution_ppmm() * ps.photoWidthMM()),
-                              ROUND_INT(canvas.resolution_ppmm() * ps.photoHeightMM()));
+    const Size tileSizePixels(roundInteger(canvas.resolution_ppmm() * ps.photoWidthMM()),
+                              roundInteger(canvas.resolution_ppmm() * ps.photoHeightMM()));
 
     // Resize input crop to the canvas output
     Mat tileInCanvas;
@@ -64,8 +63,8 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
 
     Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
 
-    const auto dx = ROUND_INT((ps.photoWidthMM() + canvas.border()) * canvas.resolution_ppmm());
-    const auto dy = ROUND_INT((ps.photoHeightMM() + canvas.border()) * canvas.resolution_ppmm());
+    const auto dx = roundInteger((ps.photoWidthMM() + canvas.border()) * canvas.resolution_ppmm());
+    const auto dy = roundInteger((ps.photoHeightMM() + canvas.border()) * canvas.resolution_ppmm());
     for (auto row = 0; row < numPhotoRows; ++row)
     {
         for (auto col = 0; col < numPhotoCols; ++col)

@@ -6,6 +6,8 @@
 
 #include "CommonHelpers.h"
 #include <dlib/geometry/point_transforms.h>
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
 
 namespace dlib
 {
@@ -15,18 +17,18 @@ typedef vector<long, 2> point;
 } // namespace dlib
 
 template <typename TNumber>
-int ROUND_INT(TNumber x)
+int roundInteger(TNumber x)
 {
     return static_cast<int>((x) + 0.5);
 }
 
 template <typename TNumber>
-int CEIL_INT(TNumber x)
+int ceilInteger(TNumber x)
 {
     return static_cast<int>(ceil(x));
 }
 
-class Utilities
+class Utilities final
 {
 public:
     /*!@brief Loads a cascade classifier from file
@@ -89,4 +91,30 @@ public:
     static cv::Rect2d convert(const dlib::rectangle & r);
 
     static dlib::rectangle convert(const cv::Rect2d & r);
+
+    /**
+     * \brief Serializes a JSON document to std::string
+     * \param d Json document to serialize
+     * \return the serialized string for the Json document
+     */
+    static std::string serializeJson(rapidjson::Document & d);
+
+    static void setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm);
+
+    static std::string encodeImageAsPng(const cv::Mat & image, bool encodeBase64, double resolution_ppmm = 0);
+
+    /**
+     * \brief Converts the value held by a variable into a byte vector in Little Endian notation
+     * \tparam T Type of the variable to be serialized  to bytes
+     * \param x Variable being serialized to a byte array
+     * \return A vector containing the bytes in Little Endian notation
+     */
+    template <typename T>
+    static std::vector<BYTE> toBytes(const T & x)
+    {
+        std::vector<BYTE> v(static_cast<const BYTE *>(static_cast<const void *>(&x)),
+                            static_cast<const BYTE *>(static_cast<const void *>(&x)) + sizeof(x));
+        std::reverse(v.begin(), v.end()); // Little Endian notation
+        return v;
+    }
 };

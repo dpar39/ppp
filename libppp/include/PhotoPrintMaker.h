@@ -1,14 +1,15 @@
 #pragma once
 
-#include "CanvasDefinition.h"
 #include "CommonHelpers.h"
 #include "IPhotoPrintMaker.h"
-#include "PhotoStandard.h"
-#include <opencv2/imgproc.hpp>
+
+#include <opencv2/core/core.hpp>
 
 FWD_DECL(PhotoPrintMaker)
+class CanvasDefinition;
+class PhotoStandard;
 
-class PhotoPrintMaker : public IPhotoPrintMaker
+class PhotoPrintMaker final : public IPhotoPrintMaker
 {
 public:
     void configure(rapidjson::Value & cfg) override;

@@ -7,7 +7,7 @@ struct LandMarks;
 
 FWD_DECL(ICrownChinEstimator)
 
-class ICrownChinEstimator : noncopyable
+class ICrownChinEstimator : NonCopyable
 {
 public:
     virtual ~ICrownChinEstimator() = default;

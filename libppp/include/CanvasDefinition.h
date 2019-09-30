@@ -13,7 +13,7 @@ class Mat;
 
 FWD_DECL(CanvasDefinition)
 
-class CanvasDefinition
+class CanvasDefinition final
 {
     double m_canvasWidth_mm; ///<- Output canvas width in mm
     double m_canvasHeight_mm; ///<- Output canvas height in mm
@@ -28,10 +28,7 @@ public:
 
     double resolution_ppmm() const;
 
-    double border() const
-    {
-        return m_border_mm;
-    }
+    double border() const;
 
     int widthPixels() const;
 

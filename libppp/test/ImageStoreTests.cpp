@@ -1,5 +1,6 @@
 ﻿#include <gtest/gtest.h>
 
+#include "EasyExif.h"
 #include "ImageStore.h"
 #include "TestHelpers.h"
 #include <opencv2/imgcodecs.hpp>
@@ -96,6 +97,12 @@ TEST_F(ImageStoreTests, ImageExifDataRetrieval)
     EXPECT_EQ(image1.cols, 1836);
     EXPECT_EQ(image1.rows, 3264);
     ASSERT_TRUE(static_cast<bool>(imgExif1));
+
+    // Serialize to JSON string
+    const auto json = imgExif1->toJson();
+
+    EXPECT_NE(json.find("EXIFInfo"), std::string::npos);
+    EXPECT_NE(json.find("Orientation"), std::string::npos);
 
     // This image doesn't have EXIF information
     const auto imageFileName2 = resolvePath("research/my_database/012.png");

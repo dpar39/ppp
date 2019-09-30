@@ -38,6 +38,7 @@
     "prettier.printWidth": 100,
     "cSpell.words": [
         "elmt",
+        "exif",
         "wasm"
     ],
     "catch2TestExplorer.executables": [

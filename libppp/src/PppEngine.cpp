@@ -1,32 +1,27 @@
 #include "PppEngine.h"
-#include "LandMarks.h"
-
-// Implementations injected by default
+#include "CanvasDefinition.h"
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
-#include "LipsDetector.h"
-
 #include "ImageStore.h"
+#include "LandMarks.h"
+#include "LipsDetector.h"
 #include "PhotoPrintMaker.h"
-
-#include "CanvasDefinition.h"
 #include "PhotoStandard.h"
+#include "Utilities.h"
 
 #include <dlib/image_processing/shape_predictor.h>
 #include <dlib/opencv/cv_image.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "Utilities.h"
-
 using namespace std;
 
-PppEngine::PppEngine(IDetectorSPtr pFaceDetector,
-                     IDetectorSPtr pEyesDetector,
-                     IDetectorSPtr pLipsDetector,
-                     ICrownChinEstimatorSPtr pCrownChinEstimator,
-                     IPhotoPrintMakerSPtr pPhotoPrintMaker,
-                     IImageStoreSPtr pImageStore)
+PppEngine::PppEngine(const IDetectorSPtr & pFaceDetector,
+                     const IDetectorSPtr & pEyesDetector,
+                     const IDetectorSPtr & pLipsDetector,
+                     const ICrownChinEstimatorSPtr & pCrownChinEstimator,
+                     const IPhotoPrintMakerSPtr & pPhotoPrintMaker,
+                     const IImageStoreSPtr & pImageStore)
 : m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
 , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
 , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
@@ -216,9 +211,7 @@ cv::Mat PppEngine::createTiledPrint(const string & imageKey,
 {
 
     const auto croppedImage = cropPicture(imageKey, ps, canvas, crownMark, chinMark);
-
     auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
-
     return tiledPrintPhoto;
 }
 

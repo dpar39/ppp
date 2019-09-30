@@ -552,12 +552,14 @@ class Builder(object):
         if which('emsdk'):
             return  # we already have emscripten in path
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
+        emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
+
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
+            os.chdir(emsdk_dir)
+            self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION_NAME)
         os.chdir(emsdk_dir)
-        emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
-        self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION_NAME)
         self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION_NAME)
         process = subprocess.Popen(['python', 'emsdk.py', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()

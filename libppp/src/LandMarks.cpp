@@ -1,11 +1,9 @@
 #include "LandMarks.h"
-
+#include "Utilities.h"
 #include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
 
 
-rapidjson::Value pointToJson(const cv::Point& p, rapidjson::Document::AllocatorType& alloc)
+rapidjson::Value pointToJson(const cv::Point & p, rapidjson::Document::AllocatorType & alloc)
 {
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("x", p.x, alloc);
@@ -13,7 +11,7 @@ rapidjson::Value pointToJson(const cv::Point& p, rapidjson::Document::AllocatorT
     return obj;
 }
 
-rapidjson::Value rectangleToJson(const cv::Rect& r, rapidjson::Document::AllocatorType& alloc)
+rapidjson::Value rectangleToJson(const cv::Rect & r, rapidjson::Document::AllocatorType & alloc)
 {
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("x", r.x, alloc);
@@ -36,7 +34,7 @@ std::string LandMarks::toJson() const
     using namespace rapidjson;
     Document d;
     d.SetObject();
-    auto& alloc = d.GetAllocator();
+    auto & alloc = d.GetAllocator();
     d.AddMember("vjFaceRect", rectangleToJson(vjFaceRect, alloc), alloc);
 
     d.AddMember("eyeLeftPupil", pointToJson(eyeLeftPupil, alloc), alloc);
@@ -53,9 +51,5 @@ std::string LandMarks::toJson() const
     d.AddMember("crownPoint", pointToJson(crownPoint, alloc), alloc);
     d.AddMember("chinPoint", pointToJson(chinPoint, alloc), alloc);
 
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    d.Accept(writer);
-
-    return std::string(buffer.GetString());
+    return Utilities::serializeJson(d);
 }

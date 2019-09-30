@@ -25,6 +25,7 @@ set(DLIB_ROOT "${THIRD_PARTY_DIR}/dlib-19.6")
 
 set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+add_definitions(-DRAPIDJSON_HAS_STDSTRING=1)
 
 if(ANDROID)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fexceptions -fPIC")

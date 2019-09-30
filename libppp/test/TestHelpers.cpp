@@ -23,7 +23,8 @@ namespace fs = std::tr2::sys;
 namespace fs = boost::filesystem;
 #endif
 
-#define LANDMARK_POINT(mat, row) cv::Point(ROUND_INT((mat).at<float>((row), 0)), ROUND_INT((mat).at<float>((row), 1)))
+#define LANDMARK_POINT(mat, row)                                                                                       \
+    cv::Point(roundInteger((mat).at<float>((row), 0)), roundInteger((mat).at<float>((row), 1)))
 
 std::string resolvePath(const std::string & relPath)
 {

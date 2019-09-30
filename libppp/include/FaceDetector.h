@@ -9,7 +9,7 @@ struct LandMarks;
 
 FWD_DECL(FaceDetector)
 
-class FaceDetector : public IDetector
+class FaceDetector final : public IDetector
 {
 public:
     void configure(rapidjson::Value & config) override;

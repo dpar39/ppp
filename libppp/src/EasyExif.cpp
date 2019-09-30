@@ -30,9 +30,13 @@
 */
 #include "EasyExif.h"
 
+#include "Utilities.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include <vector>
 
 using std::string;
@@ -177,7 +181,8 @@ private:
     unsigned length_;
 
     // Parsed fields
-    union {
+    union
+    {
         byte_vector * val_byte_;
         ascii_vector * val_string_;
         short_vector * val_short_;
@@ -609,7 +614,7 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
         else
             return PARSE_EXIF_ERROR_UNKNOWN_BYTEALIGN;
     }
-    this->ByteAlign = alignIntel;
+    ByteAlign = alignIntel;
     offs += 2;
     if (0x2a != parse_value<uint16_t>(buf + offs, alignIntel))
         return PARSE_EXIF_ERROR_CORRUPT;
@@ -641,50 +646,50 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
         {
             case 0x102:
                 // Bits per sample
-                if (result.format() == 3 && result.val_short().size())
-                    this->BitsPerSample = result.val_short().front();
+                if (result.format() == 3 && !result.val_short().empty())
+                    BitsPerSample = result.val_short().front();
                 break;
 
             case 0x10E:
                 // Image description
                 if (result.format() == 2)
-                    this->ImageDescription = result.val_string();
+                    ImageDescription = result.val_string();
                 break;
 
             case 0x10F:
                 // Digicam make
                 if (result.format() == 2)
-                    this->Make = result.val_string();
+                    Make = result.val_string();
                 break;
 
             case 0x110:
                 // Digicam model
                 if (result.format() == 2)
-                    this->Model = result.val_string();
+                    Model = result.val_string();
                 break;
 
             case 0x112:
                 // Orientation of image
-                if (result.format() == 3 && result.val_short().size())
-                    this->Orientation = result.val_short().front();
+                if (result.format() == 3 && !result.val_short().empty())
+                    Orientation = result.val_short().front();
                 break;
 
             case 0x131:
                 // Software used for image
                 if (result.format() == 2)
-                    this->Software = result.val_string();
+                    Software = result.val_string();
                 break;
 
             case 0x132:
                 // EXIF/TIFF date/time of image modification
                 if (result.format() == 2)
-                    this->DateTime = result.val_string();
+                    DateTime = result.val_string();
                 break;
 
             case 0x8298:
                 // Copyright information
                 if (result.format() == 2)
-                    this->Copyright = result.val_string();
+                    Copyright = result.val_string();
                 break;
 
             case 0x8825:
@@ -717,109 +722,109 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
             {
                 case 0x829a:
                     // Exposure time in seconds
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->ExposureTime = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        ExposureTime = result.val_rational().front();
                     break;
 
                 case 0x829d:
                     // FNumber
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->FNumber = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        FNumber = result.val_rational().front();
                     break;
 
                 case 0x8822:
                     // Exposure Program
-                    if (result.format() == 3 && result.val_short().size())
-                        this->ExposureProgram = result.val_short().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        ExposureProgram = result.val_short().front();
                     break;
 
                 case 0x8827:
                     // ISO Speed Rating
-                    if (result.format() == 3 && result.val_short().size())
-                        this->ISOSpeedRatings = result.val_short().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        ISOSpeedRatings = result.val_short().front();
                     break;
 
                 case 0x9003:
                     // Original date and time
                     if (result.format() == 2)
-                        this->DateTimeOriginal = result.val_string();
+                        DateTimeOriginal = result.val_string();
                     break;
 
                 case 0x9004:
                     // Digitization date and time
                     if (result.format() == 2)
-                        this->DateTimeDigitized = result.val_string();
+                        DateTimeDigitized = result.val_string();
                     break;
 
                 case 0x9201:
                     // Shutter speed value
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->ShutterSpeedValue = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        ShutterSpeedValue = result.val_rational().front();
                     break;
 
                 case 0x9204:
                     // Exposure bias value
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->ExposureBiasValue = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        ExposureBiasValue = result.val_rational().front();
                     break;
 
                 case 0x9206:
                     // Subject distance
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->SubjectDistance = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        SubjectDistance = result.val_rational().front();
                     break;
 
                 case 0x9209:
                     // Flash used
-                    if (result.format() == 3 && result.val_short().size())
+                    if (result.format() == 3 && !result.val_short().empty())
                     {
                         uint16_t data = result.val_short().front();
 
-                        this->Flash = data & 1;
-                        this->FlashReturnedLight = (data & 6) >> 1;
-                        this->FlashMode = (data & 24) >> 3;
+                        Flash = data & 1;
+                        FlashReturnedLight = (data & 6) >> 1;
+                        FlashMode = (data & 24) >> 3;
                     }
                     break;
 
                 case 0x920a:
                     // Focal length
-                    if (result.format() == 5 && result.val_rational().size())
-                        this->FocalLength = result.val_rational().front();
+                    if (result.format() == 5 && !result.val_rational().empty())
+                        FocalLength = result.val_rational().front();
                     break;
 
                 case 0x9207:
                     // Metering mode
-                    if (result.format() == 3 && result.val_short().size())
-                        this->MeteringMode = result.val_short().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        MeteringMode = result.val_short().front();
                     break;
 
                 case 0x9291:
                     // Subsecond original time
                     if (result.format() == 2)
-                        this->SubSecTimeOriginal = result.val_string();
+                        SubSecTimeOriginal = result.val_string();
                     break;
 
                 case 0xa002:
                     // EXIF Image width
-                    if (result.format() == 4 && result.val_long().size())
-                        this->ImageWidth = result.val_long().front();
-                    if (result.format() == 3 && result.val_short().size())
-                        this->ImageWidth = result.val_short().front();
+                    if (result.format() == 4 && !result.val_long().empty())
+                        ImageWidth = result.val_long().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        ImageWidth = result.val_short().front();
                     break;
 
                 case 0xa003:
                     // EXIF Image height
-                    if (result.format() == 4 && result.val_long().size())
-                        this->ImageHeight = result.val_long().front();
-                    if (result.format() == 3 && result.val_short().size())
-                        this->ImageHeight = result.val_short().front();
+                    if (result.format() == 4 && !result.val_long().empty())
+                        ImageHeight = result.val_long().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        ImageHeight = result.val_short().front();
                     break;
 
                 case 0xa20e:
                     // EXIF Focal plane X-resolution
                     if (result.format() == 5)
                     {
-                        this->LensInfo.FocalPlaneXResolution = result.val_rational()[0];
+                        LensInfo.FocalPlaneXResolution = result.val_rational()[0];
                     }
                     break;
 
@@ -827,22 +832,22 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // EXIF Focal plane Y-resolution
                     if (result.format() == 5)
                     {
-                        this->LensInfo.FocalPlaneYResolution = result.val_rational()[0];
+                        LensInfo.FocalPlaneYResolution = result.val_rational()[0];
                     }
                     break;
 
                 case 0xa210:
                     // EXIF Focal plane resolution unit
-                    if (result.format() == 3 && result.val_short().size())
+                    if (result.format() == 3 && !result.val_short().empty())
                     {
-                        this->LensInfo.FocalPlaneResolutionUnit = result.val_short().front();
+                        LensInfo.FocalPlaneResolutionUnit = result.val_short().front();
                     }
                     break;
 
                 case 0xa405:
                     // Focal length in 35mm film
-                    if (result.format() == 3 && result.val_short().size())
-                        this->FocalLengthIn35mm = result.val_short().front();
+                    if (result.format() == 3 && !result.val_short().empty())
+                        FocalLengthIn35mm = result.val_short().front();
                     break;
 
                 case 0xa432:
@@ -851,13 +856,13 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     {
                         int sz = static_cast<unsigned>(result.val_rational().size());
                         if (sz)
-                            this->LensInfo.FocalLengthMin = result.val_rational()[0];
+                            LensInfo.FocalLengthMin = result.val_rational()[0];
                         if (sz > 1)
-                            this->LensInfo.FocalLengthMax = result.val_rational()[1];
+                            LensInfo.FocalLengthMax = result.val_rational()[1];
                         if (sz > 2)
-                            this->LensInfo.FStopMin = result.val_rational()[2];
+                            LensInfo.FStopMin = result.val_rational()[2];
                         if (sz > 3)
-                            this->LensInfo.FStopMax = result.val_rational()[3];
+                            LensInfo.FStopMax = result.val_rational()[3];
                     }
                     break;
 
@@ -865,7 +870,7 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // Lens make.
                     if (result.format() == 2)
                     {
-                        this->LensInfo.Make = result.val_string();
+                        LensInfo.Make = result.val_string();
                     }
                     break;
 
@@ -873,7 +878,7 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // Lens model.
                     if (result.format() == 2)
                     {
-                        this->LensInfo.Model = result.val_string();
+                        LensInfo.Model = result.val_string();
                     }
                     break;
             }
@@ -886,11 +891,11 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
     if (gps_sub_ifd_offset + 4 <= len)
     {
         offs = gps_sub_ifd_offset;
-        int num_entries = parse_value<uint16_t>(buf + offs, alignIntel);
-        if (offs + 6 + 12 * num_entries > len)
+        int numEntries = parse_value<uint16_t>(buf + offs, alignIntel);
+        if (offs + 6 + 12 * numEntries > len)
             return PARSE_EXIF_ERROR_CORRUPT;
         offs += 2;
-        while (--num_entries >= 0)
+        while (--numEntries >= 0)
         {
             unsigned short tag, format;
             unsigned length, data;
@@ -899,14 +904,14 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
             {
                 case 1:
                     // GPS north or south
-                    this->GeoLocation.LatComponents.direction = *(buf + offs + 8);
-                    if (this->GeoLocation.LatComponents.direction == 0)
+                    GeoLocation.LatComponents.direction = *(buf + offs + 8);
+                    if (GeoLocation.LatComponents.direction == 0)
                     {
-                        this->GeoLocation.LatComponents.direction = '?';
+                        GeoLocation.LatComponents.direction = '?';
                     }
-                    if ('S' == this->GeoLocation.LatComponents.direction)
+                    if ('S' == GeoLocation.LatComponents.direction)
                     {
-                        this->GeoLocation.Latitude = -this->GeoLocation.Latitude;
+                        GeoLocation.Latitude = -GeoLocation.Latitude;
                     }
                     break;
 
@@ -914,34 +919,31 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // GPS latitude
                     if ((format == 5 || format == 10) && length == 3)
                     {
-                        this->GeoLocation.LatComponents.degrees = parse_value<Rational>(buf + data + tiff_header_start,
-                                                                                        alignIntel);
-                        this->GeoLocation.LatComponents.minutes = parse_value<Rational>(buf + data + tiff_header_start
-                                                                                            + 8,
-                                                                                        alignIntel);
-                        this->GeoLocation.LatComponents.seconds = parse_value<Rational>(buf + data + tiff_header_start
-                                                                                            + 16,
-                                                                                        alignIntel);
-                        this->GeoLocation.Latitude = this->GeoLocation.LatComponents.degrees
-                            + this->GeoLocation.LatComponents.minutes / 60
-                            + this->GeoLocation.LatComponents.seconds / 3600;
-                        if ('S' == this->GeoLocation.LatComponents.direction)
+                        GeoLocation.LatComponents.degrees = parse_value<Rational>(buf + data + tiff_header_start,
+                                                                                  alignIntel);
+                        GeoLocation.LatComponents.minutes = parse_value<Rational>(buf + data + tiff_header_start + 8,
+                                                                                  alignIntel);
+                        GeoLocation.LatComponents.seconds = parse_value<Rational>(buf + data + tiff_header_start + 16,
+                                                                                  alignIntel);
+                        GeoLocation.Latitude = GeoLocation.LatComponents.degrees
+                            + GeoLocation.LatComponents.minutes / 60 + GeoLocation.LatComponents.seconds / 3600;
+                        if ('S' == GeoLocation.LatComponents.direction)
                         {
-                            this->GeoLocation.Latitude = -this->GeoLocation.Latitude;
+                            GeoLocation.Latitude = -GeoLocation.Latitude;
                         }
                     }
                     break;
 
                 case 3:
                     // GPS east or west
-                    this->GeoLocation.LonComponents.direction = *(buf + offs + 8);
-                    if (this->GeoLocation.LonComponents.direction == 0)
+                    GeoLocation.LonComponents.direction = *(buf + offs + 8);
+                    if (GeoLocation.LonComponents.direction == 0)
                     {
-                        this->GeoLocation.LonComponents.direction = '?';
+                        GeoLocation.LonComponents.direction = '?';
                     }
-                    if ('W' == this->GeoLocation.LonComponents.direction)
+                    if ('W' == GeoLocation.LonComponents.direction)
                     {
-                        this->GeoLocation.Longitude = -this->GeoLocation.Longitude;
+                        GeoLocation.Longitude = -GeoLocation.Longitude;
                     }
                     break;
 
@@ -949,28 +951,25 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // GPS longitude
                     if ((format == 5 || format == 10) && length == 3)
                     {
-                        this->GeoLocation.LonComponents.degrees = parse_value<Rational>(buf + data + tiff_header_start,
-                                                                                        alignIntel);
-                        this->GeoLocation.LonComponents.minutes = parse_value<Rational>(buf + data + tiff_header_start
-                                                                                            + 8,
-                                                                                        alignIntel);
-                        this->GeoLocation.LonComponents.seconds = parse_value<Rational>(buf + data + tiff_header_start
-                                                                                            + 16,
-                                                                                        alignIntel);
-                        this->GeoLocation.Longitude = this->GeoLocation.LonComponents.degrees
-                            + this->GeoLocation.LonComponents.minutes / 60
-                            + this->GeoLocation.LonComponents.seconds / 3600;
-                        if ('W' == this->GeoLocation.LonComponents.direction)
-                            this->GeoLocation.Longitude = -this->GeoLocation.Longitude;
+                        GeoLocation.LonComponents.degrees = parse_value<Rational>(buf + data + tiff_header_start,
+                                                                                  alignIntel);
+                        GeoLocation.LonComponents.minutes = parse_value<Rational>(buf + data + tiff_header_start + 8,
+                                                                                  alignIntel);
+                        GeoLocation.LonComponents.seconds = parse_value<Rational>(buf + data + tiff_header_start + 16,
+                                                                                  alignIntel);
+                        GeoLocation.Longitude = GeoLocation.LonComponents.degrees
+                            + GeoLocation.LonComponents.minutes / 60 + GeoLocation.LonComponents.seconds / 3600;
+                        if ('W' == GeoLocation.LonComponents.direction)
+                            GeoLocation.Longitude = -GeoLocation.Longitude;
                     }
                     break;
 
                 case 5:
                     // GPS altitude reference (below or above sea level)
-                    this->GeoLocation.AltitudeRef = *(buf + offs + 8);
-                    if (1 == this->GeoLocation.AltitudeRef)
+                    GeoLocation.AltitudeRef = *(buf + offs + 8);
+                    if (1 == GeoLocation.AltitudeRef)
                     {
-                        this->GeoLocation.Altitude = -this->GeoLocation.Altitude;
+                        GeoLocation.Altitude = -GeoLocation.Altitude;
                     }
                     break;
 
@@ -978,10 +977,10 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // GPS altitude
                     if ((format == 5 || format == 10))
                     {
-                        this->GeoLocation.Altitude = parse_value<Rational>(buf + data + tiff_header_start, alignIntel);
-                        if (1 == this->GeoLocation.AltitudeRef)
+                        GeoLocation.Altitude = parse_value<Rational>(buf + data + tiff_header_start, alignIntel);
+                        if (1 == GeoLocation.AltitudeRef)
                         {
-                            this->GeoLocation.Altitude = -this->GeoLocation.Altitude;
+                            GeoLocation.Altitude = -GeoLocation.Altitude;
                         }
                     }
                     break;
@@ -990,7 +989,7 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char * buf, unsigned
                     // GPS degree of precision (DOP)
                     if ((format == 5 || format == 10))
                     {
-                        this->GeoLocation.DOP = parse_value<Rational>(buf + data + tiff_header_start, alignIntel);
+                        GeoLocation.DOP = parse_value<Rational>(buf + data + tiff_header_start, alignIntel);
                     }
                     break;
             }
@@ -1060,4 +1059,55 @@ void easyexif::EXIFInfo::clear()
     LensInfo.FocalPlaneResolutionUnit = 0;
     LensInfo.Make = "";
     LensInfo.Model = "";
+}
+
+#define ADD_STRING(strValue)                                                                                           \
+    if (!strValue.empty())                                                                                             \
+    obj.AddMember(#strValue, strValue, alloc)
+
+#define ADD_VALUE(value) obj.AddMember(#value, value, alloc)
+
+rapidjson::Value easyexif::EXIFInfo::populate(rapidjson::Document::AllocatorType & alloc) const
+{
+    rapidjson::Value obj(rapidjson::kObjectType);
+    ADD_STRING(ImageDescription);
+    ADD_STRING(Make);
+    ADD_STRING(Model);
+    ADD_STRING(Software);
+    ADD_STRING(DateTime);
+    ADD_STRING(DateTimeOriginal);
+    ADD_STRING(DateTimeDigitized);
+    ADD_STRING(SubSecTimeOriginal);
+    ADD_STRING(Copyright);
+
+    ADD_VALUE(ByteAlign);
+    ADD_VALUE(Orientation);
+    ADD_VALUE(BitsPerSample);
+    ADD_VALUE(ExposureTime);
+    ADD_VALUE(FNumber);
+    ADD_VALUE(ExposureProgram);
+    ADD_VALUE(ISOSpeedRatings);
+    ADD_VALUE(ShutterSpeedValue);
+    ADD_VALUE(ExposureBiasValue);
+    ADD_VALUE(SubjectDistance);
+    ADD_VALUE(FocalLength);
+    ADD_VALUE(FocalLengthIn35mm);
+    ADD_VALUE(Flash);
+    ADD_VALUE(FlashReturnedLight);
+    ADD_VALUE(FlashMode);
+    ADD_VALUE(MeteringMode);
+    ADD_VALUE(ImageWidth);
+    ADD_VALUE(ImageHeight);
+
+    return obj;
+}
+
+std::string easyexif::EXIFInfo::toJson() const
+{
+    using namespace rapidjson;
+    Document d;
+    d.SetObject();
+    auto & alloc = d.GetAllocator();
+    d.AddMember("EXIFInfo", populate(alloc), alloc);
+    return Utilities::serializeJson(d);
 }

@@ -1,19 +1,15 @@
 #pragma once
-#include "IDetector.h"
 #include "CommonHelpers.h"
-
-#include <memory>
-#include <type_traits>
+#include "IDetector.h"
 
 FWD_DECL(EyeDetector)
 
-class EyeDetector : public IDetector
+class EyeDetector final : public IDetector
 {
 public:
+    void configure(rapidjson::Value & cfg) override;
 
-    void configure(rapidjson::Value &cfg) override;
-
-    bool detectLandMarks(const cv::Mat& inputImage, LandMarks &landmarks) override;
+    bool detectLandMarks(const cv::Mat & inputImage, LandMarks & landmarks) override;
 
 private:
     cv::Mat m_leftCornerKernel;
@@ -21,17 +17,16 @@ private:
     cv::Mat m_xGradKernel;
     cv::Mat m_yGradKernel;
 
-private:  // Configuration
-
+private: // Configuration
     bool m_useHaarCascades = false;
     cv::CascadeClassifierSPtr m_leftEyeCascadeClassifier;
     cv::CascadeClassifierSPtr m_rightEyeCascadeClassifier;
 
     // Definition of the search areas to locate pupils expressed as the ratios of the face rectangle
-    const double m_topFaceRatio = 0.28;  ///<- Distance from the top of the face 
+    const double m_topFaceRatio = 0.28; ///<- Distance from the top of the face
     const double m_sideFaceRatio = 0.13; ///<- Distance from the sides of the face rectangle
-    const double m_widthRatio = 0.35;    ///<- ROI width ratio with respect to head size
-    const double m_heightRatio = 0.25;   ///<- ROI height ratio with respect to head size
+    const double m_widthRatio = 0.35; ///<- ROI width ratio with respect to head size
+    const double m_heightRatio = 0.25; ///<- ROI height ratio with respect to head size
 
     // Preprocessing
     const bool m_smoothFaceImage = false;
@@ -49,23 +44,23 @@ private:  // Configuration
     const float m_postProcessThreshold = 0.97f;
 
 private:
-    static void validateAndApplyFallbackIfRequired(const cv::Size &eyeRoiSize, cv::Point &eyeCenter);
+    static void validateAndApplyFallbackIfRequired(const cv::Size & eyeRoiSize, cv::Point & eyeCenter);
 
-    static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat &img, cv::CascadeClassifier *cc);
+    static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat & img, cv::CascadeClassifier * cc);
 
-    cv::Point findEyeCenter(const cv::Mat& image) const;
+    cv::Point findEyeCenter(const cv::Mat & image) const;
 
     void createCornerKernels();
 
-    void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat& out) const;
+    void testPossibleCentersFormula(int x, int y, unsigned char weight, double gx, double gy, cv::Mat & out) const;
 
-    cv::Mat floodKillEdges(cv::Mat& mat) const;
+    cv::Mat floodKillEdges(cv::Mat & mat) const;
 
-    cv::Mat matrixMagnitude(const cv::Mat& matX, const cv::Mat& matY) const;
+    cv::Mat matrixMagnitude(const cv::Mat & matX, const cv::Mat & matY) const;
 
-    double computeDynamicThreshold(const cv::Mat& mat, double stdDevFactor) const;
+    double computeDynamicThreshold(const cv::Mat & mat, double stdDevFactor) const;
 
     cv::Point unscalePoint(cv::Point p, cv::Rect origSize) const;
 
-    void scaleToFastSize(const cv::Mat& src, cv::Mat& dst) const;
+    void scaleToFastSize(const cv::Mat & src, cv::Mat & dst) const;
 };

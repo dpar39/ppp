@@ -9,7 +9,7 @@ class PhotoStandard;
 
 FWD_DECL(IPhotoPrintMaker)
 
-class IPhotoPrintMaker : noncopyable
+class IPhotoPrintMaker : NonCopyable
 {
 public:
     virtual ~IPhotoPrintMaker() = default;

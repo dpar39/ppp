@@ -2,18 +2,6 @@
 
 #include <opencv2/core/core.hpp>
 
-// template <class T>
-inline std::ostream & operator<<(std::ostream & stream, const cv::Point & p)
-{
-    return stream << p.x << " " << p.y << std::endl;
-}
-
-// template <class T>
-inline std::ostream & operator<<(std::ostream & stream, const cv::Rect & r)
-{
-    return stream << r.x << " " << r.y << " " << r.width << " " << r.height << std::endl;
-}
-
 struct LandMarks final
 {
     std::string imageKey; ///<- Image ID that uniquely identifies the image being annotated

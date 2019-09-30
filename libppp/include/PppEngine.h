@@ -1,10 +1,7 @@
 #pragma once
 
-#include <memory>
-#include <opencv2/core/core.hpp>
-#include <rapidjson/document.h>
-
 #include "CommonHelpers.h"
+#include <opencv2/core/core.hpp>
 
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <unordered_map>
@@ -43,15 +40,15 @@ struct EnumClassHash
     }
 };
 
-class PppEngine : noncopyable
+class PppEngine final : NonCopyable
 {
 public:
-    explicit PppEngine(IDetectorSPtr pFaceDetector = nullptr,
-                       IDetectorSPtr pEyeDetector = nullptr,
-                       IDetectorSPtr pLipsDetector = nullptr,
-                       ICrownChinEstimatorSPtr pCrownChinEstimator = nullptr,
-                       IPhotoPrintMakerSPtr pPhotoPrintMaker = nullptr,
-                       IImageStoreSPtr pImageStore = nullptr);
+    explicit PppEngine(const IDetectorSPtr & pFaceDetector = nullptr,
+                       const IDetectorSPtr & pEyesDetector = nullptr,
+                       const IDetectorSPtr & pLipsDetector = nullptr,
+                       const ICrownChinEstimatorSPtr & pCrownChinEstimator = nullptr,
+                       const IPhotoPrintMakerSPtr & pPhotoPrintMaker = nullptr,
+                       const IImageStoreSPtr & pImageStore = nullptr);
 
     // Native interface
     bool configure(const std::string & configString);

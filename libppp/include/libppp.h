@@ -40,6 +40,13 @@ public:
     !*/
     std::string setImage(const char * bufferData, size_t bufferLength) const;
 
+    /**
+     * \brief Retrieves the image as a PNG byte array
+     * \param imageKey Image key used to retrieve the image from the store
+     * \return The image data encoded as a PNG byte array
+     */
+    std::string getImage(const std::string & imageKey) const;
+
     std::string detectLandmarks(const std::string & imageId) const;
 
     /*!@brief Creates a tiled print from input image, crown/chin points and passport/canvas definition
@@ -75,14 +82,13 @@ public:
 
 private:
     PppEngine * m_pPppEngine;
-
-private:
-    static void setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm);
 };
 
 extern "C"
 {
-    bool set_image(const char * img_buf, int img_buf_size, char * img_id);
+    bool set_image(const char * img_buf, int img_buf_size, char * img_metadata);
+
+    int get_image(const char * img_id, char * out_buf);
 
     bool configure(const char * config_json);
 

@@ -6,8 +6,11 @@
 
 #include <base64_kernel_1.h>
 #include <dlib/geometry/rectangle.h>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace cv
 {
@@ -564,4 +567,62 @@ cv::Rect2d Utilities::convert(const dlib::rectangle & r)
 dlib::rectangle Utilities::convert(const cv::Rect2d & r)
 {
     return dlib::rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
+}
+
+/*  The pHYs chunk specifies the intended pixel size or aspect ratio for display of the image. It contains:
+    Pixels per unit, X axis: 4 bytes (unsigned integer)
+    Pixels per unit, Y axis: 4 bytes (unsigned integer)
+    Unit specifier:          1 byte
+The following values are defined for the unit specifier:
+    0: unit is unknown
+    1: unit is the meter
+pHYs has to go before IDAT chunk
+*/
+
+void Utilities::setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm)
+{
+    const auto chunkLenBytes = toBytes(9);
+    auto resolutionBytes = toBytes(roundInteger(resolution_ppmm * 1000));
+    const std::string physStr = "pHYs";
+
+    auto pHYsChunk(chunkLenBytes);
+    pHYsChunk.insert(pHYsChunk.end(), physStr.begin(), physStr.end());
+
+    pHYsChunk.insert(pHYsChunk.end(), resolutionBytes.begin(), resolutionBytes.end());
+    pHYsChunk.insert(pHYsChunk.end(), resolutionBytes.begin(), resolutionBytes.end());
+    pHYsChunk.push_back(1); // Unit is the meter
+
+    auto crcBytes = toBytes(Utilities::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
+    pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
+
+    static const std::string idat = "IDAT";
+    const auto it = search(imageStream.begin(), imageStream.end(), idat.begin(), idat.end());
+    if (it != imageStream.end())
+    {
+        // Insert the chunk in the stream
+        imageStream.insert(it - 4, pHYsChunk.begin(), pHYsChunk.end());
+    }
+}
+
+std::string Utilities::encodeImageAsPng(const cv::Mat & image, const bool encodeBase64, double resolution_ppmm)
+{
+    std::vector<BYTE> pictureData;
+    imencode(".png", image, pictureData);
+    if (resolution_ppmm > 0)
+    {
+        setPngResolutionDpi(pictureData, resolution_ppmm);
+    }
+    if (encodeBase64)
+    {
+        return base64Encode(pictureData);
+    }
+    return std::string(pictureData.begin(), pictureData.end());
+}
+
+std::string Utilities::serializeJson(rapidjson::Document & d)
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    d.Accept(writer);
+    return std::string(buffer.GetString());
 }

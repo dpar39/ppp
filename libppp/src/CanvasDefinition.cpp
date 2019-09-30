@@ -26,6 +26,11 @@ double CanvasDefinition::resolution_ppmm() const
     return m_resolution_ppmm;
 }
 
+double CanvasDefinition::border() const
+{
+    return m_border_mm;
+}
+
 int CanvasDefinition::widthPixels() const
 {
     return static_cast<int>(ceil(m_canvasWidth_mm * m_resolution_ppmm));

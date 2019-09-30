@@ -1,8 +1,8 @@
 #include "LipsDetector.h"
+#include "CommonHelpers.h"
 #include "LandMarks.h"
 #include "Utilities.h"
 
-#include "CommonHelpers.h"
 #include <algorithm>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
@@ -30,9 +30,9 @@ bool LipsDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks
     auto leftEyePos = landmarks.eyeLeftPupil;
     auto rightEyePos = landmarks.eyeRightPupil;
 
-    double distEyeLineToMouthCenter = ROUND_INT(0.42 * faceRectHeight);
-    auto mouthRoiWidth = ROUND_INT(0.45 * faceRectHeight);
-    auto mouthRoiHeight = ROUND_INT(0.35 * faceRectHeight);
+    double distEyeLineToMouthCenter = roundInteger(0.42 * faceRectHeight);
+    auto mouthRoiWidth = roundInteger(0.45 * faceRectHeight);
+    auto mouthRoiHeight = roundInteger(0.35 * faceRectHeight);
 
     auto eyeCentrePoint = (leftEyePos + rightEyePos) / 2.0;
     // Estimate center of the chin and crop a rectangle around it
@@ -40,8 +40,8 @@ bool LipsDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks
 
     auto mouthCenterPoint = tmp.first.y > tmp.second.y ? static_cast<Point2d>(tmp.first)
                                                        : static_cast<Point2d>(tmp.second);
-    Point mouthRoiLeftTop(ROUND_INT(mouthCenterPoint.x - mouthRoiWidth / 2),
-                          ROUND_INT(mouthCenterPoint.y - mouthRoiHeight / 2));
+    Point mouthRoiLeftTop(roundInteger(mouthCenterPoint.x - mouthRoiWidth / 2),
+                          roundInteger(mouthCenterPoint.y - mouthRoiHeight / 2));
     Size mouthRoiSize(mouthRoiWidth, mouthRoiHeight);
     Rect mouthRoiRect(mouthRoiLeftTop, mouthRoiSize);
     auto mouthRoiImage = inputImage(mouthRoiRect);

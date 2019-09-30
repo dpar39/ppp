@@ -45,10 +45,10 @@ bool EyeDetector::detectLandMarks(const cv::Mat & grayImage, LandMarks & landMar
         GaussianBlur(faceImage, faceImage, cv::Size(0, 0), sigma);
     }
     //-- Find eye regions and draw them
-    const auto eyeRegionWidth = ROUND_INT(faceRect.width * m_widthRatio);
-    const auto eyeRegionHeight = ROUND_INT(faceRect.width * m_heightRatio);
-    const auto eyeRegionTop = ROUND_INT(faceRect.height * m_topFaceRatio);
-    const auto eyeRegionLeft = ROUND_INT(faceRect.width * m_sideFaceRatio);
+    const auto eyeRegionWidth = roundInteger(faceRect.width * m_widthRatio);
+    const auto eyeRegionHeight = roundInteger(faceRect.width * m_heightRatio);
+    const auto eyeRegionTop = roundInteger(faceRect.height * m_topFaceRatio);
+    const auto eyeRegionLeft = roundInteger(faceRect.width * m_sideFaceRatio);
 
     cv::Rect leftEyeRegion(eyeRegionLeft, eyeRegionTop, eyeRegionWidth, eyeRegionHeight);
     cv::Rect rightEyeRegion(faceRect.width - eyeRegionWidth - eyeRegionLeft,
@@ -120,8 +120,8 @@ void EyeDetector::validateAndApplyFallbackIfRequired(const cv::Size & eyeRoiSize
     if (eyeRoiSize.width - eyeCenter.x < epsilon || eyeCenter.x < epsilon || eyeRoiSize.height - eyeCenter.y < epsilon
         || eyeCenter.y < epsilon)
     {
-        eyeCenter.x = ROUND_INT(eyeRoiSize.width / 2.0);
-        eyeCenter.y = ROUND_INT(eyeRoiSize.height / 2.0);
+        eyeCenter.x = roundInteger(eyeRoiSize.width / 2.0);
+        eyeCenter.y = roundInteger(eyeRoiSize.height / 2.0);
     }
 }
 
@@ -244,8 +244,8 @@ cv::Point EyeDetector::findEyeCenter(const cv::Mat & eyeROIUnscaled) const
 cv::Point EyeDetector::unscalePoint(cv::Point p, cv::Rect origSize) const
 {
     const auto ratio = static_cast<float>(kFastEyeWidth) / origSize.width;
-    const auto x = ROUND_INT(p.x / ratio);
-    const auto y = ROUND_INT(p.y / ratio);
+    const auto x = roundInteger(p.x / ratio);
+    const auto y = roundInteger(p.y / ratio);
     return cv::Point(x, y);
 }
 

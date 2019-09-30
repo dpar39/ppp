@@ -13,7 +13,7 @@ struct LandMarks;
 
 FWD_DECL(IDetector)
 
-class IDetector : noncopyable
+class IDetector : NonCopyable
 {
 public:
     /*!@brief Configures the detector from Json data !*/
