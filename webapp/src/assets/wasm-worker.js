@@ -67,7 +67,7 @@ if ('function' === typeof importScripts) {
         });
     }
 
-    // Overrides for the generated emcc script, module gets redifined later
+    // Overrides for the generated emcc script, module gets redefined later
     Module.onRuntimeInitialized = () => {
         _retrieveApplicationData().then(config => {
             ptr = _stringToPtr(config);
