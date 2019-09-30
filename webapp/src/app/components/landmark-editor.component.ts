@@ -12,7 +12,7 @@ import {ImageLoadResult} from '../services/back-end.service';
             <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
 
             <svg class="box" [style.visibility]="landmarkVisibility">
-                <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" stroke-dasharray="5,5"/>
+                <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" stroke-dasharray="5,5" />
             </svg>
 
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
@@ -55,14 +55,13 @@ import {ImageLoadResult} from '../services/back-end.service';
             }
 
             .annotation {
-                stroke: #9B59B6;
+                stroke: #9b59b6;
                 stroke-width: 2;
             }
         `
     ]
 })
 export class LandmarkEditorComponent implements OnInit {
-
     @Input()
     set inputPhoto(value: ImageLoadResult) {
         this._imageLoadResult = value;
@@ -250,18 +249,14 @@ export class LandmarkEditorComponent implements OnInit {
         );
     }
 
-
     screenToPixel(elmt: any): Point {
         const pc = this.getMarkScreenCenter(elmt);
-        return new Point(
-            Math.round((pc.x - this._xLeft) / this._ratio),
-            Math.round((pc.y - this._yTop) / this._ratio)
-        );
+        return new Point(Math.round((pc.x - this._xLeft) / this._ratio), Math.round((pc.y - this._yTop) / this._ratio));
     }
 
     getMarkScreenCenter(elmt: any) {
-        const x = parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2.0;
-        const y = parseFloat(elmt.getAttribute('y')) + elmt.clientWidth / 2.0;
+        const x = parseFloat(elmt.getAttribute('x')) + (elmt.clientWidth + 0.5)  / 2.0;
+        const y = parseFloat(elmt.getAttribute('y')) + (elmt.clientHeight + 0.5) / 2.0;
         return new Point(x, y);
     }
 
@@ -269,22 +264,16 @@ export class LandmarkEditorComponent implements OnInit {
         const p1 = this.getMarkScreenCenter(this._crownMarkElmt);
         const p2 = this.getMarkScreenCenter(this._chinMarkElmt);
 
-        this._middleLine.setAttributeNS(null, 'x1', p1.x);
-        this._middleLine.setAttributeNS(null, 'y1', p1.y);
+        this._middleLine.setAttribute('x1', p1.x);
+        this._middleLine.setAttribute('y1', p1.y);
 
-        this._middleLine.setAttributeNS(null, 'x2', p2.x);
-        this._middleLine.setAttributeNS(null, 'y2', p2.y);
-
+        this._middleLine.setAttribute('x2', p2.x);
+        this._middleLine.setAttribute('y2', p2.y);
     }
 
     updateLandMarks() {
-
         this.crownPoint = this.screenToPixel(this._crownMarkElmt);
         this.chinPoint = this.screenToPixel(this._chinMarkElmt);
         this.edited.emit(new CrownChinPointPair(this.crownPoint, this.chinPoint));
-    }
-
-    drawLines() {
-
     }
 }

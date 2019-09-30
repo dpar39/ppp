@@ -87,8 +87,8 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                     </app-print-definition-selector>
                 </div>
             </div>
-            <div class="row">
-                <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="col-lg-8 col-sm-12">
+            <div class="row mt-2">
+                <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="text-center col-lg-8 col-sm-12">
                     <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
                 </a>
             </div>
