@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
     appDataLoadingProgress = '1%';
 
     imageLoadResult: ImageLoadResult;
-    outImgSrc: any = '#';
+    outImgSrc: string = '#';
 
     // Model data
     crownChinPointPair: CrownChinPointPair;

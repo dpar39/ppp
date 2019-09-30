@@ -1,9 +1,9 @@
-import {Injectable, EventEmitter} from '@angular/core';
+import {Injectable, EventEmitter, SecurityContext} from '@angular/core';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
 import {TiledPhotoRequest} from '../model/datatypes';
 
 export class ImageLoadResult {
-    constructor(public imgKey: string, public imgRotation: string, public imgDataUrl: string) {}
+    constructor(public imgKey: string, public imgDataUrl: string, public exifInfo: any) {}
 }
 
 @Injectable()
@@ -16,14 +16,9 @@ export class BackEndService {
     _runtimeInitialized = false;
     worker: Worker;
 
-    private _imageRotation = '';
-    private _imageDataUrl = '';
-    private _imageKey = '';
-
     private _onImageSet: (result: ImageLoadResult) => void;
-
     private _onLandmarksDetected: (landmarks: object) => void;
-    private _onCreateTiledPrint: (pngDataUrl: SafeResourceUrl) => void;
+    private _onCreateTiledPrint: (pngDataUrl: string) => void;
 
     constructor(private sanitizer: DomSanitizer) {
         // this.plt.ready().then((readySource) => {
@@ -44,17 +39,16 @@ export class BackEndService {
                         break;
                     case 'onImageSet':
                         console.log(`Image has been set: ${e.data.imgKey}`);
-                        this._imageKey = e.data.imgKey;
-                        this._onLoadImageEnded();
+                        const imageKey = e.data.imgKey;
+                        const exifInfo = e.data.EXIFInfo;
+                        const imageDataUrl = this.createPngDataUrl(e.data.pngData);
+                        this._onImageSet(new ImageLoadResult(imageKey, imageDataUrl, exifInfo));
                         break;
                     case 'onLandmarksDetected':
                         this._onLandmarksDetected(e.data.landmarks);
                         break;
                     case 'onCreateTilePrint':
-                        const pngArrayBuffer = e.data.pngData;
-                        const blob = new Blob([pngArrayBuffer], {type: 'image/png'});
-                        const imageUrl = URL.createObjectURL(blob);
-                        const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
+                        const pngDataUrl = this.createPngDataUrl(e.data.pngData);
                         this._onCreateTiledPrint(pngDataUrl);
                         break;
                     case 'onAppDataLoadingProgress':
@@ -66,68 +60,25 @@ export class BackEndService {
         );
     }
 
-    loadImageInMemory(file: File): Promise<ImageLoadResult> {
-        this._imageDataUrl = null;
-        this._imageKey = null;
-        this._imageRotation = null;
-        return new Promise((resolve, reject) => {
-            this._imageDataUrl = null;
-            this._onImageSet = resolve;
+    createPngDataUrl(pngArrayBuffer): any {
+        const blob = new Blob([pngArrayBuffer], {type: 'image/png'});
+        const imageUrl = URL.createObjectURL(blob);
+        const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
+        return pngDataUrl; //this.sanitizer.sanitize(SecurityContext., pngDataUrl);
+    }
 
+    loadImageInMemory(file: File): Promise<ImageLoadResult> {
+        return new Promise((resolve, reject) => {
+            this._onImageSet = resolve;
             const readerRaw = new FileReader();
             readerRaw.onloadend = () => {
                 const arrayBuffer = readerRaw.result;
                 this.worker.postMessage({cmd: 'setImage', imageData: arrayBuffer});
-                this._imageRotation = this.computeOrientation(arrayBuffer as ArrayBuffer);
-            };
-
-            const readerDataUrl = new FileReader();
-            readerDataUrl.onloadend = () => {
-                this._imageDataUrl = readerDataUrl.result as string;
-                this._onLoadImageEnded();
             };
             readerRaw.readAsArrayBuffer(file);
-            readerDataUrl.readAsDataURL(file);
         });
     }
 
-    computeOrientation(arrayBuffer: ArrayBuffer): string {
-        const rotation = {
-            1: 'rotate(0deg)',
-            3: 'rotate(180deg)',
-            6: 'rotate(90deg)',
-            8: 'rotate(270deg)'
-        };
-
-        const scanner = new DataView(arrayBuffer);
-        let idx = 0;
-        let value = 1; // Non-rotated is the default
-        if (arrayBuffer.byteLength < 2 || scanner.getUint16(idx) !== 0xffd8) {
-            return rotation[value];
-        }
-
-        idx += 2;
-        let maxBytes = scanner.byteLength;
-        while (idx < maxBytes - 2) {
-            const uint16 = scanner.getUint16(idx);
-            idx += 2;
-            switch (uint16) {
-                case 0xffe1: // Start of EXIF
-                    const exifLength = scanner.getUint16(idx);
-                    maxBytes = exifLength - idx;
-                    idx += 2;
-                    break;
-                case 0x0112: // Orientation tag
-                    // Read the value, its 6 bytes further out
-                    // See page 102 at the following URL
-                    // http://www.kodak.com/global/plugins/acrobat/en/service/digCam/exifStandard2.pdf
-                    value = scanner.getUint16(idx + 6, false);
-                    maxBytes = 0; // Stop scanning
-                    break;
-            }
-        }
-        return rotation[value];
-    }
     // return new Promise((resolve, reject) => {
     //     if (true || this._isMobilePlatform) {
     //         const { PppPlugin } = Plugins;
@@ -160,12 +111,6 @@ export class BackEndService {
     //         xhr.send(formData);
     //     }
     // });
-
-    private _onLoadImageEnded() {
-        if (this._imageKey && this._imageDataUrl && this._imageRotation) {
-            this._onImageSet(new ImageLoadResult(this._imageKey, this._imageRotation, this._imageDataUrl));
-        }
-    }
 
     retrieveLandmarks(imgKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -203,7 +148,7 @@ export class BackEndService {
         // });
     }
 
-    getTiledPrint(req: TiledPhotoRequest): Promise<SafeResourceUrl> {
+    getTiledPrint(req: TiledPhotoRequest): Promise<string> {
         return new Promise((resolve, reject) => {
             this._onCreateTiledPrint = resolve;
             this.worker.postMessage({cmd: 'createTiledPrint', request: req});

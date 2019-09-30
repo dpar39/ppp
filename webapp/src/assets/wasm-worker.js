@@ -57,7 +57,7 @@ if ('function' === typeof importScripts) {
             xhr.onload = e => {
                 postMessage({
                     cmd: 'onAppDataLoadingProgress',
-                    progressPct: lastProgress* 100,
+                    progressPct: lastProgress * 100,
                     step: 'Initializing ...'
                 });
 
@@ -89,14 +89,29 @@ if ('function' === typeof importScripts) {
         // ArrayBuffer
         const imageData = new Uint8Array(imageDataArrayBuf);
         let [imagePtr, numBytes] = _arrayToHeap(imageData);
-        const imgKeyPtr = Module._malloc(16);
+        const imageMetadataPtr = Module._malloc(4096);
 
-        const success = Module._set_image(imagePtr, numBytes, imgKeyPtr);
+        const success = Module._set_image(imagePtr, numBytes, imageMetadataPtr);
 
-        const imgKey = UTF8ToString(imgKeyPtr, numBytes);
-        Module._free(imgKeyPtr);
+        const result = UTF8ToString(imageMetadataPtr, numBytes);
+        const imageMetadata = JSON.parse(result);
+        Module._free(imageMetadataPtr);
         Module._free(imagePtr);
-        postMessage({cmd: 'onImageSet', imgKey: imgKey});
+
+        // Get the image as PNG data stream
+        const outImageDataPtr = Module._malloc(20000000);
+        const imgKeyPtr = _stringToPtr(imageMetadata.imgKey);
+        const imageDataSize = Module._get_image(imgKeyPtr, outImageDataPtr);
+
+        Module._free(imgKeyPtr);
+        let heapBytes = Module.HEAPU8.subarray(outImageDataPtr, outImageDataPtr + imageDataSize);
+        postMessage({
+            cmd: 'onImageSet',
+            imgKey: imageMetadata.imgKey,
+            EXIFInfo: imageMetadata.EXIFInfo,
+            pngData: heapBytes
+        });
+        Module._free(outImageDataPtr);
     }
 
     function detectLandmarks(imgKey) {

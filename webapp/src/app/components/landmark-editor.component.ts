@@ -9,13 +9,7 @@ import {ImageLoadResult} from '../services/back-end.service';
     selector: 'app-landmark-editor',
     template: `
         <div id="viewport">
-            <img
-                id="photo"
-                alt="Input Image"
-                title="Input picture"
-                [src]="getImageDataUrl()"
-                [style.transform]="getImageStyle()"
-            />
+            <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
             <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility"></div>
         </div>
@@ -46,10 +40,6 @@ import {ImageLoadResult} from '../services/back-end.service';
                 margin: 1em auto;
                 background: #333;
             }
-
-            img {
-                image-orientation: from-image;
-            }
         `
     ]
 })
@@ -61,7 +51,7 @@ export class LandmarkEditorComponent implements OnInit {
 
     private _xLeft = 0; // Offset in screen pixels
     private _yTop = 0;
-    private _zoom = 0;
+    private _zoom = 1;
     private _ratio = 0; // Ratio between image pixels and screen pixels
 
     private _imgElmt: any = null;
@@ -76,22 +66,25 @@ export class LandmarkEditorComponent implements OnInit {
 
     private _imageLoadResult: ImageLoadResult;
 
+    imageLoaded() {
+        this._imageWidth = this._imgElmt.naturalWidth;
+        this._imageHeight = this._imgElmt.naturalHeight;
+        if (this._imageWidth > 100 && this._imageHeight > 100) {
+            this._imgElmt.style.visibility = 'visible';
+            this.calculateViewPort();
+            this.zoomFit();
+            this.renderImage();
+            this.renderLandMarks();
+        }
+    }
+
     @Input()
     set inputPhoto(value: ImageLoadResult) {
         this._imageLoadResult = value;
-        if (value) {
-            const newImg = new Image();
-            newImg.onload = () => {
-                this._imageWidth = newImg.width;
-                this._imageHeight = newImg.height;
-                if (this._imageWidth > 100 && this._imageHeight > 100) {
-                    this.calculateViewPort();
-                    this.zoomFit();
-                    this.renderImage();
-                    this.renderLandMarks();
-                }
-            };
-            newImg.src = this._imageLoadResult.imgDataUrl;
+        this._imageWidth = 1;
+        this._imageHeight = 1;
+        if (this._imgElmt) {
+            this._imgElmt.style.visibility = 'hidden';
         }
     }
     get inputPhoto(): ImageLoadResult {
@@ -157,13 +150,6 @@ export class LandmarkEditorComponent implements OnInit {
             return 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
         }
         return this._imageLoadResult.imgDataUrl;
-    }
-
-    getImageStyle() {
-        if (!this._imageLoadResult || !this._imageLoadResult.imgRotation) {
-            return 'rotate(0deg)';
-        }
-        return this._imageLoadResult.imgRotation;
     }
 
     zoomFit(): void {
