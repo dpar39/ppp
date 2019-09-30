@@ -721,32 +721,6 @@ class Builder(object):
             shutil.copyfile(self.build_path('libppp/libppp.wasm'),
                             self.repo_path('webapp/src/assets/libppp.wasm'))
 
-        # # Copy libppp artifacts to the webapp directory
-        # dist_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib']
-        # for dist_file in dist_files:
-        #     src_file_path = os.path.join(self._install_dir, dist_file)
-        #     dst_link = self.webapp_path(dist_file)
-        #     if os.path.exists(src_file_path):
-        #         link_file(src_file_path, dst_link)
-        # # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-        # libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
-        # dst_link = self.webapp_path('src/assets/config.bundle.json')
-        # link_file(libpp_config_file, dst_link)
-
-    # def deploy_libppp(self, dst_path, symlink=False):
-    #     # Copy libppp artifacts to the webapp directory
-    #     artifact_files = ['liblibppp.so', 'libppp.dll', 'liblibppp.dylib', 'libpppwrapper.py', 'config.bundle.json']
-    #     for artifact in artifact_files:
-    #         src_file_path = os.path.join(self._install_dir, artifact)
-    #         dst_link = os.path.join(dst_path, artifact)
-    #         if os.path.exists(src_file_path):
-    #             link_file(src_file_path, dst_link)
-
-    #     # Copy libppp configuration file to assets (this is needed for Android and IOS apps)
-    #     libpp_config_file = self.repo_path('libppp/share/config.bundle.json')
-    #     dst_link = self.webapp_path('src/assets/config.bundle.json')
-    #     link_file(libpp_config_file, dst_link)
-
     def build_android(self):
         """
         Builds android app
@@ -823,9 +797,6 @@ class Builder(object):
 
         # Build the android app
         self.build_android()
-
-        # Deploy webapp to the cloud
-        # self.deploy_to_azure()
 
 
 BUILDER = Builder()
