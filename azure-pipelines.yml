@@ -33,4 +33,10 @@ stages:
       - script: python build.py --test
       - script: python build.py --web --test
 
+      - script: |
+          cd webapp
+          npx firebase use --token $(FIREBASE_DEPLOY_KEY) myphotoidapp
+          npx firebase deploy --token $(FIREBASE_DEPLOY_KEY) --non-interactive
+          cd ..
+
 
