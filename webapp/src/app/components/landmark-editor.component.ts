@@ -37,7 +37,7 @@ import {ImageLoadResult} from '../services/back-end.service';
                 min-height: 40vh;
                 border: 1px solid #363434;
                 border-radius: 5px;
-                margin: 1em auto;
+                margin: 5px auto;
                 background: #333;
             }
         `

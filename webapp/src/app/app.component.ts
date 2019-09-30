@@ -8,9 +8,12 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
     template: `
         <div class="container-fluid">
             <div class="row">
-                <h2 class="col text-center">A photo ID creation tool</h2>
+                <h3 class="col text-center">A photo ID creation tool</h3>
             </div>
-            <div class="progress" style="height: 3px;">
+            <div class="row">
+                <span class="col my-1 text-center app-version">v1.0.0</span>
+            </div>
+            <div class="progress my-0" style="height: 4px !important;">
                 <div
                     class="progress-bar bg-success"
                     role="progressbar"
@@ -24,7 +27,7 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12 col-md-6">
-                    <div class="container-fluid">
+                    <div class="container-fluid px-0">
                         <div class="row">
                             <div class="col">
                                 <app-landmark-editor
@@ -34,7 +37,6 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                                     (edited)="onLandmarksEdited($event)"
                                 >
                                 </app-landmark-editor>
-
                             </div>
                         </div>
                         <div class="row">
@@ -63,7 +65,7 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                                             type="file"
                                             name="uploads[]"
                                             accept="image/*"
-                                            style="visibility: hidden;"
+                                            style="visibility: hidden;display: none;"
                                             (change)="loadImage($event)"
                                         />
                                     </form>
@@ -79,8 +81,9 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                     >
                     </app-photo-standard-selector>
                     <app-print-definition-selector
-                    class="col-sm"
-                    (printDefinitionSelected)="onPrintDefinitionSelected($event)">
+                        class="col-sm"
+                        (printDefinitionSelected)="onPrintDefinitionSelected($event)"
+                    >
                     </app-print-definition-selector>
                 </div>
             </div>
@@ -97,6 +100,12 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                 max-width: 99%;
                 max-height: 99%;
             }
+
+            .app-version {
+                color: darkgray;
+                font-family: monospace;
+                font-size: 7pt;
+            }
         `
     ]
 })
@@ -107,7 +116,7 @@ export class AppComponent implements OnInit {
     appDataLoadingProgress = '1%';
 
     imageLoadResult: ImageLoadResult;
-    outImgSrc: string = '#';
+    outImgSrc = '#';
 
     // Model data
     crownChinPointPair: CrownChinPointPair;
@@ -140,7 +149,6 @@ export class AppComponent implements OnInit {
                 this.imageLoadResult = result;
                 this.retrieveLandmarks();
             });
-
         }
     }
 
@@ -165,7 +173,6 @@ export class AppComponent implements OnInit {
     onPrintDefinitionSelected(canvas: Canvas) {
         this.canvas = canvas;
     }
-
 
     onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
         this.crownChinPointPair = crownChinPointPair;

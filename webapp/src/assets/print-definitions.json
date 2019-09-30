@@ -1,14 +1,13 @@
 [
     {
-        "height": 5,
-        "width": 7,
-        "resolution": 300,
-        "units": "inch"
-
-    },
-    {
         "height": 4,
         "width": 6,
+        "resolution": 300,
+        "units": "inch"
+    },
+    {
+        "height": 5,
+        "width": 7,
         "resolution": 300,
         "units": "inch"
     }
