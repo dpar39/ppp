@@ -10,6 +10,11 @@ import {ImageLoadResult} from '../services/back-end.service';
     template: `
         <div id="viewport">
             <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
+
+            <svg class="box" [style.visibility]="landmarkVisibility">
+                <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" stroke-dasharray="5,5"/>
+            </svg>
+
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
             <div class="landmark" id="chinMark" [style.visibility]="landmarkVisibility"></div>
         </div>
@@ -30,9 +35,11 @@ import {ImageLoadResult} from '../services/back-end.service';
 
             #photo {
                 position: absolute;
+                z-index: 0;
             }
 
             #viewport {
+                position: relative;
                 max-height: 50vh;
                 min-height: 40vh;
                 border: 1px solid #363434;
@@ -40,43 +47,21 @@ import {ImageLoadResult} from '../services/back-end.service';
                 margin: 5px auto;
                 background: #333;
             }
+
+            .box {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
+
+            .annotation {
+                stroke: #9B59B6;
+                stroke-width: 2;
+            }
         `
     ]
 })
 export class LandmarkEditorComponent implements OnInit {
-    private _imageWidth = 0;
-    private _imageHeight = 0;
-    private _viewPortWidth = 0;
-    private _viewPortHeight = 0;
-
-    private _xLeft = 0; // Offset in screen pixels
-    private _yTop = 0;
-    private _zoom = 1;
-    private _ratio = 0; // Ratio between image pixels and screen pixels
-
-    private _imgElmt: any = null;
-    private _containerElmt: any = null;
-    private _crownMarkElmt: any = null;
-    private _chinMarkElmt: any = null;
-
-    chinPoint: Point;
-    crownPoint: Point;
-
-    landmarkVisibility = 'hidden';
-
-    private _imageLoadResult: ImageLoadResult;
-
-    imageLoaded() {
-        this._imageWidth = this._imgElmt.naturalWidth;
-        this._imageHeight = this._imgElmt.naturalHeight;
-        if (this._imageWidth > 100 && this._imageHeight > 100) {
-            this._imgElmt.style.visibility = 'visible';
-            this.calculateViewPort();
-            this.zoomFit();
-            this.renderImage();
-            this.renderLandMarks();
-        }
-    }
 
     @Input()
     set inputPhoto(value: ImageLoadResult) {
@@ -91,8 +76,6 @@ export class LandmarkEditorComponent implements OnInit {
         return this._imageLoadResult;
     }
 
-    landMarksVisible = false;
-
     @Input()
     set crownChinPointPair(value: CrownChinPointPair) {
         if (value) {
@@ -102,12 +85,46 @@ export class LandmarkEditorComponent implements OnInit {
         this.renderLandMarks();
     }
 
-    @Output()
-    edited: EventEmitter<any> = new EventEmitter<any>();
-
     constructor(private el: ElementRef) {
         this.crownPoint = new Point(0, 0);
         this.chinPoint = new Point(0, 0);
+    }
+    private _imageWidth = 0;
+    private _imageHeight = 0;
+    private _viewPortWidth = 0;
+    private _viewPortHeight = 0;
+
+    private _xLeft = 0; // Offset in screen pixels
+    private _yTop = 0;
+    private _zoom = 1;
+    private _ratio = 0; // Ratio between image pixels and screen pixels
+
+    private _imgElmt: any = null;
+    private _containerElmt: any = null;
+    private _crownMarkElmt: any = null;
+    private _chinMarkElmt: any = null;
+    private _middleLine: any = null;
+
+    chinPoint: Point;
+    crownPoint: Point;
+
+    landmarkVisibility = 'hidden';
+
+    private _imageLoadResult: ImageLoadResult;
+
+    @Output()
+    edited: EventEmitter<any> = new EventEmitter<any>();
+
+    imageLoaded() {
+        this._imageWidth = this._imgElmt.naturalWidth;
+        this._imageHeight = this._imgElmt.naturalHeight;
+        if (this._imageWidth > 100 && this._imageHeight > 100) {
+            this._imgElmt.style.visibility = 'visible';
+            this.calculateViewPort();
+            this.zoomFit();
+            this.renderImage();
+            this.renderLandMarks();
+        }
     }
 
     ngOnInit() {
@@ -115,6 +132,8 @@ export class LandmarkEditorComponent implements OnInit {
         this._containerElmt = this.el.nativeElement.querySelector('#viewport');
         this._crownMarkElmt = this.el.nativeElement.querySelector('#crownMark');
         this._chinMarkElmt = this.el.nativeElement.querySelector('#chinMark');
+
+        this._middleLine = this.el.nativeElement.querySelector('#middleLine');
 
         const that = this;
         interact('.landmark').draggable({
@@ -137,6 +156,7 @@ export class LandmarkEditorComponent implements OnInit {
                 const y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;
                 // translate the element
                 that.translateElement(target, new Point(x, y));
+                that.renderAnnotations();
             },
             // call this function on every dragend event
             onend: function(event) {
@@ -216,6 +236,7 @@ export class LandmarkEditorComponent implements OnInit {
             const p2 = this.pixelToScreen(this._chinMarkElmt, this.chinPoint);
             this.translateElement(this._crownMarkElmt, p1);
             this.translateElement(this._chinMarkElmt, p2);
+            this.renderAnnotations();
             this.landmarkVisibility = 'visible';
         } else {
             this.landmarkVisibility = 'hidden';
@@ -229,16 +250,41 @@ export class LandmarkEditorComponent implements OnInit {
         );
     }
 
+
     screenToPixel(elmt: any): Point {
+        const pc = this.getMarkScreenCenter(elmt);
         return new Point(
-            Math.round((parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2 - this._xLeft) / this._ratio),
-            Math.round((parseFloat(elmt.getAttribute('y')) + elmt.clientHeight / 2 - this._yTop) / this._ratio)
+            Math.round((pc.x - this._xLeft) / this._ratio),
+            Math.round((pc.y - this._yTop) / this._ratio)
         );
     }
 
+    getMarkScreenCenter(elmt: any) {
+        const x = parseFloat(elmt.getAttribute('x')) + elmt.clientWidth / 2.0;
+        const y = parseFloat(elmt.getAttribute('y')) + elmt.clientWidth / 2.0;
+        return new Point(x, y);
+    }
+
+    renderAnnotations() {
+        const p1 = this.getMarkScreenCenter(this._crownMarkElmt);
+        const p2 = this.getMarkScreenCenter(this._chinMarkElmt);
+
+        this._middleLine.setAttributeNS(null, 'x1', p1.x);
+        this._middleLine.setAttributeNS(null, 'y1', p1.y);
+
+        this._middleLine.setAttributeNS(null, 'x2', p2.x);
+        this._middleLine.setAttributeNS(null, 'y2', p2.y);
+
+    }
+
     updateLandMarks() {
+
         this.crownPoint = this.screenToPixel(this._crownMarkElmt);
         this.chinPoint = this.screenToPixel(this._chinMarkElmt);
         this.edited.emit(new CrownChinPointPair(this.crownPoint, this.chinPoint));
+    }
+
+    drawLines() {
+
     }
 }
