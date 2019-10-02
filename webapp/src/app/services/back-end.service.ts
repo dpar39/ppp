@@ -61,8 +61,7 @@ export class BackEndService {
     }
 
     createPngDataUrl(pngUrl): any {
-        const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pngUrl);
-        return pngDataUrl;
+        return this.sanitizer.bypassSecurityTrustResourceUrl(pngUrl);
     }
 
     loadImageInMemory(file: File): Promise<ImageLoadResult> {
