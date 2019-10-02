@@ -41,14 +41,14 @@ export class BackEndService {
                         console.log(`Image has been set: ${e.data.imgKey}`);
                         const imageKey = e.data.imgKey;
                         const exifInfo = e.data.EXIFInfo;
-                        const imageDataUrl = this.createPngDataUrl(e.data.pngData);
+                        const imageDataUrl = this.createPngDataUrl(e.data.pngUrl);
                         this._onImageSet(new ImageLoadResult(imageKey, imageDataUrl, exifInfo));
                         break;
                     case 'onLandmarksDetected':
                         this._onLandmarksDetected(e.data.landmarks);
                         break;
                     case 'onCreateTilePrint':
-                        const pngDataUrl = this.createPngDataUrl(e.data.pngData);
+                        const pngDataUrl = this.createPngDataUrl(e.data.pngUrl);
                         this._onCreateTiledPrint(pngDataUrl);
                         break;
                     case 'onAppDataLoadingProgress':
@@ -60,10 +60,8 @@ export class BackEndService {
         );
     }
 
-    createPngDataUrl(pngArrayBuffer): any {
-        const blob = new Blob([pngArrayBuffer], {type: 'image/png'});
-        const imageUrl = URL.createObjectURL(blob);
-        const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(imageUrl);
+    createPngDataUrl(pngUrl): any {
+        const pngDataUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pngUrl);
         return pngDataUrl;
     }
 

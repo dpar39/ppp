@@ -64,6 +64,9 @@ import {ImageLoadResult} from '../services/back-end.service';
 export class LandmarkEditorComponent implements OnInit {
     @Input()
     set inputPhoto(value: ImageLoadResult) {
+        if (this._imgElmt && this._imgElmt.src) {
+            URL.revokeObjectURL(this._imgElmt.src);
+        }
         this._imageLoadResult = value;
         this._imageWidth = 1;
         this._imageHeight = 1;
@@ -255,7 +258,7 @@ export class LandmarkEditorComponent implements OnInit {
     }
 
     getMarkScreenCenter(elmt: any) {
-        const x = parseFloat(elmt.getAttribute('x')) + (elmt.clientWidth + 0.5)  / 2.0;
+        const x = parseFloat(elmt.getAttribute('x')) + (elmt.clientWidth + 0.5) / 2.0;
         const y = parseFloat(elmt.getAttribute('y')) + (elmt.clientHeight + 0.5) / 2.0;
         return new Point(x, y);
     }

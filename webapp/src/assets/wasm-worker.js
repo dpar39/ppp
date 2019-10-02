@@ -109,7 +109,7 @@ if ('function' === typeof importScripts) {
             cmd: 'onImageSet',
             imgKey: imageMetadata.imgKey,
             EXIFInfo: imageMetadata.EXIFInfo,
-            pngData: heapBytes
+            pngUrl: createImageUrl(heapBytes)
         });
         Module._free(outImageDataPtr);
     }
@@ -137,7 +137,13 @@ if ('function' === typeof importScripts) {
 
         Module._free(imgKeyPtr);
         Module._free(requestObjPtr);
-        postMessage({cmd: 'onCreateTilePrint', pngData: heapBytes});
+        postMessage({cmd: 'onCreateTilePrint', pngUrl: createImageUrl(heapBytes)});
         Module._free(outImageDataPtr);
+    }
+
+    function createImageUrl(pngArrayBuffer) {
+        const blob = new Blob([pngArrayBuffer], {type: 'image/png'});
+        const imageUrl = URL.createObjectURL(blob);
+        return imageUrl;
     }
 }

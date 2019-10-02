@@ -65,7 +65,7 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                                             type="file"
                                             name="uploads[]"
                                             accept="image/*"
-                                            style="visibility: hidden;display: none;"
+                                            style="display: none;"
                                             (change)="loadImage($event)"
                                         />
                                     </form>
@@ -189,6 +189,9 @@ export class AppComponent implements OnInit {
         console.log(req);
 
         this.beService.getTiledPrint(req).then(outputDataUrl => {
+            if (this.outImgSrc) {
+                URL.revokeObjectURL(this.outImgSrc);
+            }
             this.outImgSrc = outputDataUrl;
         });
     }
