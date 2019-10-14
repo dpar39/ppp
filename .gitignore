@@ -1,35 +1,25 @@
 /.vs
 /.vscode
+/env
 
 # Build and install directories
 /build_*
 /install_*
-/cmake-build-debug
 
 /thirdparty
 /node_modules
-/visualstudio
 /research/*.asv
-/addon/build
-build/config.gypi
 
 /research/mugshot_frontal_original_all
 *.ldb
-
-
 *.pyc
-
 .idea/*
 .DS_Store
 
-/libppp/swig/*.cxx
-/libppp/share/config.bundle.json
-
-/env
-/azure
-/heroku
-
 # Generated assets
+libppp/swig/*.cxx
+libppp/share/config.bundle.json
+
 webapp/src/assets/libppp.wasm
 webapp/src/assets/libppp.js
 tests.xml
