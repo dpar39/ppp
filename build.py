@@ -25,7 +25,7 @@ except ImportError:   # Fall back to Python 2's urllib2
 EMSDK_VERSION_NUMBER = '1.38.24'
 EMSDK_VERSION_NAME = 'sdk-' + EMSDK_VERSION_NUMBER + '-64bit'
 OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
-DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.6.zip'
+DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.18.zip'
 GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
 
 IS_WINDOWS = sys.platform == 'win32'
@@ -351,6 +351,18 @@ class Builder(object):
             os.mkdir(build_dir)
         self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], False)
 
+    # def build_dlib(self):
+
+    #     # Download OpenCV sources if not done yet
+    #     dlib_src_pkg = self.download_third_party_lib(DLIB_SRC_URL)
+    #     # Get the file prefix for OpenCV
+    #     dlib_extract_dir = self.get_third_party_lib_dir('dlib-')
+
+    #     if dlib_extract_dir is None:
+    #         # Extract the source files
+    #         self.extract_third_party_lib(dlib_src_pkg)
+    #         dlib_extract_dir = self.get_third_party_lib_dir('dlib')
+
     def get_filename_from_url(self, url):
         """
         Extracts the file name from a given URL
@@ -659,7 +671,7 @@ class Builder(object):
             if not isinstance(node, dict):
                 return
             for key in node:
-                if key == 'file' and not node.get('data', ''):
+                if key == 'file' and not node.get('data', '') and node.get('embed', True):
                     file_name = node['file']
                     file_path = os.path.join(lippp_share_dir, file_name)
                     with open(file_path, 'rb') as fp:

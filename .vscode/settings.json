@@ -7,7 +7,8 @@
         "exception": "cpp",
         "cstddef": "cpp",
         "filesystem": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "xstring": "cpp"
     },
     "files.exclude": {
         "**/.git": true,
@@ -29,8 +30,8 @@
     "editor.codeLens": false,
     "editor.autoIndent": true,
     "python.pythonPath": "C:\\Python27\\python.exe",
-    "python.linting.pep8Enabled": true,
-    "python.linting.pep8Args": [
+    "python.linting.pycodestyleEnabled": true,
+    "python.linting.pycodestyleArgs": [
         "--ignore=E501",
         "--max-line-length=100"
     ],
@@ -46,8 +47,9 @@
             "name": "Unit Tests Debug",
             "description": "${relDirpath}/",
             "pattern": "{build_*debug*}/libppp/*{_test}*",
-            "dependsOn": ["Build Debug"]
-
+            "dependsOn": [
+                "Build Debug"
+            ]
         },
         {
             "name": "Unit Tests Release",
@@ -58,6 +60,6 @@
     "cmake.buildDirectory": "${workspaceRoot}/build_windows_debug_x64",
     "cmake.installPrefix": "${workspaceRoot}/install_windows_debug_x64",
     "cmake.generator": "ninja",
-    "cmake.configureArgs": [
-    ]
+    "cmake.configureArgs": [],
+    "clang-format.executable": "C:/Program Files/LLVM/bin/clang-format.exe"
 }

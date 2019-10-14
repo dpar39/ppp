@@ -38,7 +38,7 @@ std::string resolvePath(const std::string & relPath)
         }
         baseDir = baseDir.parent_path();
     }
-    return std::string();
+    return {};
 }
 
 std::string pathCombine(const std::string & prefix, const std::string & suffix)

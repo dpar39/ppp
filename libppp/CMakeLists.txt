@@ -78,8 +78,7 @@ find_package(OpenCV REQUIRED)
 file(GLOB LIB_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB LIB_INC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
-# Add some source files needed for DLIB
-set(LIB_SRC_FILES ${LIB_CPP_FILES} ${LIB_WRP_FILES}
+set(DLIB_SOURCES
     ${DLIB_ROOT}/dlib/base64/base64_kernel_1.cpp
     ${DLIB_ROOT}/dlib/bit_stream/bit_stream_kernel_1.cpp
     ${DLIB_ROOT}/dlib/threads/threads_kernel_1.cpp
@@ -92,8 +91,10 @@ set(LIB_SRC_FILES ${LIB_CPP_FILES} ${LIB_WRP_FILES}
     ${DLIB_ROOT}/dlib/md5/md5_kernel_1.cpp
     ${DLIB_ROOT}/dlib/tokenizer/tokenizer_kernel_1.cpp
     ${DLIB_ROOT}/dlib/unicode/unicode.cpp
-    ${DLIB_ROOT}/dlib/data_io/mnist.cpp
 )
+
+# Add all source files needed for the library or wasm executable
+set(LIB_SRC_FILES ${LIB_CPP_FILES} ${LIB_WRP_FILES} ${DLIB_SOURCES})
 
 set(MODULE_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -183,4 +184,36 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     target_include_directories(${APP_NAME} PUBLIC ${APP_INC_DIRS})
     target_link_libraries(${APP_NAME} ${APP_LIB_DEPS})
     install(TARGETS ${APP_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
+
+# Dlib model trainer app
+if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
+
+    file(GLOB LIBPNG_SRC_FILES ${DLIB_ROOT}/dlib/external/libpng/*.c)
+    file(GLOB LIBJPEG_SRC_FILES ${DLIB_ROOT}/dlib/external/libjpeg/*.cpp)
+    add_definitions(-DDLIB_JPEG_SUPPORT -DDLIB_PNG_SUPPORT -DDLIB_HAVE_SSE2)
+    add_executable(trainer 
+        ${CMAKE_CURRENT_SOURCE_DIR}/share/trainer.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json
+        ${DLIB_SOURCES}
+        ${LIBPNG_SRC_FILES}
+        ${LIBJPEG_SRC_FILES}
+        ${DLIB_ROOT}/dlib/image_loader/jpeg_loader.cpp
+        ${DLIB_ROOT}/dlib/image_loader/png_loader.cpp
+        ${DLIB_ROOT}/dlib/data_io/image_dataset_metadata.cpp
+        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_extensions.cpp
+        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_1.cpp
+        ${DLIB_ROOT}/dlib/dir_nav/dir_nav_kernel_2.cpp
+        ${DLIB_ROOT}/dlib/misc_api/misc_api_kernel_1.cpp
+        ${DLIB_ROOT}/dlib/misc_api/misc_api_kernel_2.cpp
+        ${DLIB_ROOT}/dlib/threads/thread_pool_extension.cpp
+    )
+    target_include_directories(trainer PUBLIC
+        ${DLIB_EXTERNAL}
+        ${MODULE_INC_DIRS}
+        ${DLIB_ROOT}/dlib/external/libpng
+        ${DLIB_ROOT}/dlib/external/libjpeg
+    )
+    target_link_libraries(trainer  ${MODULE_LIB_DEPS}  ${LIB_NAME})
+    install(TARGETS trainer DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
