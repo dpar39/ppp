@@ -3,21 +3,21 @@
     "faceDetector": {
         "haarCascade": {
             "file": "haarcascades/haarcascade_frontalface_alt2.xml",
-            "data": "",
-            "embed": true
+            "embed": "text",
+            "data": null
         }
     },
     "eyesDetector": {
         "useHaarCascade": false,
         "haarCascadeLeft": {
             "file": "haarcascades/ojoI.xml",
-            "data": "",
-            "embed": false
+            "embed": false,
+            "data": null
         },
         "haarCascadeRight": {
             "file": "haarcascades/ojoD.xml",
-            "data": "",
-            "embed": false
+            "embed": false,
+            "data": null
         }
     },
     "lipsDetector": {
@@ -25,8 +25,8 @@
         "useColorSegmentation": true,
         "haarCascade": {
             "file": "haarcascades/Mouth.xml",
-            "data": "",
-            "embed": false
+            "embed": false,
+            "data": null
         }
     },
     "crownChinEstimator": {
@@ -73,12 +73,31 @@
             28,
             29,
             30,
-            31,
             32,
-            36
+            33,
+            34,
+            35,
+            36,
+            50,
+            51,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            59,
+            60
         ],
         "file": "sp_model.dat",
-        "data": "",
-        "embed": true
+        "embed": "base64",
+        "data": null,
+        "landmarksIndexMapping": {
+            "eyePupilLeft": [ 38, 39, 41, 42 ],
+            "eyePupilRight": [ 44, 45, 47, 48 ],
+            "mouthCornerLeft": [ 49 ],
+            "mouthCornerRight": [ 55 ],
+            "chinPoint": [ 9 ]
+        }
     }
 }

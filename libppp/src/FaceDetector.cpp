@@ -12,13 +12,13 @@
 using namespace std;
 using namespace cv;
 
-bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmarks)
+bool FaceDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks)
 {
     if (m_useDlibFaceDetection)
     {
         using namespace dlib;
         array2d<uint8_t> dlibImage;
-        assign_image(dlibImage, cv_image<uint8_t>(inputPicture));
+        assign_image(dlibImage, cv_image<uint8_t>(inputImage));
 
         auto dets = (*m_frontalFaceDetector)(dlibImage);
 
@@ -37,60 +37,58 @@ bool FaceDetector::detectLandMarks(const Mat & inputPicture, LandMarks & landmar
                                                          });
             faceRect = *biggestFacePtr;
         }
-        landmarks.vjFaceRect = Utilities::convert(faceRect);
+
+        landmarks.vjFaceRect = Rect2d(faceRect.left(), faceRect.top(), faceRect.width(), faceRect.height());
         landmarks.imageRotation = 0; // TODO: Add rotation search to this one as well
         return true;
     }
-    else
+
+    // Configuration
+    const auto minFaceRatio = 0.15;
+    const auto maxFaceRatio = 0.85;
+
+    // Calculate search domain on the image
+    const auto imgSize = inputImage.size();
+    const auto h = imgSize.height;
+    const auto w = imgSize.width;
+
+    auto grayImage = inputImage;
+    if (inputImage.channels() != 1)
     {
-
-        // Configuration
-        const auto minFaceRatio = 0.15;
-        const auto maxFaceRatio = 0.85;
-
-        // Calculate search domain on the image
-        const auto imgSize = inputPicture.size();
-        const auto h = imgSize.height;
-        const auto w = imgSize.width;
-
-        auto grayImage = inputPicture;
-        if (inputPicture.channels() != 1)
-        {
-            cvtColor(inputPicture, grayImage, COLOR_BGR2GRAY);
-        }
-
-        for (const auto angle : { 0, 90, -90, 180 })
-        {
-            // Let's rotate the image to see if we can find a face in it
-            auto rotatedImage = Utilities::rotateImage(grayImage, angle);
-            Size minFaceSize, maxFaceSize;
-            calculateScaleSearch(imgSize, minFaceRatio, maxFaceRatio, minFaceSize, maxFaceSize);
-
-            vector<Rect> facesRects;
-            vector<int> rejectLevels;
-            vector<double> levelWeights;
-            m_pFaceCascadeClassifier->detectMultiScale(rotatedImage,
-                                                       facesRects,
-                                                       1.05,
-                                                       4,
-                                                       CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
-                                                       minFaceSize,
-                                                       maxFaceSize);
-
-            if (!facesRects.empty())
-            {
-                landmarks.vjFaceRect = facesRects.front();
-                landmarks.imageRotation = angle;
-                return true;
-            }
-        }
-        return false;
+        cvtColor(inputImage, grayImage, COLOR_BGR2GRAY);
     }
+
+    for (const auto angle : { 0, 90, -90, 180 })
+    {
+        // Let's rotate the image to see if we can find a face in it
+        auto rotatedImage = Utilities::rotateImage(grayImage, angle);
+        Size minFaceSize, maxFaceSize;
+        calculateScaleSearch(imgSize, minFaceRatio, maxFaceRatio, minFaceSize, maxFaceSize);
+
+        vector<Rect> facesRects;
+        vector<int> rejectLevels;
+        vector<double> levelWeights;
+        m_pFaceCascadeClassifier->detectMultiScale(rotatedImage,
+                                                   facesRects,
+                                                   1.05,
+                                                   4,
+                                                   CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
+                                                   minFaceSize,
+                                                   maxFaceSize);
+
+        if (!facesRects.empty())
+        {
+            landmarks.vjFaceRect = facesRects.front();
+            landmarks.imageRotation = angle;
+            return true;
+        }
+    }
+    return false;
 }
 
 void FaceDetector::calculateScaleSearch(const Size & inputImageSize,
-                                        double minFaceRatio,
-                                        double maxFaceRatio,
+                                        const double minFaceRatio,
+                                        const double maxFaceRatio,
                                         Size & minFaceSize,
                                         Size & maxFaceSize) const
 {

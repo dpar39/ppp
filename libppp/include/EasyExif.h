@@ -52,7 +52,7 @@ public:
     // PARAM 'length': The length of the JPEG image.
     // RETURN:  PARSE_EXIF_SUCCESS (0) on success with 'result' filled out
     //          error code otherwise, as defined by the PARSE_EXIF_ERROR_* macros
-    int parseFrom(const unsigned char * data, unsigned length);
+    int parseFrom(const unsigned char * buf, unsigned length);
     int parseFrom(const std::string & data);
 
     // Parsing function for an EXIF segment. This is used internally by parseFrom()

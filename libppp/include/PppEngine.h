@@ -2,8 +2,6 @@
 
 #include "CommonHelpers.h"
 #include <opencv2/core/core.hpp>
-
-#include <dlib/image_processing/frontal_face_detector.h>
 #include <unordered_map>
 
 struct LandMarks;
@@ -17,18 +15,23 @@ class PhotoStandard;
 
 namespace dlib
 {
+class full_object_detection;
 class shape_predictor;
-}
+} // namespace dlib
 
 FWD_DECL(PppEngine)
 
 enum class LandMarkType
 {
-    EYE_LEFT_PUPIL,
-    EYE_RIGHT_PUPIL,
-    LIPS_LEFT_CORNER,
-    LIPS_RIGHT_CORNER,
-    CHIN_LOWEST_POINT
+    EYE_PUPIL_CENTER_LEFT,
+    EYE_PUPIL_CENTER_RIGHT,
+    MOUTH_CORNER_LEFT,
+    MOUTH_CORNER_RIGHT,
+    CHIN_LOWEST_POINT,
+    NOSE_TIP_POINT,
+    EYE_OUTER_CORNER_LEFT,
+    EYE_OUTER_CORNER_RIGHT
+
 };
 
 struct EnumClassHash
@@ -54,7 +57,7 @@ public:
     bool configure(const std::string & configString);
 
     bool detectLandMarks(const std::string & imageKey, LandMarks & landMarks) const;
-    cv::Point getLandMark(const dlib::full_object_detection & shape, LandMarkType type) const;
+
     cv::Mat cropPicture(const std::string & imageKey,
                         PhotoStandard & ps,
                         CanvasDefinition & canvas,
@@ -66,6 +69,7 @@ public:
                              CanvasDefinition & canvas,
                              cv::Point & crownMark,
                              cv::Point & chinMark) const;
+
     IImageStoreSPtr getImageStore() const;
 
 private:
@@ -83,4 +87,6 @@ private:
     std::unordered_map<LandMarkType, std::vector<int>, EnumClassHash> m_landmarkIndexMapping;
 
     void verifyImageExists(const std::string & imageKey) const;
+
+    cv::Point getLandMark(const std::vector<cv::Point> & landmarks, LandMarkType type) const;
 };

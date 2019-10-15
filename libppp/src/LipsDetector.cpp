@@ -1,5 +1,4 @@
 #include "LipsDetector.h"
-#include "CommonHelpers.h"
 #include "LandMarks.h"
 #include "Utilities.h"
 

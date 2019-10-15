@@ -1,7 +1,5 @@
 #include "Utilities.h"
 
-#include <fstream>
-#include <mutex>
 #include <numeric>
 
 #include <base64_kernel_1.h>
@@ -17,7 +15,7 @@ namespace cv
 FWD_DECL(CascadeClassifier)
 }
 
-static uint8_t fromChar(char ch)
+static uint8_t fromChar(const char ch)
 {
     if (ch >= 'A' && ch <= 'Z')
     {
@@ -42,7 +40,7 @@ static uint8_t fromChar(char ch)
     throw std::runtime_error("Invalid character in base64 string");
 }
 
-std::vector<BYTE> Utilities::base64Decode(const char * base64Str, size_t base64Len)
+std::vector<BYTE> Utilities::base64Decode(const char * base64Str, const size_t base64Len)
 {
     BYTE charBlock4[4], byteBlock3[3];
     std::vector<BYTE> result;
@@ -83,18 +81,18 @@ std::vector<BYTE> Utilities::base64Decode(const char * base64Str, size_t base64L
     return result;
 }
 
-struct membuf : std::streambuf
+struct Membuf : std::streambuf
 {
-    membuf(char const * base, size_t size)
+    Membuf(char const * base, const size_t size)
     {
         char * p(const_cast<char *>(base));
         this->setg(p, p, p + size);
     }
 };
-struct imemstream : virtual membuf, std::istream
+struct Imemstream final : virtual Membuf, std::istream
 {
-    imemstream(char const * base, size_t size)
-    : membuf(base, size)
+    Imemstream(char const * base, const size_t size)
+    : Membuf(base, size)
     , std::istream(static_cast<std::streambuf *>(this))
     {
     }
@@ -155,14 +153,23 @@ std::string Utilities::base64Encode(const std::vector<BYTE> & rawStr)
     return result;
 }
 
-cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeBase64Data)
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeData)
 {
-    auto xmlHaarCascade = base64Decode(haarCascadeBase64Data, strlen(haarCascadeBase64Data));
+    static const std::string XML_START = "<?xml";
+    std::string xmlHaarCascadeStr;
+    if (std::equal(XML_START.begin(), XML_START.end(), haarCascadeData))
+    {
+        xmlHaarCascadeStr.assign(haarCascadeData);
+    }
+    else
+    {
+        auto a = base64Decode(haarCascadeData, strlen(haarCascadeData));
+        xmlHaarCascadeStr.assign(a.begin(), a.end());
+    }
     auto classifier = std::make_shared<cv::CascadeClassifier>();
-    const std::string s(xmlHaarCascade.begin(), xmlHaarCascade.end());
     try
     {
-        cv::FileStorage fs(s, cv::FileStorage::READ | cv::FileStorage::MEMORY);
+        cv::FileStorage fs(xmlHaarCascadeStr, cv::FileStorage::READ | cv::FileStorage::MEMORY);
         classifier->read(fs.getFirstTopLevelNode());
         if (classifier->empty())
         {
@@ -174,15 +181,6 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarC
     {
         throw e;
     }
-    // static std::mutex g_mutex;
-    // std::lock_guard<std::mutex> lg(g_mutex);
-    // std::string tmpFile = "cascade.xml";
-    //{
-    //    std::fstream oss(tmpFile, std::ios::out | std::ios::trunc);
-    //    oss.write(reinterpret_cast<char *>(xmlHaarCascade.data()), xmlHaarCascade.size());
-    //}
-    // classifier->load(tmpFile);
-    // return classifier;
 }
 
 uint32_t Utilities::crc32(uint32_t crc, const uint8_t * begin, const uint8_t * end)
@@ -217,7 +215,7 @@ uint32_t Utilities::crc32(uint32_t crc, const uint8_t * begin, const uint8_t * e
     return crc;
 }
 
-cv::Mat Utilities::rotateImage(const cv::Mat & inputImage, int rotationAngleDegrees)
+cv::Mat Utilities::rotateImage(const cv::Mat & inputImage, const int rotationAngleDegrees)
 {
     if (rotationAngleDegrees == 0)
         return inputImage;
@@ -241,7 +239,7 @@ cv::Mat Utilities::rotateImage(const cv::Mat & inputImage, int rotationAngleDegr
 should be initialized to all 1's, and the transmitted value
 is the 1's complement of the final running CRC (see the
 crc() routine below)). */
-uint32_t updateCrc(uint32_t crc, unsigned char * buf, size_t len)
+uint32_t updateCrc(uint32_t crc, const unsigned char * buf, const size_t len)
 {
     /* Table of CRCs of all 8-bit messages. */
     static uint32_t s_crcTable[256];
@@ -271,7 +269,7 @@ uint32_t updateCrc(uint32_t crc, unsigned char * buf, size_t len)
     return crc;
 }
 
-double Utilities::toMM(double v, const std::string & units)
+double Utilities::toMM(const double v, const std::string & units)
 {
     if (units == "mm")
     {
@@ -333,13 +331,13 @@ cv::Point2d Utilities::pointInLineAtDistance(cv::Point2d p0, cv::Point2d p1, dou
     return p0 + (p1 - p0) * ratio;
 }
 
-std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> contour,
+std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> & contour,
                                                             cv::Point2d pline1,
-                                                            cv::Point2d pline2)
+                                                            cv::Point2d p2Line)
 {
     std::vector<cv::Point2d> result;
-    const auto A2 = pline2.y - pline1.y;
-    const auto B2 = pline1.x - pline2.x;
+    const auto A2 = p2Line.y - pline1.y;
+    const auto B2 = pline1.x - p2Line.x;
     const auto C2 = A2 * pline1.x + B2 * pline1.y;
 
     const auto numVertex = contour.size();
@@ -439,16 +437,16 @@ int Utilities::kittlerOptimumThreshold(std::vector<double> P, float mu)
     return opt_threshold;
 }
 
-cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize)
+cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImage, const int kernelSize)
 {
     if (kernelSize < 3 || kernelSize % 2 == 0)
     {
         throw std::logic_error("Kernel size should be a positive odd number greater or equal to 3");
     }
 
-    auto halfsize = static_cast<int>(ceil(kernelSize / 2));
+    const auto halfsize = static_cast<int>(ceil(kernelSize / 2));
 
-    auto sigma = kernelSize / 5.0;
+    const auto sigma = kernelSize / 5.0;
 
     std::vector<double> kernel;
 
@@ -456,23 +454,23 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize
     {
         for (auto j = 0; j < kernelSize; j++)
         {
-            auto x_value = -halfsize + i;
-            auto y_value = -halfsize + j;
-            kernel.push_back(exp(-(static_cast<double>(x_value * x_value + y_value * y_value) / sigma)));
+            const auto xValue = -halfsize + i;
+            const auto yValue = -halfsize + j;
+            kernel.push_back(exp(-(static_cast<double>(xValue * xValue + yValue * yValue) / sigma)));
         }
     }
 
-    auto outputImg = cv::Mat(inputImg.size(), inputImg.type(), cv::Scalar::all(0));
+    auto outputImg = cv::Mat(inputImage.size(), inputImage.type(), cv::Scalar::all(0));
 
-    if (inputImg.channels() != 1)
+    if (inputImage.channels() != 1)
     {
         throw std::runtime_error("Image should be grayscale");
     }
 
-    auto height = inputImg.size().height;
-    auto width = inputImg.size().width;
+    const auto height = inputImage.size().height;
+    const auto width = inputImage.size().width;
 
-    auto windowSizeSqr = kernelSize * kernelSize;
+    const auto windowSizeSqr = kernelSize * kernelSize;
 
     std::vector<double> windowPixelData(windowSizeSqr);
     std::vector<double> wKernel(windowSizeSqr);
@@ -507,7 +505,7 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize
                     {
                         col = (2 * width) - col - 1;
                     }
-                    auto v = inputImg.at<uchar>(row, col);
+                    auto v = inputImage.at<uchar>(row, col);
                     windowPixelData[idx++] = v;
                     regionMean += v;
                 }
@@ -516,10 +514,10 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize
             regionMean /= windowSizeSqr;
 
             // SECOND LOOP: count number of pixels bigger/smaller than the mean
-            auto overMeanCnt = std::count_if(windowPixelData.begin(), windowPixelData.end(), [regionMean](double v) {
-                return v > regionMean;
-            });
-            auto underMeanCnt = windowSizeSqr - overMeanCnt;
+            const auto overMeanCnt = std::count_if(windowPixelData.begin(),
+                                                   windowPixelData.end(),
+                                                   [regionMean](double v) { return v > regionMean; });
+            const auto underMeanCnt = windowSizeSqr - overMeanCnt;
             auto above = overMeanCnt > underMeanCnt;
 
             // THIRD LOOP : update filter weights
@@ -529,7 +527,7 @@ cv::Mat Utilities::selfCoefficientImage(const cv::Mat & inputImg, int kernelSize
                            kernel.begin(),
                            wKernel.begin(),
                            [regionMean, above, &weightedKernelSum](double v, double kernelValue) {
-                               if ((v > regionMean && above == false) || (v < regionMean && above == true))
+                               if ((v > regionMean && !above) || (v < regionMean && above))
                                {
                                    return 0.0;
                                }
@@ -564,11 +562,6 @@ cv::Rect2d Utilities::convert(const dlib::rectangle & r)
     return cv::Rect2d(r.left(), r.top(), r.width(), r.height());
 }
 
-dlib::rectangle Utilities::convert(const cv::Rect2d & r)
-{
-    return dlib::rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
-}
-
 /*  The pHYs chunk specifies the intended pixel size or aspect ratio for display of the image. It contains:
     Pixels per unit, X axis: 4 bytes (unsigned integer)
     Pixels per unit, Y axis: 4 bytes (unsigned integer)
@@ -592,7 +585,7 @@ void Utilities::setPngResolutionDpi(std::vector<BYTE> & imageStream, double reso
     pHYsChunk.insert(pHYsChunk.end(), resolutionBytes.begin(), resolutionBytes.end());
     pHYsChunk.push_back(1); // Unit is the meter
 
-    auto crcBytes = toBytes(Utilities::crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
+    auto crcBytes = toBytes(crc32(0, &pHYsChunk[4], &pHYsChunk[4] + pHYsChunk.size() - 4));
     pHYsChunk.insert(pHYsChunk.end(), crcBytes.begin(), crcBytes.end());
 
     static const std::string idat = "IDAT";

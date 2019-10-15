@@ -23,12 +23,15 @@ struct LandMarks final
     cv::Rect vjFaceRect;
     cv::Point crownPoint;
     cv::Point chinPoint;
+
     std::vector<cv::Point> lipContour1st;
     std::vector<cv::Point> lipContour2nd;
 
-    std::vector<cv::Point> allLandmarks;
+    cv::Point noseTip;
+    cv::Point eyeLeftCorner;
+    cv::Point eyeRightCorner;
 
-    std::string toString() const;
+    std::vector<cv::Point> allLandmarks;
 
     std::string toJson() const;
 };

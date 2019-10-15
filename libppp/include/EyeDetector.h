@@ -3,13 +3,17 @@
 #include "IDetector.h"
 
 FWD_DECL(EyeDetector)
+namespace cv
+{
+FWD_DECL(CascadeClassifier)
+}
 
 class EyeDetector final : public IDetector
 {
 public:
     void configure(rapidjson::Value & cfg) override;
 
-    bool detectLandMarks(const cv::Mat & inputImage, LandMarks & landmarks) override;
+    bool detectLandMarks(const cv::Mat & grayImage, LandMarks & landMarks) override;
 
 private:
     cv::Mat m_leftCornerKernel;
@@ -23,10 +27,10 @@ private: // Configuration
     cv::CascadeClassifierSPtr m_rightEyeCascadeClassifier;
 
     // Definition of the search areas to locate pupils expressed as the ratios of the face rectangle
-    const double m_topFaceRatio = 0.28; ///<- Distance from the top of the face
-    const double m_sideFaceRatio = 0.13; ///<- Distance from the sides of the face rectangle
-    const double m_widthRatio = 0.35; ///<- ROI width ratio with respect to head size
-    const double m_heightRatio = 0.25; ///<- ROI height ratio with respect to head size
+    static constexpr double m_topFaceRatio = 0.28; ///<- Distance from the top of the face
+    static constexpr double m_sideFaceRatio = 0.13; ///<- Distance from the sides of the face rectangle
+    static constexpr double m_widthRatio = 0.35; ///<- ROI width ratio with respect to head size
+    static constexpr double m_heightRatio = 0.25; ///<- ROI height ratio with respect to head size
 
     // Preprocessing
     const bool m_smoothFaceImage = false;
@@ -46,7 +50,7 @@ private: // Configuration
 private:
     static void validateAndApplyFallbackIfRequired(const cv::Size & eyeRoiSize, cv::Point & eyeCenter);
 
-    static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat & img, cv::CascadeClassifier * cc);
+    static cv::Rect detectWithHaarCascadeClassifier(const cv::Mat & image, cv::CascadeClassifier * cc);
 
     cv::Point findEyeCenter(const cv::Mat & image) const;
 

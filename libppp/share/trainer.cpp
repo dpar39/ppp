@@ -20,6 +20,7 @@
 #include <dlib/image_processing.h>
 #include <iostream>
 #include <rapidjson/document.h>
+#include <unordered_set>
 
 using namespace dlib;
 using namespace std;
@@ -36,7 +37,30 @@ std::vector<std::vector<double>> get_interocular_distances(
 !*/
 
 // ----------------------------------------------------------------------------------------
+
 std::set<int> g_removedLandmarksIndices;
+
+void remove_landmarks(std::vector<std::vector<full_object_detection>> & facesTrain)
+{
+    unordered_set<int> ignoredLandmarks(g_removedLandmarksIndices.begin(), g_removedLandmarksIndices.end());
+    auto selectedParts = std::vector<full_object_detection>();
+
+    for (auto & input : facesTrain)
+    {
+        for (auto & p : input)
+        {
+            const auto n = p.num_parts();
+            std::vector<point> parts;
+            for (auto j = 0; j < n; ++j)
+            {
+                if (ignoredLandmarks.count(j + 1) > 0) // skip this landmark
+                    continue;
+                parts.push_back(p.part(j));
+            }
+            p = full_object_detection { p.get_rect(), parts };
+        }
+    }
+}
 
 int main(int argc, char ** argv)
 {
@@ -52,7 +76,7 @@ int main(int argc, char ** argv)
         {
             facesDirectory = "E:/Data/ibug_300W_large_face_landmark_dataset";
             configJsonFilePath = thisDir + "/config.json";
-            outModelFilePath = thisDir + "/sp_model.dat";
+            outModelFilePath = thisDir + "/sp_model_new.dat";
         }
         else if (argc == 4)
         {
@@ -71,11 +95,13 @@ int main(int argc, char ** argv)
         cout << "   facesDirectory: " << facesDirectory << endl;
         cout << "   configJsonFilePath: " << configJsonFilePath << endl;
         cout << "   outModelFilePath: " << outModelFilePath << endl;
-
-        std::ifstream fs(configJsonFilePath, std::ios_base::in);
-        const std::string configString((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
         rapidjson::Document config;
-        config.Parse(configString.c_str());
+
+        {
+            std::ifstream fs(configJsonFilePath, std::ios_base::in);
+            const std::string configString((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
+            config.Parse(configString.c_str());
+        }
 
         auto array = config["shapePredictor"]["missingPoints"].GetArray();
         g_removedLandmarksIndices.clear();
@@ -117,11 +143,17 @@ int main(int argc, char ** argv)
         // tool which can be found in the tools/imglab folder.  It is a simple
         // graphical tool for labeling objects in images.  To see how to use it
         // read the tools/imglab/README.txt file.
+
         cout << "Loading training dataset ... please wait ..." << endl;
-        load_image_dataset(imagesTrain, facesTrain, facesDirectory + "/labels_ibug_300W_train.xml");
+        load_image_dataset(imagesTrain, facesTrain, facesDirectory + "/labels_ibug_300W_train.orig.xml");
+        // load_image_dataset(imagesTrain, facesTrain, facesDirectory + "/a.xml"); // testing
+        remove_landmarks(facesTrain);
+
         cout << "Loading testing dataset ... please wait ..." << endl;
-        load_image_dataset(imagesTest, facesTest, facesDirectory + "/labels_ibug_300W_test.xml");
-        cout << "Datasets loaded. Starting to train the model ... please wait ..." << endl;
+        load_image_dataset(imagesTest, facesTest, facesDirectory + "/labels_ibug_300W_test.orig.xml");
+        remove_landmarks(facesTest);
+
+        cout << "Dataset loaded. Starting to train the model ... please wait ..." << endl;
 
         // Now make the object responsible for training the model.
         shape_predictor_trainer trainer;

@@ -11,6 +11,7 @@
 #include "Utilities.h"
 
 #include <dlib/image_processing/shape_predictor.h>
+#include <dlib/image_transforms/assign_image.h>
 #include <dlib/opencv/cv_image.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -32,18 +33,18 @@ PppEngine::PppEngine(const IDetectorSPtr & pFaceDetector,
 {
 }
 
-struct membuf : std::streambuf
+struct Membuf : std::streambuf
 {
-    membuf(char const * base, const size_t size)
+    Membuf(char const * base, const size_t size)
     {
         char * p(const_cast<char *>(base));
         this->setg(p, p, p + size);
     }
 };
-struct imemstream : virtual membuf, std::istream
+struct Imemstream : virtual Membuf, std::istream
 {
-    imemstream(char const * base, const size_t size)
-    : membuf(base, size)
+    Imemstream(char const * base, const size_t size)
+    : Membuf(base, size)
     , std::istream(static_cast<std::streambuf *>(this))
     {
     }
@@ -79,8 +80,9 @@ bool PppEngine::configure(const std::string & configString)
         else
         {
             const auto shapePredictorFileContent = shapePredictor["data"].GetString();
-            auto spData = Utilities::base64Decode(shapePredictorFileContent, strlen(shapePredictorFileContent));
-            imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
+            const auto shapePredictorFileContentLen = shapePredictor["data"].GetStringLength();
+            auto spData = Utilities::base64Decode(shapePredictorFileContent, shapePredictorFileContentLen);
+            Imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
             deserialize(*m_shapePredictor, stream);
         }
 
@@ -92,13 +94,14 @@ bool PppEngine::configure(const std::string & configString)
             missingLandMarks.insert(array[i].GetInt());
         }
 
-        m_landmarkIndexMapping = {
-            { LandMarkType::EYE_LEFT_PUPIL, std::vector<int> { 38, 39, 41, 42 } },
-            { LandMarkType::EYE_RIGHT_PUPIL, std::vector<int> { 44, 45, 47, 48 } },
-            { LandMarkType::LIPS_LEFT_CORNER, std::vector<int> { 49 } },
-            { LandMarkType::LIPS_RIGHT_CORNER, std::vector<int> { 55 } },
-            { LandMarkType::CHIN_LOWEST_POINT, std::vector<int> { 9 } },
-        };
+        m_landmarkIndexMapping = { { LandMarkType::EYE_PUPIL_CENTER_LEFT, std::vector<int> { 38, 39, 41, 42 } },
+                                   { LandMarkType::EYE_PUPIL_CENTER_RIGHT, std::vector<int> { 44, 45, 47, 48 } },
+                                   { LandMarkType::MOUTH_CORNER_LEFT, std::vector<int> { 49 } },
+                                   { LandMarkType::MOUTH_CORNER_RIGHT, std::vector<int> { 55 } },
+                                   { LandMarkType::CHIN_LOWEST_POINT, std::vector<int> { 9 } },
+                                   { LandMarkType::NOSE_TIP_POINT, std::vector<int> { 34 } },
+                                   { LandMarkType::EYE_OUTER_CORNER_LEFT, std::vector<int> { 37 } },
+                                   { LandMarkType::EYE_OUTER_CORNER_RIGHT, std::vector<int> { 46 } } };
 
         for (auto & kv : m_landmarkIndexMapping)
         {
@@ -159,34 +162,47 @@ bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) 
         }
         array2d<bgr_pixel> dlibImage;
         assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
-        const auto faceRect = Utilities::convert(landMarks.vjFaceRect);
+
+        const auto & r = landMarks.vjFaceRect;
+        const auto faceRect = rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
         auto shape = (*m_shapePredictor)(dlibImage, faceRect);
 
-        landMarks.vjFaceRect = Utilities::convert(faceRect);
-
-        landMarks.lipLeftCorner = getLandMark(shape, LandMarkType::LIPS_LEFT_CORNER);
-        landMarks.lipRightCorner = getLandMark(shape, LandMarkType::LIPS_RIGHT_CORNER);
-        landMarks.eyeLeftPupil = getLandMark(shape, LandMarkType::EYE_LEFT_PUPIL);
-        landMarks.eyeRightPupil = getLandMark(shape, LandMarkType::EYE_RIGHT_PUPIL);
-        landMarks.chinPoint = getLandMark(shape, LandMarkType::CHIN_LOWEST_POINT);
-
-        for (size_t i = 0; i < shape.num_parts(); ++i)
+        const auto numParts = shape.num_parts();
+        landMarks.allLandmarks.clear();
+        landMarks.allLandmarks.reserve(numParts);
+        for (size_t i = 0; i < numParts; ++i)
         {
-            landMarks.allLandmarks.push_back(Utilities::convert(shape.part(i)));
+            auto & part = shape.part(i);
+            landMarks.allLandmarks.emplace_back(part.x(), part.y());
         }
+
+        const auto & lms = landMarks.allLandmarks;
+        landMarks.lipLeftCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_LEFT);
+        landMarks.lipRightCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_RIGHT);
+        landMarks.eyeLeftPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_LEFT);
+        landMarks.eyeRightPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_RIGHT);
+        landMarks.chinPoint = getLandMark(lms, LandMarkType::CHIN_LOWEST_POINT);
+        landMarks.noseTip = getLandMark(lms, LandMarkType::NOSE_TIP_POINT);
+        landMarks.eyeLeftCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_LEFT);
+        landMarks.eyeRightCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_RIGHT);
     }
 
     // Estimate chin and crown point (maths from existing landmarks)
     return m_pCrownChinEstimator->estimateCrownChin(landMarks);
 }
 
-cv::Point PppEngine::getLandMark(const dlib::full_object_detection & shape, LandMarkType type) const
+cv::Point PppEngine::getLandMark(const std::vector<cv::Point> & landmarks, const LandMarkType type) const
 {
     const auto & indices = m_landmarkIndexMapping.at(type);
+    if (indices.size() == 1)
+    {
+        return landmarks[indices.front()];
+    }
+
     cv::Point result;
     for (const auto & idx : indices)
     {
-        result += Utilities::convert(shape.part(idx));
+        result += landmarks[idx];
     }
     result = result / static_cast<int>(indices.size());
     return result;

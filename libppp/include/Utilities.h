@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <opencv2/core/core.hpp>
-#include <utility>
 
 #include "CommonHelpers.h"
 #include <dlib/geometry/point_transforms.h>
@@ -32,12 +31,10 @@ class Utilities final
 {
 public:
     /*!@brief Loads a cascade classifier from file
-    *  @param[in] haarCascadeBase64Data Haar cascade XML data encoded as a base64 string
+    *  @param[in] haarCascadeData Haar cascade XML data possibly encoded as a base64 string
     *  @returns The classifier loaded into memory
     !*/
-    // static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromFile(const std::string &haarCascadeDir, const
-    // std::string &haarCascadeFile);
-    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const char * haarCascadeBase64Data);
+    static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const char * haarCascadeData);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/
     static uint32_t crc32(uint32_t crc, const uint8_t * begin, const uint8_t * end);
@@ -66,13 +63,13 @@ public:
 
     /*!@brief Calculates the intersection points between a line and a contour
     *  @param[in] contour vector of 2D points
-    *  @param[in] pline1 First point defining the line
-    *  @param[in] pline2 Second point defining the line
+    *  @param[in] p1Line First point defining the line
+    *  @param[in] p2Line Second point defining the line
     *  @returns Vector of intersection point between the contour and the line
     !*/
-    static std::vector<cv::Point2d> contourLineIntersection(const std::vector<cv::Point> contour,
-                                                            cv::Point2d pline1,
-                                                            cv::Point2d pline2);
+    static std::vector<cv::Point2d> contourLineIntersection(const std::vector<cv::Point> & contour,
+                                                            cv::Point2d p1Line,
+                                                            cv::Point2d p2Line);
 
     /**
      * \brief Not being used so far
@@ -89,8 +86,6 @@ public:
     static cv::Point convert(const dlib::point & pt);
 
     static cv::Rect2d convert(const dlib::rectangle & r);
-
-    static dlib::rectangle convert(const cv::Rect2d & r);
 
     /**
      * \brief Serializes a JSON document to std::string

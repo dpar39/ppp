@@ -2,6 +2,11 @@
 
 #include "IDetector.h"
 
+namespace cv
+{
+FWD_DECL(CascadeClassifier)
+}
+
 class LipsDetector final : public IDetector
 {
 public:

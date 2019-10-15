@@ -2,7 +2,6 @@
 #include "LandMarks.h"
 #include <iostream>
 #include <opencv2/calib3d.hpp>
-#include <opencv2/highgui.hpp>
 
 void FacePoseEstimator::configure()
 {

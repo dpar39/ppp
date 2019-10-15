@@ -2,7 +2,6 @@
 #include "Utilities.h"
 #include <rapidjson/document.h>
 
-
 rapidjson::Value pointToJson(const cv::Point & p, rapidjson::Document::AllocatorType & alloc)
 {
     rapidjson::Value obj(rapidjson::kObjectType);
@@ -19,14 +18,6 @@ rapidjson::Value rectangleToJson(const cv::Rect & r, rapidjson::Document::Alloca
     obj.AddMember("width", r.width, alloc);
     obj.AddMember("height", r.height, alloc);
     return obj;
-}
-
-std::string LandMarks::toString() const
-{
-    std::stringstream ss;
-    ss << eyeLeftPupil << eyeRightPupil << vjLeftEyeRect << vjRightEyeRect;
-
-    return ss.str();
 }
 
 std::string LandMarks::toJson() const

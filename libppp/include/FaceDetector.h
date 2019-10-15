@@ -1,13 +1,15 @@
 #pragma once
 
 #include "IDetector.h"
-#include <memory>
-
 #include <dlib/image_processing/frontal_face_detector.h>
 
 struct LandMarks;
 
 FWD_DECL(FaceDetector)
+namespace cv
+{
+FWD_DECL(CascadeClassifier)
+}
 
 class FaceDetector final : public IDetector
 {
@@ -19,7 +21,7 @@ public:
 private:
     cv::CascadeClassifierSPtr m_pFaceCascadeClassifier;
 
-    bool m_useDlibFaceDetection;
+    bool m_useDlibFaceDetection { false };
 
     void calculateScaleSearch(const cv::Size & inputImageSize,
                               double minFaceRatio,

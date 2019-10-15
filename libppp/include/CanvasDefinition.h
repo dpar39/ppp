@@ -1,9 +1,8 @@
 #pragma once
-#include <memory>
-#include <rapidjson/document.h>
-#include <string>
 
 #include "CommonHelpers.h"
+#include <rapidjson/document.h>
+#include <string>
 
 class PhotoStandard;
 namespace cv

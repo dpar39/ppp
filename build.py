@@ -174,7 +174,7 @@ class Builder(object):
 
     def webapp_path(self, rel_path=''):
         """
-        Returns the absolute path of the webapp directory (depending on wheter we using NodeJs or .Net Core server)
+        Returns the absolute path of the webapp directory (depending on whether we using NodeJs or .Net Core server)
         """
         if not rel_path:
             return os.path.join(self._root_dir, 'webapp')
@@ -671,11 +671,18 @@ class Builder(object):
             if not isinstance(node, dict):
                 return
             for key in node:
-                if key == 'file' and not node.get('data', '') and node.get('embed', True):
+                embed = node.get('embed', False)
+                if key == 'file' and not node.get('data', '') and embed:
                     file_name = node['file']
                     file_path = os.path.join(lippp_share_dir, file_name)
-                    with open(file_path, 'rb') as fp:
-                        content = base64.b64encode(fp.read()).decode('ascii')
+                    content = ''
+                    if embed == 'base64':
+                        with open(file_path, 'rb') as fp:
+                            data = fp.read()
+                            content = base64.b64encode(data).decode('ascii')
+                    elif embed == 'text':
+                        with open(file_path, 'r') as fp:
+                            content = fp.read()
                     node['data'] = content
                 else:
                     expand_node(node[key])
