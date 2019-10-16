@@ -21,13 +21,6 @@ try:  # For Python 3.0 and later
 except ImportError:   # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
-# Configuration
-EMSDK_VERSION_NUMBER = '1.38.24'
-EMSDK_VERSION_NAME = 'sdk-' + EMSDK_VERSION_NUMBER + '-64bit'
-OPENCV_SRC_URL = 'https://github.com/opencv/opencv/archive/4.0.1.zip'
-DLIB_SRC_URL = 'http://dlib.net/files/dlib-19.18.zip'
-GMOCK_SRC_URL = 'https://github.com/google/googletest/archive/release-1.8.1.zip'
-
 IS_WINDOWS = sys.platform == 'win32'
 if sys.platform == 'win32':
     PLATFORM = 'windows'
@@ -246,7 +239,7 @@ class Builder(object):
         if os.path.isfile(os.path.join(self._third_party_install_dir, 'lib/cmake/GTest/GTestConfig.cmake')):
             return  # We have Gtest installed
         # Download googletest sources if not done yet
-        gmock_src_pkg = self.download_third_party_lib(GMOCK_SRC_URL, 'googletest.zip')
+        gmock_src_pkg = self.download_third_party_lib(self.gmock_src_url, 'googletest.zip')
         # Get the file prefix for googletest
         gmock_extract_dir = self.get_third_party_lib_dir('googletest')
         if gmock_extract_dir is None:
@@ -285,7 +278,7 @@ class Builder(object):
             if len(lib_files) >= len(ocv_build_modules):
                 return
         # Download OpenCV sources if not done yet
-        opencv_src_pkg = self.download_third_party_lib(OPENCV_SRC_URL)
+        opencv_src_pkg = self.download_third_party_lib(self.opencv_src_url)
         # Get the file prefix for OpenCV
         opencv_extract_dir = self.get_third_party_lib_dir('opencv-')
 
@@ -341,7 +334,10 @@ class Builder(object):
                 '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui'
             ]
             if IS_WINDOWS:
-                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=ON', '-DUSE_MSVC_SSE=OFF']
+                cmake_extra_defs += [
+                    '-DBUILD_WITH_STATIC_CRT=ON',
+                    #  '-DUSE_MSVC_SSE=OFF'
+                ]
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)
@@ -419,15 +415,14 @@ class Builder(object):
             os.mkdir(build_dir)
 
         if self._emscripten:
-            emscripten_path = self._shell.get_env_var('EMSCRIPTEN')
-            if not emscripten_path:
-                print('EMSCRIPTEN is not set, exiting ...')
+            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/fastcomp/emscripten')
+            if not os.path.isdir(emscripten_path):
+                print(emscripten_path + ' does NOT exist, exiting ...')
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
-            cmake_toolchain = os.path.join(
-                cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
+            cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
 
-            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0'
+            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0 -s WASM=1'  # -msimd128
             extra_definitions += [
                 '-DEMSCRIPTEN=1', '-DCMAKE_TOOLCHAIN_FILE=' +
                 cmake_toolchain.replace('\\', '/'),
@@ -566,13 +561,15 @@ class Builder(object):
         emsdk_dir = os.path.join(self._third_party_dir, 'emsdk')
         emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
 
+        emsdk_version_number = str(self.emsdk_version_number)
+        emsdk_version_name = 'sdk-' + emsdk_version_number + '-64bit'
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
             os.chdir(emsdk_dir)
-            self.run_cmd(emsdk_cmd + ' install ' + EMSDK_VERSION_NAME)
+            self.run_cmd(emsdk_cmd + ' install ' + emsdk_version_name)
         os.chdir(emsdk_dir)
-        self.run_cmd(emsdk_cmd + ' activate ' + EMSDK_VERSION_NAME)
+        self.run_cmd(emsdk_cmd + ' activate ' + emsdk_version_name)
         process = subprocess.Popen(['python', 'emsdk.py', 'construct_env'], stdout=subprocess.PIPE)
         (output, _) = process.communicate()
         exit_code = process.wait()
@@ -604,12 +601,14 @@ class Builder(object):
             'ASSERTIONS': 2,
             'ALLOW_MEMORY_GROWTH': 1,
             'DISABLE_EXCEPTION_CATCHING': 0,
-            'TOTAL_MEMORY': 268435456  # 268MB is too much?
+            'TOTAL_MEMORY': (268435456 / 2),  # 268MB is too much?
+            'WASM': 1,
+            'SIDE_MODULE': 1
         }
 
         settings_file = None
-        for p in ['emscripten', 'fastcomp/emscripten']:
-            candidate = os.path.join(emsdk_dir, p, EMSDK_VERSION_NUMBER, 'src', 'settings.js')
+        for p in ['fastcomp/emscripten', 'emscripten/' + emsdk_version_number, 'fastcomp/emscripten/' + emsdk_version_number]:
+            candidate = os.path.join(emsdk_dir, p, 'src', 'settings.js')
             if os.path.isfile(candidate):
                 settings_file = candidate
                 break
@@ -780,9 +779,29 @@ class Builder(object):
             self.run_cmd('npm install --no-optional')
             os.chdir(self._root_dir)
 
+    def load_third_party_config(self):
+        # Configuration
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        third_party_config = os.path.join(this_dir, 'thirdparty/thirdparty.json')
+        with open(third_party_config) as fp:
+            config = json.load(fp)
+
+        self.emsdk_version_number = config.get('EMSDK_VERSION_NUMBER', '1.38.46')
+        self.emsdk_version_name = 'sdk-' + self.emsdk_version_number + '-64bit'
+        self.opencv_src_url = config.get('OPENCV_SRC_URL', 'https://github.com/opencv/opencv/archive/4.1.1.zip')
+        self.dlib_src_url = config.get('DLIB_SRC_URL', 'http://dlib.net/files/dlib-19.18.zip')
+        self.gmock_src_url = config.get('GMOCK_SRC_URL', 'https://github.com/google/googletest/archive/release-1.8.1.zip')
+
     def __init__(self):
+        # Load 3rd party config
+        self.load_third_party_config()
+
         # Detect OS version
         self.parse_arguments()
+
+        # Setup Emscripten tools
+        if self._emscripten:
+            self.setup_emscripten()
 
         # Setup web app tools
         if self._web_build:
@@ -791,10 +810,6 @@ class Builder(object):
         # Setup android tools
         if self._android_build:
             self.setup_android()
-
-        # Setup Emscripten tools
-        if self._emscripten:
-            self.setup_emscripten()
 
         # Create install directory if it doesn't exist
         if not os.path.exists(self._install_dir):

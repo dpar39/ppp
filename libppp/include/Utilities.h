@@ -92,7 +92,7 @@ public:
      * \param d Json document to serialize
      * \return the serialized string for the Json document
      */
-    static std::string serializeJson(rapidjson::Document & d);
+    static std::string serializeJson(rapidjson::Document & d, bool pretty);
 
     static void setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm);
 

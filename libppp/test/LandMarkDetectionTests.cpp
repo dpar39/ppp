@@ -161,7 +161,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         const auto expectedDistance = norm(annotations.chinPoint - annotations.crownPoint);
         const auto actualDistance = norm(detectedLandMarks.chinPoint - detectedLandMarks.crownPoint);
 
-        const auto maxError = (36.0 - 32.0) / 34.0;
+        constexpr auto maxError = (36.0 - 32.0) / 34.0;
         const auto relError = abs(expectedDistance - actualDistance) / expectedDistance;
         const auto accepted = relError < maxError;
 
@@ -205,43 +205,19 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
 
 TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 {
-    const auto imageFileName = resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg");
-    auto inputImage = imread(imageFileName);
+    using namespace std;
+    const string imageFileName = "012_frontal.jpg";
+    const auto imageFilePath = resolvePath("research/mugshot_frontal_original_all/" + imageFileName);
 
     LandMarks detectedLandMarks;
 
-    const auto imgKey = m_pPppEngine->getImageStore()->setImage(imageFileName);
+    const auto imgKey = m_pPppEngine->getImageStore()->setImage(imageFilePath);
+    auto inputImage = m_pPppEngine->getImageStore()->getImage(imgKey);
     const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
 
     EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
 
     using namespace cv;
 
-    if (true)
-    {
-        const Scalar detectionColor(250, 30, 0);
-        rectangle(inputImage, detectedLandMarks.vjFaceRect, Scalar(0, 128, 0), 2);
-        rectangle(inputImage, detectedLandMarks.vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
-        rectangle(inputImage, detectedLandMarks.vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
-
-        polylines(inputImage,
-                  std::vector<std::vector<Point>> { detectedLandMarks.lipContour1st, detectedLandMarks.lipContour2nd },
-                  true,
-                  detectionColor);
-        rectangle(inputImage, detectedLandMarks.vjMouthRect, Scalar(0xA0, 0x52, 0x2D), 3);
-
-        circle(inputImage, detectedLandMarks.eyeLeftPupil, 5, detectionColor, 2);
-        circle(inputImage, detectedLandMarks.eyeRightPupil, 5, detectionColor, 2);
-
-        circle(inputImage, detectedLandMarks.lipLeftCorner, 5, detectionColor, 2);
-        circle(inputImage, detectedLandMarks.lipRightCorner, 5, detectionColor, 2);
-
-        circle(inputImage, detectedLandMarks.crownPoint, 5, detectionColor, 2);
-        circle(inputImage, detectedLandMarks.chinPoint, 5, detectionColor, 2);
-
-        for (const auto & pt : detectedLandMarks.allLandmarks)
-        {
-            circle(inputImage, pt, 5, Scalar(40, 40, 190), 1);
-        }
-    }
+    renderLandmarksOnImage(inputImage, detectedLandMarks);
 }

@@ -1,6 +1,5 @@
 #include "FacePoseEstimator.h"
 #include "LandMarks.h"
-#include <iostream>
 #include <opencv2/calib3d.hpp>
 
 void FacePoseEstimator::configure()
@@ -14,22 +13,22 @@ void FacePoseEstimator::configure()
     m_modelPoints.emplace_back(150.0f, -150.0f, -125.0f); // Right mouth corner
 }
 
-void FacePoseEstimator::estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) const
+void FacePoseEstimator::estimatePose(const LandMarks & landMarks,
+                                     const double focalLength,
+                                     const cv::Point2d focalCenter) const
 {
     using cv::Point2d;
     using cv::Point3d;
 
     // 2D image points. If you change the image, you need to change vector
-    std::vector<cv::Point2d> image_points;
-
-    // landMarks.allLandmarks[];
-
-    image_points.emplace_back(359, 391); // Nose tip
-    image_points.emplace_back(399, 561); // Chin
-    image_points.emplace_back(337, 297); // Left eye left corner
-    image_points.emplace_back(513, 301); // Right eye right corner
-    image_points.emplace_back(345, 465); // Left Mouth corner
-    image_points.emplace_back(453, 469); // Right mouth corner
+    const std::vector<Point2d> imagePoints {
+        landMarks.noseTip, // Nose tip
+        landMarks.chinPoint, // Chin
+        landMarks.eyeLeftCorner, // Left eye left corner
+        landMarks.eyeRightCorner, // Right eye right corner
+        landMarks.lipLeftCorner, // Left Mouth corner
+        landMarks.lipRightCorner // Right mouth corner
+    };
 
     // 3D model points.
 
@@ -46,5 +45,5 @@ void FacePoseEstimator::estimatePose(const LandMarks & landMarks, double focalLe
     cv::Mat translationVector;
 
     // Solve for pose
-    cv::solvePnP(m_modelPoints, image_points, cameraMatrix, distCoeffs, rotationVector, translationVector);
+    cv::solvePnP(m_modelPoints, imagePoints, cameraMatrix, distCoeffs, rotationVector, translationVector);
 }

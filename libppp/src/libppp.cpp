@@ -62,7 +62,7 @@ std::string PublicPppEngine::setImage(const char * bufferData, const size_t buff
         d.AddMember("EXIFInfo", exifInfo->populate(alloc), alloc);
     }
 
-    return Utilities::serializeJson(d);
+    return Utilities::serializeJson(d, false);
 }
 
 std::string PublicPppEngine::getImage(const std::string & imageKey) const
@@ -80,7 +80,7 @@ std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const
 {
     LandMarks landMarks;
     m_pPppEngine->detectLandMarks(imageId, landMarks);
-    return landMarks.toJson();
+    return landMarks.toJson(false);
 }
 
 std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const std::string & request) const

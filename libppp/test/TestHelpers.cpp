@@ -6,6 +6,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ImageStore.h"
+#include "PppEngine.h"
 #include "TestHelpers.h"
 #include <map>
 
@@ -290,6 +291,77 @@ void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnot
 
     std::cout << "Chin-crown normalization: " << median(c1) << std::endl;
     std::cout << "Chin-frown normalization: " << median(c2) << std::endl;
+}
+
+std::string getLandMarkFileFor(const std::string & imageFilePath)
+{
+    const auto lastPathSep = imageFilePath.find_last_of("/\\");
+    const auto imageFileName = lastPathSep != std::string::npos ? imageFilePath.substr(lastPathSep + 1) : imageFilePath;
+    const auto testDataDir = resolvePath("libppp/test/data");
+    return testDataDir + "/" + imageFileName + ".json";
+}
+
+void persistLandmarks(const std::string & imageFilePath, const LandMarks & detectedLandmarks)
+{
+    const auto landmarksFilePath = getLandMarkFileFor(imageFilePath);
+    std::ofstream lmf(landmarksFilePath);
+    lmf << detectedLandmarks.toJson(true);
+}
+
+void loadLandmarks(const std::string & imageFilePath, LandMarks & detectedLandmarks)
+{
+    using namespace std;
+    const auto landmarksFilePath = getLandMarkFileFor(imageFilePath);
+    std::ifstream fs(landmarksFilePath);
+    if (fs.good())
+    {
+        // Deserialize previously computed landmarks
+        rapidjson::Document d;
+        const auto lms = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
+        d.Parse(lms.c_str());
+        detectedLandmarks.fromJson(d);
+    }
+    else
+    {
+        // Compute new landmarks
+        static auto configured = false;
+        static PppEngine engine;
+        if (!configured)
+        {
+            std::string configString;
+            readConfigFromFile("", configString);
+            configured = engine.configure(configString);
+        }
+        const auto imgKey = engine.getImageStore()->setImage(imageFilePath);
+        engine.detectLandMarks(imgKey, detectedLandmarks);
+        persistLandmarks(imageFilePath, detectedLandmarks);
+    }
+}
+
+void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm)
+{
+    using namespace cv;
+    const Scalar detectionColor(250, 30, 0);
+    rectangle(image, lm.vjFaceRect, Scalar(0, 128, 0), 2);
+    rectangle(image, lm.vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
+    rectangle(image, lm.vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
+
+    polylines(image, std::vector<std::vector<Point>> { lm.lipContour1st, lm.lipContour2nd }, true, detectionColor);
+    rectangle(image, lm.vjMouthRect, Scalar(0xA0, 0x52, 0x2D), 3);
+
+    circle(image, lm.eyeLeftPupil, 5, detectionColor, 2);
+    circle(image, lm.eyeRightPupil, 5, detectionColor, 2);
+
+    circle(image, lm.lipLeftCorner, 5, detectionColor, 2);
+    circle(image, lm.lipRightCorner, 5, detectionColor, 2);
+
+    circle(image, lm.crownPoint, 5, detectionColor, 2);
+    circle(image, lm.chinPoint, 5, detectionColor, 2);
+
+    for (const auto & pt : lm.allLandmarks)
+    {
+        circle(image, pt, 5, Scalar(40, 40, 190), 1);
+    }
 }
 
 TEST(Research, ModelCoefficientsCalculation)

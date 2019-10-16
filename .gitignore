@@ -6,7 +6,13 @@
 /build_*
 /install_*
 
-/thirdparty
+/thirdparty/install_*
+/thirdparty/googletest-*
+/thirdparty/opencv-*
+/thirdparty/*.zip
+/thirdparty/emsdk
+/thirdparty/sdk-*
+
 /node_modules
 /research/*.asv
 

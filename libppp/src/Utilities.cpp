@@ -7,6 +7,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
+#include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
@@ -612,10 +613,18 @@ std::string Utilities::encodeImageAsPng(const cv::Mat & image, const bool encode
     return std::string(pictureData.begin(), pictureData.end());
 }
 
-std::string Utilities::serializeJson(rapidjson::Document & d)
+std::string Utilities::serializeJson(rapidjson::Document & d, bool pretty)
 {
     rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    d.Accept(writer);
+    if (pretty)
+    {
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        d.Accept(writer);
+    }
+    else
+    {
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        d.Accept(writer);
+    }
     return std::string(buffer.GetString());
 }

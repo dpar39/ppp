@@ -99,7 +99,7 @@ TEST_F(ImageStoreTests, ImageExifDataRetrieval)
     ASSERT_TRUE(static_cast<bool>(imgExif1));
 
     // Serialize to JSON string
-    const auto json = imgExif1->toJson();
+    const auto json = imgExif1->toJson(false);
 
     EXPECT_NE(json.find("EXIFInfo"), std::string::npos);
     EXPECT_NE(json.find("Orientation"), std::string::npos);

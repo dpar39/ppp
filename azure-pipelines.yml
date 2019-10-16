@@ -20,7 +20,7 @@ stages:
           path: webapp/node_modules
       - task: CacheBeta@0
         inputs:
-          key: emscripten | $(Agent.OS)
+          key: emscripten | $(Agent.OS) | thirdparty/thirdparty.json
           path: thirdparty/install_emscripten
       - task: CacheBeta@0
         inputs:
@@ -28,7 +28,7 @@ stages:
           path:  research/mugshot_frontal_original_all
       - task: CacheBeta@0
         inputs:
-          key: install_windows_release_x64
+          key: install_windows_release_x64 | thirdparty/thirdparty.json
           path: thirdparty/install_windows_release_x64
       - script: python build.py --test
       - script: python build.py --web --test

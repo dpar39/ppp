@@ -1102,12 +1102,12 @@ rapidjson::Value easyexif::EXIFInfo::populate(rapidjson::Document::AllocatorType
     return obj;
 }
 
-std::string easyexif::EXIFInfo::toJson() const
+std::string easyexif::EXIFInfo::toJson(const bool prettyJson) const
 {
     using namespace rapidjson;
     Document d;
     d.SetObject();
     auto & alloc = d.GetAllocator();
     d.AddMember("EXIFInfo", populate(alloc), alloc);
-    return Utilities::serializeJson(d);
+    return Utilities::serializeJson(d, prettyJson);
 }

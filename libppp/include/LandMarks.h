@@ -1,6 +1,7 @@
 #pragma once
 
 #include <opencv2/core/core.hpp>
+#include <rapidjson/document.h>
 
 struct LandMarks final
 {
@@ -33,5 +34,6 @@ struct LandMarks final
 
     std::vector<cv::Point> allLandmarks;
 
-    std::string toJson() const;
+    std::string toJson(bool prettyJson) const;
+    void fromJson(const rapidjson::Value & v);
 };

@@ -2,8 +2,10 @@
 
 #include "CommonHelpers.h"
 #include "LandMarks.h"
+
+#include <opencv2/core/core.hpp>
+
 #include <functional>
-#include <rapidjson/document.h>
 #include <utility>
 
 FWD_DECL(IImageStore)
@@ -13,7 +15,7 @@ using DetectionCallback = std::function<std::pair<bool, cv::Mat>(const std::stri
 
 struct ResultData final
 {
-    ResultData(std::string imgName, LandMarks annotated, LandMarks detected, const bool isSuccess)
+    ResultData(std::string imgName, LandMarks annotated, LandMarks detected, bool isSuccess)
     : imageName(std::move(imgName))
     , annotation(std::move(annotated))
     , detection(std::move(detected))
@@ -26,9 +28,6 @@ struct ResultData final
     LandMarks detection;
     bool isSuccess;
 };
-
-#define IN_ROI(r, p)                                                                                                   \
-    (((p).x > (r).x) && ((p).x < ((r).x + (r).width)) && ((p).y > (r).y) && ((p).y < ((r).y + (r).height)))
 
 std::string resolvePath(const std::string & relPath);
 
@@ -50,6 +49,10 @@ void processDatabase(const DetectionCallback & callback,
                      std::vector<ResultData> & rd);
 
 void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnotations);
+
+void persistLandmarks(const std::string & imageFilePath, const LandMarks & detectedLandmarks);
+
+void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm);
 
 template <typename T>
 static double median(std::vector<T> scores)

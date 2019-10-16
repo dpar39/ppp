@@ -1,3 +1,5 @@
+#include "PppEngine.h"
+#include "TestHelpers.h"
 #include <gtest/gtest.h>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
@@ -30,8 +32,4 @@ TEST_F(FacePoseEstimatorTests, canConfigure)
     //}
 
     // cv::line(im, image_points[0], noseEndPoint2D[0], cv::Scalar(255, 0, 0), 2);
-
-    //// Display image.
-    // cv::imshow("Output", im);
-    // cv::waitKey(0);
 }

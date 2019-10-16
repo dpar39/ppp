@@ -27,6 +27,10 @@ protected:
 
 TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
+
+    const auto inRoi = [](const cv::Rect & r, const cv::Point & p) -> bool {
+        return p.x > r.x && p.x < r.x + r.width && p.y > r.y && p.y < r.y + r.height;
+    };
     const auto imageStore = std::make_shared<ImageStore>();
     const auto process = [&](const std::string & imageFilePath,
                              const LandMarks & manualAnnotations,
@@ -40,10 +44,10 @@ TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
         // Check that the rectangle contains both eyes and mouth points
         const auto faceRect = detectedLandMarks.vjFaceRect;
 
-        EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.eyeLeftPupil));
-        EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.eyeRightPupil));
-        EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.lipLeftCorner));
-        EXPECT_TRUE(IN_ROI(faceRect, manualAnnotations.lipRightCorner));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.eyeLeftPupil));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.eyeRightPupil));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.lipLeftCorner));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.lipRightCorner));
 
         return { true, rgbImage };
     };
