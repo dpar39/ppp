@@ -425,7 +425,6 @@ class Builder(object):
             cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0 -s WASM=1'  # -msimd128
             extra_definitions += [
                 '-DEMSCRIPTEN=1',
-                '-DCMAKE_SYSTEM_PROCESSOR=x86_64',
                 '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
                 '-DCMAKE_MAKE_PROGRAM=ninja',
                 '-DCMAKE_MODULE_PATH=' + cmake_module_path.replace('\\', '/'),
