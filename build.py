@@ -295,12 +295,12 @@ class Builder(object):
             '-DWITH_PYTHON=OFF',
             '-DWITH_PYTHON2=OFF',
             '-DWITH_JAVA=OFF',
-            '-DBUILD_ZLIB=ON',
+            '-DBUILD_ZLIB=OFF',
             '-DBUILD_ILMIMF=ON',
             '-DBUILD_JASPER=ON',
             '-DBUILD_PNG=ON',
             '-DBUILD_JPEG=ON',
-            '-DBUILD_TIFF=ON',
+            '-DBUILD_TIFF=OFF',
             '-DBUILD_opencv_apps=OFF',
             '-DBUILD_WITH_DEBUG_INFO=OFF',
             '-DBUILD_DOCS=OFF',
@@ -310,13 +310,16 @@ class Builder(object):
             '-DWITH_VFW=OFF',
             '-DWITH_OPENEXR=OFF',
             '-DWITH_WEBP=OFF',
+            '-DWITH_TIFF=OFF',
             '-DBUILD_opencv_java=OFF',
             '-DBUILD_opencv_python=OFF',
-            '-DBUILD_opencv_python2=OFF']
+            '-DBUILD_opencv_python2=OFF',
+            '-DBUILD_opencv_python3=OFF'
+        ]
 
         if self._emscripten:
             cmake_extra_defs += [
-                '-DCV_ENABLE_INTRINSICS=OFF',
+                '-DCV_ENABLE_INTRINSICS=ON',
                 '-DBUILD_IPP_IW=OFF',
                 '-DWITH_TBB=OFF',
                 '-DWITH_OPENMP=OFF',
@@ -326,7 +329,7 @@ class Builder(object):
                 '-DWITH_ITT=OFF',
                 '-DCPU_BASELINE=',
                 '-DCPU_DISPATCH=',
-                '-DBUILD_LIST=objdetect,imgproc,imgcodecs',
+                '-DBUILD_LIST=objdetect,imgproc,imgcodecs,calib3d',
             ]
         else:
             cmake_extra_defs += [
@@ -414,9 +417,8 @@ class Builder(object):
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
 
-        backend = 'upstream'
         if self._emscripten:
-            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' + backend + '/emscripten')
+            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' + self._emsdk_backend + '/emscripten')
             if not os.path.isdir(emscripten_path):
                 print(emscripten_path + ' does NOT exist, exiting ...')
                 exit(1)
@@ -446,57 +448,6 @@ class Builder(object):
         for target in targets:
             self.run_cmd(['ninja', target])
         os.chdir(self._root_dir)
-
-    def parse_arguments(self):
-        """
-        Parses command line arguments
-        """
-        parser = argparse.ArgumentParser(
-            description='Builds the passport photo application.')
-        parser.add_argument('--arch_name', required=False, choices=['x64', 'x86'],
-                            help='Platform architecture', default='x64')
-        parser.add_argument('--build_config', required=False, choices=[
-                            'debug', 'release'], help='Build configuration type', default='release')
-        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
-        parser.add_argument('--test', help='Runs unit tests', action="store_true")
-        parser.add_argument('--skip_install', help='Skips installation', action="store_true")
-        parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
-                            action="store_true")
-        parser.add_argument('--no_npm', help='Skips installing npm packages. Use only on developer workflow',
-                            action="store_true")
-        parser.add_argument('--android', help='Builds the android app', action="store_true")
-        parser.add_argument('--web', help='Builds the web app', action="store_true")
-        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
-
-        args = parser.parse_args()
-
-        self._arch_name = args.arch_name
-        self._build_clean = args.clean
-        self._build_config = args.build_config
-        self._gen_vs_sln = args.gen_vs_sln
-        self._run_tests = args.test
-        self._run_install = not args.skip_install
-        self._android_build = args.android
-        self._web_build = args.web
-        self._emscripten = args.emscripten or self._android_build or self._web_build
-        self._no_npm = args.no_npm
-
-        # directory suffix for the build and release
-        self._root_dir = os.path.dirname(os.path.realpath(__file__))
-        self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
-        self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
-        self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(
-            self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
-
-        shell = ShellRunner(self._arch_name, self._emscripten)
-
-        # Set up some compiler flags
-        if not IS_WINDOWS:
-            shell.set_env_var('CXXFLAGS', '-fPIC')
-            shell.set_env_var('LD_LIBRARY_PATH', self._install_dir)
-        shell.set_env_var('INSTALL_DIR', self._install_dir)
-        self._shell = shell
 
     def setup_android(self):
         # Download SDK tools if not present and extract it to
@@ -566,13 +517,15 @@ class Builder(object):
         emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
 
         emsdk_version_number = str(self.emsdk_version_number)
-        emsdk_version_name = 'sdk-' + emsdk_version_number + '-64bit-upstream'
-        fastcomp_dir = os.path.join(emsdk_dir, 'fastcomp')
-        upstream_dir = os.path.join(emsdk_dir, 'upstream')
+        emsdk_version_name = emsdk_version_number
+        # emsdk_version_name = 'sdk-' + emsdk_version_number + '-64bit'
+        # if 'upstream' in self._emsdk_backend:
+        #     emsdk_version_name += '-' + self._emsdk_backend
+        emsdk_backend_dir = os.path.join(emsdk_dir, self._emsdk_backend)
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
-        if not os.path.exists(fastcomp_dir) and not os.path.exists(upstream_dir):
+        if not os.path.exists(emsdk_backend_dir):
             os.chdir(emsdk_dir)
             self.run_cmd(emsdk_cmd + ' install ' + emsdk_version_name)
         os.chdir(emsdk_dir)
@@ -609,12 +562,11 @@ class Builder(object):
             'ALLOW_MEMORY_GROWTH': 1,
             'DISABLE_EXCEPTION_CATCHING': 0,
             'TOTAL_MEMORY': (268435456 / 2),  # 268MB is too much?
-            'WASM': 1,
-            'SIDE_MODULE': 1
+            'WASM': 1
         }
 
         settings_file = None
-        for p in ['fastcomp/emscripten', 'emscripten/' + emsdk_version_number, 'fastcomp/emscripten/' + emsdk_version_number]:
+        for p in ['fastcomp/emscripten', 'upstream/emscripten']:
             candidate = os.path.join(emsdk_dir, p, 'src', 'settings.js')
             if os.path.isfile(candidate):
                 settings_file = candidate
@@ -798,6 +750,58 @@ class Builder(object):
         self.opencv_src_url = config.get('OPENCV_SRC_URL', 'https://github.com/opencv/opencv/archive/4.1.1.zip')
         self.dlib_src_url = config.get('DLIB_SRC_URL', 'http://dlib.net/files/dlib-19.18.zip')
         self.gmock_src_url = config.get('GMOCK_SRC_URL', 'https://github.com/google/googletest/archive/release-1.8.1.zip')
+
+    def parse_arguments(self):
+        """
+        Parses command line arguments
+        """
+        parser = argparse.ArgumentParser(
+            description='Builds the passport photo application.')
+        parser.add_argument('--arch_name', required=False, choices=['x64', 'x86'],
+                            help='Platform architecture', default='x64')
+        parser.add_argument('--build_config', required=False, choices=[
+                            'debug', 'release'], help='Build configuration type', default='release')
+        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
+        parser.add_argument('--test', help='Runs unit tests', action="store_true")
+        parser.add_argument('--skip_install', help='Skips installation', action="store_true")
+        parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
+                            action="store_true")
+        parser.add_argument('--no_npm', help='Skips installing npm packages. Use only on developer workflow',
+                            action="store_true")
+        parser.add_argument('--android', help='Builds the android app', action="store_true")
+        parser.add_argument('--web', help='Builds the web app', action="store_true")
+        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
+
+        args = parser.parse_args()
+
+        self._arch_name = args.arch_name
+        self._build_clean = args.clean
+        self._build_config = args.build_config
+        self._gen_vs_sln = args.gen_vs_sln
+        self._run_tests = args.test
+        self._run_install = not args.skip_install
+        self._android_build = args.android
+        self._web_build = args.web
+        self._emscripten = args.emscripten or self._android_build or self._web_build
+        self._no_npm = args.no_npm
+        self._emsdk_backend = 'upstream' if 'upstream' in self.emsdk_version_number else 'fastcomp'
+
+        # directory suffix for the build and release
+        self._root_dir = os.path.dirname(os.path.realpath(__file__))
+        self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
+        self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
+        self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
+        self._third_party_install_dir = os.path.join(
+            self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
+
+        shell = ShellRunner(self._arch_name, self._emscripten)
+
+        # Set up some compiler flags
+        if not IS_WINDOWS:
+            shell.set_env_var('CXXFLAGS', '-fPIC')
+            shell.set_env_var('LD_LIBRARY_PATH', self._install_dir)
+        shell.set_env_var('INSTALL_DIR', self._install_dir)
+        self._shell = shell
 
     def __init__(self):
         # Load 3rd party config
