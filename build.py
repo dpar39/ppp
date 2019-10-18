@@ -566,10 +566,13 @@ class Builder(object):
         emsdk_cmd = 'emsdk.bat' if IS_WINDOWS else './emsdk'
 
         emsdk_version_number = str(self.emsdk_version_number)
-        emsdk_version_name = 'sdk-' + emsdk_version_number + '-64bit'
+        emsdk_version_name = 'sdk-' + emsdk_version_number + '-64bit-upstream'
+        fastcomp_dir = os.path.join(emsdk_dir, 'fastcomp')
+        upstream_dir = os.path.join(emsdk_dir, 'upstream')
         if not os.path.exists(emsdk_dir):
             os.chdir(self._third_party_dir)
             self.run_cmd('git clone https://github.com/emscripten-core/emsdk.git emsdk')
+        if not os.path.exists(fastcomp_dir) and not os.path.exists(upstream_dir):
             os.chdir(emsdk_dir)
             self.run_cmd(emsdk_cmd + ' install ' + emsdk_version_name)
         os.chdir(emsdk_dir)
