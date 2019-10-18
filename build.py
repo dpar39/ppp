@@ -414,15 +414,16 @@ class Builder(object):
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
 
+        backend = 'upstream'
         if self._emscripten:
-            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/fastcomp/emscripten')
+            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' + backend + '/emscripten')
             if not os.path.isdir(emscripten_path):
                 print(emscripten_path + ' does NOT exist, exiting ...')
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
             cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
 
-            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0 -s WASM=1'  # -msimd128
+            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0'  # -msimd128
             extra_definitions += [
                 '-DEMSCRIPTEN=1',
                 '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
@@ -461,6 +462,8 @@ class Builder(object):
         parser.add_argument('--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
                             action="store_true")
+        parser.add_argument('--no_npm', help='Skips installing npm packages. Use only on developer workflow',
+                            action="store_true")
         parser.add_argument('--android', help='Builds the android app', action="store_true")
         parser.add_argument('--web', help='Builds the web app', action="store_true")
         parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
@@ -476,6 +479,7 @@ class Builder(object):
         self._android_build = args.android
         self._web_build = args.web
         self._emscripten = args.emscripten or self._android_build or self._web_build
+        self._no_npm = args.no_npm
 
         # directory suffix for the build and release
         self._root_dir = os.path.dirname(os.path.realpath(__file__))
@@ -774,7 +778,7 @@ class Builder(object):
             self.run_cmd('npm install npx -g')
 
         # Build the web app
-        if self._web_build:
+        if self._web_build and not self._no_npm:
             os.chdir(self.webapp_path())
             self.run_cmd('npm install --no-optional')
             os.chdir(self._root_dir)
