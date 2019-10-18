@@ -1102,6 +1102,40 @@ rapidjson::Value easyexif::EXIFInfo::populate(rapidjson::Document::AllocatorType
     return obj;
 }
 
+double easyexif::EXIFInfo::focalLengthPix() const
+{
+    const auto resUnits = LensInfo.FocalPlaneResolutionUnit;
+    if (FocalLength > 0 && LensInfo.FocalPlaneXResolution > 0 && resUnits != 0)
+    {
+        double mult;
+        switch (resUnits)
+        {
+            case 2: // Inch
+                mult = 25.4;
+                break;
+            case 3: // Centimeter
+                mult = 10;
+                break;
+            case 4: // Millimeter (target)
+                mult = 1;
+                break;
+            case 5: // Micrometer
+                mult = 1000;
+                break;
+            default:
+                throw std::runtime_error("Unknown FocalPlaneResolutionUnit on EXIF data");
+        }
+        return FocalLength * LensInfo.FocalPlaneXResolution / mult;
+    }
+
+    if (FocalLength > 0 && FocalLengthIn35mm > 0 && ImageWidth > 0 && ImageHeight > 0)
+    {
+        const auto ccd_pix = std::max(ImageHeight, ImageWidth);
+        return ccd_pix * FocalLengthIn35mm / 35.0;
+    }
+    return -1;
+}
+
 std::string easyexif::EXIFInfo::toJson(const bool prettyJson) const
 {
     using namespace rapidjson;

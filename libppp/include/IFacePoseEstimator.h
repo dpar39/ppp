@@ -8,5 +8,5 @@ class IFacePoseEstimator
 public:
     virtual ~IFacePoseEstimator() = default;
 
-    virtual void estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) const = 0;
+    virtual void estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) = 0;
 };

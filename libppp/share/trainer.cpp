@@ -49,7 +49,7 @@ void remove_landmarks(std::vector<std::vector<full_object_detection>> & facesTra
     {
         for (auto & p : input)
         {
-            const auto n = p.num_parts();
+            const auto n = static_cast<int>(p.num_parts());
             std::vector<point> parts;
             for (auto j = 0; j < n; ++j)
             {

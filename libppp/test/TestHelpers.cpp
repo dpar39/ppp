@@ -352,6 +352,10 @@ void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm)
     circle(image, lm.eyeLeftPupil, 5, detectionColor, 2);
     circle(image, lm.eyeRightPupil, 5, detectionColor, 2);
 
+    circle(image, lm.eyeLeftCorner, 5, detectionColor, 2);
+    circle(image, lm.eyeRightCorner, 5, detectionColor, 2);
+    circle(image, lm.noseTip, 5, detectionColor, 2);
+
     circle(image, lm.lipLeftCorner, 5, detectionColor, 2);
     circle(image, lm.lipRightCorner, 5, detectionColor, 2);
 

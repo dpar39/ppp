@@ -8,13 +8,15 @@
 class FacePoseEstimator final : public IFacePoseEstimator
 {
 public:
-    void configure();
+    FacePoseEstimator();
 
-    void estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) const override;
+    void estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) override;
+    void projectPoint(const std::vector<cv::Point3d> & point3ds, std::vector<cv::Point2d> & point2ds) const;
 
 private:
     std::vector<cv::Point3d> m_modelPoints;
 
-    cv::Mat rotationVector; // Rotation in axis-angle form
-    cv::Mat translationVector;
+    cv::Mat m_rotationVector; // Rotation in axis-angle form
+    cv::Mat m_translationVector;
+    cv::Mat m_cameraMatrix;
 };

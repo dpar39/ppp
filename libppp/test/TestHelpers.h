@@ -52,6 +52,8 @@ void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnot
 
 void persistLandmarks(const std::string & imageFilePath, const LandMarks & detectedLandmarks);
 
+void loadLandmarks(const std::string & imageFilePath, LandMarks & detectedLandmarks);
+
 void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm);
 
 template <typename T>

@@ -2,7 +2,7 @@
 #include "LandMarks.h"
 #include <opencv2/calib3d.hpp>
 
-void FacePoseEstimator::configure()
+FacePoseEstimator::FacePoseEstimator()
 {
     m_modelPoints.clear();
     m_modelPoints.emplace_back(0.0f, 0.0f, 0.0f); // Nose tip
@@ -15,7 +15,7 @@ void FacePoseEstimator::configure()
 
 void FacePoseEstimator::estimatePose(const LandMarks & landMarks,
                                      const double focalLength,
-                                     const cv::Point2d focalCenter) const
+                                     const cv::Point2d focalCenter)
 {
     using cv::Point2d;
     using cv::Point3d;
@@ -30,20 +30,23 @@ void FacePoseEstimator::estimatePose(const LandMarks & landMarks,
         landMarks.lipRightCorner // Right mouth corner
     };
 
-    // 3D model points.
+    m_cameraMatrix = (cv::Mat_<double>(3, 3) << focalLength, 0, focalCenter.x, 0, focalLength, focalCenter.y, 0, 0, 1);
 
-    // Camera internals
-    // double focal_length = im.cols; // Approximate focal length.
-    // Point2d center = cv::Point2d(im.cols / 2, im.rows / 2);
-    const cv::Mat cameraMatrix
-        = (cv::Mat_<double>(3, 3) << focalLength, 0, focalCenter.x, 0, focalLength, focalCenter.y, 0, 0, 1);
+    // auto cm1 = (cv::Mat(3, 3) << focalLength, 0.0, focalCenter.x, 0.0, focalLength, focalCenter.y, 0.0, 0.0, 1.0);
+    // cameraMatrix = cm1;
 
     const cv::Mat distCoeffs = cv::Mat::zeros(4, 1, cv::DataType<double>::type); // Assuming no lens distortion
 
     // Output rotation and translation
-    cv::Mat rotationVector; // Rotation in axis-angle form
-    cv::Mat translationVector;
 
     // Solve for pose
-    cv::solvePnP(m_modelPoints, imagePoints, cameraMatrix, distCoeffs, rotationVector, translationVector);
+    const auto success
+        = solvePnP(m_modelPoints, imagePoints, m_cameraMatrix, distCoeffs, m_rotationVector, m_translationVector);
+}
+
+void FacePoseEstimator::projectPoint(const std::vector<cv::Point3d> & point3ds,
+                                     std::vector<cv::Point2d> & point2ds) const
+{
+    static const cv::Mat distCoeffs = cv::Mat::zeros(4, 1, cv::DataType<double>::type); // Assuming no lens distortion
+    cv::projectPoints(point3ds, m_rotationVector, m_translationVector, m_cameraMatrix, distCoeffs, point2ds);
 }

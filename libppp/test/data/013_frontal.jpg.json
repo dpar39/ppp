@@ -1,0 +1,52 @@
+{
+    "vjFaceRect": {
+        "x": 681,
+        "y": 1034,
+        "width": 784,
+        "height": 784
+    },
+    "crownPoint": {
+        "x": 1045,
+        "y": 830
+    },
+    "chinPoint": {
+        "x": 1088,
+        "y": 1870
+    },
+    "noseTip": {
+        "x": 1063,
+        "y": 1529
+    },
+    "eyeLeftPupil": {
+        "x": 919,
+        "y": 1352
+    },
+    "eyeRightPupil": {
+        "x": 1214,
+        "y": 1352
+    },
+    "eyeLeftCorner": {
+        "x": 864,
+        "y": 1353
+    },
+    "eyeRightCorner": {
+        "x": 1270,
+        "y": 1352
+    },
+    "lipLeftCorner": {
+        "x": 978,
+        "y": 1668
+    },
+    "lipRightCorner": {
+        "x": 1176,
+        "y": 1663
+    },
+    "crownPoint": {
+        "x": 1045,
+        "y": 830
+    },
+    "chinPoint": {
+        "x": 1088,
+        "y": 1870
+    }
+}

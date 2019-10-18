@@ -159,6 +159,8 @@ public:
     std::string toJson(bool prettyJson) const;
 
     rapidjson::Value populate(rapidjson::Document::AllocatorType & alloc) const;
+
+    double focalLengthPix() const;
 };
 
 } // namespace easyexif
