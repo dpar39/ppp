@@ -35,6 +35,7 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                                     [inputPhoto]="imageLoadResult"
                                     [crownChinPointPair]="crownChinPointPair"
                                     (edited)="onLandmarksEdited($event)"
+                                    [photoDimensions]="photoStandard?.dimensions"
                                 >
                                 </app-landmark-editor>
                             </div>

@@ -2,9 +2,10 @@ import {Component, OnInit, ElementRef, HostListener} from '@angular/core';
 import {Input, Output, EventEmitter} from '@angular/core';
 
 import interact from 'interactjs';
-import {Point, CrownChinPointPair} from '../model/datatypes';
-import {middlePoint} from '../model/geometry';
+import {CrownChinPointPair} from '../model/datatypes';
+import {middlePoint, Point} from '../model/geometry';
 import {ImageLoadResult} from '../services/back-end.service';
+import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
 
 @Component({
     selector: 'app-landmark-editor',
@@ -13,6 +14,13 @@ import {ImageLoadResult} from '../services/back-end.service';
             <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
 
             <svg class="box" [style.visibility]="landmarkVisibility">
+                <defs>
+                    <mask id="mask" x="0" y="0" width="100%" height="100%">
+                        <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+                        <rect id="cropArea" x="0" y="0" width="200" height="200" fill="#000"/>
+                    </mask>
+                </defs>
+                <rect x="0" y="0" width="1000" height="1000" fill-opacity="0.4" mask="url(#mask)" />
                 <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
                 <ellipse id="faceEllipse" cx="100" cy="50" rx="100" ry="50" fill="none" class="annotation" />
             </svg>
@@ -91,6 +99,12 @@ export class LandmarkEditorComponent implements OnInit {
         this.renderLandMarks();
     }
 
+    @Input()
+    set photoDimensions(value: PhotoDimensions) {
+        this._photoDimensions = value;
+        this.renderLandMarks();
+    }
+
     constructor(private el: ElementRef) {
         this.crownPoint = new Point(0, 0);
         this.chinPoint = new Point(0, 0);
@@ -111,9 +125,12 @@ export class LandmarkEditorComponent implements OnInit {
     private _chinMarkElmt: any = null;
     private _middleLine: any = null;
     private _faceEllipse: any = null;
+    private _cropArea: any = null;
 
     chinPoint: Point;
     crownPoint: Point;
+
+    private _photoDimensions: PhotoDimensions;
 
     landmarkVisibility = 'hidden';
 
@@ -142,6 +159,7 @@ export class LandmarkEditorComponent implements OnInit {
 
         this._middleLine = this.el.nativeElement.querySelector('#middleLine');
         this._faceEllipse = this.el.nativeElement.querySelector('#faceEllipse');
+        this._cropArea = this.el.nativeElement.querySelector('#cropArea');
 
         const that = this;
         interact('.landmark').draggable({
@@ -273,13 +291,15 @@ export class LandmarkEditorComponent implements OnInit {
         const p1 = this.getMarkScreenCenter(this._crownMarkElmt);
         const p2 = this.getMarkScreenCenter(this._chinMarkElmt);
 
+        // Render middle line
         this._middleLine.setAttribute('x1', p1.x);
         this._middleLine.setAttribute('y1', p1.y);
-
         this._middleLine.setAttribute('x2', p2.x);
         this._middleLine.setAttribute('y2', p2.y);
 
-        const ra = p1.distTo(p2) / 2;
+        // Render face ellipse
+        const faceHeight = p1.distTo(p2);
+        const ra =  faceHeight / 2;
         const rb = 0.68 * ra;
         const pc = middlePoint(p1, p2);
         const angle = (p2.angle(p1) * 180) / Math.PI;
@@ -288,6 +308,20 @@ export class LandmarkEditorComponent implements OnInit {
         this._faceEllipse.setAttribute('cx', pc.x);
         this._faceEllipse.setAttribute('cy', pc.y);
         this._faceEllipse.setAttribute('transform', `rotate(${angle}, ${pc.x}, ${pc.y})`);
+
+        // Render photo cropping rectangle
+        if (!this._photoDimensions) {
+            return;
+        }
+        const cropCenter = getCroppingCenter(this._photoDimensions, p1, p2);
+        const scale = faceHeight / this._photoDimensions.faceHeight;
+        const dx = this._photoDimensions.pictureHeight * scale;
+        const dy = this._photoDimensions.pictureWidth * scale;
+        this._cropArea.setAttribute('x', cropCenter.x - dx / 2);
+        this._cropArea.setAttribute('y', cropCenter.y - dy / 2);
+        this._cropArea.setAttribute('width', dx);
+        this._cropArea.setAttribute('height', dy);
+        this._cropArea.setAttribute('transform', `rotate(${angle}, ${cropCenter.x}, ${cropCenter.y})`);
     }
 
     updateLandMarks() {

@@ -1,60 +1,10 @@
-export class Point {
-    x: number;
-    y: number;
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    equals(pt: Point): boolean {
-        return pt.x === this.x && pt.y === this.y;
-    }
-    norm(): number {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-
-    add(pt: Point): Point {
-        return new Point(this.x + pt.x, this.y + pt.y);
-    }
-
-    sub(pt: Point): Point {
-        return new Point(this.x - pt.x, this.y - pt.y);
-    }
-
-    mult(scalar: number) {
-        return new Point(this.x * scalar, this.y * scalar);
-    }
-
-    div(scalar: number) {
-        return new Point(this.x / scalar, this.y / scalar);
-    }
-
-    distTo(pt: Point): number {
-        const dx = this.x - pt.x;
-        const dy = this.y - pt.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    angle(pt: Point): number {
-        const dx = this.x - pt.x;
-        const dy = this.y - pt.y;
-        return Math.atan2(dy, dx);
-    }
-}
+import {Point} from './geometry';
+import {PhotoDimensions} from './photodimensions';
 
 export enum UnitType {
     mm = 'mm',
     cm = 'cm',
     inch = 'inch'
-}
-
-export class PhotoDimensions {
-    pictureWidth: number;
-    pictureHeight: number;
-    units: string;
-    faceHeight?: number;
-    crownTop?: number;
-    dpi: number;
 }
 
 export class PhotoStandard {
