@@ -43,7 +43,6 @@ import {BackEndService, ImageLoadResult} from './services/back-end.service';
                             <div class="col">
                                 <div class="text-center">
                                     <button
-                                        [disabled]="!appReady"
                                         type="button"
                                         class="btn btn-primary"
                                         style="margin-right: 1em"
@@ -115,6 +114,8 @@ export class AppComponent implements OnInit {
     appReady = false;
     appDataLoadingProgress = '1%';
 
+    pendingFile: File;
+
     imageLoadResult: ImageLoadResult;
     outImgSrc = '#';
 
@@ -127,6 +128,7 @@ export class AppComponent implements OnInit {
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
             this.appDataLoadingProgress = '100%';
+            this.processInputImage();
         });
 
         beService.appLoadingProgressReported.subscribe((progressPct: number) => {
@@ -138,17 +140,25 @@ export class AppComponent implements OnInit {
         //  this.echoString = '' + this.beService._isMobilePlatform;
     }
 
+    processInputImage() {
+        if (!this.appReady || !this.pendingFile) {
+            return; // Nothing to do yet
+        }
+        // Load the image file to detect landmarks
+        this.beService.loadImageInMemory(this.pendingFile).then(result => {
+            this.pendingFile = null;
+            this.imageLoadResult = result;
+            this.retrieveLandmarks();
+        });
+    }
+
     loadImage(event) {
         const fileList: FileList = event.target.files;
         if (fileList && fileList[0]) {
-            const file = fileList[0];
+            this.pendingFile = fileList[0];
             this.crownChinPointPair = null;
             this.imageLoadResult = null;
-            // Upload the file to the server to detect landmarks
-            this.beService.loadImageInMemory(file).then(result => {
-                this.imageLoadResult = result;
-                this.retrieveLandmarks();
-            });
+            this.processInputImage();
         }
     }
 
@@ -161,6 +171,7 @@ export class AppComponent implements OnInit {
                 if (landmarks.crownPoint && landmarks.chinPoint) {
                     console.log('Landmarks calculated.');
                     this.crownChinPointPair = landmarks;
+                    this.createPrint();
                 }
             }
         });
@@ -168,17 +179,23 @@ export class AppComponent implements OnInit {
 
     onPhotoStandardSelected(photo: PhotoStandard) {
         this.photoStandard = photo;
+        this.createPrint();
     }
 
     onPrintDefinitionSelected(canvas: Canvas) {
         this.canvas = canvas;
+        this.createPrint();
     }
 
     onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
         this.crownChinPointPair = crownChinPointPair;
+        this.createPrint();
     }
 
     createPrint() {
+        if (!this.imageLoadResult || !this.canvas || !this.crownChinPointPair ||!this.photoStandard) {
+            return;
+        }
         console.log('Creating print output');
         const req = new TiledPhotoRequest(
             this.imageLoadResult.imgKey,

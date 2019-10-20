@@ -5,6 +5,41 @@ export class Point {
         this.x = x;
         this.y = y;
     }
+
+    equals(pt: Point): boolean {
+        return pt.x === this.x && pt.y === this.y;
+    }
+    norm(): number {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    add(pt: Point): Point {
+        return new Point(this.x + pt.x, this.y + pt.y);
+    }
+
+    sub(pt: Point): Point {
+        return new Point(this.x - pt.x, this.y - pt.y);
+    }
+
+    mult(scalar: number) {
+        return new Point(this.x * scalar, this.y * scalar);
+    }
+
+    div(scalar: number) {
+        return new Point(this.x / scalar, this.y / scalar);
+    }
+
+    distTo(pt: Point): number {
+        const dx = this.x - pt.x;
+        const dy = this.y - pt.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    angle(pt: Point): number {
+        const dx = this.x - pt.x;
+        const dy = this.y - pt.y;
+        return Math.atan2(dy, dx);
+    }
 }
 
 export enum UnitType {

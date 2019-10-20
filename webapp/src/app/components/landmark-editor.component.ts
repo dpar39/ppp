@@ -1,8 +1,9 @@
-import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
+import {Component, OnInit, ElementRef, HostListener} from '@angular/core';
 import {Input, Output, EventEmitter} from '@angular/core';
 
 import interact from 'interactjs';
 import {Point, CrownChinPointPair} from '../model/datatypes';
+import {middlePoint} from '../model/geometry';
 import {ImageLoadResult} from '../services/back-end.service';
 
 @Component({
@@ -12,7 +13,8 @@ import {ImageLoadResult} from '../services/back-end.service';
             <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
 
             <svg class="box" [style.visibility]="landmarkVisibility">
-                <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" stroke-dasharray="5,5" />
+                <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
+                <ellipse id="faceEllipse" cx="100" cy="50" rx="100" ry="50" fill="none" class="annotation" />
             </svg>
 
             <div class="landmark" id="crownMark" [style.visibility]="landmarkVisibility"></div>
@@ -55,8 +57,10 @@ import {ImageLoadResult} from '../services/back-end.service';
             }
 
             .annotation {
-                stroke: #9b59b6;
+                stroke: orange;
                 stroke-width: 2;
+                stroke-dasharray: 5, 5;
+                stroke-opacity: 0.7;
             }
         `
     ]
@@ -106,6 +110,7 @@ export class LandmarkEditorComponent implements OnInit {
     private _crownMarkElmt: any = null;
     private _chinMarkElmt: any = null;
     private _middleLine: any = null;
+    private _faceEllipse: any = null;
 
     chinPoint: Point;
     crownPoint: Point;
@@ -136,6 +141,7 @@ export class LandmarkEditorComponent implements OnInit {
         this._chinMarkElmt = this.el.nativeElement.querySelector('#chinMark');
 
         this._middleLine = this.el.nativeElement.querySelector('#middleLine');
+        this._faceEllipse = this.el.nativeElement.querySelector('#faceEllipse');
 
         const that = this;
         interact('.landmark').draggable({
@@ -272,6 +278,16 @@ export class LandmarkEditorComponent implements OnInit {
 
         this._middleLine.setAttribute('x2', p2.x);
         this._middleLine.setAttribute('y2', p2.y);
+
+        const ra = p1.distTo(p2) / 2;
+        const rb = 0.68 * ra;
+        const pc = middlePoint(p1, p2);
+        const angle = (p2.angle(p1) * 180) / Math.PI;
+        this._faceEllipse.setAttribute('rx', ra);
+        this._faceEllipse.setAttribute('ry', rb);
+        this._faceEllipse.setAttribute('cx', pc.x);
+        this._faceEllipse.setAttribute('cy', pc.y);
+        this._faceEllipse.setAttribute('transform', `rotate(${angle}, ${pc.x}, ${pc.y})`);
     }
 
     updateLandMarks() {
