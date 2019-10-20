@@ -279,13 +279,14 @@ class Builder(object):
                 return
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self.download_third_party_lib(self.opencv_src_url)
-        # Get the file prefix for OpenCV
-        opencv_extract_dir = self.get_third_party_lib_dir('opencv-')
+        # Get the extract directory for OpenCV
+        dir_name = 'opencv-' + self.get_third_party_lib_version(self.opencv_src_url)
+        opencv_extract_dir = self.get_third_party_lib_dir(dir_name)
 
         if opencv_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(opencv_src_pkg)
-            opencv_extract_dir = self.get_third_party_lib_dir('opencv')
+            opencv_extract_dir = self.get_third_party_lib_dir(dir_name)
 
         cmake_extra_defs = [
             '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
@@ -293,15 +294,15 @@ class Builder(object):
             '-DBUILD_DOCS=OFF',
             '-DBUILD_PERF_TESTS=OFF',
             '-DBUILD_ILMIMF=ON',
-            '-DBUILD_ZLIB=OFF',
+            '-DBUILD_ZLIB=ON',
             '-DBUILD_JASPER=ON',
             '-DBUILD_PNG=ON',
             '-DBUILD_JPEG=ON',
             '-DBUILD_TIFF=OFF',
             '-DBUILD_opencv_apps=OFF',
-            '-DBUILD_WITH_DEBUG_INFO=OFF',
             '-DBUILD_DOCS=OFF',
             '-DBUILD_TESTS=OFF',
+            '-DWITH_JASPER=ON',
             '-DWITH_PYTHON=OFF',
             '-DWITH_PYTHON2=OFF',
             '-DWITH_JAVA=OFF',
@@ -315,11 +316,13 @@ class Builder(object):
             '-DBUILD_opencv_python=OFF',
             '-DBUILD_opencv_python2=OFF',
             '-DBUILD_opencv_python3=OFF'
+            '-DBUILD_opencv_python_bindings_generator=OFF'
         ]
 
         if self._emscripten:
             cmake_extra_defs += [
-                '-DCV_ENABLE_INTRINSICS=ON',
+                '-DCV_ENABLE_INTRINSICS=OFF',
+                '-DENABLE_PIC=FALSE'
                 '-DBUILD_IPP_IW=OFF',
                 '-DWITH_TBB=OFF',
                 '-DWITH_OPENMP=OFF',
@@ -327,8 +330,9 @@ class Builder(object):
                 '-DWITH_OPENCL=OFF',
                 '-DWITH_IPP=OFF',
                 '-DWITH_ITT=OFF',
-                '-DCPU_BASELINE=',
-                '-DCPU_DISPATCH=',
+                "-DCPU_BASELINE=''",
+                "-DCPU_DISPATCH=''",
+                '-DBUILD_WITH_DEBUG_INFO=OFF',
                 '-DBUILD_LIST=objdetect,imgproc,imgcodecs,calib3d',
             ]
         else:
@@ -379,12 +383,16 @@ class Builder(object):
         else:
             lib_filepath = os.path.join(self._third_party_dir, package_name)
         if not os.path.exists(lib_filepath):
-            print('Downloading %s to "%s" please wait ...' %
-                  (url, lib_filepath))
+            print('Downloading %s to "%s" please wait ...' % (url, lib_filepath))
             lib_file = urlopen(url)
             with open(lib_filepath, 'wb') as output:
                 output.write(lib_file.read())
         return lib_filepath
+
+    def get_third_party_lib_version(self, url):
+        a = re.compile(r'\d+\.\d+(:?\.\d+)?')
+        m = a.search(url)
+        return m.group(0) if m else None
 
     def extract_third_party_lib(self, lib_src_pkg, extract_dir=None):
         """
@@ -392,8 +400,7 @@ class Builder(object):
         """
         if not extract_dir:
             extract_dir = self._third_party_dir
-        print('Extracting third party library "%s" into "%s" ... please wait ...' % (
-            lib_src_pkg, extract_dir))
+        print('Extracting third party library "%s" into "%s" ... please wait ...' % (lib_src_pkg, extract_dir))
         if 'zip' in lib_src_pkg:
             zip_handle = zipfile.ZipFile(lib_src_pkg)
             for item in zip_handle.namelist():
@@ -418,14 +425,16 @@ class Builder(object):
             os.mkdir(build_dir)
 
         if self._emscripten:
-            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' + self._emsdk_backend + '/emscripten')
+            emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' +
+                                           self._emsdk_backend + '/emscripten')
             if not os.path.isdir(emscripten_path):
                 print(emscripten_path + ' does NOT exist, exiting ...')
                 exit(1)
             cmake_module_path = os.path.join(emscripten_path, 'cmake')
             cmake_toolchain = os.path.join(cmake_module_path, 'Modules', 'Platform', 'Emscripten.cmake')
 
-            cxx_flags = '-std=c++1z -O3 --llvm-lto 1 --bind --memory-init-file 0'  # -msimd128
+            s_conf = self.get_emscripten_config(True)
+            cxx_flags = s_conf + ' -std=c++1z -O2 --llvm-lto 1'  # -msimd128'
             extra_definitions += [
                 '-DEMSCRIPTEN=1',
                 '-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain.replace('\\', '/'),
@@ -500,7 +509,8 @@ class Builder(object):
         self._shell.add_system_path(os.path.normpath(os.path.join(android_sdk_tools_dir, 'tools')))
         self._shell.add_system_path(os.path.normpath(os.path.join(gradle_pkg_dir, 'bin')))
         # self._shell.add_system_path(os.path.normpath(android_ndk_dir))
-        self._shell.add_system_path(os.path.normpath(os.path.join(self._shell.get_env_var('JAVA_HOME'), '/jre/bin')))
+        self._shell.add_system_path(os.path.normpath(
+            os.path.join(self._shell.get_env_var('JAVA_HOME'), '/jre/bin')))
 
         # print(self._shell._env)
         if os.name == 'posix':
@@ -509,6 +519,20 @@ class Builder(object):
             self.run_cmd('chmod -R +x {}/bin'.format(gradle_pkg_dir))
         self.run_cmd('yes | sdkmanager --licenses')
         # self.run_cmd('sdkmanager "platform-tools" "platforms;android-25"', input='y')
+
+    def get_emscripten_config(self, as_compiler_args):
+        config = {
+            'ASSERTIONS': 2,
+            'ALLOW_MEMORY_GROWTH': 1,
+            'DISABLE_EXCEPTION_CATCHING': 0,
+            'TOTAL_MEMORY': 268435456,  # 268MB is too much?
+            'WASM': 1
+        }
+
+        if as_compiler_args:
+            return ' '.join('-s ' + k + '=' + str(config[k]) for k in config)
+        else:
+            return config
 
     def setup_emscripten(self):
         if which('emsdk'):
@@ -557,13 +581,7 @@ class Builder(object):
         self._shell.set_env_var('CXX', 'em++')
 
         # Configure settings.js as for some reason flags passed in CMAKE_CXX_FLAGS do not get really used
-        config = {
-            'ASSERTIONS': 2,
-            'ALLOW_MEMORY_GROWTH': 1,
-            'DISABLE_EXCEPTION_CATCHING': 0,
-            'TOTAL_MEMORY': (268435456 / 2),  # 268MB is too much?
-            'WASM': 1
-        }
+        config = self.get_emscripten_config(False)
 
         settings_file = None
         for p in ['fastcomp/emscripten', 'upstream/emscripten']:
@@ -747,9 +765,9 @@ class Builder(object):
 
         self.emsdk_version_number = config.get('EMSDK_VERSION_NUMBER', '1.38.46')
         self.emsdk_version_name = 'sdk-' + self.emsdk_version_number + '-64bit'
-        self.opencv_src_url = config.get('OPENCV_SRC_URL', 'https://github.com/opencv/opencv/archive/4.1.1.zip')
-        self.dlib_src_url = config.get('DLIB_SRC_URL', 'http://dlib.net/files/dlib-19.18.zip')
-        self.gmock_src_url = config.get('GMOCK_SRC_URL', 'https://github.com/google/googletest/archive/release-1.8.1.zip')
+        self.opencv_src_url = config.get('OPENCV_SRC_URL')
+        self.dlib_src_url = config.get('DLIB_SRC_URL')
+        self.gmock_src_url = config.get('GMOCK_SRC_URL')
 
     def parse_arguments(self):
         """
@@ -770,7 +788,8 @@ class Builder(object):
                             action="store_true")
         parser.add_argument('--android', help='Builds the android app', action="store_true")
         parser.add_argument('--web', help='Builds the web app', action="store_true")
-        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology', action="store_true")
+        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology',
+                            action="store_true")
 
         args = parser.parse_args()
 

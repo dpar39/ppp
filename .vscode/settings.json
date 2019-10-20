@@ -62,5 +62,9 @@
     "cmake.installPrefix": "${workspaceRoot}/install_windows_debug_x64",
     "cmake.generator": "ninja",
     "cmake.configureArgs": [],
-    "clang-format.executable": "C:/Program Files/LLVM/bin/clang-format.exe"
+    "clang-format.executable": "C:/Program Files/LLVM/bin/clang-format.exe",
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": [
+        "--max-line-length=110"
+    ]
 }
