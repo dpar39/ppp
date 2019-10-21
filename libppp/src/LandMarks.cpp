@@ -58,7 +58,6 @@ std::string LandMarks::toJson(const bool prettyJson) const
     SERIALIZE_POINT(chinPoint);
 
     SERIALIZE_POINT(noseTip);
-
     SERIALIZE_POINT(eyeLeftPupil);
     SERIALIZE_POINT(eyeRightPupil);
     SERIALIZE_POINT(eyeLeftCorner);
@@ -68,9 +67,6 @@ std::string LandMarks::toJson(const bool prettyJson) const
     SERIALIZE_POINT(lipLowerCenter);
     SERIALIZE_POINT(lipLeftCorner);
     SERIALIZE_POINT(lipRightCorner);
-    SERIALIZE_POINT(crownPoint);
-    SERIALIZE_POINT(chinPoint);
-
     return Utilities::serializeJson(d, prettyJson);
 }
 

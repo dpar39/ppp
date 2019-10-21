@@ -13,9 +13,9 @@ FacePoseEstimator::FacePoseEstimator()
     m_modelPoints.emplace_back(150.0f, -150.0f, -125.0f); // Right mouth corner
 }
 
-void FacePoseEstimator::estimatePose(const LandMarks & landMarks,
-                                     const double focalLength,
-                                     const cv::Point2d focalCenter)
+cv::Vec3d FacePoseEstimator::estimatePose(const LandMarks & landMarks,
+                                          const double focalLength,
+                                          const cv::Point2d focalCenter)
 {
     using cv::Point2d;
     using cv::Point3d;
@@ -42,6 +42,31 @@ void FacePoseEstimator::estimatePose(const LandMarks & landMarks,
     // Solve for pose
     const auto success
         = solvePnP(m_modelPoints, imagePoints, m_cameraMatrix, distCoeffs, m_rotationVector, m_translationVector);
+
+    cv::Mat rotationMatrix;
+    cv::Rodrigues(m_rotationVector, rotationMatrix);
+
+    auto r = rotationMatrix;
+
+    float sy = sqrt(r.at<double>(0, 0) * r.at<double>(0, 0) + r.at<double>(1, 0) * r.at<double>(1, 0));
+
+    const auto singular = sy < 1e-6; // If
+
+    double x, y, z;
+    if (!singular)
+    {
+        x = atan2(r.at<double>(2, 1), r.at<double>(2, 2));
+        y = atan2(-r.at<double>(2, 0), sy);
+        z = atan2(r.at<double>(1, 0), r.at<double>(0, 0));
+    }
+    else
+    {
+        x = atan2(-r.at<double>(1, 2), r.at<double>(1, 1));
+        y = atan2(-r.at<double>(2, 0), sy);
+        z = 0;
+    }
+    const auto deg = [](const double rad) { return rad * 180.0 / 3.141592653589793238463; };
+    return cv::Vec3d(deg(x), deg(y), deg(z));
 }
 
 void FacePoseEstimator::projectPoint(const std::vector<cv::Point3d> & point3ds,

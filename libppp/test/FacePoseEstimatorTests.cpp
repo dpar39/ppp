@@ -17,8 +17,8 @@ protected:
 
 TEST_F(FacePoseEstimatorTests, canConfigure)
 {
-    const auto imageFilePath = resolvePath("research/mugshot_frontal_original_all/021_frontal.jpg");
-    // const auto imageFilePath = resolvePath("research/my_database/headPose.jpg");
+    const auto imageFilePath = resolvePath("research/mugshot_frontal_original_all/078_frontal.jpg");
+    //  const auto imageFilePath = resolvePath("research/my_database/000.jpg");
 
     ImageStore store;
     const auto imgKey = store.setImage(imageFilePath);
@@ -34,7 +34,7 @@ TEST_F(FacePoseEstimatorTests, canConfigure)
 
     Point2d center = cv::Point2d(img.cols / 2, img.rows / 2);
 
-    fpe.estimatePose(landMarks, img.cols /*focalLengthPix*/, center);
+    const auto rot = fpe.estimatePose(landMarks, focalLengthPix, center);
 
     // Project a 3D point (0, 0, 1000.0) onto the image plane.
     // We use this to draw a line sticking out of the nose

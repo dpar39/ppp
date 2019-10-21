@@ -40,13 +40,5 @@
     "lipRightCorner": {
         "x": 1268,
         "y": 1452
-    },
-    "crownPoint": {
-        "x": 1115,
-        "y": 660
-    },
-    "chinPoint": {
-        "x": 1147,
-        "y": 1698
     }
 }
