@@ -11,7 +11,7 @@
             "name": "PPP UT (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "preLaunchTask": "Build Debug",
             "program": "build_windows_debug_x64/libppp/ppp_test.exe",
             "stopAtEntry": false,
@@ -21,6 +21,25 @@
                 "engineLogging": true,
                 "trace": true
             }
+        },
+        {
+            "name": "PPP UT (OSX)",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Debug",
+            "program": "${workspaceFolder}/build_darwin_debug_x64/libppp/ppp_test",
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "logging": {
+                "traceResponse": true,
+                "engineLogging": true,
+                "trace": true
+            },
+            "MIMode": "lldb",
+            "args": [
+                "--gtest_filter=*babyTest*"
+            ]
         },
         {
             "name": "Python Build Script",

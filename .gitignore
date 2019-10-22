@@ -5,11 +5,13 @@
 # Build and install directories
 /build_*
 /install_*
-
 /thirdparty/install_*
+
 /thirdparty/googletest-*
 /thirdparty/opencv-*
+/thirdparty/dlib-*
 /thirdparty/*.zip
+
 /thirdparty/emsdk
 /thirdparty/sdk-*
 
@@ -26,6 +28,5 @@
 libppp/swig/*.cxx
 libppp/share/config.bundle.json
 
-webapp/src/assets/libppp.wasm
-webapp/src/assets/libppp.js
+
 tests.xml

@@ -76,8 +76,13 @@ class ShellRunner(object):
         self._extra_paths = []
         self._arch_name = arch_name
         self._is_emscripten = is_emscripten
-        if IS_WINDOWS and not self._is_emscripten:
-            self._detect_vs_version()
+        if not self._is_emscripten:
+            if IS_WINDOWS:
+                self._detect_vs_version()
+            else:
+                self.set_env_var('CC', 'clang')
+                self.set_env_var('CXX', 'clang++')
+
         # Add tools like ninja and swig to the current PATH
         this_dir = os.path.dirname(os.path.realpath(__file__))
         tools_dir = os.path.join(this_dir, 'thirdparty', 'tools', PLATFORM)
@@ -258,10 +263,11 @@ class Builder(object):
         name was extracted, if any
         """
         third_party_dirs = next(os.walk(self._third_party_dir))[1]
-        for lib_dir in third_party_dirs:
+        candiate = None
+        for lib_dir in sorted(third_party_dirs):
             if prefix in lib_dir:
-                return os.path.join(self._third_party_dir, lib_dir)
-        return None
+                candiate = os.path.join(self._third_party_dir, lib_dir)
+        return candiate
 
     def build_opencv(self):
         """
@@ -354,17 +360,32 @@ class Builder(object):
             os.mkdir(build_dir)
         self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], False)
 
-    # def build_dlib(self):
+    def build_dlib(self):
 
-    #     # Download OpenCV sources if not done yet
-    #     dlib_src_pkg = self.download_third_party_lib(DLIB_SRC_URL)
-    #     # Get the file prefix for OpenCV
-    #     dlib_extract_dir = self.get_third_party_lib_dir('dlib-')
+        # Download dlib sources if not done yet
+        dlib_src_pkg = self.download_third_party_lib(self.dlib_src_url)
+        # Get the file prefix for dlib
+        dlib_version = self.get_third_party_lib_version(self.dlib_src_url)
+        dlib_folder = 'dlib-' + dlib_version
+        dlib_extract_dir = self.get_third_party_lib_dir(dlib_folder)
+        if dlib_extract_dir is None:
+            # Extract the source files
+            self.extract_third_party_lib(dlib_src_pkg)
+            dlib_extract_dir = self.get_third_party_lib_dir(dlib_folder)
 
-    #     if dlib_extract_dir is None:
-    #         # Extract the source files
-    #         self.extract_third_party_lib(dlib_src_pkg)
-    #         dlib_extract_dir = self.get_third_party_lib_dir('dlib')
+        return
+        cmake_extra_defs = [
+            '-DDLIB_JPEG_SUPPORT=1',
+            '-DDLIB_PNG_SUPPORT=1',
+            '-DDLIB_NO_GUI_SUPPORT=1'
+        ]
+
+        build_dir = self.build_dir_name(dlib_extract_dir)
+        if os.path.exists(build_dir):  # Remove the build directory
+            shutil.rmtree(build_dir)
+        if not os.path.exists(build_dir):  # Create the build directory
+            os.mkdir(build_dir)
+        self.build_cmake_lib(dlib_extract_dir, cmake_extra_defs, ['install'], False)
 
     def get_filename_from_url(self, url):
         """
@@ -850,6 +871,7 @@ class Builder(object):
         self.bundle_config()
 
         # Build Third Party Libs
+        self.build_dlib()
         self.build_googletest()
         self.build_opencv()
 

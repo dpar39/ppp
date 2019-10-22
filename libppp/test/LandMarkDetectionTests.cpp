@@ -211,8 +211,29 @@ TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 
     LandMarks detectedLandMarks;
 
-    const auto imgKey = m_pPppEngine->getImageStore()->setImage(imageFilePath);
-    auto inputImage = m_pPppEngine->getImageStore()->getImage(imgKey);
+    const auto & imageStore = m_pPppEngine->getImageStore();
+    const auto imgKey = imageStore->setImage(imageFilePath);
+    auto inputImage = imageStore->getImage(imgKey);
+    const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+
+    EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
+
+    using namespace cv;
+
+    renderLandmarksOnImage(inputImage, detectedLandMarks);
+}
+
+TEST_F(PppEngineIntegrationTests, DISABLED_babyTest)
+{
+    using namespace std;
+    const string imageFileName = "20191021_155155.jpg";
+    const auto imageFilePath = resolvePath("research/my_database/" + imageFileName);
+
+    LandMarks detectedLandMarks;
+
+    const auto & imageStore = m_pPppEngine->getImageStore();
+    const auto imgKey = imageStore->setImage(imageFilePath);
+    auto inputImage = imageStore->getImage(imgKey);
     const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
 
     EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
