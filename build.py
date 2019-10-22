@@ -87,7 +87,7 @@ def read_json(file_path):
 
 def write_json(file_path, data):
     with open(file_path, 'w') as fp:
-        json.dump(config_data, fp)
+        json.dump(data, fp)
 
 
 class ShellRunner(object):
