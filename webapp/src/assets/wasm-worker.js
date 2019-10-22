@@ -122,7 +122,7 @@ if ('function' === typeof importScripts) {
 
         const landMarksStr = UTF8ToString(landMarksPtr, 1000000);
         Module._free(imgKeyPtr);
-        Module._free(landMarksStr);
+        Module._free(landMarksPtr);
         postMessage({cmd: 'onLandmarksDetected', landmarks: JSON.parse(landMarksStr)});
     }
 

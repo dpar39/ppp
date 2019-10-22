@@ -48,10 +48,8 @@ cv::Vec3d FacePoseEstimator::estimatePose(const LandMarks & landMarks,
 
     auto r = rotationMatrix;
 
-    float sy = sqrt(r.at<double>(0, 0) * r.at<double>(0, 0) + r.at<double>(1, 0) * r.at<double>(1, 0));
-
-    const auto singular = sy < 1e-6; // If
-
+    const auto sy = sqrt(r.at<double>(0, 0) * r.at<double>(0, 0) + r.at<double>(1, 0) * r.at<double>(1, 0));
+    const auto singular = sy < 1e-6;
     double x, y, z;
     if (!singular)
     {

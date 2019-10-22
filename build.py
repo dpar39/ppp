@@ -70,6 +70,26 @@ def link_file(src_file_path, dst_link):
     os.system(link_cmd)
 
 
+def read_file(file_path, mode='r'):
+    with open(file_path, mode) as fp:
+        return fp.read()
+
+
+def write_file(file_path, content, mode='w'):
+    with open(file_path, mode) as fp:
+        fp.write(content)
+
+
+def read_json(file_path):
+    with open(file_path) as fp:
+        return json.load(fp)
+
+
+def write_json(file_path, data):
+    with open(file_path, 'w') as fp:
+        json.dump(config_data, fp)
+
+
 class ShellRunner(object):
     def __init__(self, arch_name, is_emscripten):
         self._env = os.environ.copy()
@@ -214,9 +234,7 @@ class Builder(object):
         therefore is the startup project within Visual Studio
         """
         solution_file = glob.glob(self._build_dir + '/*.sln')[0]
-        sln_lines = []
-        with open(solution_file) as file_handle:
-            sln_lines = file_handle.read().splitlines()
+        sln_lines = read_file(solution_file).splitlines()
         lnum = 0
         lin_prj_beg = 0
         lin_prj_end = 0
@@ -229,11 +247,7 @@ class Builder(object):
             lnum = lnum + 1
         prj_lines = sln_lines[:2] + sln_lines[lin_prj_beg:lin_prj_end + 1] \
             + sln_lines[2:lin_prj_beg] + sln_lines[lin_prj_end + 1:]
-        with open(solution_file, "w") as file_handle:
-            file_handle.writelines(["%s\n" % item for item in prj_lines])
-
-        # if not "devenv" in (p.name() for p in psutil.process_iter()):
-        #    self.run_cmd(['call', 'devenv', solution_file])
+        write_file(solution_file, '\n'.join(item for item in prj_lines))
 
     def build_googletest(self):
         """
@@ -251,11 +265,7 @@ class Builder(object):
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
             gmock_extract_dir = self.get_third_party_lib_dir('googletest')
-        # Build GoogleTest/GoogleMock and install
-        cmake_extra_defs = [
-            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
-        ]
-        self.build_cmake_lib(gmock_extract_dir, cmake_extra_defs, ['install'])
+        self.build_cmake_lib(gmock_extract_dir, ['-DGTEST_FORCE_SHARED_CRT=ON'], ['install'], True)
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -263,11 +273,11 @@ class Builder(object):
         name was extracted, if any
         """
         third_party_dirs = next(os.walk(self._third_party_dir))[1]
-        candiate = None
+        candidate = None
         for lib_dir in sorted(third_party_dirs):
             if prefix in lib_dir:
-                candiate = os.path.join(self._third_party_dir, lib_dir)
-        return candiate
+                candidate = os.path.join(self._third_party_dir, lib_dir)
+        return candidate
 
     def build_opencv(self):
         """
@@ -295,7 +305,6 @@ class Builder(object):
             opencv_extract_dir = self.get_third_party_lib_dir(dir_name)
 
         cmake_extra_defs = [
-            '-DCMAKE_INSTALL_PREFIX=' + self._third_party_install_dir,
             '-DBUILD_SHARED_LIBS=OFF',
             '-DBUILD_DOCS=OFF',
             '-DBUILD_PERF_TESTS=OFF',
@@ -347,10 +356,7 @@ class Builder(object):
                 '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui'
             ]
             if IS_WINDOWS:
-                cmake_extra_defs += [
-                    '-DBUILD_WITH_STATIC_CRT=ON',
-                    #  '-DUSE_MSVC_SSE=OFF'
-                ]
+                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=OFF']
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)
@@ -358,9 +364,12 @@ class Builder(object):
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
-        self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], False)
+        self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], True)
 
     def build_dlib(self):
+        # Skip building dlib if it is already installed
+        if os.path.exists(os.path.join(self._third_party_install_dir, 'lib/cmake/dlib/dlibConfig.cmake')):
+            return
 
         # Download dlib sources if not done yet
         dlib_src_pkg = self.download_third_party_lib(self.dlib_src_url)
@@ -373,19 +382,21 @@ class Builder(object):
             self.extract_third_party_lib(dlib_src_pkg)
             dlib_extract_dir = self.get_third_party_lib_dir(dlib_folder)
 
-        return
+        codec_on_off = 'OFF' if self._emscripten else 'ON'
         cmake_extra_defs = [
-            '-DDLIB_JPEG_SUPPORT=1',
-            '-DDLIB_PNG_SUPPORT=1',
-            '-DDLIB_NO_GUI_SUPPORT=1'
+            '-DDLIB_JPEG_SUPPORT=' + codec_on_off,
+            '-DDLIB_PNG_SUPPORT=' + codec_on_off,
+            '-DDLIB_NO_GUI_SUPPORT=ON'
         ]
+
+        # self.force_static_crt(dlib_extract_dir)
 
         build_dir = self.build_dir_name(dlib_extract_dir)
         if os.path.exists(build_dir):  # Remove the build directory
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
-        self.build_cmake_lib(dlib_extract_dir, cmake_extra_defs, ['install'], False)
+        self.build_cmake_lib(dlib_extract_dir, cmake_extra_defs, ['install'], True)
 
     def get_filename_from_url(self, url):
         """
@@ -406,8 +417,7 @@ class Builder(object):
         if not os.path.exists(lib_filepath):
             print('Downloading %s to "%s" please wait ...' % (url, lib_filepath))
             lib_file = urlopen(url)
-            with open(lib_filepath, 'wb') as output:
-                output.write(lib_file.read())
+            write_file(lib_filepath, lib_file.read(), 'wb')
         return lib_filepath
 
     def get_third_party_lib_version(self, url):
@@ -433,7 +443,28 @@ class Builder(object):
                 tar.extract(item, self._third_party_dir)
             tar.close()
 
-    def build_cmake_lib(self, cmakelists_path, extra_definitions, targets, clean_build=False):
+    def force_static_crt(self, cmakelists_path):
+        if not IS_WINDOWS or self._emscripten:
+            return
+        hack = """
+        # Force static C runtime linking with Visual Studio compiler
+        if (MSVC)
+            foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+                if(${FLAG_VAR} MATCHES "/MD")
+                    string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+                endif()
+            endforeach()
+        endif()
+        """
+
+        cmakelists_file = os.path.join(cmakelists_path, 'CMakeLists.txt')
+        cmake_content = read_file(cmakelists_file)
+        if '"/MT"' in cmake_content:
+            return
+        cmake_content = hack + cmake_content
+        write_file(cmakelists_file, cmake_content)
+
+    def build_cmake_lib(self, cmakelists_path, extra_definitions, targets, is_3rd_party, clean_build=False):
         """
         Builds a library using cmake
         """
@@ -444,6 +475,10 @@ class Builder(object):
             shutil.rmtree(build_dir)
         if not os.path.exists(build_dir):  # Create the build directory
             os.mkdir(build_dir)
+
+        if 'install' in targets:
+            install_dir = self._third_party_install_dir if is_3rd_party else self._install_dir
+            extra_definitions.append('-DCMAKE_INSTALL_PREFIX=' + install_dir)
 
         if self._emscripten:
             emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' +
@@ -466,6 +501,11 @@ class Builder(object):
             ]
         else:
             pass
+
+        # if IS_WINDOWS:
+        #     crt = 'MultiThreadedDebug' if 'debug' in self._build_config.lower() else 'MultiThreaded'
+        #     extra_definitions.append('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
+        #     extra_definitions.append('-DCMAKE_MSVC_RUNTIME_LIBRARY=' + crt)
 
         # Define CMake generator and make command
         os.chdir(build_dir)
@@ -515,8 +555,7 @@ class Builder(object):
             os.mkdir(android_user_dir)
         repos_cfg = os.path.join(android_user_dir, 'repositories.cfg')
         if not os.path.exists(repos_cfg):
-            with open(repos_cfg, 'w') as fp:
-                fp.write('')
+            write_file(repos_cfg, '')
 
         # self._shell.set_env_var('JAVA_HOME', '/usr/lib/jvm/java-8-oracle')
         self._shell.set_env_var('ANDROID_HOME', android_sdk_tools_dir)
@@ -615,15 +654,13 @@ class Builder(object):
             self.run_cmd(['tree', emsdk_dir])
             raise Exception('Unable to find emscripten\'s settings file')
 
-        with open(settings_file, 'r') as fp:
-            content = fp.read()
+        content = read_file(settings_file)
         new_content = content
         for name in config:
             new_content = re.sub(r'(var ' + name + r'\s?=\s?)([A-z0-9\[\]"]+);',
                                  r'\g<1>' + str(config[name]) + r';', new_content)
         if new_content != content:
-            with open(settings_file, 'w') as fp:
-                fp.write(new_content)
+            write_file(settings_file, new_content)
 
     def extract_validation_data(self):
         """
@@ -674,27 +711,22 @@ class Builder(object):
                     file_path = os.path.join(lippp_share_dir, file_name)
                     content = ''
                     if embed == 'base64':
-                        with open(file_path, 'rb') as fp:
-                            data = fp.read()
-                            content = base64.b64encode(data).decode('ascii')
+                        data = read_file(file_path, 'rb')
+                        content = base64.b64encode(data).decode('ascii')
                     elif embed == 'text':
-                        with open(file_path, 'r') as fp:
-                            content = fp.read()
+                        content = read_file(file_path)
                     node['data'] = content
                 else:
                     expand_node(node[key])
 
         config_input_file = os.path.join(lippp_share_dir, 'config.json')
-        with open(config_input_file) as fp:
-            config_data = json.load(fp)
+        config_data = read_json(config_input_file)
 
         for key in config_data:
             expand_node(config_data[key])
 
-        config_bundle_file = os.path.join(
-            lippp_share_dir, 'config.bundle.json')
-        with open(config_bundle_file, 'w') as fp:
-            json.dump(config_data, fp)
+        config_bundle_file = os.path.join(lippp_share_dir, 'config.bundle.json')
+        write_json(config_bundle_file, config_data)
 
     def build_cpp_code(self):
         """
@@ -720,8 +752,7 @@ class Builder(object):
             self.set_startup_vs_prj('ppp_test')
         else:
             targets = ['install'] if not self._emscripten else []
-            cmake_extra_defs = ['-DCMAKE_INSTALL_PREFIX=' + self._install_dir]
-            self.build_cmake_lib('..', cmake_extra_defs, targets)
+            self.build_cmake_lib('..', [], targets, False)
             # Run unit tests for C++ code
             if not self._emscripten and self._run_tests:
                 os.chdir(self._install_dir)
@@ -781,8 +812,7 @@ class Builder(object):
         # Configuration
         this_dir = os.path.dirname(os.path.realpath(__file__))
         third_party_config = os.path.join(this_dir, 'thirdparty/thirdparty.json')
-        with open(third_party_config) as fp:
-            config = json.load(fp)
+        config = read_json(third_party_config)
 
         self.emsdk_version_number = config.get('EMSDK_VERSION_NUMBER', '1.38.46')
         self.emsdk_version_name = 'sdk-' + self.emsdk_version_number + '-64bit'
