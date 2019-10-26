@@ -255,17 +255,23 @@ class Builder(object):
         """
         if self._emscripten:
             return  # We don't run WebAssembly unit tests
-        if os.path.isfile(os.path.join(self._third_party_install_dir, 'lib/cmake/GTest/GTestConfig.cmake')):
+
+        gtest_extract_dir = self.get_third_party_lib_dir('googletest')
+        gtest_installed_dir = os.path.join(self._third_party_install_dir, 'lib/cmake/GTest')
+
+        self.clean_thirdparty_if_needed('gtest', gtest_installed_dir, gtest_extract_dir)
+
+        if os.path.isfile(gtest_installed_dir):
             return  # We have Gtest installed
         # Download googletest sources if not done yet
         gmock_src_pkg = self.download_third_party_lib(self.gmock_src_url, 'googletest.zip')
         # Get the file prefix for googletest
-        gmock_extract_dir = self.get_third_party_lib_dir('googletest')
-        if gmock_extract_dir is None:
+        gtest_extract_dir = self.get_third_party_lib_dir('googletest')
+        if gtest_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
-            gmock_extract_dir = self.get_third_party_lib_dir('googletest')
-        self.build_cmake_lib(gmock_extract_dir, [], ['install'], True) # '-DGTEST_FORCE_SHARED_CRT=ON'
+            gtest_extract_dir = self.get_third_party_lib_dir('googletest')
+        self.build_cmake_lib(gtest_extract_dir, [], ['install'], True) # '-DGTEST_FORCE_SHARED_CRT=ON'
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -278,6 +284,13 @@ class Builder(object):
             if prefix in lib_dir:
                 candidate = os.path.join(self._third_party_dir, lib_dir)
         return candidate
+
+    def clean_thirdparty_if_needed(self, libname, installed_dir, extract_dir):
+        if libname in self._clean_targets:
+            if os.path.isfile(installed_dir):
+                shutil.rmtree(installed_dir)
+            if extract_dir and os.path.isdir(extract_dir):
+                shutil.rmtree(extract_dir)
 
     def build_opencv(self):
         """
@@ -367,16 +380,22 @@ class Builder(object):
         self.build_cmake_lib(opencv_extract_dir, cmake_extra_defs, ['install'], True)
 
     def build_dlib(self):
-        # Skip building dlib if it is already installed
-        if os.path.exists(os.path.join(self._third_party_install_dir, 'lib/cmake/dlib/dlibConfig.cmake')):
-            return
-
-        # Download dlib sources if not done yet
-        dlib_src_pkg = self.download_third_party_lib(self.dlib_src_url)
         # Get the file prefix for dlib
         dlib_version = self.get_third_party_lib_version(self.dlib_src_url)
         dlib_folder = 'dlib-' + dlib_version
         dlib_extract_dir = self.get_third_party_lib_dir(dlib_folder)
+        dlib_installed_dir = os.path.join(self._third_party_install_dir, 'lib/cmake/dlib')
+
+        # Clean the library build and install if needed
+        self.clean_thirdparty_if_needed('dlib', dlib_installed_dir, dlib_extract_dir)
+
+        # Skip building dlib if it is already installed
+        if os.path.exists(dlib_installed_dir):
+            return
+
+        # Download dlib sources if not done yet
+        dlib_src_pkg = self.download_third_party_lib(self.dlib_src_url)
+
         if dlib_extract_dir is None:
             # Extract the source files
             self.extract_third_party_lib(dlib_src_pkg)
@@ -385,11 +404,11 @@ class Builder(object):
         cmake_extra_defs = [
             '-DDLIB_JPEG_SUPPORT=OFF',
             '-DDLIB_PNG_SUPPORT=OFF',
-            '-DDLIB_NO_GUI_SUPPORT=ON',
-            '-DDLIB_FORCE_MSVC_STATIC_RUNTIME=ON'
+            '-DDLIB_NO_GUI_SUPPORT=ON'
         ]
 
         if IS_WINDOWS:
+            cmake_extra_defs.append('-DDLIB_FORCE_MSVC_STATIC_RUNTIME=ON')
             # Hack cmakelists.txt to get option -DDLIB_FORCE_MSVC_STATIC_RUNTIME to work
             hack_line = 'include(cmake_utils/tell_visual_studio_to_use_static_runtime.cmake)'
             dlib_cmakelists_path = os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt')
@@ -506,13 +525,15 @@ class Builder(object):
                 '-DCMAKE_CXX_FLAGS=' + cxx_flags + '',
                 '-DCMAKE_EXE_LINKER_FLAGS=' + cxx_flags + ''
             ]
-        else:
-            pass
-
-        # if IS_WINDOWS:
-        #     crt = 'MultiThreadedDebug' if 'debug' in self._build_config.lower() else 'MultiThreaded'
-        #     extra_definitions.append('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
-        #     extra_definitions.append('-DCMAKE_MSVC_RUNTIME_LIBRARY=' + crt)
+        elif not IS_WINDOWS:
+            extra_definitions += [
+            ]
+        c_compiler = self._shell.get_env_var('CC')
+        if c_compiler:
+            extra_definitions.append('-DCMAKE_C_COMPILER=' + c_compiler)
+        cxx_compiler = self._shell.get_env_var('CXX')
+        if cxx_compiler:
+            extra_definitions.append('-DCMAKE_CXX_COMPILER=' + cxx_compiler)
 
         # Define CMake generator and make command
         os.chdir(build_dir)
@@ -742,10 +763,12 @@ class Builder(object):
         # self.run_cmd(
         #     'swig -c++ -python -Ilibppp/include -outdir libppp/python -o libppp/swig/libppp_python_wrap.cxx libppp/swig/libppp.i')
 
-        # Build actions
-        if self._build_clean and os.path.exists(self._build_dir):
-            # Remove the build directory - clean
-            shutil.rmtree(self._build_dir)
+        # Clean build and install directory first if needed
+        if 'ppp' in self._clean_targets:
+            for path in [self._build_dir, self._install_dir]:
+                if os.path.isdir(path):
+                    shutil.rmtree(self._build_dir)
+
         if not os.path.exists(self._build_dir):
             # Create the build directory if doesn't exist
             os.mkdir(self._build_dir)
@@ -837,7 +860,7 @@ class Builder(object):
                             help='Platform architecture', default='x64')
         parser.add_argument('--build_config', required=False, choices=[
                             'debug', 'release'], help='Build configuration type', default='release')
-        parser.add_argument('--clean', help='Cleans the whole build directory', action="store_true")
+        parser.add_argument('--clean', nargs='+', help='Clean specified targets', default=[])
         parser.add_argument('--test', help='Runs unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
@@ -852,7 +875,7 @@ class Builder(object):
         args = parser.parse_args()
 
         self._arch_name = args.arch_name
-        self._build_clean = args.clean
+        self._clean_targets = args.clean
         self._build_config = args.build_config
         self._gen_vs_sln = args.gen_vs_sln
         self._run_tests = args.test
@@ -880,12 +903,22 @@ class Builder(object):
         shell.set_env_var('INSTALL_DIR', self._install_dir)
         self._shell = shell
 
+    def clean_all_if_needed(self):
+        if 'all' in self._clean_targets:
+            if os.path.isdir(self._third_party_install_dir):
+                shutil.rmtree(self._third_party_install_dir)
+            if os.path.isdir(self._build_dir):
+                shutil.rmtree(self._build_dir)
+
     def __init__(self):
         # Load 3rd party config
         self.load_third_party_config()
 
         # Detect OS version
         self.parse_arguments()
+
+        # Clean all if requested
+        self.clean_all_if_needed()
 
         # Setup Emscripten tools
         if self._emscripten:
