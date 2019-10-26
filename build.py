@@ -528,12 +528,13 @@ class Builder(object):
         elif not IS_WINDOWS:
             extra_definitions += [
             ]
-        c_compiler = self._shell.get_env_var('CC')
-        if c_compiler:
-            extra_definitions.append('-DCMAKE_C_COMPILER=' + c_compiler)
-        cxx_compiler = self._shell.get_env_var('CXX')
-        if cxx_compiler:
-            extra_definitions.append('-DCMAKE_CXX_COMPILER=' + cxx_compiler)
+        if not self._emscripten:
+            c_compiler = self._shell.get_env_var('CC')
+            if c_compiler:
+                extra_definitions.append('-DCMAKE_C_COMPILER=' + c_compiler)
+            cxx_compiler = self._shell.get_env_var('CXX')
+            if cxx_compiler:
+                extra_definitions.append('-DCMAKE_CXX_COMPILER=' + cxx_compiler)
 
         # Define CMake generator and make command
         os.chdir(build_dir)
