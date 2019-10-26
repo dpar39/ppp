@@ -4,5 +4,5 @@
   "DLIB_SRC_URL": "http://dlib.net/files/dlib-19.18.zip",
   "GMOCK_SRC_URL": "https://github.com/google/googletest/archive/release-1.8.1.zip",
   "ANDROID_GRADLE": "https://services.gradle.org/distributions/gradle-4.10.3-bin.zip",
-  "forceBuild": null
+  "forceBuild": 1
 }
