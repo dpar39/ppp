@@ -271,7 +271,7 @@ class Builder(object):
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
             gtest_extract_dir = self.get_third_party_lib_dir('googletest')
-        self.build_cmake_lib(gtest_extract_dir, [], ['install'], True) # '-DGTEST_FORCE_SHARED_CRT=ON'
+        self.build_cmake_lib(gtest_extract_dir, [], ['install'], True)  # '-DGTEST_FORCE_SHARED_CRT=ON'
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -415,6 +415,10 @@ class Builder(object):
             content = read_file(dlib_cmakelists_path)
             if hack_line not in content:
                 content = hack_line + '\n' + content
+            write_file(dlib_cmakelists_path, content)
+        else:
+            content = read_file(dlib_cmakelists_path)
+            content = content.replace('cmake_minimum_required(VERSION 2.8.12)', 'cmake_minimum_required(VERSION 3.1.0)')
             write_file(dlib_cmakelists_path, content)
 
         build_dir = self.build_dir_name(dlib_extract_dir)
