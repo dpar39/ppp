@@ -265,7 +265,7 @@ class Builder(object):
             # Extract the source files
             self.extract_third_party_lib(gmock_src_pkg)
             gmock_extract_dir = self.get_third_party_lib_dir('googletest')
-        self.build_cmake_lib(gmock_extract_dir, ['-DGTEST_FORCE_SHARED_CRT=ON'], ['install'], True)
+        self.build_cmake_lib(gmock_extract_dir, [], ['install'], True) # '-DGTEST_FORCE_SHARED_CRT=ON'
 
     def get_third_party_lib_dir(self, prefix):
         """
@@ -356,7 +356,7 @@ class Builder(object):
                 '-DBUILD_LIST=objdetect,imgproc,imgcodecs,highgui'
             ]
             if IS_WINDOWS:
-                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=OFF']
+                cmake_extra_defs += ['-DBUILD_WITH_STATIC_CRT=ON']
 
         # Clean and create the build directory
         build_dir = self.build_dir_name(opencv_extract_dir)
@@ -382,14 +382,21 @@ class Builder(object):
             self.extract_third_party_lib(dlib_src_pkg)
             dlib_extract_dir = self.get_third_party_lib_dir(dlib_folder)
 
-        codec_on_off = 'OFF' if self._emscripten else 'ON'
         cmake_extra_defs = [
-            '-DDLIB_JPEG_SUPPORT=' + codec_on_off,
-            '-DDLIB_PNG_SUPPORT=' + codec_on_off,
-            '-DDLIB_NO_GUI_SUPPORT=ON'
+            '-DDLIB_JPEG_SUPPORT=OFF',
+            '-DDLIB_PNG_SUPPORT=OFF',
+            '-DDLIB_NO_GUI_SUPPORT=ON',
+            '-DDLIB_FORCE_MSVC_STATIC_RUNTIME=ON'
         ]
 
-        # self.force_static_crt(dlib_extract_dir)
+        if IS_WINDOWS:
+            # Hack cmakelists.txt to get option -DDLIB_FORCE_MSVC_STATIC_RUNTIME to work
+            hack_line = 'include(cmake_utils/tell_visual_studio_to_use_static_runtime.cmake)'
+            dlib_cmakelists_path = os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt')
+            content = read_file(dlib_cmakelists_path)
+            if hack_line not in content:
+                content = hack_line + '\n' + content
+            write_file(dlib_cmakelists_path, content)
 
         build_dir = self.build_dir_name(dlib_extract_dir)
         if os.path.exists(build_dir):  # Remove the build directory

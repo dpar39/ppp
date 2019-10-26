@@ -100,7 +100,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     }
 
     const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, crownPoint, chinPoint);
-    return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolution_ppmm());
+    return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolutionPixPerMM());
 }
 
 #pragma region C Interface

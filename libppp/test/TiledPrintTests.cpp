@@ -56,3 +56,23 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
     verifyEqualImage(expectedPrintPath, printPhoto);
 #endif
 }
+
+TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
+{
+    const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, "inch");
+    const CanvasDefinition canvasDefinition(6, 4, 300, "inch", 0, 1.5 / 25.4);
+
+    const auto & imageFileName = resolvePath("research/my_database/20191021_155155.jpg");
+    const cv::Point2d crownPos(1155, 310);
+    const cv::Point2d chinPos(1173, 1188);
+
+    const auto image = cv::imread(imageFileName);
+
+    // Crop the photo to the right dimensions
+    const auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
+
+    const auto printPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
+
+    const auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "001-print.png");
+    cv::imwrite(expectedPrintPath, printPhoto);
+}

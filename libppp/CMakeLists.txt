@@ -41,11 +41,11 @@ else()
     else()
         if (MSVC)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /wd4834")
-            # foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            #     if(${FLAG_VAR} MATCHES "/MD")
-            #         string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
-            #     endif()
-            # endforeach()
+            foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+                if(${FLAG_VAR} MATCHES "/MD")
+                    string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
+                endif()
+            endforeach()
             add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
         endif()
         if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -95,8 +95,8 @@ set(MODULE_INC_DIRS
 
 set(MODULE_LIB_DEPS
     ${OpenCV_LIBS}
-    ${OPENCV_3RDPARTY_LIBS}
     dlib::dlib
+    ${OPENCV_3RDPARTY_LIBS}
 )
 
 include_directories(${MODULE_INC_DIRS})

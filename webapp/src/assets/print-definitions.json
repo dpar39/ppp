@@ -3,12 +3,16 @@
         "height": 4,
         "width": 6,
         "resolution": 300,
-        "units": "inch"
+        "units": "inch",
+        "gutter": 0,
+        "padding": 0.06
     },
     {
         "height": 5,
         "width": 7,
         "resolution": 300,
-        "units": "inch"
+        "units": "inch",
+        "gutter": 0,
+        "padding": 0.06
     }
 ]

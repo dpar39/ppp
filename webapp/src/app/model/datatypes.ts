@@ -32,6 +32,8 @@ export class Canvas {
     height: number;
     width: number;
     resolution: number;
+    gutter: number;
+    padding: number;
     units: UnitType;
 
     constructor(id: string, text: string) {

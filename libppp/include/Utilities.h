@@ -27,6 +27,12 @@ int ceilInteger(TNumber x)
     return static_cast<int>(ceil(x));
 }
 
+template <typename TNumber>
+int floorInteger(TNumber x)
+{
+    return static_cast<int>(floor(x));
+}
+
 class Utilities final
 {
 public:

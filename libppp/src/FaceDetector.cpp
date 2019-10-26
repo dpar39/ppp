@@ -14,34 +14,34 @@ using namespace cv;
 
 bool FaceDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks)
 {
-    if (m_useDlibFaceDetection)
-    {
-        using namespace dlib;
-        array2d<uint8_t> dlibImage;
-        assign_image(dlibImage, cv_image<uint8_t>(inputImage));
+    // if (m_useDlibFaceDetection)
+    //{
+    //    using namespace dlib;
+    //    array2d<uint8_t> dlibImage;
+    //    assign_image(dlibImage, cv_image<uint8_t>(inputImage));
 
-        auto dets = (*m_frontalFaceDetector)(dlibImage);
+    //    auto dets = (*m_frontalFaceDetector)(dlibImage);
 
-        if (dets.empty())
-        {
-            return false; // No face was found
-        }
+    //    if (dets.empty())
+    //    {
+    //        return false; // No face was found
+    //    }
 
-        auto & faceRect = dets.front();
-        if (dets.size() > 1)
-        {
-            const auto biggestFacePtr = std::max_element(dets.begin(),
-                                                         dets.end(),
-                                                         [](const dlib::rectangle & r1, const dlib::rectangle & r2) {
-                                                             return r1.area() < r2.area();
-                                                         });
-            faceRect = *biggestFacePtr;
-        }
+    //    auto & faceRect = dets.front();
+    //    if (dets.size() > 1)
+    //    {
+    //        const auto biggestFacePtr = std::max_element(dets.begin(),
+    //                                                     dets.end(),
+    //                                                     [](const dlib::rectangle & r1, const dlib::rectangle & r2) {
+    //                                                         return r1.area() < r2.area();
+    //                                                     });
+    //        faceRect = *biggestFacePtr;
+    //    }
 
-        landmarks.vjFaceRect = Rect2d(faceRect.left(), faceRect.top(), faceRect.width(), faceRect.height());
-        landmarks.imageRotation = 0; // TODO: Add rotation search to this one as well
-        return true;
-    }
+    //    landmarks.vjFaceRect = Rect2d(faceRect.left(), faceRect.top(), faceRect.width(), faceRect.height());
+    //    landmarks.imageRotation = 0; // TODO: Add rotation search to this one as well
+    //    return true;
+    //}
 
     // Configuration
     const auto minFaceRatio = 0.15;
@@ -71,7 +71,7 @@ bool FaceDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks
         m_pFaceCascadeClassifier->detectMultiScale(rotatedImage,
                                                    facesRects,
                                                    1.05,
-                                                   4,
+                                                   3,
                                                    CASCADE_SCALE_IMAGE | CASCADE_FIND_BIGGEST_OBJECT,
                                                    minFaceSize,
                                                    maxFaceSize);
@@ -106,8 +106,8 @@ void FaceDetector::configure(rapidjson::Value & config)
 
     m_useDlibFaceDetection = config["useDlibFaceDetection"].GetBool();
 
-    if (m_useDlibFaceDetection)
+    /*if (m_useDlibFaceDetection)
     {
         m_frontalFaceDetector = std::make_shared<dlib::frontal_face_detector>(dlib::get_frontal_face_detector());
-    }
+    }*/
 }
