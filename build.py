@@ -91,17 +91,19 @@ def write_json(file_path, data):
 
 
 class ShellRunner(object):
-    def __init__(self, arch_name, is_emscripten):
+    def __init__(self, arch_name):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
-        self._is_emscripten = is_emscripten
+        self._is_emscripten = arch_name == 'wasm'
         if not self._is_emscripten:
             if IS_WINDOWS:
                 self._detect_vs_version()
             else:
                 self.set_env_var('CC', 'clang')
                 self.set_env_var('CXX', 'clang++')
+                self.set_env_var('CXXFLAGS', '-fPIC')
+                # self.set_env_var('LD_LIBRARY_PATH', self._install_dir)
 
         # Add tools like ninja and swig to the current PATH
         this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -199,7 +201,7 @@ class Builder(object):
         return os.path.join(self._root_dir, 'webapp', rel_path)
 
     def build_name(self):
-        if self._emscripten:
+        if self._arch_name == 'wasm':
             return 'emscripten'
         return PLATFORM + '_' + self._build_config + '_' + self._arch_name
 
@@ -211,18 +213,6 @@ class Builder(object):
 
     def build_path(self, rel_path):
         return os.path.join(self._build_dir, rel_path).replace('\\', '/')
-
-    def run_cmake(self, cmake_generator='Ninja', cmakelists_path='.'):
-        """
-        Runs CMake with the specified generator in the specified path with
-        possibly some extra definitions
-        """
-        cmake_args = ['cmake',
-                      '-DCMAKE_INSTALL_PREFIX=' + self._install_dir,
-                      '-DCMAKE_PREFIX_PATH=' + self._install_dir,
-                      '-DCMAKE_BUILD_TYPE=' + self._build_config,
-                      '-G', cmake_generator, cmakelists_path]
-        self.run_cmd(cmake_args)
 
     def run_cmd(self, cmd_args, cmd_print=True, cwd=None, input=None):
         self._shell.run_cmd(cmd_args, cmd_print=cmd_print,
@@ -253,7 +243,7 @@ class Builder(object):
         """
         Extract and build GMock/GTest libraries
         """
-        if self._emscripten:
+        if self._arch_name == 'wasm':
             return  # We don't run WebAssembly unit tests
 
         gtest_extract_dir = self.get_third_party_lib_dir('googletest')
@@ -261,8 +251,9 @@ class Builder(object):
 
         self.clean_thirdparty_if_needed('gtest', gtest_installed_dir, gtest_extract_dir)
 
-        if os.path.isfile(gtest_installed_dir):
+        if os.path.isdir(gtest_installed_dir):
             return  # We have Gtest installed
+
         # Download googletest sources if not done yet
         gmock_src_pkg = self.download_third_party_lib(self.gmock_src_url, 'googletest.zip')
         # Get the file prefix for googletest
@@ -296,16 +287,13 @@ class Builder(object):
         """
         Downloads and builds OpenCV from source
         """
-        ocv_build_modules = ['highgui', 'core', 'imgproc', 'objdetect', 'imgcodecs']
+        opencv_extract_dir = self.get_third_party_lib_dir('opencv')
+        opencv_installed_dir = os.path.join(self._third_party_install_dir, 'lib/cmake/opencv4')
+        self.clean_thirdparty_if_needed('opencv', opencv_installed_dir, opencv_extract_dir)
 
-        # Skip building OpenCV if done already
-        if IS_WINDOWS and not self._emscripten:
-            if os.path.exists(os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')):
-                return
-        else:
-            lib_files = glob.glob(self._third_party_install_dir + '/lib/libopencv_*.a')
-            if len(lib_files) >= len(ocv_build_modules):
-                return
+        if os.path.isdir(opencv_installed_dir):
+            return  # We have OpenCV installed
+
         # Download OpenCV sources if not done yet
         opencv_src_pkg = self.download_third_party_lib(self.opencv_src_url)
         # Get the extract directory for OpenCV
@@ -347,7 +335,7 @@ class Builder(object):
             '-DBUILD_opencv_python_bindings_generator=OFF'
         ]
 
-        if self._emscripten:
+        if self._arch_name == 'wasm':
             cmake_extra_defs += [
                 '-DCV_ENABLE_INTRINSICS=OFF',
                 '-DENABLE_PIC=FALSE'
@@ -407,18 +395,20 @@ class Builder(object):
             '-DDLIB_NO_GUI_SUPPORT=ON'
         ]
 
+        # Hacks to compile dlib
+        dlib_cmakelists_path = os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt')
         if IS_WINDOWS:
             cmake_extra_defs.append('-DDLIB_FORCE_MSVC_STATIC_RUNTIME=ON')
             # Hack cmakelists.txt to get option -DDLIB_FORCE_MSVC_STATIC_RUNTIME to work
             hack_line = 'include(cmake_utils/tell_visual_studio_to_use_static_runtime.cmake)'
-            dlib_cmakelists_path = os.path.join(dlib_extract_dir, 'dlib/CMakeLists.txt')
             content = read_file(dlib_cmakelists_path)
             if hack_line not in content:
                 content = hack_line + '\n' + content
             write_file(dlib_cmakelists_path, content)
         else:
             content = read_file(dlib_cmakelists_path)
-            content = content.replace('cmake_minimum_required(VERSION 2.8.12)', 'cmake_minimum_required(VERSION 3.1.0)')
+            content = content.replace('cmake_minimum_required(VERSION 2.8.12)',
+                                      'cmake_minimum_required(VERSION 3.1.0)')
             write_file(dlib_cmakelists_path, content)
 
         build_dir = self.build_dir_name(dlib_extract_dir)
@@ -473,27 +463,6 @@ class Builder(object):
                 tar.extract(item, self._third_party_dir)
             tar.close()
 
-    def force_static_crt(self, cmakelists_path):
-        if not IS_WINDOWS or self._emscripten:
-            return
-        hack = """
-        # Force static C runtime linking with Visual Studio compiler
-        if (MSVC)
-            foreach(FLAG_VAR CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-                if(${FLAG_VAR} MATCHES "/MD")
-                    string(REGEX REPLACE "/MD" "/MT" ${FLAG_VAR} "${${FLAG_VAR}}")
-                endif()
-            endforeach()
-        endif()
-        """
-
-        cmakelists_file = os.path.join(cmakelists_path, 'CMakeLists.txt')
-        cmake_content = read_file(cmakelists_file)
-        if '"/MT"' in cmake_content:
-            return
-        cmake_content = hack + cmake_content
-        write_file(cmakelists_file, cmake_content)
-
     def build_cmake_lib(self, cmakelists_path, extra_definitions, targets, is_3rd_party, clean_build=False):
         """
         Builds a library using cmake
@@ -510,7 +479,7 @@ class Builder(object):
             install_dir = self._third_party_install_dir if is_3rd_party else self._install_dir
             extra_definitions.append('-DCMAKE_INSTALL_PREFIX=' + install_dir)
 
-        if self._emscripten:
+        if self._arch_name == 'wasm':
             emscripten_path = os.path.join(self._third_party_dir, 'emsdk/' +
                                            self._emsdk_backend + '/emscripten')
             if not os.path.isdir(emscripten_path):
@@ -532,7 +501,8 @@ class Builder(object):
         elif not IS_WINDOWS:
             extra_definitions += [
             ]
-        if not self._emscripten:
+
+        if self._arch_name != 'wasm':
             c_compiler = self._shell.get_env_var('CC')
             if c_compiler:
                 extra_definitions.append('-DCMAKE_C_COMPILER=' + c_compiler)
@@ -783,19 +753,24 @@ class Builder(object):
         if self._gen_vs_sln:
             # Generating visual studio solution
             cmake_generator = self._shell.get_vc_cmake_generator()
-            self.run_cmake(cmake_generator, '..')
+            cmake_args = ['cmake',
+                          '-DCMAKE_INSTALL_PREFIX=' + self._install_dir,
+                          '-DCMAKE_PREFIX_PATH=' + self._install_dir,
+                          '-DCMAKE_BUILD_TYPE=' + self._build_config,
+                          '-G', cmake_generator, '..']
+            self.run_cmd(cmake_args)
             self.set_startup_vs_prj('ppp_test')
         else:
-            targets = ['install'] if not self._emscripten else []
+            targets = ['install'] if self._arch_name != 'wasm' else []
             self.build_cmake_lib('..', [], targets, False)
             # Run unit tests for C++ code
-            if not self._emscripten and self._run_tests:
+            if self._arch_name in ['x64', 'x86']:
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:../tests.xml'])
 
         os.chdir(self._root_dir)
-        if self._emscripten:
+        if self._arch_name == 'wasm':
             shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'),
                             self.repo_path('webapp/src/assets/config.bundle.json'))
             shutil.copyfile(self.build_path('libppp/libppp.js'),
@@ -807,9 +782,7 @@ class Builder(object):
         """
         Builds android app
         """
-        if self._android_build:
-            # Build android project
-            self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
+        self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
 
     def build_webapp(self):
         """
@@ -825,20 +798,19 @@ class Builder(object):
         #         link_file(src_file_path, dst_link)
 
         # Build the web app
-        if self._web_build:
-            os.chdir(self.webapp_path())
-            if self._run_tests:
-                self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
-            self.run_cmd('npm run gen-pwa-icons')
-            self.run_cmd('npx ng build --prod')
-            os.chdir(self._root_dir)
+        os.chdir(self.webapp_path())
+        if self._run_tests:
+            self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
+        self.run_cmd('npm run gen-pwa-icons')
+        self.run_cmd('npx ng build --prod')
+        os.chdir(self._root_dir)
 
     def setup_webapp(self):
         if not which('npx'):
             self.run_cmd('npm install npx -g')
 
         # Build the web app
-        if self._web_build and not self._no_npm:
+        if not self._no_npm:
             os.chdir(self.webapp_path())
             self.run_cmd('npm install --no-optional')
             os.chdir(self._root_dir)
@@ -859,54 +831,36 @@ class Builder(object):
         """
         Parses command line arguments
         """
-        parser = argparse.ArgumentParser(
-            description='Builds the passport photo application.')
-        parser.add_argument('--arch_name', required=False, choices=['x64', 'x86'],
-                            help='Platform architecture', default='x64')
-        parser.add_argument('--build_config', required=False, choices=[
-                            'debug', 'release'], help='Build configuration type', default='release')
-        parser.add_argument('--clean', nargs='+', help='Clean specified targets', default=[])
-        parser.add_argument('--test', help='Runs unit tests', action="store_true")
+        parser = argparse.ArgumentParser(description='Builds this application and it dependencies')
+        parser.add_argument('--arch_names', '-a', required=False, choices=['x64', 'wasm', 'web', 'android', 'all'],
+                            help='Platform architectures to build', default=['x64'], nargs='+')
+        parser.add_argument('--build_config', '-b', required=False, choices=['debug', 'release'],
+                            help='Build configuration type', default='release')
+        parser.add_argument('--clean_targets', '-c', nargs='+', help='Clean specified targets', default=[])
+        parser.add_argument('--test', '-t', help='Runs available unit tests', action="store_true")
         parser.add_argument('--skip_install', help='Skips installation', action="store_true")
         parser.add_argument('--gen_vs_sln', help='Generates Visual Studio solution and projects',
                             action="store_true")
         parser.add_argument('--no_npm', help='Skips installing npm packages. Use only on developer workflow',
                             action="store_true")
-        parser.add_argument('--android', help='Builds the android app', action="store_true")
-        parser.add_argument('--web', help='Builds the web app', action="store_true")
-        parser.add_argument('--emscripten', help='Build the software using EMSCRIPTEN technology',
-                            action="store_true")
 
         args = parser.parse_args()
 
-        self._arch_name = args.arch_name
-        self._clean_targets = args.clean
+        arch_names = args.arch_names
+        if 'all' in arch_names:
+            arch_names == ['x64', 'wasm', 'web']  # Add android
+        if 'web' in arch_names and 'wasm' not in arch_names:
+            arch_names.append('wasm')
+
+        build_order = {'x64': 1, 'x86': 1, 'wasm': 1, 'web': 2, 'android': 3}
+        self._arch_names = sorted(arch_names, key=lambda a: build_order[a])
+        self._clean_targets = args.clean_targets
         self._build_config = args.build_config
         self._gen_vs_sln = args.gen_vs_sln
         self._run_tests = args.test
         self._run_install = not args.skip_install
-        self._android_build = args.android
-        self._web_build = args.web
-        self._emscripten = args.emscripten or self._android_build or self._web_build
         self._no_npm = args.no_npm
         self._emsdk_backend = 'upstream' if 'upstream' in self.emsdk_version_number else 'fastcomp'
-
-        # directory suffix for the build and release
-        self._root_dir = os.path.dirname(os.path.realpath(__file__))
-        self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
-        self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
-        self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
-        self._third_party_install_dir = os.path.join(
-            self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
-
-        shell = ShellRunner(self._arch_name, self._emscripten)
-
-        # Set up some compiler flags
-        if not IS_WINDOWS:
-            shell.set_env_var('CXXFLAGS', '-fPIC')
-            shell.set_env_var('LD_LIBRARY_PATH', self._install_dir)
-        shell.set_env_var('INSTALL_DIR', self._install_dir)
-        self._shell = shell
 
     def clean_all_if_needed(self):
         if 'all' in self._clean_targets:
@@ -916,48 +870,58 @@ class Builder(object):
                 shutil.rmtree(self._build_dir)
 
     def __init__(self):
+        self._root_dir = os.path.dirname(os.path.realpath(__file__))
+
         # Load 3rd party config
         self.load_third_party_config()
 
         # Detect OS version
         self.parse_arguments()
 
-        # Clean all if requested
-        self.clean_all_if_needed()
-
-        # Setup Emscripten tools
-        if self._emscripten:
-            self.setup_emscripten()
-
-        # Setup web app tools
-        if self._web_build:
-            self.setup_webapp()
-
-        # Setup android tools
-        if self._android_build:
-            self.setup_android()
-
-        # Create install directory if it doesn't exist
-        if not os.path.exists(self._install_dir):
-            os.mkdir(self._install_dir)
-
         # Extract testing dataset
         self.extract_validation_data()
         self.bundle_config()
 
-        # Build Third Party Libs
-        self.build_dlib()
-        self.build_googletest()
-        self.build_opencv()
+        for arch in self._arch_names:
+            self._arch_name = arch
 
-        # Build this project for a desktop platform (Windows or Unix-based OS)
-        self.build_cpp_code()
+            # directory suffix for the build and release
+            self._build_dir = os.path.join(self._root_dir, 'build_' + self.build_name())
+            self._install_dir = os.path.join(self._root_dir, 'install_' + self.build_name())
+            self._third_party_dir = os.path.join(self._root_dir, 'thirdparty')
+            self._third_party_install_dir = os.path.join(
+                self._third_party_dir, 'install_' + self.build_name()).replace('\\', '/')
 
-        # Copy built addon and configuration to webapp
-        self.build_webapp()
+            shell = ShellRunner(arch)
+            shell.set_env_var('INSTALL_DIR', self._install_dir)
+            self._shell = shell
 
-        # Build the android app
-        self.build_android()
+            # Clean all if requested
+            self.clean_all_if_needed()
+
+            # Setup Emscripten tools
+            if arch == 'wasm':
+                self.setup_emscripten()
+
+            # Create install directory if it doesn't exist
+            if not os.path.exists(self._install_dir):
+                os.mkdir(self._install_dir)
+
+            # Setup tools and build web app
+            if arch == 'web':
+                self.setup_webapp()
+                self.build_webapp()
+            else:
+                # Build Third Party Libs
+                self.build_dlib()
+                self.build_googletest()
+                self.build_opencv()
+                # Build libppp
+                self.build_cpp_code()
+
+            if arch == 'android':
+                self.setup_android()
+                self.build_android()
 
 
 BUILDER = Builder()
