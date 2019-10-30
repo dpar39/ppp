@@ -7,8 +7,9 @@
             "type": "process",
             "args": [
                 "build.py",
-                "--build_config=debug",
-                "--arch_name=x64"
+                "-bdebug",
+                "--arch_names",
+                "x64"
             ],
             "problemMatcher": [],
             "group": {
@@ -22,8 +23,9 @@
             "type": "process",
             "args": [
                 "build.py",
-                "--build_config=release",
-                "--arch_name=x64"
+                "-brelease",
+                "--arch_names",
+                "x64"
             ],
             "problemMatcher": [],
             "group": {
@@ -37,10 +39,21 @@
             "type": "process",
             "args": [
                 "build.py",
-                "--android",
+                "--arch_names",
+                "android",
             ],
             "problemMatcher": []
 
+        },
+        {
+            "label": "Serve Angular app",
+            "command": "cd webapp && npx ionic serve",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
