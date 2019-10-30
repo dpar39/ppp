@@ -4,7 +4,7 @@ import {Input, Output, EventEmitter} from '@angular/core';
 import interact from 'interactjs';
 import {CrownChinPointPair} from '../model/datatypes';
 import {middlePoint, Point} from '../model/geometry';
-import {ImageLoadResult} from '../services/back-end.service';
+import {ImageLoadResult} from '../services/backend.service';
 import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
 
 @Component({
@@ -50,7 +50,7 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
 
             #viewport {
                 position: relative;
-                max-height: 50vh;
+                max-height: 80vh;
                 min-height: 40vh;
                 border: 1px solid #363434;
                 border-radius: 5px;

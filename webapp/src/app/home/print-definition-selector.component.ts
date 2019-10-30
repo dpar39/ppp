@@ -7,14 +7,14 @@ import {Canvas} from '../model/datatypes';
     selector: 'app-print-definition-selector',
     template: `
         <p>Select a print definition from the list</p>
-        <ng-select
+        <!--ng-select
             [allowClear]="false"
             [items]="_allPrintDefinitions"
             [active]="[selectedPrintDefinition]"
             (selected)="selected($event)"
             placeholder="No print definition selected"
         >
-        </ng-select>
+        </ng-select-->
     `,
     styles: []
 })

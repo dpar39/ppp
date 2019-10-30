@@ -1,6 +1,6 @@
 {
-  "name": "Photo ID Creator",
-  "short_name": "PhotoIDCreator",
+  "name": "app",
+  "short_name": "app",
   "theme_color": "#1976d2",
   "background_color": "#fafafa",
   "display": "standalone",

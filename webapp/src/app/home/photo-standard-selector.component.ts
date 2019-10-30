@@ -8,17 +8,17 @@ import {HttpClient} from '@angular/common/http';
     selector: 'app-photo-standard-selector',
     template: `
         <p>Select a photo standard from the list</p>
-        <ng-select
+        <!--ng-select
             [items]="allPhotoStandards"
             [active]="[photoStandard]"
             (selected)="selected($event)"
             placeholder="No photo standard selected"
         >
-        </ng-select>
+        </ng-select-->
     `,
     styles: []
 })
-export class PassportStandardSelectorComponent {
+export class PhotoStandardSelectorComponent {
     constructor(httpClient: HttpClient) {
         httpClient.get<PhotoStandard[]>('/assets/photo-standards.json').subscribe(
             result => {
