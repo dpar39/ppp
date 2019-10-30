@@ -1,216 +1,61 @@
-import {Component, ElementRef, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 
-import {Canvas, CrownChinPointPair, PhotoStandard, TiledPhotoRequest, UnitType} from './model/datatypes';
-import {BackEndService, ImageLoadResult} from './services/back-end.service';
+import {Platform} from '@ionic/angular';
+import {SplashScreen} from '@ionic-native/splash-screen/ngx';
+import {StatusBar} from '@ionic-native/status-bar/ngx';
 
 @Component({
     selector: 'app-root',
     template: `
-        <div class="container-fluid">
-            <div class="row">
-                <h3 class="col text-center">A photo ID creation tool</h3>
-            </div>
-            <div class="row">
-                <span class="col my-1 text-center app-version">v1.0.0</span>
-            </div>
-            <div class="progress my-0" style="height: 4px !important;">
-                <div
-                    class="progress-bar bg-success"
-                    role="progressbar"
-                    [style.width]="appDataLoadingProgress"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                ></div>
-            </div>
-        </div>
-
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-12 col-md-6">
-                    <div class="container-fluid px-0">
-                        <div class="row">
-                            <div class="col">
-                                <app-landmark-editor
-                                    style="margin: 0 auto;"
-                                    [inputPhoto]="imageLoadResult"
-                                    [crownChinPointPair]="crownChinPointPair"
-                                    (edited)="onLandmarksEdited($event)"
-                                    [photoDimensions]="photoStandard?.dimensions"
-                                >
-                                </app-landmark-editor>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <div class="text-center">
-                                    <button
-                                        type="button"
-                                        class="btn btn-primary"
-                                        style="margin-right: 1em"
-                                        (click)="el.nativeElement.querySelector('#selectImage').click()"
-                                    >
-                                        Choose photo
-                                    </button>
-                                    <button
-                                        type="button"
-                                        [disabled]="!imageLoadResult"
-                                        class="btn btn-primary btn-primary-spacing"
-                                        (click)="createPrint()"
-                                    >
-                                        Create Print
-                                    </button>
-                                    <form>
-                                        <input
-                                            id="selectImage"
-                                            type="file"
-                                            name="uploads[]"
-                                            accept="image/*"
-                                            style="display: none;"
-                                            (change)="loadImage($event)"
-                                        />
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4 col-sm-12">
-                    <app-photo-standard-selector
-                        class="col-sm"
-                        (photoStandardSelected)="onPhotoStandardSelected($event)"
-                    >
-                    </app-photo-standard-selector>
-                    <app-print-definition-selector
-                        class="col-sm"
-                        (printDefinitionSelected)="onPrintDefinitionSelected($event)"
-                    >
-                    </app-print-definition-selector>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <a *ngIf="outImgSrc != '#'" [href]="outImgSrc" download="print.png" class="text-center col-lg-8 col-sm-12">
-                    <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
-                </a>
-            </div>
-        </div>
+        <ion-app>
+            <ion-split-pane when="xl">
+                <ion-menu type="overlay" side="end">
+                    <ion-header>
+                        <ion-toolbar>
+                            <ion-title>Menu</ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content>
+                        <ion-list>
+                            <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
+                                <ion-item [routerDirection]="'root'" [routerLink]="[p.url]">
+                                    <ion-icon slot="start" [name]="p.icon"></ion-icon>
+                                    <ion-label>
+                                        {{ p.title }}
+                                    </ion-label>
+                                </ion-item>
+                            </ion-menu-toggle>
+                        </ion-list>
+                    </ion-content>
+                </ion-menu>
+                <ion-router-outlet main></ion-router-outlet>
+            </ion-split-pane>
+        </ion-app>
     `,
-    styles: [
-        `
-            .fit {
-                max-width: 99%;
-                max-height: 99%;
-            }
-
-            .app-version {
-                color: darkgray;
-                font-family: monospace;
-                font-size: 7pt;
-            }
-        `
-    ]
+    styleUrls: []
 })
-export class AppComponent implements OnInit {
-    echoString = 'Welcome to this app';
-
-    appReady = false;
-    appDataLoadingProgress = '1%';
-
-    pendingFile: File;
-
-    imageLoadResult: ImageLoadResult;
-    outImgSrc = '#';
-
-    // Model data
-    crownChinPointPair: CrownChinPointPair;
-    photoStandard: PhotoStandard;
-    canvas: Canvas;
-
-    constructor(public el: ElementRef, private beService: BackEndService) {
-        beService.runtimeInitialized.subscribe((success: boolean) => {
-            this.appReady = success;
-            this.appDataLoadingProgress = '100%';
-            this.processInputImage();
-        });
-
-        beService.appLoadingProgressReported.subscribe((progressPct: number) => {
-            this.appDataLoadingProgress = '' + progressPct + '%';
-        });
-    }
-
-    ngOnInit(): void {
-        //  this.echoString = '' + this.beService._isMobilePlatform;
-    }
-
-    processInputImage() {
-        if (!this.appReady || !this.pendingFile) {
-            return; // Nothing to do yet
+export class AppComponent {
+    public appPages = [
+        {
+            title: 'Home',
+            url: '/home',
+            icon: 'home'
+        },
+        {
+            title: 'List',
+            url: '/list',
+            icon: 'list'
         }
-        // Load the image file to detect landmarks
-        this.beService.loadImageInMemory(this.pendingFile).then(result => {
-            this.pendingFile = null;
-            this.imageLoadResult = result;
-            this.retrieveLandmarks();
-        });
+    ];
+
+    constructor(private platform: Platform, private splashScreen: SplashScreen, private statusBar: StatusBar) {
+        this.initializeApp();
     }
 
-    loadImage(event) {
-        const fileList: FileList = event.target.files;
-        if (fileList && fileList[0]) {
-            this.pendingFile = fileList[0];
-            this.crownChinPointPair = null;
-            this.imageLoadResult = null;
-            this.processInputImage();
-        }
-    }
-
-    retrieveLandmarks() {
-        console.log(this.imageLoadResult.imgKey);
-        this.beService.retrieveLandmarks(this.imageLoadResult.imgKey).then(landmarks => {
-            if (landmarks.errorMsg) {
-                console.log(landmarks.errorMsg);
-            } else {
-                if (landmarks.crownPoint && landmarks.chinPoint) {
-                    console.log('Landmarks calculated.');
-                    this.crownChinPointPair = landmarks;
-                    this.createPrint();
-                }
-            }
-        });
-    }
-
-    onPhotoStandardSelected(photo: PhotoStandard) {
-        this.photoStandard = photo;
-        this.createPrint();
-    }
-
-    onPrintDefinitionSelected(canvas: Canvas) {
-        this.canvas = canvas;
-        this.createPrint();
-    }
-
-    onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
-        this.crownChinPointPair = crownChinPointPair;
-        this.createPrint();
-    }
-
-    createPrint() {
-        if (!this.imageLoadResult || !this.canvas || !this.crownChinPointPair ||!this.photoStandard) {
-            return;
-        }
-        console.log('Creating print output');
-        const req = new TiledPhotoRequest(
-            this.imageLoadResult.imgKey,
-            this.photoStandard.dimensions,
-            this.canvas,
-            this.crownChinPointPair
-        );
-        console.log(req);
-
-        this.beService.getTiledPrint(req).then(outputDataUrl => {
-            if (this.outImgSrc) {
-                URL.revokeObjectURL(this.outImgSrc);
-            }
-            this.outImgSrc = outputDataUrl;
+    initializeApp() {
+        this.platform.ready().then(() => {
+            this.statusBar.styleDefault();
+            this.splashScreen.hide();
         });
     }
 }

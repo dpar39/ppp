@@ -1,39 +1,27 @@
-import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {HttpClientModule} from '@angular/common/http';
-import {TooltipModule} from 'ngx-bootstrap/tooltip';
-import {ModalModule} from 'ngx-bootstrap/modal';
-import {SelectModule} from 'ng2-select';
+import {BrowserModule} from '@angular/platform-browser';
+import {RouteReuseStrategy} from '@angular/router';
+
+import {IonicModule, IonicRouteStrategy} from '@ionic/angular';
+import {SplashScreen} from '@ionic-native/splash-screen/ngx';
+import {StatusBar} from '@ionic-native/status-bar/ngx';
 
 import {AppComponent} from './app.component';
-import {LandmarkEditorComponent} from './components/landmark-editor.component';
-import {PassportStandardSelectorComponent} from './components/photo-standard-selector.component';
-import {PrintDefinitionSelectorComponent} from './components/print-definition-selector.component';
-
-import {BackEndService} from './services/back-end.service';
-import {OnlyNumberDirective} from './directives/onlynumbers-directive';
-import {environment} from '../environments/environment';
+import {AppRoutingModule} from './app-routing.module';
 import {ServiceWorkerModule} from '@angular/service-worker';
+import {environment} from '../environments/environment';
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        LandmarkEditorComponent,
-        PassportStandardSelectorComponent,
-        PrintDefinitionSelectorComponent,
-        OnlyNumberDirective
-    ],
+    declarations: [AppComponent],
+    entryComponents: [],
     imports: [
-        FormsModule,
         BrowserModule,
-        HttpClientModule,
-        TooltipModule.forRoot(),
-        ModalModule.forRoot(),
-        SelectModule,
+        IonicModule.forRoot(),
+        AppRoutingModule,
+        BrowserModule,
         ServiceWorkerModule.register('ngsw-worker.js', {enabled: environment.production})
     ],
-    providers: [BackEndService],
+    providers: [StatusBar, SplashScreen, {provide: RouteReuseStrategy, useClass: IonicRouteStrategy}],
     bootstrap: [AppComponent]
 })
 export class AppModule {}
