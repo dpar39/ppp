@@ -13,6 +13,10 @@
       true,
       "rxjs/Rx"
     ],
+    "variable-name": [
+      true,
+      "allow-leading-underscore"
+    ],
     "interface-name": false,
     "max-classes-per-file": false,
     "max-line-length": [

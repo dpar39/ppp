@@ -1,6 +1,7 @@
 import {Component, OnInit, ElementRef} from '@angular/core';
 import {CrownChinPointPair, Canvas, PhotoStandard, TiledPhotoRequest} from '../model/datatypes';
 import {BackEndService, ImageLoadResult} from '../services/backend.service';
+import {PhotoStandardService} from '../services/photo-standard.service';
 
 @Component({
     selector: 'app-home',
@@ -70,6 +71,11 @@ import {BackEndService, ImageLoadResult} from '../services/backend.service';
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4 col-sm-12">
+                        <span>Photo Standard</span>
+                        <ion-button>
+                            <ion-icon name="aperture"></ion-icon>
+                        </ion-button>
+
                         <app-photo-standard-selector
                             class="col-sm"
                             (photoStandardSelected)="onPhotoStandardSelected($event)"
@@ -164,7 +170,7 @@ export class HomePage implements OnInit {
     photoStandard: PhotoStandard;
     canvas: Canvas;
 
-    constructor(public el: ElementRef, public beService: BackEndService) {
+    constructor(public el: ElementRef, public beService: BackEndService, private psService: PhotoStandardService) {
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
             this.appDataLoadingProgress = 1.0;
@@ -173,6 +179,10 @@ export class HomePage implements OnInit {
 
         beService.appLoadingProgressReported.subscribe((progressPct: number) => {
             this.appDataLoadingProgress = progressPct / 100.0;
+        });
+
+        psService.photoStandardSelected.subscribe((ps: PhotoStandard) => {
+            this.photoStandard = ps;
         });
     }
 
@@ -217,8 +227,8 @@ export class HomePage implements OnInit {
         });
     }
 
-    onPhotoStandardSelected(photo: PhotoStandard) {
-        this.photoStandard = photo;
+    onPhotoStandardSelected(ps: PhotoStandard) {
+        this.photoStandard = ps;
         this.createPrint();
     }
 

@@ -2,12 +2,22 @@ import {Component, Output, Input} from '@angular/core';
 import {PhotoStandard} from '../model/datatypes';
 import {EventEmitter} from '@angular/core';
 
-import {HttpClient} from '@angular/common/http';
+import {PhotoStandardService} from '../services/photo-standard.service';
+import * as countryCodes from '../data/country-codes.json';
 
 @Component({
     selector: 'app-photo-standard-selector',
     template: `
         <p>Select a photo standard from the list</p>
+
+        <ion-list>
+            <ion-list-header><ion-searchbar (ionInput)="filterPhotoStandard($event)"></ion-searchbar></ion-list-header>
+            <ion-item *ngFor="let ps of selectableStandards">
+                <span [class]="getFlagClass(ps)"></span>
+                <ion-label class="ion-margin-start"> {{ ps.text }} </ion-label>
+            </ion-item>
+        </ion-list>
+
         <!--ng-select
             [items]="allPhotoStandards"
             [active]="[photoStandard]"
@@ -19,24 +29,25 @@ import {HttpClient} from '@angular/common/http';
     styles: []
 })
 export class PhotoStandardSelectorComponent {
-    constructor(httpClient: HttpClient) {
-        httpClient.get<PhotoStandard[]>('/assets/photo-standards.json').subscribe(
-            result => {
-                this._allStandards = result;
-                this.photoStandard = this._allStandards.find(ps => {
-                    return ps.id === 'us_passport_photo';
-                });
-                this.photoStandardSelected.emit(this.photoStandard);
-            },
-            error => console.error(error)
-        );
+    constructor(private psService: PhotoStandardService) {
+        this._allStandards = psService.getAllPhotoStandards();
+
+        const codes = (countryCodes as any).default;
+        const countries = Object.keys(codes);
+        for (const country of countries) {
+            const cc = codes[country];
+            this.lookUp.set(country.toLowerCase().trim(), cc.toLowerCase());
+        }
     }
+    private lookUp = new Map<string, string>();
+
     private _standard: PhotoStandard = new PhotoStandard('__unknown__', 'Loading ...');
 
     public _allStandards: PhotoStandard[];
+    public _selectableStandards: PhotoStandard[];
 
-    public get allPhotoStandards() {
-        return this._allStandards;
+    public get selectableStandards() {
+        return this._selectableStandards != null ? this._selectableStandards : this._allStandards;
     }
 
     @Output()
@@ -55,5 +66,24 @@ export class PhotoStandardSelectorComponent {
         this.photoStandard = this._allStandards.find(ps => {
             return ps.id === value.id;
         });
+    }
+
+    getFlagClass(ps: PhotoStandard): string {
+        if (!ps.country) {
+            return '';
+        }
+        const country = ps.country.toLowerCase();
+        if (this.lookUp.has(country)) {
+            return 'flag-icon flag-icon-' + this.lookUp.get(country);
+        }
+    }
+
+    filterPhotoStandard(evnt) {
+        const text = evnt.target.value.toLowerCase();
+        if (!text) {
+            this._selectableStandards = this._allStandards;
+            return;
+        }
+        this._selectableStandards = this._allStandards.filter(ps => ps.text.toLowerCase().includes(text));
     }
 }

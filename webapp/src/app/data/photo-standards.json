@@ -9860,7 +9860,7 @@
     },
     {
         "id": "un_us_berkley_photo",
-        "text": "Berkeley Cal 1 Card photo 1.5x2 inch or 600x800px",
+        "text": "Berkeley Cal 1 Card photo 1.5x2″ or 600x800px",
         "country": "Universities / Colleges",
         "docType": "",
         "dimensions": {
@@ -9880,20 +9880,20 @@
     },
     {
         "id": "cu_2x2in_photo",
-        "Country": "Cuba",
-        "Document Type": "Passport/Visa",
-        "Size": {
+        "text": "Cuban Passport (2x2″)",
+        "country": "Cuba",
+        "docType": "Passport/Visa",
+        "dimensions": {
             "width": 2,
             "height": 2,
             "units": "inch",
+            "dpi": 300.0,
             "faceHeight": 1.29,
             "bottomEyeLine": 1.18
         },
-        "Resolution (dpi)": 300.0,
-        "Background color": "#ffffff",
-        "Printable?": "Yes",
-        "Suitable for online submission?": "Yes",
-        "Web links to official documents": [],
-        "Comments": " "
+        "backgroundColor": "#ffffff",
+        "printable": true,
+        "officialLinks": [],
+        "comments": " "
     }
 ]

@@ -4,14 +4,14 @@ import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {RouterModule, Routes} from '@angular/router';
 
-import {HttpClientModule} from '@angular/common/http';
-
 import {HomePage} from './home.page';
 import {LandmarkEditorComponent} from './landmark-editor.component';
 import {PrintDefinitionSelectorComponent} from './print-definition-selector.component';
 import {PhotoStandardSelectorComponent} from './photo-standard-selector.component';
-import {BackEndService} from '../services/backend.service';
 import {OnlyNumberDirective} from '../directives/onlynumbers-directive';
+
+import {PhotoStandardService} from '../services/photo-standard.service';
+import {BackEndService} from '../services/backend.service';
 
 const routes: Routes = [
     {
@@ -21,7 +21,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), HttpClientModule],
+    imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
     declarations: [
         HomePage,
         LandmarkEditorComponent,
@@ -29,6 +29,6 @@ const routes: Routes = [
         PrintDefinitionSelectorComponent,
         OnlyNumberDirective
     ],
-    providers: [BackEndService]
+    providers: [BackEndService, PhotoStandardService]
 })
 export class HomePageModule {}
