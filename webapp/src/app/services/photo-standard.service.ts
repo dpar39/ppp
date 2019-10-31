@@ -1,8 +1,6 @@
 import {Injectable, EventEmitter} from '@angular/core';
 import {PhotoStandard} from '../model/datatypes';
-
 import * as predefinedPhotoStandards from '../data/photo-standards.json';
-import * as countryCodes from '../data/country-codes.json';
 
 @Injectable({
     providedIn: 'root'

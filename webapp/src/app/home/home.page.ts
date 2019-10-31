@@ -24,116 +24,66 @@ import {PhotoStandardService} from '../services/photo-standard.service';
 
             <ion-grid>
                 <ion-row>
-                    <ion-col
-                        ><app-landmark-editor
-                            style="margin: 0 auto;"
-                            [inputPhoto]="imageLoadResult"
-                            [crownChinPointPair]="crownChinPointPair"
-                            (edited)="onLandmarksEdited($event)"
-                            [photoDimensions]="photoStandard?.dimensions"
-                        >
-                        </app-landmark-editor
-                    ></ion-col>
-                    <ion-col>
-                        <form>
-                            <input
-                                id="selectImage"
-                                type="file"
-                                name="uploads[]"
-                                accept="image/*"
-                                style="display: none;"
-                                (change)="loadImage($event)"
-                            />
-                        </form>
+                    <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
+                        <!-- Load image and edit landmarks -->
+                        <ion-grid no-padding>
+                            <ion-row>
+                                <ion-col>
+                                    <app-landmark-editor
+                                        style="margin: 0 auto;"
+                                        [inputPhoto]="imageLoadResult"
+                                        [crownChinPointPair]="crownChinPointPair"
+                                        (edited)="onLandmarksEdited($event)"
+                                        [photoDimensions]="photoStandard?.dimensions"
+                                    >
+                                    </app-landmark-editor>
+                                </ion-col>
+                            </ion-row>
+                            <ion-row>
+                                <ion-col>
+                                    <ion-button expand="block"
+                                        class="ion-no-padding"
+                                        color="primary"
+                                        (click)="el.nativeElement.querySelector('#selectImage').click()"
+                                    >
+                                        Choose photo
+                                    </ion-button>
+                                    <form>
+                                        <input
+                                            id="selectImage"
+                                            type="file"
+                                            name="uploads[]"
+                                            accept="image/*"
+                                            style="display: none;"
+                                            (change)="loadImage($event)"
+                                        />
+                                    </form>
+                                </ion-col>
+                            </ion-row>
+                        </ion-grid>
                     </ion-col>
-                </ion-row>
-            </ion-grid>
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-sm-12 col-md-6">
-                        <div class="container-fluid px-0">
-                            <div class="row">
-                                <div class="col"></div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    <div class="text-center">
-                                        <ion-button
-                                            class="ion-padding"
-                                            color="primary"
-                                            (click)="el.nativeElement.querySelector('#selectImage').click()"
-                                        >
-                                            Choose photo
-                                        </ion-button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-4 col-sm-12">
-                        <span>Photo Standard</span>
-                        <ion-button>
-                            <ion-icon name="aperture"></ion-icon>
-                        </ion-button>
-
-                        <app-photo-standard-selector
-                            class="col-sm"
-                            (photoStandardSelected)="onPhotoStandardSelected($event)"
-                        >
+                    <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
+                        <app-photo-standard-selector>
                         </app-photo-standard-selector>
+
                         <app-print-definition-selector
                             class="col-sm"
                             (printDefinitionSelected)="onPrintDefinitionSelected($event)"
                         >
                         </app-print-definition-selector>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <a
-                        *ngIf="outImgSrc != '#'"
-                        [href]="outImgSrc"
-                        download="print.png"
-                        class="text-center col-lg-8 col-sm-12"
-                    >
-                        <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
-                    </a>
-                </div>
-            </div>
-            <!--ion-card class="welcome-card">
-        <img src="/assets/shapes.svg" alt="" />
-        <ion-card-header>
-          <ion-card-subtitle>Get Started</ion-card-subtitle>
-          <ion-card-title>Welcome to Ionic</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <p>
-            Now that your app has been created, you'll want to start building
-            out features and components. Check out some of the resources below
-            for next steps.
-          </p>
-        </ion-card-content>
-      </ion-card>
-      <ion-list lines="none">
-        <ion-list-header>
-          <ion-label>Resources</ion-label>
-        </ion-list-header>
-        <ion-item href="https://ionicframework.com/docs/">
-          <ion-icon slot="start" color="medium" name="book"></ion-icon>
-          <ion-label>Ionic Documentation</ion-label>
-        </ion-item>
-        <ion-item href="https://ionicframework.com/docs/building/scaffolding">
-          <ion-icon slot="start" color="medium" name="build"></ion-icon>
-          <ion-label>Scaffold Out Your App</ion-label>
-        </ion-item>
-        <ion-item href="https://ionicframework.com/docs/layout/structure">
-          <ion-icon slot="start" color="medium" name="grid"></ion-icon>
-          <ion-label>Change Your App Layout</ion-label>
-        </ion-item>
-        <ion-item href="https://ionicframework.com/docs/theming/basics">
-          <ion-icon slot="start" color="medium" name="color-fill"></ion-icon>
-          <ion-label>Theme Your App</ion-label>
-        </ion-item>
-      </ion-list-->
+                    </ion-col>
+                    <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
+                        <a
+                            *ngIf="outImgSrc != '#'"
+                            [href]="outImgSrc"
+                            download="print.png"
+                            class="text-center col-lg-8 col-sm-12"
+                        >
+                            <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
+                        </a>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
         </ion-content>
     `,
     styles: [
@@ -170,7 +120,7 @@ export class HomePage implements OnInit {
     photoStandard: PhotoStandard;
     canvas: Canvas;
 
-    constructor(public el: ElementRef, public beService: BackEndService, private psService: PhotoStandardService) {
+    constructor(public el: ElementRef, public beService: BackEndService, psService: PhotoStandardService) {
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
             this.appDataLoadingProgress = 1.0;
@@ -181,8 +131,9 @@ export class HomePage implements OnInit {
             this.appDataLoadingProgress = progressPct / 100.0;
         });
 
+        this.photoStandard = psService.getSelectedStandard();
         psService.photoStandardSelected.subscribe((ps: PhotoStandard) => {
-            this.photoStandard = ps;
+            this.onPhotoStandardSelected(ps);
         });
     }
 

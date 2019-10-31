@@ -41,7 +41,11 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
                 float: left;
                 position: absolute;
                 visibility: hidden;
+
+
             }
+
+
 
             #photo {
                 position: absolute;
@@ -56,6 +60,17 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
                 border-radius: 5px;
                 margin: 5px auto;
                 background: #333;
+            }
+            @media (max-aspect-ratio: 5/4) {
+                #viewport {
+                    height: 50vh;
+                }
+            }
+
+            @media (min-aspect-ratio: 4/5) {
+                #viewport {
+                    height: 40vh;
+                }
             }
 
             .box {
@@ -105,7 +120,7 @@ export class LandmarkEditorComponent implements OnInit {
         this.renderLandMarks();
     }
 
-    constructor(private el: ElementRef) {
+    constructor(private _el: ElementRef,) {
         this.crownPoint = new Point(0, 0);
         this.chinPoint = new Point(0, 0);
     }
@@ -152,14 +167,14 @@ export class LandmarkEditorComponent implements OnInit {
     }
 
     ngOnInit() {
-        this._imgElmt = this.el.nativeElement.querySelector('#photo');
-        this._containerElmt = this.el.nativeElement.querySelector('#viewport');
-        this._crownMarkElmt = this.el.nativeElement.querySelector('#crownMark');
-        this._chinMarkElmt = this.el.nativeElement.querySelector('#chinMark');
+        this._imgElmt = this._el.nativeElement.querySelector('#photo');
+        this._containerElmt = this._el.nativeElement.querySelector('#viewport');
+        this._crownMarkElmt = this._el.nativeElement.querySelector('#crownMark');
+        this._chinMarkElmt = this._el.nativeElement.querySelector('#chinMark');
 
-        this._middleLine = this.el.nativeElement.querySelector('#middleLine');
-        this._faceEllipse = this.el.nativeElement.querySelector('#faceEllipse');
-        this._cropArea = this.el.nativeElement.querySelector('#cropArea');
+        this._middleLine = this._el.nativeElement.querySelector('#middleLine');
+        this._faceEllipse = this._el.nativeElement.querySelector('#faceEllipse');
+        this._cropArea = this._el.nativeElement.querySelector('#cropArea');
 
         const that = this;
         interact('.landmark').draggable({

@@ -3,79 +3,84 @@ import {PhotoStandard} from '../model/datatypes';
 import {EventEmitter} from '@angular/core';
 
 import {PhotoStandardService} from '../services/photo-standard.service';
-import * as countryCodes from '../data/country-codes.json';
 
 @Component({
     selector: 'app-photo-standard-selector',
     template: `
-        <p>Select a photo standard from the list</p>
-
-        <ion-list>
-            <ion-list-header><ion-searchbar (ionInput)="filterPhotoStandard($event)"></ion-searchbar></ion-list-header>
-            <ion-item *ngFor="let ps of selectableStandards">
+        <ion-card *ngIf="collapsed" (click)="collapsed = false">
+            <ion-card-header>
+                Selected Photo Standard
+            </ion-card-header>
+            <ion-card-content>
+                <span [class]="getFlagClass(photoStandard)"></span>
+                <ion-label class="ion-margin-start"> {{ photoStandard.text }} </ion-label>
+            </ion-card-content>
+        </ion-card>
+        <ion-list *ngIf="!collapsed">
+            <ion-list-header class="ion-no-padding">
+                <ion-searchbar
+                    placeholder="Search photo standards"
+                    (ionInput)="filterPhotoStandard($event)"
+                ></ion-searchbar>
+            </ion-list-header>
+            <ion-item *ngFor="let ps of selectableStandards" (click)="setSelected(ps)">
                 <span [class]="getFlagClass(ps)"></span>
                 <ion-label class="ion-margin-start"> {{ ps.text }} </ion-label>
+                <ion-button color="success" icon-only><ion-icon name="create"></ion-icon></ion-button>
             </ion-item>
         </ion-list>
-
-        <!--ng-select
-            [items]="allPhotoStandards"
-            [active]="[photoStandard]"
-            (selected)="selected($event)"
-            placeholder="No photo standard selected"
-        >
-        </ng-select-->
     `,
-    styles: []
+    styles: [
+        `
+            ion-list {
+                max-height: 20vh;
+                overflow-y: scroll;
+            }
+        `
+    ]
 })
 export class PhotoStandardSelectorComponent {
-    constructor(private psService: PhotoStandardService) {
-        this._allStandards = psService.getAllPhotoStandards();
 
-        const codes = (countryCodes as any).default;
-        const countries = Object.keys(codes);
-        for (const country of countries) {
-            const cc = codes[country];
-            this.lookUp.set(country.toLowerCase().trim(), cc.toLowerCase());
-        }
-    }
-    private lookUp = new Map<string, string>();
-
-    private _standard: PhotoStandard = new PhotoStandard('__unknown__', 'Loading ...');
+    public photoStandard: PhotoStandard = new PhotoStandard('__unknown__', 'Loading ...');
 
     public _allStandards: PhotoStandard[];
+
     public _selectableStandards: PhotoStandard[];
+
+    constructor(private psService: PhotoStandardService) {
+        this._allStandards = psService.getAllPhotoStandards();
+        this.photoStandard = psService.getSelectedStandard();
+
+        psService.photoStandardSelected.subscribe(ps => {
+            if (ps !== this.photoStandard) {
+                this.photoStandard = ps;
+            }
+        });
+    }
+
+    private _collapsed = true;
+    public get collapsed() {
+        return this._collapsed;
+    }
+    public set collapsed(value: boolean) {
+        if (value === this._collapsed) {
+            return;
+        }
+        this._collapsed = value;
+        this._selectableStandards = this._allStandards;
+    }
 
     public get selectableStandards() {
         return this._selectableStandards != null ? this._selectableStandards : this._allStandards;
     }
 
-    @Output()
-    photoStandardSelected: EventEmitter<PhotoStandard> = new EventEmitter();
-
-    @Input()
-    get photoStandard() {
-        return this._standard;
-    }
-    set photoStandard(ps: PhotoStandard) {
-        this._standard = ps;
-        this.photoStandardSelected.emit(this._standard);
-    }
-
-    public selected(value): void {
-        this.photoStandard = this._allStandards.find(ps => {
-            return ps.id === value.id;
-        });
+    public setSelected(ps: PhotoStandard): void {
+        this.psService.setSelectedStandard(ps);
+        this.collapsed = true;
     }
 
     getFlagClass(ps: PhotoStandard): string {
-        if (!ps.country) {
-            return '';
-        }
-        const country = ps.country.toLowerCase();
-        if (this.lookUp.has(country)) {
-            return 'flag-icon flag-icon-' + this.lookUp.get(country);
-        }
+        return 'flag-icon flag-icon-' + ps.id.substr(0, 2);
     }
 
     filterPhotoStandard(evnt) {
