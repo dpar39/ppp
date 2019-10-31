@@ -21,7 +21,7 @@ import {PrintDefinitionService} from '../services/print-definition.service';
                     (ionInput)="filterPrintDefinition($event)"
                 ></ion-searchbar>
             </ion-list-header>
-            <ion-item *ngFor="let pd of selectablePrintDefinitions" (click)="setSelected(ps)">
+            <ion-item *ngFor="let pd of selectablePrintDefinitions" (click)="setSelected(pd)">
                 <ion-label class="ion-margin-start"> {{ getStringRepr(pd) }} </ion-label>
                 <ion-button color="success" icon-only><ion-icon name="create"></ion-icon></ion-button>
             </ion-item>
@@ -40,9 +40,9 @@ export class PrintDefinitionSelectorComponent {
         this._allPrintDefinitions = pdService.getAllPrintDefinitions();
         this.printDefinition = pdService.getSelectedPrintDefinition();
 
-        pdService.printDefinitionSelected.subscribe(ps => {
-            if (ps !== this.printDefinition) {
-                this.printDefinition = ps;
+        pdService.printDefinitionSelected.subscribe(pd => {
+            if (pd !== this.printDefinition) {
+                this.printDefinition = pd;
             }
         });
     }

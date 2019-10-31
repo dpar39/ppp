@@ -2,6 +2,7 @@ import {Component, OnInit, ElementRef} from '@angular/core';
 import {CrownChinPointPair, Canvas, PhotoStandard, TiledPhotoRequest} from '../model/datatypes';
 import {BackEndService, ImageLoadResult} from '../services/backend.service';
 import {PhotoStandardService} from '../services/photo-standard.service';
+import {PrintDefinitionService} from '../services/print-definition.service';
 
 @Component({
     selector: 'app-home',
@@ -41,7 +42,8 @@ import {PhotoStandardService} from '../services/photo-standard.service';
                             </ion-row>
                             <ion-row>
                                 <ion-col>
-                                    <ion-button expand="block"
+                                    <ion-button
+                                        expand="block"
                                         class="ion-no-padding"
                                         color="primary"
                                         (click)="el.nativeElement.querySelector('#selectImage').click()"
@@ -63,14 +65,8 @@ import {PhotoStandardService} from '../services/photo-standard.service';
                         </ion-grid>
                     </ion-col>
                     <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
-                        <app-photo-standard-selector>
-                        </app-photo-standard-selector>
-
-                        <app-print-definition-selector
-                            class="col-sm"
-                            (printDefinitionSelected)="onPrintDefinitionSelected($event)"
-                        >
-                        </app-print-definition-selector>
+                        <app-photo-standard-selector> </app-photo-standard-selector>
+                        <app-print-definition-selector> </app-print-definition-selector>
                     </ion-col>
                     <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
                         <a
@@ -120,7 +116,12 @@ export class HomePage implements OnInit {
     photoStandard: PhotoStandard;
     canvas: Canvas;
 
-    constructor(public el: ElementRef, public beService: BackEndService, psService: PhotoStandardService) {
+    constructor(
+        public el: ElementRef,
+        public beService: BackEndService,
+        psService: PhotoStandardService,
+        pdService: PrintDefinitionService
+    ) {
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
             this.appDataLoadingProgress = 1.0;
@@ -134,6 +135,11 @@ export class HomePage implements OnInit {
         this.photoStandard = psService.getSelectedStandard();
         psService.photoStandardSelected.subscribe((ps: PhotoStandard) => {
             this.onPhotoStandardSelected(ps);
+        });
+
+        this.canvas = pdService.getSelectedPrintDefinition();
+        pdService.printDefinitionSelected.subscribe(pd => {
+            this.onPrintDefinitionSelected(pd);
         });
     }
 

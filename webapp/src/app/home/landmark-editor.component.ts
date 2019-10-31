@@ -41,10 +41,7 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
                 float: left;
                 position: absolute;
                 visibility: hidden;
-
-
             }
-
 
 
             #photo {
