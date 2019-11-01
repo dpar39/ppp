@@ -26,7 +26,7 @@ export class PhotoStandard {
     }
 }
 
-export class Canvas {
+export class PrintDefinition {
     id: string;
     text: string;
     height: number;
@@ -60,11 +60,11 @@ export class CrownChinPointPair {
 export class TiledPhotoRequest {
     imgKey: string;
     standard: PhotoDimensions;
-    canvas: Canvas;
+    canvas: PrintDefinition;
     crownPoint: Point;
     chinPoint: Point;
 
-    constructor(imgKey: string, ps: PhotoDimensions, canvas: Canvas, ccPoints: CrownChinPointPair) {
+    constructor(imgKey: string, ps: PhotoDimensions, canvas: PrintDefinition, ccPoints: CrownChinPointPair) {
         this.imgKey = imgKey;
         this.standard = ps;
         this.canvas = canvas;

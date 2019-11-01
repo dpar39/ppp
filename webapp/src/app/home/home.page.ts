@@ -1,5 +1,5 @@
 import {Component, OnInit, ElementRef} from '@angular/core';
-import {CrownChinPointPair, Canvas, PhotoStandard, TiledPhotoRequest} from '../model/datatypes';
+import {CrownChinPointPair, PrintDefinition, PhotoStandard, TiledPhotoRequest} from '../model/datatypes';
 import {BackEndService, ImageLoadResult} from '../services/backend.service';
 import {PhotoStandardService} from '../services/photo-standard.service';
 import {PrintDefinitionService} from '../services/print-definition.service';
@@ -64,7 +64,7 @@ import {PrintDefinitionService} from '../services/print-definition.service';
                             </ion-row>
                         </ion-grid>
                     </ion-col>
-                    <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
+                    <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4" class="ion-no-padding">
                         <app-photo-standard-selector> </app-photo-standard-selector>
                         <app-print-definition-selector> </app-print-definition-selector>
                     </ion-col>
@@ -75,7 +75,7 @@ import {PrintDefinitionService} from '../services/print-definition.service';
                             download="print.png"
                             class="text-center col-lg-8 col-sm-12"
                         >
-                            <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="fit" />
+                            <img [src]="outImgSrc" *ngIf="outImgSrc != '#'" class="print-results" />
                         </a>
                     </ion-col>
                 </ion-row>
@@ -84,20 +84,9 @@ import {PrintDefinitionService} from '../services/print-definition.service';
     `,
     styles: [
         `
-            .welcome-card img {
-                max-height: 35vh;
-                overflow: hidden;
-            }
-
-            .fit {
+            .print-results {
                 max-width: 99%;
                 max-height: 99%;
-            }
-
-            .app-version {
-                color: darkgray;
-                font-family: monospace;
-                font-size: 7pt;
             }
         `
     ]
@@ -105,16 +94,15 @@ import {PrintDefinitionService} from '../services/print-definition.service';
 export class HomePage implements OnInit {
     appReady = false;
     appDataLoadingProgress = 0.02;
-
     pendingFile: File;
 
     imageLoadResult: ImageLoadResult;
-    outImgSrc = '#';
+    outImgSrc: string;
 
     // Model data
     crownChinPointPair: CrownChinPointPair;
     photoStandard: PhotoStandard;
-    canvas: Canvas;
+    printDefinition: PrintDefinition;
 
     constructor(
         public el: ElementRef,
@@ -122,6 +110,10 @@ export class HomePage implements OnInit {
         psService: PhotoStandardService,
         pdService: PrintDefinitionService
     ) {
+        this.appReady = beService.getRuntimeInitialized();
+        if (this.appReady) {
+            this.appDataLoadingProgress = 1.0;
+        }
         beService.runtimeInitialized.subscribe((success: boolean) => {
             this.appReady = success;
             this.appDataLoadingProgress = 1.0;
@@ -137,10 +129,20 @@ export class HomePage implements OnInit {
             this.onPhotoStandardSelected(ps);
         });
 
-        this.canvas = pdService.getSelectedPrintDefinition();
+        this.printDefinition = pdService.getSelectedPrintDefinition();
         pdService.printDefinitionSelected.subscribe(pd => {
             this.onPrintDefinitionSelected(pd);
         });
+
+        this.imageLoadResult = beService.getCacheImageLoadResult();
+        this.crownChinPointPair = beService.getCacheLandmarks();
+
+        this.outImgSrc = beService.getCachePrintResult();
+        if (!this.outImgSrc) {
+            this.outImgSrc = '#';
+        } else {
+            this.appDataLoadingProgress = 1.0;
+        }
     }
 
     ngOnInit(): void {
@@ -189,8 +191,8 @@ export class HomePage implements OnInit {
         this.createPrint();
     }
 
-    onPrintDefinitionSelected(canvas: Canvas) {
-        this.canvas = canvas;
+    onPrintDefinitionSelected(canvas: PrintDefinition) {
+        this.printDefinition = canvas;
         this.createPrint();
     }
 
@@ -200,14 +202,14 @@ export class HomePage implements OnInit {
     }
 
     createPrint() {
-        if (!this.imageLoadResult || !this.canvas || !this.crownChinPointPair || !this.photoStandard) {
+        if (!this.imageLoadResult || !this.printDefinition || !this.crownChinPointPair || !this.photoStandard) {
             return;
         }
         console.log('Creating print output');
         const req = new TiledPhotoRequest(
             this.imageLoadResult.imgKey,
             this.photoStandard.dimensions,
-            this.canvas,
+            this.printDefinition,
             this.crownChinPointPair
         );
         console.log(req);

@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {Canvas} from '../model/datatypes';
+import {PrintDefinition} from '../model/datatypes';
 import {PrintDefinitionService} from '../services/print-definition.service';
 
 @Component({
@@ -30,11 +30,11 @@ import {PrintDefinitionService} from '../services/print-definition.service';
     styles: []
 })
 export class PrintDefinitionSelectorComponent {
-    public printDefinition: Canvas = new Canvas('__unknown__', 'Loading ...');
+    public printDefinition: PrintDefinition = new PrintDefinition('__unknown__', 'Loading ...');
 
-    public _allPrintDefinitions: Canvas[];
+    public _allPrintDefinitions: PrintDefinition[];
 
-    public _selectablePrintDefinitions: Canvas[];
+    public _selectablePrintDefinitions: PrintDefinition[];
 
     constructor(private pdService: PrintDefinitionService) {
         this._allPrintDefinitions = pdService.getAllPrintDefinitions();
@@ -63,7 +63,7 @@ export class PrintDefinitionSelectorComponent {
         return this._selectablePrintDefinitions != null ? this._selectablePrintDefinitions : this._allPrintDefinitions;
     }
 
-    public setSelected(ps: Canvas): void {
+    public setSelected(ps: PrintDefinition): void {
         this.pdService.setSelectedPrintDefinition(ps);
         this.collapsed = true;
     }
@@ -81,7 +81,7 @@ export class PrintDefinitionSelectorComponent {
         );
     }
 
-    getStringRepr(pd: Canvas): string {
+    getStringRepr(pd: PrintDefinition): string {
         const units = pd.units === 'inch' ? '″' : pd.units;
         return `${pd.height} x ${pd.width}${units} [${pd.resolution}dpi]`;
     }

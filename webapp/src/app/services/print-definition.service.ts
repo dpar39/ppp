@@ -1,17 +1,17 @@
 import {Injectable, EventEmitter} from '@angular/core';
-import {Canvas} from '../model/datatypes.js';
+import {PrintDefinition} from '../model/datatypes.js';
 import * as predefinedPrintDefinitions from '../data/print-definitions.json';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PrintDefinitionService {
-    private _predefinedPrintDefinitions: Canvas[];
-    private _customPrintDefinitions: Canvas[];
+    private _predefinedPrintDefinitions: PrintDefinition[];
+    private _customPrintDefinitions: PrintDefinition[];
 
-    public printDefinitionSelected: EventEmitter<Canvas> = new EventEmitter();
+    public printDefinitionSelected: EventEmitter<PrintDefinition> = new EventEmitter();
 
-    private _selectedOne: Canvas;
+    private _selectedOne: PrintDefinition;
 
     constructor() {
         this._predefinedPrintDefinitions = (predefinedPrintDefinitions as any).default;
@@ -19,18 +19,18 @@ export class PrintDefinitionService {
         this.setSelectedPrintDefinition(defaultOne);
     }
 
-    getSelectedPrintDefinition(): Canvas {
+    getSelectedPrintDefinition(): PrintDefinition {
         return this._selectedOne;
     }
 
-    setSelectedPrintDefinition(pd: Canvas): void {
+    setSelectedPrintDefinition(pd: PrintDefinition): void {
         this._selectedOne = pd;
         this.printDefinitionSelected.emit(this._selectedOne);
     }
 
-    addNewPrintDefinition(pd: Canvas): void {}
+    addNewPrintDefinition(pd: PrintDefinition): void {}
 
-    getAllPrintDefinitions(): Canvas[] {
+    getAllPrintDefinitions(): PrintDefinition[] {
         return this._predefinedPrintDefinitions;
     }
 }

@@ -16,6 +16,10 @@ export class BackEndService {
     _runtimeInitialized = false;
     worker: Worker;
 
+    private _cacheImageLoadResult: ImageLoadResult;
+    private _cachePrintResult: any; // SafeResourceUrl
+    private _cacheLandmarks: any; // Landmarks
+
     private _onImageSet: (result: ImageLoadResult) => void;
     private _onLandmarksDetected: (landmarks: object) => void;
     private _onCreateTiledPrint: (pngDataUrl: string) => void;
@@ -42,14 +46,15 @@ export class BackEndService {
                         const imageKey = e.data.imgKey;
                         const exifInfo = e.data.EXIFInfo;
                         const imageDataUrl = this.createPngDataUrl(e.data.pngUrl);
-                        this._onImageSet(new ImageLoadResult(imageKey, imageDataUrl, exifInfo));
+                        this._cacheImageLoadResult = new ImageLoadResult(imageKey, imageDataUrl, exifInfo);
+                        this._onImageSet(this._cacheImageLoadResult);
                         break;
                     case 'onLandmarksDetected':
                         this._onLandmarksDetected(e.data.landmarks);
                         break;
                     case 'onCreateTilePrint':
-                        const pngDataUrl = this.createPngDataUrl(e.data.pngUrl);
-                        this._onCreateTiledPrint(pngDataUrl);
+                        this._cachePrintResult = this.createPngDataUrl(e.data.pngUrl);
+                        this._onCreateTiledPrint(this._cachePrintResult);
                         break;
                     case 'onAppDataLoadingProgress':
                         this.appLoadingProgressReported.emit(e.data.progressPct);
@@ -88,5 +93,18 @@ export class BackEndService {
             this._onCreateTiledPrint = resolve;
             this.worker.postMessage({cmd: 'createTiledPrint', request: req});
         });
+    }
+
+    getCacheImageLoadResult(): ImageLoadResult {
+        return this._cacheImageLoadResult;
+    }
+    getCachePrintResult(): any {
+        return this._cachePrintResult;
+    }
+    getCacheLandmarks(): any {
+        return this._cacheLandmarks;
+    }
+    getRuntimeInitialized(): boolean {
+        return this._runtimeInitialized;
     }
 }

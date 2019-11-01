@@ -11,7 +11,7 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
     selector: 'app-landmark-editor',
     template: `
         <div id="viewport">
-            <img id="photo" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
+            <img id="inputPhoto" alt="Input Image" title="Input picture" [src]="getImageDataUrl()" (load)="imageLoaded()" />
 
             <svg class="box" [style.visibility]="landmarkVisibility">
                 <defs>
@@ -43,8 +43,7 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
                 visibility: hidden;
             }
 
-
-            #photo {
+            #inputPhoto {
                 position: absolute;
                 z-index: 0;
             }
@@ -60,7 +59,7 @@ import {PhotoDimensions, getCroppingCenter} from '../model/photodimensions';
             }
             @media (max-aspect-ratio: 5/4) {
                 #viewport {
-                    height: 50vh;
+                    height: 46vh;
                 }
             }
 
@@ -164,7 +163,7 @@ export class LandmarkEditorComponent implements OnInit {
     }
 
     ngOnInit() {
-        this._imgElmt = this._el.nativeElement.querySelector('#photo');
+        this._imgElmt = this._el.nativeElement.querySelector('#inputPhoto');
         this._containerElmt = this._el.nativeElement.querySelector('#viewport');
         this._crownMarkElmt = this._el.nativeElement.querySelector('#crownMark');
         this._chinMarkElmt = this._el.nativeElement.querySelector('#chinMark');
