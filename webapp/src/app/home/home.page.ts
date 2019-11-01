@@ -136,13 +136,7 @@ export class HomePage implements OnInit {
 
         this.imageLoadResult = beService.getCacheImageLoadResult();
         this.crownChinPointPair = beService.getCacheLandmarks();
-
         this.outImgSrc = beService.getCachePrintResult();
-        if (!this.outImgSrc) {
-            this.outImgSrc = '#';
-        } else {
-            this.appDataLoadingProgress = 1.0;
-        }
     }
 
     ngOnInit(): void {
@@ -172,13 +166,13 @@ export class HomePage implements OnInit {
     }
 
     retrieveLandmarks() {
-        console.log(this.imageLoadResult.imgKey);
+        console.debug(`Retrieving landmarks for image ${this.imageLoadResult.imgKey}`);
         this.beService.retrieveLandmarks(this.imageLoadResult.imgKey).then(landmarks => {
             if (landmarks.errorMsg) {
-                console.log(landmarks.errorMsg);
+                console.error(landmarks.errorMsg);
             } else {
                 if (landmarks.crownPoint && landmarks.chinPoint) {
-                    console.log('Landmarks calculated.');
+                    console.debug('Landmarks calculated.');
                     this.crownChinPointPair = landmarks;
                     this.createPrint();
                 }
@@ -205,14 +199,14 @@ export class HomePage implements OnInit {
         if (!this.imageLoadResult || !this.printDefinition || !this.crownChinPointPair || !this.photoStandard) {
             return;
         }
-        console.log('Creating print output');
         const req = new TiledPhotoRequest(
             this.imageLoadResult.imgKey,
             this.photoStandard.dimensions,
             this.printDefinition,
             this.crownChinPointPair
         );
-        console.log(req);
+
+        console.debug(`Creating print output. Request = ${req}`);
 
         this.beService.getTiledPrint(req).then(outputDataUrl => {
             if (this.outImgSrc) {

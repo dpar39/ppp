@@ -39,10 +39,10 @@ export class BackEndService {
                     case 'onRuntimeInitialized':
                         this._runtimeInitialized = true;
                         this.runtimeInitialized.emit(true);
-                        console.log('All good and configured');
+                        console.debug('WASM module initialized and configured!');
                         break;
                     case 'onImageSet':
-                        console.log(`Image has been set: ${e.data.imgKey}`);
+                        console.debug(`Image has been set: ${e.data.imgKey}`);
                         const imageKey = e.data.imgKey;
                         const exifInfo = e.data.EXIFInfo;
                         const imageDataUrl = this.createPngDataUrl(e.data.pngUrl);
@@ -50,7 +50,8 @@ export class BackEndService {
                         this._onImageSet(this._cacheImageLoadResult);
                         break;
                     case 'onLandmarksDetected':
-                        this._onLandmarksDetected(e.data.landmarks);
+                        this._cacheLandmarks = e.data.landmarks;
+                        this._onLandmarksDetected(this._cacheLandmarks);
                         break;
                     case 'onCreateTilePrint':
                         this._cachePrintResult = this.createPngDataUrl(e.data.pngUrl);
@@ -99,7 +100,7 @@ export class BackEndService {
         return this._cacheImageLoadResult;
     }
     getCachePrintResult(): any {
-        return this._cachePrintResult;
+        return this._cachePrintResult ? this._cachePrintResult : '#' ;
     }
     getCacheLandmarks(): any {
         return this._cacheLandmarks;
