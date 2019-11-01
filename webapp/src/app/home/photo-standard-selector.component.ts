@@ -33,7 +33,8 @@ import {PhotoStandardService} from '../services/photo-standard.service';
     styles: [
         `
             ion-list {
-                max-height: 20vh;
+                min-height: 250px;
+                max-height: 25vh;
                 overflow-y: scroll;
             }
         `

@@ -27,7 +27,7 @@ import {PrintDefinitionService} from '../services/print-definition.service';
                 <ion-row>
                     <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
                         <!-- Load image and edit landmarks -->
-                        <ion-grid no-padding>
+                        <ion-grid class="ion-no-padding">
                             <ion-row>
                                 <ion-col>
                                     <app-landmark-editor

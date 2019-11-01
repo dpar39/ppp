@@ -29,7 +29,12 @@
     "files.trimTrailingWhitespace": true,
     "editor.codeLens": false,
     "editor.autoIndent": true,
-    "python.pythonPath": "/usr/local/bin/python3",
+    "windows": {
+        "python.pythonPath": "env\\Scripts\\python.exe"
+    },
+    "osx": {
+        "python.pythonPath": "/usr/local/bin/python3"
+    },
     "python.linting.pycodestyleEnabled": true,
     "python.linting.pycodestyleArgs": [
         "--ignore=E501",

@@ -95,7 +95,7 @@ class ShellRunner(object):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
-        self._is_emscripten = arch_name == 'wasm'
+        self._is_emscripten = arch_name == 'wasm' or arch_name == 'web'
         if not self._is_emscripten:
             if IS_WINDOWS:
                 self._detect_vs_version()
@@ -802,7 +802,7 @@ class Builder(object):
         if self._run_tests:
             self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
         self.run_cmd('npm run gen-pwa-icons')
-        self.run_cmd('npx ng build --prod')
+        self.run_cmd('npx ionic build --prod')
         os.chdir(self._root_dir)
 
     def setup_webapp(self):
