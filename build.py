@@ -799,9 +799,9 @@ class Builder(object):
 
         # Build the web app
         os.chdir(self.webapp_path())
+        self.run_cmd('npm run gen-pwa-icons')
         if self._run_tests:
             self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')
-        self.run_cmd('npm run gen-pwa-icons')
         self.run_cmd('npx ionic build --prod')
         os.chdir(self._root_dir)
 
@@ -849,8 +849,6 @@ class Builder(object):
         arch_names = args.arch_names
         if 'all' in arch_names:
             arch_names == ['x64', 'wasm', 'web']  # Add android
-        if 'web' in arch_names and 'wasm' not in arch_names:
-            arch_names.append('wasm')
 
         build_order = {'x64': 1, 'x86': 1, 'wasm': 1, 'web': 2, 'android': 3}
         self._arch_names = sorted(arch_names, key=lambda a: build_order[a])

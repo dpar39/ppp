@@ -1,12 +1,13 @@
 {
   "name": "PhotoIDCreator",
   "version": "1.0.0",
-  "description": "A photo ID generation tool",
+  "description": "A Photo ID Creation Tool",
   "author": "Darien Pardinas",
   "license": "MIT",
-  "homepage": "https://myphotoidapp.firebaseapp.com/",
+  "homepage": "https://myphotoidapp.web.app/",
   "scripts": {
     "gen-pwa-icons": "npx ngx-pwa-icons -i src/favicon.png",
+    "gen-app-info": "node app-version.js",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
