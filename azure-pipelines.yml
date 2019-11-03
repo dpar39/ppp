@@ -32,6 +32,6 @@ stages:
           path: thirdparty/install_windows_release_x64
       - script: python build.py --test -a wasm web
       - script: python build.py --test -a x64
-      - script: cd webapp && npx firebase use --token $(FIREBASE_DEPLOY_KEY) myphotoidapp && npx firebase deploy --token $(FIREBASE_DEPLOY_KEY) --non-interactive && cd ..
+      - script: cd webapp && npx firebase use --token $(FIREBASE_DEPLOY_KEY) myphotoidapp && npx firebase deploy --non-interactive && cd ..
 
 
