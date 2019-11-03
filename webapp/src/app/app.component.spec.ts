@@ -48,9 +48,12 @@ describe('AppComponent', () => {
     await fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-label');
-    expect(menuItems.length).toEqual(3);
+
+    const expecteMenuItems = ['Home', 'Settings', 'App Info'];
+
+    expect(menuItems.length).toEqual(expecteMenuItems.length);
     let i = 0;
-    for (const menuItemText of ['Home', 'List', 'Settings']) {
+    for (const menuItemText of expecteMenuItems) {
       expect(menuItems[i++].textContent).toContain(menuItemText);
     }
   });
@@ -60,9 +63,13 @@ describe('AppComponent', () => {
     await fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-item');
-    expect(menuItems.length).toEqual(3);
-    expect(menuItems[0].getAttribute('ng-reflect-router-link')).toEqual('/home');
-    expect(menuItems[1].getAttribute('ng-reflect-router-link')).toEqual('/list');
-    expect(menuItems[2].getAttribute('ng-reflect-router-link')).toEqual('/settings');
+
+    const expectedRoutes = ['/home', '/settings', '/about'];
+    expect(menuItems.length).toEqual(expectedRoutes.length);
+
+    let i = 0;
+    for (const expectedRoute of expectedRoutes) {
+      expect(menuItems[i++].getAttribute('ng-reflect-router-link')).toEqual(expectedRoute);
+    }
   });
 });

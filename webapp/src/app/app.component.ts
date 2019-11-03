@@ -42,14 +42,14 @@ export class AppComponent {
       icon: 'home'
     },
     {
-      title: 'List',
-      url: '/list',
-      icon: 'list'
-    },
-    {
       title: 'Settings',
       url: '/settings',
       icon: 'settings'
+    },
+    {
+      title: 'App Info',
+      url: '/about',
+      icon: 'information-circle-outline'
     }
   ];
 
