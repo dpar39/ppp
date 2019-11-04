@@ -96,7 +96,7 @@ class ShellRunner(object):
         self._extra_paths = []
         self._arch_name = arch_name
         self._is_emscripten = arch_name == 'wasm' or arch_name == 'web'
-        if not self._is_emscripten:
+        if arch_name in ['x64', 'x86']:
             if IS_WINDOWS:
                 self._detect_vs_version()
             else:
@@ -139,7 +139,7 @@ class ShellRunner(object):
         if isinstance(cmd_args, str):
             cmd_args = cmd_args.split()
         cmd_all = []
-        if IS_WINDOWS and not self._is_emscripten:
+        if IS_WINDOWS and self._arch_name in ['x64', 'x86']:
             cmd_all = [self._vcvarsbat, self._arch_name] + '&& set CC=cl.exe && set CXX=cl.exe &&'.split(' ')
         cmd_all = cmd_all + cmd_args
 
@@ -154,8 +154,8 @@ class ShellRunner(object):
         else:
             p.wait()
         if p.returncode != 0:
-            print('Command "%s" exited with code %d' %
-                  (' '.join(cmd_args), p.returncode))
+            print('Command "%s" exited with code %d' % (' '.join(cmd_args), p.returncode))
+            print(p.stdout.read())
             sys.exit(p.returncode)
 
     def _detect_vs_version(self):
@@ -278,7 +278,7 @@ class Builder(object):
 
     def clean_thirdparty_if_needed(self, libname, installed_dir, extract_dir):
         if libname in self._clean_targets:
-            if os.path.isfile(installed_dir):
+            if os.path.isdir(installed_dir):
                 shutil.rmtree(installed_dir)
             if extract_dir and os.path.isdir(extract_dir):
                 shutil.rmtree(extract_dir)
@@ -288,10 +288,12 @@ class Builder(object):
         Downloads and builds OpenCV from source
         """
         opencv_extract_dir = self.get_third_party_lib_dir('opencv')
+
         opencv_installed_dir = os.path.join(self._third_party_install_dir, 'lib/cmake/opencv4')
         self.clean_thirdparty_if_needed('opencv', opencv_installed_dir, opencv_extract_dir)
-
-        if os.path.isdir(opencv_installed_dir):
+        # HACK: For Windows the install directory is not quite the same thing
+        cmake_ref = os.path.join(self._third_party_install_dir, 'OpenCVConfig.cmake')
+        if os.path.isdir(opencv_installed_dir) or os.path.isfile(cmake_ref):
             return  # We have OpenCV installed
 
         # Download OpenCV sources if not done yet
@@ -799,6 +801,7 @@ class Builder(object):
 
         # Build the web app
         os.chdir(self.webapp_path())
+        self.run_cmd('npm run gen-app-info')
         self.run_cmd('npm run gen-pwa-icons')
         if self._run_tests:
             self.run_cmd('npx ng test --browsers=ChromeHeadless --watch=false')

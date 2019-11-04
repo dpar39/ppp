@@ -48,6 +48,8 @@
         "emscripten",
         "exif",
         "greenyellow",
+        "isdir",
+        "opencv",
         "wasm",
         "webapp"
     ],

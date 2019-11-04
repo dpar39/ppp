@@ -48,7 +48,7 @@
             "stopOnEntry": false,
             "program": "${workspaceFolder}/build.py",
             "args": [
-                "--emscripten",
+                "-a", "x64",
                 "--build_config=release"
             ]
         }
