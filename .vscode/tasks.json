@@ -40,20 +40,31 @@
             "args": [
                 "build.py",
                 "--arch_names",
-                "android",
+                "android"
             ],
             "problemMatcher": []
-
         },
         {
-            "label": "Serve Angular app",
-            "command": "cd webapp && npx ionic serve",
-            "type": "shell",
-            "problemMatcher": [],
+            "label": "Ionic Serve",
+            "command": "cmd",
+            "type": "process",
+            "args": [
+                "/k",
+                "npx",
+                "ionic",
+                "serve",
+                "-b"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/webapp"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": [
+                "$tsc"
+            ]
         }
     ]
 }

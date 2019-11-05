@@ -51,6 +51,17 @@
                 "-a", "x64",
                 "--build_config=release"
             ]
+        },
+        {
+            "name": "Debug Ionic",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:8100",
+            "webRoot": "${workspaceFolder}/webapp",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${webRoot}/*"
+              }
         }
     ]
 }
