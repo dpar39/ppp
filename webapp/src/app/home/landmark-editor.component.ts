@@ -19,7 +19,7 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         (load)="imageLoaded()"
       />
 
-      <svg class="box" [style.visibility]="landmarkVisibility">
+      <svg class="box" [style.visibility]="landmarkVisibility" pointer-events="none">
         <defs>
           <mask id="mask" x="0" y="0" width="100%" height="100%">
             <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
@@ -138,7 +138,7 @@ export class LandmarkEditorComponent implements OnInit {
   private _ratio = 0; // Ratio between image pixels and screen pixels
 
   private _imgElmt: any = null;
-  private _containerElmt: any = null;
+  private _viewPortElmt: any = null;
   private _crownMarkElmt: any = null;
   private _chinMarkElmt: any = null;
   private _middleLine: any = null;
@@ -172,7 +172,7 @@ export class LandmarkEditorComponent implements OnInit {
 
   ngOnInit() {
     this._imgElmt = this._el.nativeElement.querySelector('#inputPhoto');
-    this._containerElmt = this._el.nativeElement.querySelector('#viewport');
+    this._viewPortElmt = this._el.nativeElement.querySelector('#viewport');
     this._crownMarkElmt = this._el.nativeElement.querySelector('#crownMark');
     this._chinMarkElmt = this._el.nativeElement.querySelector('#chinMark');
 
@@ -181,7 +181,6 @@ export class LandmarkEditorComponent implements OnInit {
     this._cropArea = this._el.nativeElement.querySelector('#cropArea');
     this._cropRect = this._el.nativeElement.querySelector('#cropRect');
 
-    const that = this;
     interact('.landmark').draggable({
       // enable inertial throwing
       inertia: false,
@@ -195,20 +194,80 @@ export class LandmarkEditorComponent implements OnInit {
       ],
 
       // call this function on every dragmove event
-      onmove: function(event) {
+      onmove: event => {
         const target = event.target;
         // keep the dragged position in the x/y attributes
         const x = (parseFloat(target.getAttribute('x')) || 0) + event.dx;
         const y = (parseFloat(target.getAttribute('y')) || 0) + event.dy;
         // translate the element
-        that.translateElement(target, new Point(x, y));
-        that.renderAnnotations();
+        this.translateElement(target, new Point(x, y));
+        this.renderAnnotations();
       },
       // call this function on every dragend event
-      onend: function(event) {
-        that.updateLandMarks();
+      onend: event => {
+        this.updateLandMarks();
       }
     });
+
+    // var angleScale = {
+    //   angle: 0,
+    //   scale: 1
+    // }
+    // var resetTimeout;
+
+    // function dragMoveListener (event) {
+    //   var target = event.target
+    //   // keep the dragged position in the data-x/data-y attributes
+    //   var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+    //   var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+    //   // translate the element
+    //   target.style.webkitTransform =
+    //     target.style.transform =
+    //       'translate(' + x + 'px, ' + y + 'px)'
+
+    //   // update the posiion attributes
+    //   target.setAttribute('data-x', x)
+    //   target.setAttribute('data-y', y)
+    // }
+
+    // const scaleElement = this._imgElmt;
+    // interact(this._imgElmt)
+    //   .gesturable({
+    //     onstart: function(event) {
+    //       angleScale.angle -= event.angle;
+
+    //       clearTimeout(resetTimeout);
+
+    //       scaleElement.classList.remove('reset');
+    //     },
+    //     onmove: function(event) {
+    //       // document.body.appendChild(new Text(event.scale))
+    //       var currentAngle = event.angle + angleScale.angle;
+    //       var currentScale = event.scale * angleScale.scale;
+
+    //       scaleElement.style.webkitTransform = scaleElement.style.transform =
+    //         'rotate(' + currentAngle + 'deg)' + 'scale(' + currentScale + ')';
+
+    //       // uses the dragMoveListener from the draggable demo above
+    //       dragMoveListener(event);
+    //     },
+    //     onend: function(event) {
+    //       angleScale.angle = angleScale.angle + event.angle;
+    //       angleScale.scale = angleScale.scale * event.scale;
+
+    //       resetTimeout = setTimeout(reset, 1000);
+    //       scaleElement.classList.add('reset');
+    //     }
+    //   })
+    //   .draggable({ onmove: dragMoveListener });
+
+    // function reset() {
+    //   scaleElement.style.webkitTransform = scaleElement.style.transform = 'scale(1)';
+
+    //   angleScale.angle = 0;
+    //   angleScale.scale = 1;
+    // }
   }
 
   getImageDataUrl() {
@@ -227,11 +286,11 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   calculateViewPort(): void {
-    if (!this._containerElmt) {
+    if (!this._viewPortElmt) {
       return;
     }
-    this._viewPortWidth = this._containerElmt.clientWidth;
-    this._viewPortHeight = this._containerElmt.clientHeight;
+    this._viewPortWidth = this._viewPortElmt.clientWidth;
+    this._viewPortHeight = this._viewPortElmt.clientHeight;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -297,7 +356,6 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   screenToPixel(pt: Point | any, round = false): Point {
-
     if (pt.x === undefined || pt.y == undefined) {
       pt = this.getMarkScreenCenter(pt);
     }

@@ -49,6 +49,9 @@
         "exif",
         "greenyellow",
         "isdir",
+        "onend",
+        "onmove",
+        "onstart",
         "opencv",
         "wasm",
         "webapp"
