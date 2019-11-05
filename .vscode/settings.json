@@ -16,9 +16,6 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
-        "./thirdparty/opencv-3.4.3": true,
-        "./thirdparty/install_release_x64": true,
-        "./thirdparty/install_debug_x64": true,
         "./thirdparty/android-ndk-r15c": true,
         "./thirdparty/sdk-tools-*": true
     },
