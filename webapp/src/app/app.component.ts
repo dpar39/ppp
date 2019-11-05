@@ -8,8 +8,8 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
   selector: 'app-root',
   template: `
     <ion-app>
-      <ion-split-pane when="xl">
-        <ion-menu type="overlay" side="end">
+      <ion-split-pane when="xl" contentId="main-content">
+        <ion-menu type="overlay" side="end" contentId="main-content">
           <ion-header>
             <ion-toolbar>
               <ion-title>Menu</ion-title>
@@ -28,7 +28,7 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
             </ion-list>
           </ion-content>
         </ion-menu>
-        <ion-router-outlet main></ion-router-outlet>
+        <ion-router-outlet id="main-content"></ion-router-outlet>
       </ion-split-pane>
     </ion-app>
   `,
