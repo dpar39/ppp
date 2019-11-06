@@ -64,5 +64,5 @@ describe('BackEndServiceService', () => {
         });
       });
     });
-  }, 10000);
+  }, 25000);
 });
