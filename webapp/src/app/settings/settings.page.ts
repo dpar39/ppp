@@ -20,8 +20,15 @@ import { SettingsService } from '../services/settings.service';
       <ion-item-group>
         <ion-item>
           <ion-label>Dark Theme</ion-label>
-          <ion-toggle slot="end" name="darkTheme" [checked]="settings.getDarkMode()"
-          (ionChange)="changeTheme($event)"></ion-toggle>
+          <ion-toggle
+            slot="end"
+            name="darkTheme"
+            [checked]="settings.getDarkMode()"
+            (ionChange)="changeTheme($event)"
+          ></ion-toggle>
+          <ion-button *ngIf='false' slot="end" (click)="resetThemePreference()"
+            ><ion-icon name="undo"></ion-icon
+          ></ion-button>
         </ion-item>
       </ion-item-group>
     </ion-content>
@@ -33,20 +40,16 @@ export class SettingsPage implements OnInit {
 
   ngOnInit() {}
 
+  setDarkTheme(darkMode: boolean) {
+    this.settings.setDarkMode(darkMode);
+    document.body.classList.toggle('dark', darkMode);
+  }
+
   changeTheme(event) {
-    const darkTheme = event.target.checked;
-    this.settings.setDarkMode(darkTheme);
-    document.body.classList.toggle('dark', darkTheme);
-
-    // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    // toggleDarkTheme(prefersDark.matches);
-
-    // // Listen for changes to the prefers-color-scheme media query
-    // prefersDark.addListener(mediaQuery => toggleDarkTheme(mediaQuery.matches));
-
-    // // Add or remove the "dark" class based on if the media query matches
-    // function toggleDarkTheme(shouldAdd: boolean) {
-    //     document.body.classList.toggle('dark', shouldAdd);
-    // }
+    this.setDarkTheme(event.target.checked);
+  }
+  resetThemePreference() {
+    this.settings.resetThemePreferences();
+    this.setDarkTheme(this.settings.getDarkMode());
   }
 }

@@ -25,4 +25,8 @@ export class SettingsService {
     }
     this.localStorage.setItem(DARK_MODE, darkMode);
   }
+  
+  resetThemePreferences() {
+    this.localStorage.removeItem(DARK_MODE);
+  }
 }
