@@ -529,15 +529,11 @@ class Builder(object):
         android_sdk_tools_pkg = self.download_third_party_lib(ANDROID_SDK_TOOLS)
 
         # Extract the SDK if not done already
-        android_sdk_tools_dirname = os.path.splitext(
-            os.path.basename(android_sdk_tools_pkg))[0]
-        android_sdk_tools_dir = self.get_third_party_lib_dir(
-            android_sdk_tools_dirname)
+        android_sdk_tools_dirname = os.path.splitext(os.path.basename(android_sdk_tools_pkg))[0]
+        android_sdk_tools_dir = self.get_third_party_lib_dir(android_sdk_tools_dirname)
         if android_sdk_tools_dir is None:
-            android_sdk_tools_dir = os.path.join(
-                self._third_party_dir, android_sdk_tools_dirname)
-            self.extract_third_party_lib(
-                android_sdk_tools_pkg, android_sdk_tools_dir)
+            android_sdk_tools_dir = os.path.join(self._third_party_dir, android_sdk_tools_dirname)
+            self.extract_third_party_lib(android_sdk_tools_pkg, android_sdk_tools_dir)
 
         # Download gradle
         gradle_pkg = self.download_third_party_lib(ANDROID_GRADLE)
@@ -784,6 +780,7 @@ class Builder(object):
         """
         Builds android app
         """
+        self.run_cmd('npx cap copy', cwd='webapp')
         self.run_cmd('gradle build --stacktrace', cwd='webapp/android')
 
     def build_webapp(self):
@@ -912,7 +909,8 @@ class Builder(object):
             if arch == 'web':
                 self.setup_webapp()
                 self.build_webapp()
-            else:
+
+            if arch in ['x64', 'x86', 'wasm']:
                 # Build Third Party Libs
                 self.build_dlib()
                 self.build_googletest()

@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.pardinas.photoid;
 
 import android.os.Bundle;
 

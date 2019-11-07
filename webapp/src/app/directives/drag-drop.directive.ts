@@ -9,9 +9,9 @@ export class DragDropDirective {
   //@HostBinding('style.background-color') private background = '#f5fcff'
   //@HostBinding('style.opacity') private opacity = '1'
   // @HostBinding('style.cursor') private cursor = 'pointer';
-  @HostBinding('style.border-color') private borderColor = '';
-  @HostBinding('style.border-width') private borderWidth = '3px';
-  @HostBinding('style.border-style') private borderStyle = 'dashed';
+  @HostBinding('style.border-color') borderColor = '';
+  @HostBinding('style.border-width') borderWidth = '3px';
+  @HostBinding('style.border-style') borderStyle = 'dashed';
 
   private _borderNormal: string;
   private _borderDropping: string;
