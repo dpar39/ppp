@@ -93,7 +93,7 @@ import { PrintDefinitionService } from '../services/print-definition.service';
 
       #dropZone {
         border-radius: 5px;
-        border-color: var(--ion-background-color);
+        border-color: rgba(255, 0, 0, 0.0);
       }
     `
   ]

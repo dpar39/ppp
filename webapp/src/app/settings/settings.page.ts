@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { SettingsService } from '../services/settings.service';
 
 @Component({
   selector: 'app-settings',
@@ -19,7 +20,8 @@ import { Component, OnInit } from '@angular/core';
       <ion-item-group>
         <ion-item>
           <ion-label>Dark Theme</ion-label>
-          <ion-toggle slot="end" name="darkTheme" checked (ionChange)="changeTheme($event)"></ion-toggle>
+          <ion-toggle slot="end" name="darkTheme" [checked]="settings.getDarkMode()"
+          (ionChange)="changeTheme($event)"></ion-toggle>
         </ion-item>
       </ion-item-group>
     </ion-content>
@@ -27,12 +29,13 @@ import { Component, OnInit } from '@angular/core';
   styles: [``]
 })
 export class SettingsPage implements OnInit {
-  constructor() {}
+  constructor(public settings: SettingsService) {}
 
   ngOnInit() {}
 
   changeTheme(event) {
     const darkTheme = event.target.checked;
+    this.settings.setDarkMode(darkTheme);
     document.body.classList.toggle('dark', darkTheme);
 
     // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');

@@ -102,7 +102,7 @@
     },
     {
         "id": "al_visa_47x36mm_photo",
-        "text": "Albania Visa and e-visa 47x36mm",
+        "text": "Albania (e-)Visa 47x36mm",
         "country": "Albania",
         "docType": "Visa",
         "dimensions": {
@@ -321,7 +321,7 @@
     },
     {
         "id": "ar_visa_15x15_inch_photo",
-        "text": "Argentina visa in USA 1.5x1.5″",
+        "text": "Argentina Visa in USA 1.5x1.5″",
         "country": "Argentina",
         "docType": "Passport",
         "dimensions": {
@@ -341,7 +341,7 @@
     },
     {
         "id": "am_evisa_photo",
-        "text": "Armenia evisa photo 600x600 px",
+        "text": "Armenia eVisa 600x600px",
         "country": "Armenia",
         "docType": "Visa",
         "dimensions": {
@@ -361,7 +361,7 @@
     },
     {
         "id": "am_visa_35x45mm_photo",
-        "text": "Armenia visa 35x45mm",
+        "text": "Armenia Visa 35x45mm",
         "country": "Armenia",
         "docType": "Visa",
         "dimensions": {
@@ -383,7 +383,7 @@
     },
     {
         "id": "am_return_certificate_35x45mm_photo",
-        "text": "Armenia certificate of return 35x45 mm (3.5x4.5 cm)",
+        "text": "Armenia Certificate of Return 35x45mm",
         "country": "Armenia",
         "docType": "Other",
         "dimensions": {
@@ -405,7 +405,7 @@
     },
     {
         "id": "am_id_card_3x4cm_photo",
-        "text": "Armenia ID Card 3x4 cm",
+        "text": "Armenia ID Card 3x4cm",
         "country": "Armenia",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -423,7 +423,7 @@
     },
     {
         "id": "au_passport_photo",
-        "text": "Australia Passport 35x45 mm (3.5x4.5 cm)",
+        "text": "Australia Passport 35x45mm",
         "country": "Australia",
         "docType": "Passport",
         "dimensions": {
@@ -443,7 +443,7 @@
     },
     {
         "id": "au_visa_photo",
-        "text": "Australia Visa 35x45 mm (3.5x4.5 cm)",
+        "text": "Australia Visa 35x45mm",
         "country": "Australia",
         "docType": "Visa",
         "dimensions": {
@@ -463,7 +463,7 @@
     },
     {
         "id": "au_proof_of_age_card_35x45mm_photo",
-        "text": "Australia adult proof of age card 35x45 mm (3.5x4.5 cm)",
+        "text": "Australia Adult Proof of Age Card 35x45mm",
         "country": "Australia",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -483,7 +483,7 @@
     },
     {
         "id": "au_nsw_driving_photo",
-        "text": "Australia NSW Driver's Licence Photo-kit 35x45 mm",
+        "text": "Australia NSW Driver's Licence Photo-kit 35x45mm",
         "country": "Australia",
         "docType": "Driving License",
         "dimensions": {
@@ -500,7 +500,8 @@
             "http://www.rms.nsw.gov.au/licensing/renewingalicence/renewalwhenoutofnsw/photokitform.html",
             "http://www.rms.nsw.gov.au/publicationsstatisticsforms/downloads/45070794.pdf"
         ],
-        "comments": ""
+        "comments": "",
+        "visible": false
     },
     {
         "id": "au_vic_driving_photo",
@@ -521,7 +522,8 @@
             "http://www.vicroads.vic.gov.au/Home/Licences/RenewReplaceOrUpdate/LicensingWhenOutOfVIC.htm",
             "http://www.vicroads.vic.gov.au/NR/rdonlyres/F0A15D8E-C19D-42BB-BCAB-ABB7A146EF77/0/PhotoKitform2010.pdf"
         ],
-        "comments": ""
+        "comments": "",
+        "visible": false
     },
     {
         "id": "au_qld_driving_photo",
@@ -541,11 +543,12 @@
         "officialLinks": [
             "http://www.tmr.qld.gov.au/~/media/Licensing/Renewing%20or%20replacing%20a%20licence/driver%20licence%20renewal%20kit.pdf"
         ],
-        "comments": ""
+        "comments": "",
+        "visible": false
     },
     {
         "id": "at_personalausweis_35x45mm_photo",
-        "text": "Austrian ID Card 35x45 mm (3.5x4.5 cm)",
+        "text": "Austrian ID Card 35x45mm",
         "country": "Austria",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -566,7 +569,7 @@
     },
     {
         "id": "at_passport_photo",
-        "text": "Austria Passport 35x45 mm (3.5x4.5 cm)",
+        "text": "Austria Passport 35x45mm",
         "country": "Austria",
         "docType": "Passport",
         "dimensions": {
@@ -587,7 +590,7 @@
     },
     {
         "id": "at_visa_photo",
-        "text": "Austria Visa 35x45 mm (3.5x4.5 cm)",
+        "text": "Austria Visa 35x45mm",
         "country": "Austria",
         "docType": "Visa",
         "dimensions": {
@@ -608,7 +611,7 @@
     },
     {
         "id": "at_fuhrerschein_35x45mm_photo",
-        "text": "Austrian driving license 35x45 mm (3.5x4.5 cm)",
+        "text": "Austrian Driving License 35x45mm",
         "country": "Austria",
         "docType": "Driving License",
         "dimensions": {
@@ -628,7 +631,7 @@
     },
     {
         "id": "at_aufenthaltstitel_35x45mm_photo",
-        "text": "Austrian residence permit 35x45 mm (3.5x4.5 cm)",
+        "text": "Austrian Residence Permit 35x45mm",
         "country": "Austria",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -646,7 +649,7 @@
     },
     {
         "id": "bh_passport_photo",
-        "text": "Bahrain passport 4x6 cm (40x60 mm)",
+        "text": "Bahrain Passport 4x6cm",
         "country": "Bahrain",
         "docType": "Passport",
         "dimensions": {
@@ -668,7 +671,7 @@
     },
     {
         "id": "bh_visa_photo",
-        "text": "Bahrain visa 4x6 cm (40x60 mm)",
+        "text": "Bahrain Visa 4x6cm",
         "country": "Bahrain",
         "docType": "Visa",
         "dimensions": {
@@ -686,7 +689,7 @@
     },
     {
         "id": "bh_id_card_4x6cm_photo",
-        "text": "Bahrain ID Card 4x6 cm (40x60 mm)",
+        "text": "Bahrain ID Card 4x6cm",
         "country": "Bahrain",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -704,7 +707,7 @@
     },
     {
         "id": "bd_passport_40x50_photo",
-        "text": "Bangladesh passport 40x50 mm (4x5 cm)",
+        "text": "Bangladesh Passport 40x50mm",
         "country": "Bangladesh",
         "docType": "Passport",
         "dimensions": {
@@ -725,7 +728,7 @@
     },
     {
         "id": "bd_passport_55x45_photo",
-        "text": "Bangladesh passport 55x45 mm (5.5x4.5 cm)",
+        "text": "Bangladesh Passport 55x45 mm",
         "country": "Bangladesh",
         "docType": "Passport",
         "dimensions": {
@@ -745,7 +748,7 @@
     },
     {
         "id": "bd_passport_45x35_photo",
-        "text": "Bangladesh passport application 45x35 mm (4.5x3.5 cm)",
+        "text": "Bangladesh Passport 45x35 mm",
         "country": "Bangladesh",
         "docType": "Passport",
         "dimensions": {
@@ -765,7 +768,7 @@
     },
     {
         "id": "bd_passport_30x25_photo",
-        "text": "Bangladesh passport 30x25 mm (3x2.5 cm)",
+        "text": "Bangladesh Passport 30x25 mm",
         "country": "Bangladesh",
         "docType": "Passport",
         "dimensions": {
@@ -974,7 +977,7 @@
     },
     {
         "id": "be_visa_photo",
-        "text": "Belgium Visa 35x45 mm (3.5x4.5 cm)",
+        "text": "Belgium Visa 35x45mm",
         "country": "Belgium",
         "docType": "Visa",
         "dimensions": {
@@ -995,7 +998,7 @@
     },
     {
         "id": "be_passport_45x35mm_photo",
-        "text": "Belgium passport 35x45 mm (3.5x4.5 cm)",
+        "text": "Belgium Passport 35x45mm",
         "country": "Belgium",
         "docType": "Passport",
         "dimensions": {
@@ -1015,7 +1018,7 @@
     },
     {
         "id": "be_residence_permit_45x35mm_photo",
-        "text": "Belgium residence permit 35x45 mm (3.5x4.5 cm)",
+        "text": "Belgium Residence Permit 35x45mm",
         "country": "Belgium",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -1036,7 +1039,7 @@
     },
     {
         "id": "bj_visa_35x45mm_photo",
-        "text": "Benin visa 3.5x4.5 cm (35x45 mm)",
+        "text": "Benin Visa 3.5x4.5cm",
         "country": "Benin",
         "docType": "Visa",
         "dimensions": {
@@ -1056,7 +1059,7 @@
     },
     {
         "id": "bj_passport_35x45mm_photo",
-        "text": "Benin passport 3.5x4.5 cm (35x45 mm)",
+        "text": "Benin Passport 35x45mm",
         "country": "Benin",
         "docType": "Passport",
         "dimensions": {
@@ -1076,7 +1079,7 @@
     },
     {
         "id": "bj_passport_2x2in_photo",
-        "text": "Benin passport 2x2″ (from USA)",
+        "text": "Benin Passport 2x2″ (from USA)",
         "country": "Benin",
         "docType": "Passport",
         "dimensions": {
@@ -3287,7 +3290,7 @@
     },
     {
         "id": "gh_passport_35x45mm_photo",
-        "text": "Ghana Passport 3.5x4.5 cm (35x45 mm)",
+        "text": "Ghana Passport 35x45 mm",
         "country": "Ghana",
         "docType": "Passport",
         "dimensions": {
@@ -3307,7 +3310,7 @@
     },
     {
         "id": "gh_visa_3x4cm_photo",
-        "text": "Ghana visa 3x4 cm (30x40 mm) from Brazil",
+        "text": "Ghana Visa (from Brazil) 3x4 cm",
         "country": "Ghana",
         "docType": "Visa",
         "dimensions": {
@@ -3327,7 +3330,7 @@
     },
     {
         "id": "gr_passport_photo",
-        "text": "Greece Passport 40x60 mm (4x6 cm)",
+        "text": "Greece Passport 40x60 mm",
         "country": "Greece",
         "docType": "Passport",
         "dimensions": {
@@ -3348,7 +3351,7 @@
     },
     {
         "id": "gr_visa_photo",
-        "text": "Greece Visa 35x45 mm (3.5x4.5 cm)",
+        "text": "Greece Visa 35x45 mm",
         "country": "Greece",
         "docType": "Visa",
         "dimensions": {
@@ -3368,7 +3371,7 @@
     },
     {
         "id": "gr_id_card_36x36mm_photo",
-        "text": "Greek ID Card 3.6x3.6 cm (36x36 mm)",
+        "text": "Greek ID Card 36x36 mm",
         "country": "Greece",
         "docType": "ID card / Identification",
         "dimensions": {
@@ -3408,7 +3411,7 @@
     },
     {
         "id": "gw_visa_3x4cm_photo",
-        "text": "Guinea-Bissau visa 3x4 cm (30x40 mm)",
+        "text": "Guinea-Bissau visa 3x4 cm",
         "country": "Guinea-Bissau",
         "docType": "Visa",
         "dimensions": {
@@ -3446,7 +3449,7 @@
     },
     {
         "id": "gy_passport_32x26mm_photo",
-        "text": "Guyana passport 32x26mm",
+        "text": "Guyana Passport 32x26mm",
         "country": "Guyana",
         "docType": "Passport",
         "dimensions": {
@@ -3468,7 +3471,7 @@
     },
     {
         "id": "gy_passport_45x35mm_photo",
-        "text": "Guyana passport 45x35mm",
+        "text": "Guyana Passport 45x35mm",
         "country": "Guyana",
         "docType": "Passport",
         "dimensions": {
@@ -3490,7 +3493,7 @@
     },
     {
         "id": "hk_passport_photo",
-        "text": "Hong Kong Passport 40x50 mm (4x5 cm)",
+        "text": "Hong Kong Passport 40x50mm",
         "country": "Hong Kong",
         "docType": "Passport",
         "dimensions": {
@@ -3511,7 +3514,7 @@
     },
     {
         "id": "hk_visa_photo",
-        "text": "Hong Kong Visa 40x50 mm (4x5 cm)",
+        "text": "Hong Kong Visa 40x50mm",
         "country": "Hong Kong",
         "docType": "Visa",
         "dimensions": {
@@ -3532,7 +3535,7 @@
     },
     {
         "id": "hu_passport_photo",
-        "text": "Hungary Passport 35x45mm (3.5x4.5 cm)",
+        "text": "Hungary Passport 35x45mm",
         "country": "Hungary",
         "docType": "Passport",
         "dimensions": {
@@ -3573,7 +3576,7 @@
     },
     {
         "id": "in_visa_photo",
-        "text": "India Visa (2x2 inch, 51x51mm)",
+        "text": "India Visa 2x2″",
         "country": "India",
         "docType": "Visa",
         "dimensions": {
@@ -3589,7 +3592,7 @@
         "officialLinks": [
             "https://indianvisaonline.gov.in"
         ],
-        "comments": "Detailed visa photo submission instructionsIndian visa online applicationa) You can make photo using digital camera/ webcam or you can scan the physical photograph you already have.b) Indian Online Visa photo requirements:File type: JPEGSize: minimum 10 KB \u2013 maximum 300 KBThe height and width of your photo must be the same.The minimum dimensions are 350 pixels width x 350 pixels heightThe maximum dimensions are 1000 pixels width x 1000 pixels heightTo learn more about all steps of application process (here you will also find instruction how to resize your photo) follow this link"
+        "comments": "Detailed visa photo submission instructions. Indian visa online application. a) You can make photo using digital camera/ webcam or you can scan the physical photograph you already have.b) Indian Online Visa photo requirements:File type: JPEGSize: minimum 10 KB \u2013 maximum 300 KBThe height and width of your photo must be the same.The minimum dimensions are 350 pixels width x 350 pixels heightThe maximum dimensions are 1000 pixels width x 1000 pixels heightTo learn more about all steps of application process (here you will also find instruction how to resize your photo) follow this link"
     },
     {
         "id": "in_visa_vfs_190px_photo",
@@ -3613,7 +3616,7 @@
     },
     {
         "id": "in_passport_oci_online_photo",
-        "text": "India OCI Passport (2x2 inch, 51x51mm)",
+        "text": "India OCI Passport 2x2″",
         "country": "India",
         "docType": "Passport",
         "dimensions": {
@@ -3634,7 +3637,7 @@
     },
     {
         "id": "in_passport_photo",
-        "text": "India Passport (2x2 inch, 51x51mm)",
+        "text": "India Passport 2x2″",
         "country": "India",
         "docType": "Passport",
         "dimensions": {
@@ -3752,7 +3755,7 @@
     },
     {
         "id": "in_passport_bls_usa_photo",
-        "text": "India Passport for BLS USA Application (2x2 inch, 51x51mm)",
+        "text": "India Passport for BLS USA Application 2x2″",
         "country": "India",
         "docType": "Passport",
         "dimensions": {
@@ -3813,7 +3816,7 @@
     },
     {
         "id": "id_passport_photo",
-        "text": "Indonesia Passport 51x51 mm (2x2 inch) red background",
+        "text": "Indonesia Passport 2x2″ red background",
         "country": "Indonesia",
         "docType": "Passport",
         "dimensions": {
@@ -3831,7 +3834,7 @@
     },
     {
         "id": "id_passport_white_photo",
-        "text": "Indonesia Passport 51x51 mm (2x2 inch) white background",
+        "text": "Indonesia Passport 2x2″ white background",
         "country": "Indonesia",
         "docType": "Passport",
         "dimensions": {
@@ -3849,7 +3852,7 @@
     },
     {
         "id": "id_visa_2x2inches_photo",
-        "text": "Indonesia Visa 2x2 inches (51x51 mm)",
+        "text": "Indonesia Visa 2x2″",
         "country": "Indonesia",
         "docType": "Visa",
         "dimensions": {
@@ -3869,7 +3872,7 @@
     },
     {
         "id": "id_visa_photo",
-        "text": "Indonesia Visa 35x45 mm (3.5x4.5 cm)",
+        "text": "Indonesia Visa 35x45 mm",
         "country": "Indonesia",
         "docType": "Visa",
         "dimensions": {
@@ -3889,7 +3892,7 @@
     },
     {
         "id": "ir_evisa_photo",
-        "text": "Iran e-visa 600x400 pixels",
+        "text": "Iran e-Visa 600x400 pixels",
         "country": "Iran",
         "docType": "Visa",
         "dimensions": {

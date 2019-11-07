@@ -8,21 +8,18 @@ export class DragDropDirective {
 
   //@HostBinding('style.background-color') private background = '#f5fcff'
   //@HostBinding('style.opacity') private opacity = '1'
-  @HostBinding('style.cursor') private cursor = 'pointer';
+  // @HostBinding('style.cursor') private cursor = 'pointer';
   @HostBinding('style.border-color') private borderColor = '';
-  @HostBinding('style.border-width') private borderWidth = '2px';
+  @HostBinding('style.border-width') private borderWidth = '3px';
   @HostBinding('style.border-style') private borderStyle = 'dashed';
 
   private _borderNormal: string;
   private _borderDropping: string;
 
   constructor() {
-    this._borderNormal = getComputedStyle(document.documentElement).getPropertyValue(
-      '--ion-background-color'
-    );
-
-    this._borderDropping = getComputedStyle(document.documentElement).getPropertyValue('--ion-color-primary');
-
+    const docElmt = getComputedStyle(document.documentElement);
+    this._borderNormal = docElmt.getPropertyValue('--ion-background-color');
+    this._borderDropping = docElmt.getPropertyValue('--ion-color-primary');
     this.borderColor = this._borderNormal;
   }
 
@@ -34,6 +31,7 @@ export class DragDropDirective {
     evt.preventDefault();
     evt.stopPropagation();
     this.borderColor = this._borderDropping;
+    // this.cursor = 'grab';
   }
 
   //Dragleave listener
@@ -41,6 +39,7 @@ export class DragDropDirective {
     evt.preventDefault();
     evt.stopPropagation();
     this.borderColor = this._borderNormal;
+    // this.cursor = 'pointer';
   }
 
   //Drop listener
@@ -48,6 +47,7 @@ export class DragDropDirective {
     evt.preventDefault();
     evt.stopPropagation();
     this.borderColor = this._borderNormal;
+    // this.cursor = 'pointer';
     let files = evt.dataTransfer.files;
     if (files.length > 0) {
       this.onFileDropped.emit(files);
