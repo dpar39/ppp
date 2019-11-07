@@ -30,14 +30,15 @@ import { PrintDefinitionService } from '../services/print-definition.service';
             <ion-grid class="ion-no-padding">
               <ion-row>
                 <ion-col>
-                  <app-landmark-editor
-                    style="margin: 0 auto;"
-                    [inputPhoto]="imageLoadResult"
-                    [crownChinPointPair]="crownChinPointPair"
-                    (edited)="onLandmarksEdited($event)"
-                    [photoDimensions]="photoStandard?.dimensions"
-                  >
-                  </app-landmark-editor>
+                  <div id="dropZone" appDragDrop (onFileDropped)="loadImage($event)">
+                    <app-landmark-editor
+                      [inputPhoto]="imageLoadResult"
+                      [crownChinPointPair]="crownChinPointPair"
+                      (edited)="onLandmarksEdited($event)"
+                      [photoDimensions]="photoStandard?.dimensions"
+                    >
+                    </app-landmark-editor>
+                  </div>
                 </ion-col>
               </ion-row>
               <ion-row>
@@ -52,12 +53,13 @@ import { PrintDefinitionService } from '../services/print-definition.service';
                   </ion-button>
                   <form>
                     <input
+                      #selectImage
                       id="selectImage"
                       type="file"
                       name="uploads[]"
                       accept="image/*"
-                      style="display: none;"
-                      (change)="loadImage($event)"
+                      hidden
+                      (change)="loadImage($event.target.files)"
                     />
                   </form>
                 </ion-col>
@@ -87,6 +89,11 @@ import { PrintDefinitionService } from '../services/print-definition.service';
       .print-results {
         max-width: 99%;
         max-height: 99%;
+      }
+
+      #dropZone {
+        border-radius: 5px;
+        border-color: var(--ion-background-color);
       }
     `
   ]
@@ -155,8 +162,8 @@ export class HomePage implements OnInit {
     });
   }
 
-  loadImage(event) {
-    const fileList: FileList = event.target.files;
+  loadImage(fileList: FileList) {
+    //const fileList: FileList = event.target.files;
     if (fileList && fileList[0]) {
       this.pendingFile = fileList[0];
       this.crownChinPointPair = null;

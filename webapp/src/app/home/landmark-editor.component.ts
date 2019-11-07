@@ -61,9 +61,10 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         min-height: 40vh;
         border: 1px solid #363434;
         border-radius: 5px;
-        margin: 5px auto;
+        margin: 0 auto;
         background: #333;
       }
+
       @media (max-aspect-ratio: 5/4) {
         #viewport {
           height: 46vh;
@@ -80,6 +81,7 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         position: absolute;
         width: 100%;
         height: 100%;
+        border-radius: 5px;
       }
 
       .annotation {
