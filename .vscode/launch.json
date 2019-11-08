@@ -36,7 +36,7 @@
             ]
         },
         {
-            "name": "Python Build Script",
+            "name": "Python: Build Script",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -44,6 +44,19 @@
             "args": [
                 "-a", "x64",
                 "--build_config=release"
+            ]
+        },
+        {
+            "name": "Python: Code Generator",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "program": "${workspaceFolder}/scripts/cppgen.py",
+            "args": [
+                "--path", "libppp",
+                "--name", "ComplianceChecker",
+                "--namespace", "ppp",
+               // "--overwrite-not!"
             ]
         },
         {
