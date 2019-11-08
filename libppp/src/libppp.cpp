@@ -19,6 +19,8 @@
 #endif
 
 using namespace std;
+namespace ppp
+{
 
 PublicPppEngine g_c_pppInstance;
 string g_last_error;
@@ -102,6 +104,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, crownPoint, chinPoint);
     return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolutionPixPerMM());
 }
+} // namespace ppp
 
 #pragma region C Interface
 #define TRYRUN(statements)                                                                                             \
@@ -121,6 +124,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
 EMSCRIPTEN_KEEPALIVE
 bool set_image(const char * img_buf, int img_buf_size, char * img_metadata)
 {
+    using namespace ppp;
     TRYRUN(auto imgMetadata = g_c_pppInstance.setImage(img_buf, img_buf_size);
            strcpy(img_metadata, imgMetadata.c_str()););
 }
@@ -128,18 +132,21 @@ bool set_image(const char * img_buf, int img_buf_size, char * img_metadata)
 EMSCRIPTEN_KEEPALIVE
 bool configure(const char * config_json)
 {
+    using namespace ppp;
     TRYRUN(g_c_pppInstance.configure(config_json););
 }
 
 EMSCRIPTEN_KEEPALIVE
 bool detect_landmarks(const char * img_id, char * landmarks)
 {
+    using namespace ppp;
     TRYRUN(auto landmarksStr = g_c_pppInstance.detectLandmarks(img_id); strcpy(landmarks, landmarksStr.c_str()););
 }
 
 EMSCRIPTEN_KEEPALIVE
 int create_tiled_print(const char * img_id, const char * request, char * out_buf)
 {
+    using namespace ppp;
     try
     {
         auto output = g_c_pppInstance.createTiledPrint(img_id, request);
@@ -157,6 +164,7 @@ int create_tiled_print(const char * img_id, const char * request, char * out_buf
 EMSCRIPTEN_KEEPALIVE
 int get_image(const char * img_id, char * out_buf)
 {
+    using namespace ppp;
     try
     {
         auto output = g_c_pppInstance.getImage(img_id);

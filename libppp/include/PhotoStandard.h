@@ -3,6 +3,8 @@
 #include "CommonHelpers.h"
 #include <rapidjson/document.h>
 
+namespace ppp
+{
 /*!\class PhotoStandard
 Defines a passport photo dimensions specified by a country.
 For example, Australia passport photos must be of at least 45mm x 35mm and the
@@ -36,3 +38,4 @@ public:
 
     static PhotoStandardSPtr fromJson(rapidjson::Value & photoStandardJson);
 };
+} // namespace ppp

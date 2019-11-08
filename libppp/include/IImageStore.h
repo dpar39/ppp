@@ -3,12 +3,14 @@
 #include "CommonHelpers.h"
 #include <opencv2/core/core.hpp>
 
-FWD_DECL(IImageStore)
 namespace easyexif
 {
 FWD_DECL(EXIFInfo);
 }
 
+namespace ppp
+{
+FWD_DECL(IImageStore)
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
 class IImageStore : NonCopyable
@@ -36,3 +38,4 @@ public:
 
     virtual ~IImageStore() = default;
 };
+} // namespace ppp

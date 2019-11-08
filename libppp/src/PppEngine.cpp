@@ -17,6 +17,9 @@
 
 using namespace std;
 
+namespace ppp
+{
+
 PppEngine::PppEngine(const IDetectorSPtr & pFaceDetector,
                      const IDetectorSPtr & pEyesDetector,
                      const IDetectorSPtr & pLipsDetector,
@@ -235,3 +238,4 @@ IImageStoreSPtr PppEngine::getImageStore() const
 {
     return m_pImageStore;
 }
+} // namespace ppp

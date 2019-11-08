@@ -5,6 +5,8 @@
 #include "TestHelpers.h"
 #include <opencv2/imgcodecs.hpp>
 
+namespace ppp
+{
 class ImageStoreTests : public testing::Test
 {
 
@@ -114,3 +116,4 @@ TEST_F(ImageStoreTests, ImageExifDataRetrieval)
     EXPECT_EQ(image2.rows, 512);
     ASSERT_FALSE(imgExif2);
 }
+} // namespace ppp

@@ -4,11 +4,14 @@
 #include <rapidjson/document.h>
 #include <string>
 
-class PhotoStandard;
 namespace cv
 {
 class Mat;
 }
+
+namespace ppp
+{
+class PhotoStandard;
 
 FWD_DECL(CanvasDefinition)
 
@@ -57,3 +60,4 @@ public:
     /*!@brief Construct a CanvasDefinition from JSON data !*/
     static CanvasDefinitionSPtr fromJson(rapidjson::Value & canvas);
 };
+} // namespace ppp

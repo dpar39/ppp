@@ -4,6 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 
+namespace ppp
+{
 struct LandMarks;
 
 FWD_DECL(IDetector)
@@ -21,3 +23,4 @@ public:
 
     virtual ~IDetector() = default;
 };
+} // namespace ppp

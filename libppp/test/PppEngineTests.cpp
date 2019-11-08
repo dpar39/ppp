@@ -13,6 +13,8 @@
 
 using namespace testing;
 
+namespace ppp
+{
 class PppEngineTests : public Test
 {
 protected:
@@ -88,3 +90,4 @@ TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
     // Act
     EXPECT_EQ(true, m_pppEngine->detectLandMarks(imgKey, landmarks));
 }
+} // namespace ppp

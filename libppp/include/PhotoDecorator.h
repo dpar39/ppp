@@ -4,6 +4,8 @@
 #include <opencv2/imgproc.hpp>
 #include <string>
 
+namespace ppp
+{
 enum class VerticalAlignment
 {
     BOTTOM,
@@ -32,3 +34,4 @@ public:
                          int fontThickness = 1,
                          bool autoPadding = true);
 };
+} // namespace ppp

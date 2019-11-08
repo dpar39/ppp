@@ -7,6 +7,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+namespace ppp
+{
 class FaceDetectorTests : public testing::Test
 {
 protected:
@@ -78,3 +80,4 @@ TEST_F(FaceDetectorTests, DISABLED_DetectFaceRotation)
         EXPECT_EQ(detectedLandMarks.imageRotation, angle);
     }
 }
+} // namespace ppp

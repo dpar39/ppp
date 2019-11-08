@@ -8,6 +8,8 @@
 #include <functional>
 #include <utility>
 
+namespace ppp
+{
 FWD_DECL(IImageStore)
 
 // image name prefix, rgb image, gray image, annotated landmarks, detected landmarks
@@ -72,3 +74,4 @@ static double median(std::vector<T> scores)
     }
     return median;
 }
+} // namespace ppp

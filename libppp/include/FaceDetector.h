@@ -3,14 +3,11 @@
 #include "IDetector.h"
 #include <dlib/image_processing/frontal_face_detector.h>
 
+namespace ppp
+{
 struct LandMarks;
 
 FWD_DECL(FaceDetector)
-namespace cv
-{
-FWD_DECL(CascadeClassifier)
-}
-
 class FaceDetector final : public IDetector
 {
 public:
@@ -31,3 +28,4 @@ private:
 
     std::shared_ptr<dlib::frontal_face_detector> m_frontalFaceDetector;
 };
+} // namespace ppp

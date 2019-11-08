@@ -9,6 +9,9 @@
 using namespace std;
 using namespace cv;
 
+namespace ppp
+{
+
 TEST(UtilitiesTests, TestCalculatePointAtDistance)
 {
     vector<tuple<Point2d, Point2d, double, Point2d, Point2d>> data = {
@@ -53,13 +56,6 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
     }
 }
 
-TEST(UtilitiesTests, SelfCoefficientImageTests1)
-{
-    const auto imageBear = resolvePath("research/mugshot_frontal_original_all/071_frontal.jpg");
-    const auto inputImage = imread(imageBear, IMREAD_GRAYSCALE);
-    auto outputImage = Utilities::selfCoefficientImage(inputImage, 7);
-}
-
 // TEST(UtilitiesTests, ResourceRetrievalWorks)
 //{
 //    string fileName = "shape_predictor_68_face_landmarks.dat";
@@ -71,3 +67,4 @@ TEST(UtilitiesTests, SelfCoefficientImageTests1)
 //    std::string expected((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 //    ASSERT_EQ(actual, expected);
 //}
+} // namespace ppp

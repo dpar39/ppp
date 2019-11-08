@@ -4,6 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 
+namespace ppp
+{
 class CanvasDefinition;
 class PhotoStandard;
 
@@ -27,3 +29,4 @@ public:
                                      const cv::Mat & croppedImage)
         = 0;
 };
+} // namespace ppp

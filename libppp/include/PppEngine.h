@@ -4,6 +4,14 @@
 #include <opencv2/core/core.hpp>
 #include <unordered_map>
 
+namespace dlib
+{
+class full_object_detection;
+class shape_predictor;
+} // namespace dlib
+
+namespace ppp
+{
 struct LandMarks;
 FWD_DECL(IDetector)
 FWD_DECL(ICrownChinEstimator)
@@ -12,12 +20,6 @@ FWD_DECL(IPhotoPrintMaker)
 
 class CanvasDefinition;
 class PhotoStandard;
-
-namespace dlib
-{
-class full_object_detection;
-class shape_predictor;
-} // namespace dlib
 
 FWD_DECL(PppEngine)
 
@@ -90,3 +92,4 @@ private:
 
     cv::Point getLandMark(const std::vector<cv::Point> & landmarks, LandMarkType type) const;
 };
+} // namespace ppp

@@ -1,7 +1,8 @@
 #include "EyeDetector.h"
 
 #include <gtest/gtest.h>
-
+namespace ppp
+{
 class EyeDetectorTests : public testing::Test
 {
 
@@ -18,3 +19,4 @@ TEST_F(EyeDetectorTests, FallbackWorks)
     // EyeDetector d;
     // d.configure();
 }
+} // namespace ppp

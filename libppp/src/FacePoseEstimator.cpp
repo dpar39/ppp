@@ -2,6 +2,8 @@
 #include "LandMarks.h"
 #include <opencv2/calib3d.hpp>
 
+namespace ppp
+{
 FacePoseEstimator::FacePoseEstimator()
 {
     m_modelPoints.clear();
@@ -73,3 +75,4 @@ void FacePoseEstimator::projectPoint(const std::vector<cv::Point3d> & point3ds,
     static const cv::Mat distCoeffs = cv::Mat::zeros(4, 1, cv::DataType<double>::type); // Assuming no lens distortion
     cv::projectPoints(point3ds, m_rotationVector, m_translationVector, m_cameraMatrix, distCoeffs, point2ds);
 }
+} // namespace ppp

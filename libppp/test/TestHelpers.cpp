@@ -27,6 +27,8 @@ namespace fs = boost::filesystem;
 #define LANDMARK_POINT(mat, row)                                                                                       \
     cv::Point(roundInteger((mat).at<float>((row), 0)), roundInteger((mat).at<float>((row), 1)))
 
+namespace ppp
+{
 std::string resolvePath(const std::string & relPath)
 {
     auto baseDir = fs::current_path();
@@ -87,7 +89,7 @@ std::string getDirectory(const std::string & fullPath)
  * \param landMarksMap image name to landmarks map
  * \return true if the method succeeds importing the data, false otherwise.
  */
-void importLandMarks(const std::string & csvFilePath, std::map<std::string, LandMarks> & landMarksMap)
+void importLandMarks(const std::string & csvFilePath, std::map<std::string, ppp::LandMarks> & landMarksMap)
 {
     const std::string pattern
         = "(.*\\.(jpg|JPG|png|PNG)),\\d+,\"\\{\\}\",6,(\\d),\".*\"\"cx\"\":(\\d+),\"\"cy\"\":(\\d+)\\}\",\"\\{\\}\"";
@@ -382,3 +384,4 @@ TEST(Research, ModelCoefficientsCalculation)
     }
     adjustCrownChinCoefficients(annotations);
 }
+} // namespace ppp

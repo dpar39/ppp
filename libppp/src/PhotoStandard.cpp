@@ -1,6 +1,8 @@
 #include "PhotoStandard.h"
 #include "Utilities.h"
 
+namespace ppp
+{
 PhotoStandard::PhotoStandard(const double picWidth,
                              const double picHeight,
                              const double faceHeight,
@@ -47,3 +49,4 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(rapidjson::Value & photoS
 
     return std::make_shared<PhotoStandard>(picWidth, picHeight, faceHeight, eyesHeight, units);
 }
+} // namespace ppp

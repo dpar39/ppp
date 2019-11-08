@@ -7,6 +7,8 @@
 #include "ImageStore.h"
 #include "Utilities.h"
 
+namespace ppp
+{
 std::string ImageStore::storeImageData(const cv::Mat & image, const easyexif::EXIFInfoSPtr & exifInfo)
 {
     const auto crc32val = Utilities::crc32(0, image.datastart, image.dataend);
@@ -130,3 +132,4 @@ void ImageStore::boostImageToTopCache(const std::string & imageKey)
         it->second.storeListOrder = newOrderIt;
     }
 }
+} // namespace ppp

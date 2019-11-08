@@ -3,6 +3,8 @@
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 
+namespace ppp
+{
 struct LandMarks final
 {
     std::string imageKey; ///<- Image ID that uniquely identifies the image being annotated
@@ -37,3 +39,4 @@ struct LandMarks final
     std::string toJson(bool prettyJson) const;
     void fromJson(const rapidjson::Value & v);
 };
+} // namespace ppp

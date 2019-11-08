@@ -7,6 +7,9 @@
 
 using namespace cv;
 
+namespace ppp
+{
+
 void PhotoPrintMaker::configure(rapidjson::Value & cfg)
 {
     auto & ppmConfig = cfg["photoPrintMaker"];
@@ -103,3 +106,4 @@ Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard & ps,
 
     return Utilities::pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }
+} // namespace ppp

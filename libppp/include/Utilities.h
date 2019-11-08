@@ -77,17 +77,7 @@ public:
                                                             cv::Point2d p1Line,
                                                             cv::Point2d p2Line);
 
-    /**
-     * \brief Not being used so far
-     * \param P
-     * \param mu
-     * \return
-     */
-    static int kittlerOptimumThreshold(std::vector<double> P, float mu);
-
     static cv::Mat rotateImage(const cv::Mat & inputImage, int rotationAngleDegrees);
-
-    static cv::Mat selfCoefficientImage(const cv::Mat & inputImage, int kernelSize);
 
     static cv::Point convert(const dlib::point & pt);
 

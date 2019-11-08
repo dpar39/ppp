@@ -4,6 +4,8 @@
 #include <opencv2/imgcodecs.hpp>
 
 using namespace cv;
+namespace ppp
+{
 TEST(PhotoDecorator, TestDrawTextWithAlignment)
 {
     const auto canvasWidth = 640;
@@ -52,3 +54,4 @@ TEST(PhotoDecorator, TestDrawTextWithAlignment)
 
     imwrite("test.png", canvas);
 }
+} // namespace ppp

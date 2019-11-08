@@ -14,7 +14,8 @@
 #include <string>
 #include <vector>
 
-using BYTE = uint8_t;
+namespace ppp
+{
 class PppEngine;
 
 /*!@brief Wrapper class for this lib.
@@ -83,6 +84,7 @@ public:
 private:
     PppEngine * m_pPppEngine;
 };
+} // namespace ppp
 
 extern "C"
 {

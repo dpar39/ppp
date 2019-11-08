@@ -5,6 +5,8 @@
 
 #include <opencv2/core/core.hpp>
 
+namespace ppp
+{
 FWD_DECL(PhotoPrintMaker)
 class CanvasDefinition;
 class PhotoStandard;
@@ -32,4 +34,4 @@ private:
     cv::Scalar m_backgroundColor = cv::Scalar(128, 128, 128);
 };
 
-;
+} // namespace ppp

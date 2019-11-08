@@ -9,6 +9,8 @@
 
 using namespace cv;
 
+namespace ppp
+{
 class FacePoseEstimatorTests : public testing::Test
 {
 
@@ -47,3 +49,4 @@ TEST_F(FacePoseEstimatorTests, canConfigure)
 
     cv::line(img, landMarks.noseTip, noseEndPoint2D[0], cv::Scalar(255, 0, 0), 2);
 }
+} // namespace ppp

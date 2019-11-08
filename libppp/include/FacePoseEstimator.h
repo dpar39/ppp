@@ -5,6 +5,8 @@
 #include <opencv2/core/types.hpp>
 #include <vector>
 
+namespace ppp
+{
 class FacePoseEstimator final : public IFacePoseEstimator
 {
 public:
@@ -20,3 +22,4 @@ private:
     cv::Mat m_translationVector;
     cv::Mat m_cameraMatrix;
 };
+} // namespace ppp

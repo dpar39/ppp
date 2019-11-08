@@ -8,6 +8,8 @@
 
 using namespace std;
 
+namespace ppp
+{
 void EyeDetector::configure(rapidjson::Value & cfg)
 {
     auto & edCfg = cfg["eyesDetector"];
@@ -346,3 +348,4 @@ double EyeDetector::computeDynamicThreshold(const cv::Mat & mat, double stdDevFa
     const auto stdDev = stdMagnGrad[0] / sqrt(mat.rows * mat.cols);
     return stdDevFactor * stdDev + meanMagnGrad[0];
 }
+} // namespace ppp

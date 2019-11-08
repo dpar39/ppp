@@ -23,7 +23,7 @@
 
 namespace cv
 {
-class CascadeClassifier;
+FWD_DECL(CascadeClassifier);
 }
 
 using BYTE = uint8_t;

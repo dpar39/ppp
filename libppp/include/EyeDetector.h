@@ -2,11 +2,9 @@
 #include "CommonHelpers.h"
 #include "IDetector.h"
 
-FWD_DECL(EyeDetector)
-namespace cv
+namespace ppp
 {
-FWD_DECL(CascadeClassifier)
-}
+FWD_DECL(EyeDetector)
 
 class EyeDetector final : public IDetector
 {
@@ -68,3 +66,4 @@ private:
 
     void scaleToFastSize(const cv::Mat & src, cv::Mat & dst) const;
 };
+} // namespace ppp

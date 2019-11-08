@@ -2,6 +2,9 @@
 #include "LandMarks.h"
 #include "Utilities.h"
 
+namespace ppp
+{
+
 void CrownChinEstimator::configure(rapidjson::Value & config)
 {
     auto & lipsDetectorCfg = config["crownChinEstimator"];
@@ -47,3 +50,4 @@ bool CrownChinEstimator::estimateCrownChin(LandMarks & landMarks)
     landMarks.crownPoint = Utilities::pointInLineAtDistance(landMarks.chinPoint, frownPointPix, chinCrownDistancePix);
     return true;
 }
+} // namespace ppp

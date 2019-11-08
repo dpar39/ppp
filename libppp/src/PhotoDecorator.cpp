@@ -1,6 +1,8 @@
 ﻿
 #include "PhotoDecorator.h"
 
+namespace ppp
+{
 void PhotoDecorator::drawText(const std::string & text,
                               const cv::Rect boundingBox,
                               HorizontalAlignment hAlign,
@@ -61,3 +63,4 @@ void PhotoDecorator::drawText(const std::string & text,
     }
     putText(drawingImage, text, cv::Point(x, y), fontFace, fontScale, textColor, fontThickness, cv::LINE_8, false);
 }
+} // namespace ppp

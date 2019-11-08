@@ -2,7 +2,8 @@
 #include "Utilities.h"
 
 using namespace std;
-
+namespace ppp
+{
 CanvasDefinition::CanvasDefinition(const double width,
                                    const double height,
                                    const double dpi,
@@ -77,3 +78,4 @@ CanvasDefinitionSPtr CanvasDefinition::fromJson(rapidjson::Value & canvas)
     const auto cd = std::make_shared<CanvasDefinition>(width, height, resolution, units, gutter, padding);
     return cd;
 }
+} // namespace ppp

@@ -3,6 +3,9 @@
 #include "IImageStore.h"
 #include <gmock/gmock.h>
 
+namespace ppp
+{
+
 class MockImageStore : public IImageStore
 {
 public:
@@ -16,3 +19,4 @@ public:
     MOCK_METHOD1(setImage, std::string(const std::string &));
     MOCK_METHOD2(setImage, std::string(const char *, size_t));
 };
+} // namespace ppp

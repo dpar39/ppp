@@ -15,6 +15,8 @@
 
 using namespace cv;
 
+namespace ppp
+{
 std::string pct(const double v)
 {
     return std::to_string(v * 100) + "%";
@@ -242,3 +244,4 @@ TEST_F(PppEngineIntegrationTests, DISABLED_babyTest)
 
     renderLandmarksOnImage(inputImage, detectedLandMarks);
 }
+} // namespace ppp

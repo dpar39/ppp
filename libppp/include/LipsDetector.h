@@ -2,10 +2,8 @@
 
 #include "IDetector.h"
 
-namespace cv
+namespace ppp
 {
-FWD_DECL(CascadeClassifier)
-}
 
 class LipsDetector final : public IDetector
 {
@@ -22,3 +20,4 @@ private:
     bool m_useHaarCascades { true };
     bool m_useColorSegmentationAlgorithm { false };
 };
+} // namespace ppp

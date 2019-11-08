@@ -9,6 +9,8 @@
 using namespace cv;
 using namespace std;
 
+namespace ppp
+{
 void LipsDetector::configure(rapidjson::Value & config)
 {
     auto & lipsDetectorCfg = config["lipsDetector"];
@@ -186,3 +188,4 @@ bool LipsDetector::getBeardMask(Mat & mouthAreaImage) const
     // mouthAreaImage
     return true;
 }
+} // namespace ppp

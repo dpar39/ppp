@@ -2,6 +2,9 @@
 #include "Utilities.h"
 #include <rapidjson/document.h>
 
+namespace ppp
+{
+
 rapidjson::Value pointToJson(const cv::Point & p, rapidjson::Document::AllocatorType & alloc)
 {
     rapidjson::Value obj(rapidjson::kObjectType);
@@ -102,3 +105,4 @@ void LandMarks::fromJson(const rapidjson::Value & v)
     PARSE_POINT(crownPoint);
     PARSE_POINT(chinPoint);
 }
+} // namespace ppp

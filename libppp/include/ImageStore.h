@@ -6,8 +6,10 @@
 #include <mutex>
 #include <unordered_map>
 
-FWD_DECL(ImageStore)
+namespace ppp
+{
 
+FWD_DECL(ImageStore)
 struct ImageData final
 {
     cv::Mat image;
@@ -53,3 +55,4 @@ private:
 
     static easyexif::EXIFInfoSPtr decodeExifInfo(const BYTE * bufferData, const size_t bufferLength);
 };
+} // namespace ppp

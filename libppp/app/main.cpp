@@ -15,6 +15,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;
+using namespace ppp;
 
 void configureEngine(const string & configFilePath, PppEngine & engine)
 {

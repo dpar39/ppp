@@ -12,6 +12,8 @@ using namespace std;
 
 #define MANUAL_CHECK 0
 
+namespace ppp
+{
 class PhotoPrintMakerTests : public testing::Test
 {
 protected:
@@ -76,3 +78,4 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
     const auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "001-print.png");
     cv::imwrite(expectedPrintPath, printPhoto);
 }
+} // namespace ppp

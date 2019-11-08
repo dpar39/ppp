@@ -12,6 +12,9 @@
 using namespace std;
 using namespace cv;
 
+namespace ppp
+{
+
 bool FaceDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks)
 {
     // if (m_useDlibFaceDetection)
@@ -111,3 +114,4 @@ void FaceDetector::configure(rapidjson::Value & config)
         m_frontalFaceDetector = std::make_shared<dlib::frontal_face_detector>(dlib::get_frontal_face_detector());
     }*/
 }
+} // namespace ppp
