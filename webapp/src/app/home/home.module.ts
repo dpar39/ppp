@@ -31,6 +31,7 @@ const routes: Routes = [
     OnlyNumberDirective,
     DragDropDirective
   ],
+  entryComponents: [],
   providers: [BackEndService, PhotoStandardService],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

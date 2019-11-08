@@ -1,8 +1,10 @@
 import { Component, OnInit, ElementRef } from '@angular/core';
+
 import { CrownChinPointPair, PrintDefinition, PhotoStandard, TiledPhotoRequest } from '../model/datatypes';
 import { BackEndService, ImageLoadResult } from '../services/backend.service';
 import { PhotoStandardService } from '../services/photo-standard.service';
 import { PrintDefinitionService } from '../services/print-definition.service';
+import {  Camera, CameraResultType } from '@capacitor/core';
 
 @Component({
   selector: 'app-home',
@@ -44,25 +46,39 @@ import { PrintDefinitionService } from '../services/print-definition.service';
               <ion-row>
                 <ion-col>
                   <ion-button
+                    size="large"
                     expand="block"
                     class="ion-no-padding"
                     color="primary"
-                    (click)="el.nativeElement.querySelector('#selectImage').click()"
+                    (click)="loadFromFile()"
                   >
+                    <ion-icon name="folder" class="ion-padding-end"></ion-icon>
                     Choose photo
                   </ion-button>
-                  <form>
-                    <input
-                      #selectImage
-                      id="selectImage"
-                      type="file"
-                      name="uploads[]"
-                      accept="image/*"
-                      hidden
-                      (change)="loadImage($event.target.files)"
-                    />
-                  </form>
                 </ion-col>
+                <ion-col>
+                  <ion-button
+                    size="large"
+                    expand="block"
+                    class="ion-no-padding"
+                    color="primary"
+                    (click)="takePicture()"
+                  >
+                    <ion-icon name="camera" class="ion-padding-end"></ion-icon>
+                    <span>Take Photo</span>
+                  </ion-button>
+                </ion-col>
+                <form>
+                  <input
+                    #selectImage
+                    id="selectImage"
+                    type="file"
+                    name="uploads[]"
+                    accept="image/*"
+                    hidden
+                    (change)="loadImage($event.target.files)"
+                  />
+                </form>
               </ion-row>
             </ion-grid>
           </ion-col>
@@ -93,7 +109,7 @@ import { PrintDefinitionService } from '../services/print-definition.service';
 
       #dropZone {
         border-radius: 5px;
-        border-color: rgba(255, 0, 0, 0.0);
+        border-color: rgba(255, 0, 0, 0);
       }
     `
   ]
@@ -162,8 +178,38 @@ export class HomePage implements OnInit {
     });
   }
 
+  takePicture() {
+    // Otherwise, make the call:
+    Camera.getPhoto({
+      quality: 100,
+      allowEditing: true,
+      resultType: CameraResultType.Uri
+    })
+      .then(image => {
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'blob';
+        xhr.onload = () => {
+          const blob = xhr.response;
+          blob.lastModifiedDate = new Date();
+          blob.name = 'camera-picture';
+          this.pendingFile = blob;
+          this.crownChinPointPair = null;
+          this.imageLoadResult = null;
+          this.processInputImage();
+        };
+        xhr.open('GET', image.webPath);
+        xhr.send();
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
+
+  loadFromFile() {
+    this.el.nativeElement.querySelector('#selectImage').click();
+  }
+
   loadImage(fileList: FileList) {
-    //const fileList: FileList = event.target.files;
     if (fileList && fileList[0]) {
       this.pendingFile = fileList[0];
       this.crownChinPointPair = null;
