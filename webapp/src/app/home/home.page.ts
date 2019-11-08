@@ -46,7 +46,6 @@ import {  Camera, CameraResultType } from '@capacitor/core';
               <ion-row>
                 <ion-col>
                   <ion-button
-                    size="large"
                     expand="block"
                     class="ion-no-padding"
                     color="primary"
@@ -58,7 +57,6 @@ import {  Camera, CameraResultType } from '@capacitor/core';
                 </ion-col>
                 <ion-col>
                   <ion-button
-                    size="large"
                     expand="block"
                     class="ion-no-padding"
                     color="primary"
