@@ -3,7 +3,7 @@ import { Input, Output, EventEmitter } from '@angular/core';
 
 import interact from 'interactjs';
 import { CrownChinPointPair } from '../model/datatypes';
-import { middlePoint, Point, rotatedRectangle } from '../model/geometry';
+import { middlePoint, Point, rotatedRectangle, pointsAtDistanceNorm } from '../model/geometry';
 import { ImageLoadResult } from '../services/backend.service';
 import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
 
@@ -29,6 +29,8 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         <rect x="0" y="0" width="1000" height="1000" fill-opacity="0.4" mask="url(#mask)" />
         <rect id="cropRect" x="0" y="0" width="200" height="200" fill="none" />
         <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
+        <line id="crownLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
+        <line id="chinLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
         <ellipse id="faceEllipse" cx="100" cy="50" rx="100" ry="50" fill="none" class="annotation" />
       </svg>
 
@@ -139,11 +141,14 @@ export class LandmarkEditorComponent implements OnInit {
   private _zoom = 1;
   private _ratio = 0; // Ratio between image pixels and screen pixels
 
+  // Annotation elements
   private _imgElmt: any = null;
   private _viewPortElmt: any = null;
   private _crownMarkElmt: any = null;
   private _chinMarkElmt: any = null;
   private _middleLine: any = null;
+  private _crownLine: any = null;
+  private _chinLine: any = null;
   private _faceEllipse: any = null;
   private _cropArea: any = null;
   private _cropRect: any = null;
@@ -173,15 +178,19 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    this._imgElmt = this._el.nativeElement.querySelector('#inputPhoto');
-    this._viewPortElmt = this._el.nativeElement.querySelector('#viewport');
-    this._crownMarkElmt = this._el.nativeElement.querySelector('#crownMark');
-    this._chinMarkElmt = this._el.nativeElement.querySelector('#chinMark');
+    const thisEl = this._el.nativeElement;
+    this._imgElmt = thisEl.querySelector('#inputPhoto');
+    this._viewPortElmt = thisEl.querySelector('#viewport');
+    this._crownMarkElmt = thisEl.querySelector('#crownMark');
+    this._chinMarkElmt = thisEl.querySelector('#chinMark');
 
-    this._middleLine = this._el.nativeElement.querySelector('#middleLine');
-    this._faceEllipse = this._el.nativeElement.querySelector('#faceEllipse');
-    this._cropArea = this._el.nativeElement.querySelector('#cropArea');
-    this._cropRect = this._el.nativeElement.querySelector('#cropRect');
+    this._middleLine = thisEl.querySelector('#middleLine');
+    this._crownLine = thisEl.querySelector('#crownLine');
+    this._chinLine = thisEl.querySelector('#chinLine');
+
+    this._faceEllipse = thisEl.querySelector('#faceEllipse');
+    this._cropArea = thisEl.querySelector('#cropArea');
+    this._cropRect = thisEl.querySelector('#cropRect');
 
     interact('.landmark').draggable({
       // enable inertial throwing
@@ -375,7 +384,7 @@ export class LandmarkEditorComponent implements OnInit {
     return new Point(x, y);
   }
 
-  _setRotatedRect(svgElmt: any, center: Point, w: number, h: number, angle: number) {
+  private _setRotatedRect(svgElmt: any, center: Point, w: number, h: number, angle: number) {
     svgElmt.setAttribute('x', center.x - w / 2);
     svgElmt.setAttribute('y', center.y - h / 2);
     svgElmt.setAttribute('width', w);
@@ -383,18 +392,28 @@ export class LandmarkEditorComponent implements OnInit {
     svgElmt.setAttribute('transform', `rotate(${angle}, ${center.x}, ${center.y})`);
   }
 
+  private _renderSegment(svdElmt: any, p1: Point, p2: Point){
+    svdElmt.setAttribute('x1', p1.x);
+    svdElmt.setAttribute('y1', p1.y);
+    svdElmt.setAttribute('x2', p2.x);
+    svdElmt.setAttribute('y2', p2.y);
+  }
+
   renderAnnotations() {
     const p1 = this.getMarkScreenCenter(this._crownMarkElmt);
     const p2 = this.getMarkScreenCenter(this._chinMarkElmt);
 
     // Render middle line
-    this._middleLine.setAttribute('x1', p1.x);
-    this._middleLine.setAttribute('y1', p1.y);
-    this._middleLine.setAttribute('x2', p2.x);
-    this._middleLine.setAttribute('y2', p2.y);
+    this._renderSegment(this._middleLine, p1, p2);
+
+    const faceHeight = p1.distTo(p2);
+    const crownSegment = pointsAtDistanceNorm(p1, p2, faceHeight*0.5, p1);
+    this._renderSegment(this._crownLine, crownSegment[0], crownSegment[1]);
+
+    const chinSegment = pointsAtDistanceNorm(p1, p2, faceHeight*0.5, p2);
+    this._renderSegment(this._chinLine, chinSegment[0], chinSegment[1]);
 
     // Render face ellipse
-    const faceHeight = p1.distTo(p2);
     const ra = faceHeight / 2;
     const rb = 0.68 * ra;
     const pc = middlePoint(p1, p2);

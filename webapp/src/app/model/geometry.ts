@@ -46,7 +46,7 @@ export function middlePoint(pt1: Point, pt2: Point): Point {
   return new Point((pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2);
 }
 
-export function pointAtDistance(p0: Point, p1: Point, dist: number) {
+export function pointAtDistance(p0: Point, p1: Point, dist: number): Point {
   if (p1.equals(p0)) {
     throw new Error('Input points cannot be equal');
   }
@@ -54,19 +54,22 @@ export function pointAtDistance(p0: Point, p1: Point, dist: number) {
   return p0.add(p1.sub(p0).mult(ratio));
 }
 
-export function pointsAtDistanceNorm(p1: Point, p2: Point, d: number): Point[] {
+export function pointsAtDistanceNorm(p1: Point, p2: Point, d: number, p0: Point = null): Point[] {
   if (p1.equals(p2)) {
     throw new Error('Input points cannot be equal');
   }
 
-  const p0 = p1.add(p2).div(2.0);
-  let pa: Point, pb: Point; // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
+  if (p0 == null) {
+    p0 = p1.add(p2).div(2.0);
+  }
+  let pa = new Point(0, 0);
+  let pb = new Point(0, 0); // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
   if (p1.x === p2.x) {
-    pa = pb = p0;
+    pa.y = pb.y = p0.y;
     pa.x -= d;
     pb.x += d;
   } else if (p1.y === p2.y) {
-    pa = pb = p0;
+    pa.x = pb.x = p0.x;
     pa.y -= d;
     pb.y += d;
   } else {
