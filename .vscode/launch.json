@@ -32,7 +32,7 @@
             },
             "MIMode": "lldb",
             "args": [
-                "--gtest_filter=*babyTest*"
+                //"--gtest_filter=*babyTest*"
             ]
         },
         {

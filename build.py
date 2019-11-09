@@ -762,7 +762,7 @@ class Builder(object):
             targets = ['install'] if self._arch_name != 'wasm' else []
             self.build_cmake_lib('..', [], targets, False)
             # Run unit tests for C++ code
-            if self._arch_name in ['x64', 'x86']:
+            if self._arch_name in ['x64', 'x86'] and self._run_tests:
                 os.chdir(self._install_dir)
                 test_exe = r'.\ppp_test.exe' if IS_WINDOWS else './ppp_test'
                 self.run_cmd([test_exe, '--gtest_output=xml:../tests.xml'])

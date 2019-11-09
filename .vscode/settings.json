@@ -125,7 +125,8 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "./thirdparty/android-ndk-r15c": true,
-        "./thirdparty/sdk-tools-*": true
+        "./thirdparty/sdk-tools-*": true,
+        "./thirdparty/gradle-*": true
     },
     "search.exclude": {
         "**/node_modules": true,
@@ -134,12 +135,6 @@
     "files.trimTrailingWhitespace": true,
     "editor.codeLens": false,
     "editor.autoIndent": true,
-    "windows": {
-        "python.pythonPath": "env\\Scripts\\python.exe"
-    },
-    "osx": {
-        "python.pythonPath": "/usr/local/bin/python3"
-    },
     "python.linting.pycodestyleEnabled": true,
     "python.linting.pycodestyleArgs": [
         "--ignore=E501",
@@ -165,10 +160,7 @@
         {
             "name": "Unit Tests Debug",
             "description": "${relDirpath}/",
-            "pattern": "{build_*debug*}/libppp/*{_test}*",
-            "dependsOn": [
-                "Build Debug"
-            ]
+            "pattern": "{build_*debug*}/libppp/*{_test}*"
         },
         {
             "name": "Unit Tests Release",
@@ -176,15 +168,27 @@
             "pattern": "{build_*release*}/libppp/*{_test}*"
         }
     ],
-    "cmake.buildDirectory": "${workspaceRoot}/build_windows_debug_x64",
-    "cmake.installPrefix": "${workspaceRoot}/install_windows_debug_x64",
-    "cmake.generator": "ninja",
-    "cmake.configureArgs": [],
-    "clang-format.executable": "C:/Program Files/LLVM/bin/clang-format.exe",
+    "catch2TestExplorer.debugConfigTemplate": {
+        "type": "cppdbg",
+        "MIMode": "lldb",
+        "program": "${exec}",
+        "args": "${args}",
+        "cwd": "${cwd}",
+        "env": "${envObj}",
+        "externalConsole": false
+    },
+    "cmake.buildDirectory": "${workspaceRoot}/build_darwin_debug_x64",
+    "cmake.installPrefix": "${workspaceRoot}/install_darwin_debug_x64",
+    "cmake.generator": "Ninja",
+    "cmake.configureArgs": [
+        "-DCMAKE_BUILD_TYPE=debug",
+        "-DCMAKE_C_COMPILER=clang",
+        "-DCMAKE_CXX_COMPILER=clang++"
+    ],
     "python.formatting.provider": "autopep8",
     "python.formatting.autopep8Args": [
         "--max-line-length=110"
     ],
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "env\\Scripts\\python.exe"
+    "python.pythonPath": "/usr/local/bin/python3"
 }
