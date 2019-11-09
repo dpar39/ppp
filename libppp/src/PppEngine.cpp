@@ -1,5 +1,6 @@
 #include "PppEngine.h"
 #include "CanvasDefinition.h"
+#include "ComplianceChecker.h"
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
@@ -25,11 +26,13 @@ PppEngine::PppEngine(const IDetectorSPtr & pFaceDetector,
                      const IDetectorSPtr & pLipsDetector,
                      const ICrownChinEstimatorSPtr & pCrownChinEstimator,
                      const IPhotoPrintMakerSPtr & pPhotoPrintMaker,
-                     const IImageStoreSPtr & pImageStore)
+                     const IImageStoreSPtr & pImageStore,
+                     const IComplianceCheckerSPtr & pComplianceChecker)
 : m_pFaceDetector(pFaceDetector ? pFaceDetector : make_shared<FaceDetector>())
 , m_pEyesDetector(pEyesDetector ? pEyesDetector : make_shared<EyeDetector>())
 , m_pLipsDetector(pLipsDetector ? pLipsDetector : make_shared<LipsDetector>())
 , m_pCrownChinEstimator(pCrownChinEstimator ? pCrownChinEstimator : make_shared<CrownChinEstimator>())
+, m_complianceChecker(pComplianceChecker ? pComplianceChecker : make_shared<ComplianceChecker>())
 , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
 , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
 , m_useDlibLandmarkDetection(false)
@@ -237,5 +240,18 @@ cv::Mat PppEngine::createTiledPrint(const string & imageKey,
 IImageStoreSPtr PppEngine::getImageStore() const
 {
     return m_pImageStore;
+}
+
+std::string PppEngine::checkCompliance(const std::string & imageId,
+                                       const PhotoStandardSPtr & photoStandard,
+                                       const cv::Point & crownPoint,
+                                       const cv::Point & chinPoint,
+                                       const std::vector<std::string> & complianceCheckNames) const
+{
+    const auto & inputImage = m_pImageStore->getImage(imageId);
+
+    return m_complianceChecker->checkCompliance(photoStandard, crownPoint, chinPoint, complianceCheckNames);
+
+    return {};
 }
 } // namespace ppp

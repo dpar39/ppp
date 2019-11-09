@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonHelpers.h"
+#include "PhotoStandard.h"
 #include <opencv2/core/core.hpp>
 #include <unordered_map>
 
@@ -17,6 +18,7 @@ FWD_DECL(IDetector)
 FWD_DECL(ICrownChinEstimator)
 FWD_DECL(IImageStore)
 FWD_DECL(IPhotoPrintMaker)
+FWD_DECL(IComplianceChecker)
 
 class CanvasDefinition;
 class PhotoStandard;
@@ -53,7 +55,8 @@ public:
                        const IDetectorSPtr & pLipsDetector = nullptr,
                        const ICrownChinEstimatorSPtr & pCrownChinEstimator = nullptr,
                        const IPhotoPrintMakerSPtr & pPhotoPrintMaker = nullptr,
-                       const IImageStoreSPtr & pImageStore = nullptr);
+                       const IImageStoreSPtr & pImageStore = nullptr,
+                       const IComplianceCheckerSPtr & pComplianceChecker = nullptr);
 
     // Native interface
     bool configure(const std::string & configString);
@@ -73,12 +76,18 @@ public:
                              cv::Point & chinMark) const;
 
     IImageStoreSPtr getImageStore() const;
+    std::string checkCompliance(const std::string & imageId,
+                                const PhotoStandardSPtr & photoStandard,
+                                const cv::Point & crownPoint,
+                                const cv::Point & chinPoint,
+                                const std::vector<std::string> & complianceCheckNames) const;
 
 private:
     IDetectorSPtr m_pFaceDetector;
     IDetectorSPtr m_pEyesDetector;
     IDetectorSPtr m_pLipsDetector;
     ICrownChinEstimatorSPtr m_pCrownChinEstimator;
+    IComplianceCheckerSPtr m_complianceChecker;
 
     IPhotoPrintMakerSPtr m_pPhotoPrintMaker;
     IImageStoreSPtr m_pImageStore;

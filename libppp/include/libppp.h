@@ -81,6 +81,8 @@ public:
     !*/
     std::string createTiledPrint(const std::string & imageId, const std::string & request) const;
 
+    std::string checkCompliance(const std::string & request) const;
+
 private:
     PppEngine * m_pPppEngine;
 };

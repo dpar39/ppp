@@ -1,0 +1,23 @@
+{
+  "Photograph requirements": {
+    "Uniform Background": [],
+    "Background Color Match": []
+  },
+  "Image requirements": {
+    "Brightness": [],
+    "Contrast": [],
+    "Pixel Resolution": [],
+    "Blur Noise": [],
+    "Impulsive Noise": []
+  },
+  "Biometric requirements": {
+    "Head Pose": [],
+    "Eyes Open": [],
+    "Eyes Gaze": [],
+    "Mouth Closed": [],
+    "Natural Skin Color": [],
+    "Uniform Illumination": [],
+    "Glasses Off": []
+
+  }
+}

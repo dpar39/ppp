@@ -56,12 +56,12 @@ std::string PublicPppEngine::setImage(const char * bufferData, const size_t buff
     d.SetObject();
     auto & alloc = d.GetAllocator();
 
-    d.AddMember("imgKey", imageKey, alloc);
+    d.AddMember(StringRef(IMAGE_ID), imageKey, alloc);
 
     const auto exifInfo = imageStore->getExifInfo(imageKey);
     if (exifInfo)
     {
-        d.AddMember("EXIFInfo", exifInfo->populate(alloc), alloc);
+        d.AddMember(StringRef(EXIF_INFO), exifInfo->populate(alloc), alloc);
     }
 
     return Utilities::serializeJson(d, false);
@@ -90,19 +90,34 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     rapidjson::Document d;
     d.Parse(request.c_str());
 
-    const auto ps = PhotoStandard::fromJson(d["standard"]);
-    const auto canvas = CanvasDefinition::fromJson(d["canvas"]);
-    auto crownPoint = fromJson(d["crownPoint"]);
-    auto chinPoint = fromJson(d["chinPoint"]);
+    const auto ps = PhotoStandard::fromJson(d[PHOTO_STANDARD]);
+    const auto canvas = CanvasDefinition::fromJson(d[PRINT_DEFINITION]);
+    auto crownPoint = fromJson(d[CROWN_POINT]);
+    auto chinPoint = fromJson(d[CHIN_POINT]);
     auto asBase64Encode = false;
 
-    if (d.HasMember("asBase64"))
+    if (d.HasMember(AS_BASE64))
     {
-        asBase64Encode = d["asBase64"].GetBool();
+        asBase64Encode = d[AS_BASE64].GetBool();
     }
 
     const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, crownPoint, chinPoint);
     return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolutionPixPerMM());
+}
+
+std::string PublicPppEngine::checkCompliance(const std::string & request) const
+{
+    rapidjson::Document d;
+    d.Parse(request.c_str());
+
+    const std::string imageId = d[IMAGE_ID].GetString();
+    const auto ps = PhotoStandard::fromJson(d[PHOTO_STANDARD]);
+    auto crownPoint = fromJson(d[CROWN_POINT]);
+    auto chinPoint = fromJson(d[CHIN_POINT]);
+
+    vector<std::string> complianceCheckNames;
+
+    return m_pPppEngine->checkCompliance(imageId, ps, crownPoint, chinPoint, complianceCheckNames);
 }
 } // namespace ppp
 

@@ -1,4 +1,7 @@
 {
+    "complianceChecks": {
+
+    },
     "haarCascadeDir": "share/haarcascades",
     "faceDetector": {
         "haarCascade": {

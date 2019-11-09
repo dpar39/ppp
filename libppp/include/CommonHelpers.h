@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <string>
 
 #define FWD_DECL(classname)                                                                                            \
     class classname;                                                                                                   \
@@ -50,4 +51,16 @@ std::unique_ptr<T> make_unique(Args &&... args)
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 } // namespace std
+
+// String literals
+#define DEFINE_STR(keyName, valString) constexpr char * keyName = #valString;
+
+DEFINE_STR(IMAGE_ID, imgKey)
+DEFINE_STR(PRINT_DEFINITION, canvas)
+DEFINE_STR(PHOTO_STANDARD, standard)
+DEFINE_STR(CROWN_POINT, crownPoint)
+DEFINE_STR(CHIN_POINT, chinPoint)
+DEFINE_STR(EXIF_INFO, EXIFInfo);
+DEFINE_STR(AS_BASE64, asBase64);
+
 #endif

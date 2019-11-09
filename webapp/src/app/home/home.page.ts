@@ -4,7 +4,7 @@ import { CrownChinPointPair, PrintDefinition, PhotoStandard, TiledPhotoRequest }
 import { BackEndService, ImageLoadResult } from '../services/backend.service';
 import { PhotoStandardService } from '../services/photo-standard.service';
 import { PrintDefinitionService } from '../services/print-definition.service';
-import {  Camera, CameraResultType } from '@capacitor/core';
+import { Camera, CameraResultType } from '@capacitor/core';
 
 @Component({
   selector: 'app-home',
@@ -15,7 +15,7 @@ import {  Camera, CameraResultType } from '@capacitor/core';
           <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>
-          Home
+          Photo ID Creator
         </ion-title>
       </ion-toolbar>
     </ion-header>
@@ -45,30 +45,19 @@ import {  Camera, CameraResultType } from '@capacitor/core';
               </ion-row>
               <ion-row>
                 <ion-col>
-                  <ion-button
-                    expand="block"
-                    class="ion-no-padding"
-                    color="primary"
-                    (click)="loadFromFile()"
-                  >
+                  <ion-button expand="block" class="ion-no-padding" color="primary" (click)="loadFromFile()">
                     <ion-icon name="folder" class="ion-padding-end"></ion-icon>
                     Choose photo
                   </ion-button>
                 </ion-col>
                 <ion-col>
-                  <ion-button
-                    expand="block"
-                    class="ion-no-padding"
-                    color="primary"
-                    (click)="takePicture()"
-                  >
+                  <ion-button expand="block" class="ion-no-padding" color="primary" (click)="takePicture()">
                     <ion-icon name="camera" class="ion-padding-end"></ion-icon>
                     <span>Take Photo</span>
                   </ion-button>
                 </ion-col>
                 <form>
                   <input
-                    #selectImage
                     id="selectImage"
                     type="file"
                     name="uploads[]"
@@ -81,8 +70,31 @@ import {  Camera, CameraResultType } from '@capacitor/core';
             </ion-grid>
           </ion-col>
           <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4" class="ion-no-padding">
-            <app-photo-standard-selector> </app-photo-standard-selector>
-            <app-print-definition-selector> </app-print-definition-selector>
+            <ion-grid class="ion-no-padding">
+              <ion-row>
+                <ion-col class="ion-no-padding"
+                  ><!-- Photo standard selection -->
+                  <app-photo-standard-selector> </app-photo-standard-selector>
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                <ion-col class="ion-no-padding">
+                  <!-- Paper size selection -->
+                  <app-print-definition-selector> </app-print-definition-selector>
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                <ion-col class="ion-no-padding"
+                  ><!-- Compliance checks -->
+                  <ion-card>
+                    <ion-card-header>Compliance Checks</ion-card-header>
+                    <ion-card-content>
+                      <ion-label class="ion-margin-start"> </ion-label>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
           </ion-col>
           <ion-col size-xs="12" size-sm="12" size-lg="6" size-xl="4">
             <a
