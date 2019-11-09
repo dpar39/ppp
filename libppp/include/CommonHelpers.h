@@ -53,7 +53,9 @@ std::unique_ptr<T> make_unique(Args &&... args)
 } // namespace std
 
 // String literals
-#define DEFINE_STR(keyName, valString) constexpr char * keyName = #valString;
+#endif
+
+#define DEFINE_STR(keyName, valString) constexpr auto keyName = #valString;
 
 DEFINE_STR(IMAGE_ID, imgKey)
 DEFINE_STR(PRINT_DEFINITION, canvas)
@@ -62,5 +64,3 @@ DEFINE_STR(CROWN_POINT, crownPoint)
 DEFINE_STR(CHIN_POINT, chinPoint)
 DEFINE_STR(EXIF_INFO, EXIFInfo);
 DEFINE_STR(AS_BASE64, asBase64);
-
-#endif
