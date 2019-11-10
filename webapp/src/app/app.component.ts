@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import { Platform } from '@ionic/angular';
+import { Platform, ToastController } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { SettingsService } from './services/settings.service';
+import { SwUpdate } from '@angular/service-worker';
 
 @Component({
   selector: 'app-root',
@@ -29,13 +30,13 @@ import { SettingsService } from './services/settings.service';
             </ion-list>
           </ion-content>
         </ion-menu>
-        <ion-router-outlet id="main-content"></ion-router-outlet>
+        <ion-router-outlet id="main-content">Loading</ion-router-outlet>
       </ion-split-pane>
     </ion-app>
   `,
   styleUrls: []
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   public appPages = [
     {
       title: 'Home',
@@ -58,9 +59,49 @@ export class AppComponent {
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-    private settings: SettingsService
+    private settings: SettingsService,
+    private swUpdate: SwUpdate,
+    private toastController: ToastController
   ) {
     this.initializeApp();
+  }
+
+  ngOnInit(): void {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.available.subscribe(() => {
+        this.presentUpdatePrompt();
+      });
+      this.swUpdate.activated.subscribe(event => {
+        console.log('Old version was', event.previous);
+        console.log('New version is', event.current);
+      });
+    }
+  }
+
+  async presentUpdatePrompt() {
+    const toast = await this.toastController.create({
+      header: 'Update Available',
+      message: 'Reload to get the latest and greatest?',
+      position: 'top',
+      buttons: [
+        {
+          icon: 'refresh',
+          text: 'Reload',
+          handler: () => {
+            window.location.reload();
+          }
+        },
+        {
+          text: 'Dismiss',
+          role: 'cancel',
+          icon: 'cancel',
+          handler: () => {
+            console.log('Dismiss button clicked');
+          }
+        }
+      ]
+    });
+    toast.present();
   }
 
   initializeApp() {

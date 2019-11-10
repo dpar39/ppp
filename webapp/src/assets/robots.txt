@@ -1,0 +1,3 @@
+# Allow everything to be accessed
+User-agent: *
+Allow: /
