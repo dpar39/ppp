@@ -10,7 +10,7 @@ import { SwUpdate } from '@angular/service-worker';
   selector: 'app-root',
   template: `
     <ion-app>
-      <ion-split-pane when="xl" contentId="main-content">
+      <ion-split-pane when="(min-width: 1920px)" contentId="main-content">
         <ion-menu type="overlay" side="end" contentId="main-content">
           <ion-header>
             <ion-toolbar>
