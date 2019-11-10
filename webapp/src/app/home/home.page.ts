@@ -1,10 +1,11 @@
 import { Component, OnInit, ElementRef } from '@angular/core';
+import { AlertController } from '@ionic/angular';
+import { Camera, CameraResultType, Capacitor } from '@capacitor/core';
 
 import { CrownChinPointPair, PrintDefinition, PhotoStandard, TiledPhotoRequest } from '../model/datatypes';
 import { BackEndService, ImageLoadResult } from '../services/backend.service';
 import { PhotoStandardService } from '../services/photo-standard.service';
 import { PrintDefinitionService } from '../services/print-definition.service';
-import { Camera, CameraResultType } from '@capacitor/core';
 
 @Component({
   selector: 'app-home',
@@ -140,6 +141,7 @@ export class HomePage implements OnInit {
   constructor(
     public el: ElementRef,
     public beService: BackEndService,
+    private alertController: AlertController,
     psService: PhotoStandardService,
     pdService: PrintDefinitionService
   ) {
@@ -211,6 +213,13 @@ export class HomePage implements OnInit {
         xhr.send();
       })
       .catch(err => {
+        this.alertController
+          .create({
+            header: 'No Camera Available',
+            message: 'Make sure your webcam is properly connected.',
+            buttons: ['OK']
+          })
+          .then(alert => alert.present());
         console.error(err);
       });
   }
