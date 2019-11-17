@@ -62,8 +62,8 @@ export function pointsAtDistanceNorm(p1: Point, p2: Point, d: number, p0: Point 
   if (p0 == null) {
     p0 = p1.add(p2).div(2.0);
   }
-  let pa = new Point(0, 0);
-  let pb = new Point(0, 0); // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
+  const pa = new Point(0, 0);
+  const pb = new Point(0, 0); // Points at distance d from the normal line passing from the center of p1 and p2 (i.e. p0)
   if (p1.x === p2.x) {
     pa.y = pb.y = p0.y;
     pa.x -= d;
@@ -73,9 +73,11 @@ export function pointsAtDistanceNorm(p1: Point, p2: Point, d: number, p0: Point 
     pa.y -= d;
     pb.y += d;
   } else {
-    const m = (p1.x - p2.x) / (p2.y - p1.y); // m' = -1/m
+    const ddx = p2.x - p1.x;
+    const ddy = p2.y - p1.y;
+    const m = -ddx / ddy; // m' = -1/m
     let dx = d / Math.sqrt(1 + m * m);
-    if (m < 0) {
+    if (ddy < 0) {
       dx = -dx;
     }
     pa.x = p0.x + dx;
@@ -84,6 +86,12 @@ export function pointsAtDistanceNorm(p1: Point, p2: Point, d: number, p0: Point 
     pb.y = m * (pb.x - p0.x) + p0.y;
   }
   return [pa, pb];
+}
+
+export function translateSegmentParallel(p1: Point, p2: Point, d: number) {
+  const p1s = pointsAtDistanceNorm(p1, p2, d, p1);
+  const p2s = pointsAtDistanceNorm(p1, p2, d, p2);
+  return [p1s[0], p2s[0]];
 }
 
 export function toMillimeters(v: number, units: string) {

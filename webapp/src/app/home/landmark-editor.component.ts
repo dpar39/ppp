@@ -3,7 +3,13 @@ import { Input, Output, EventEmitter } from '@angular/core';
 
 import interact from 'interactjs';
 import { CrownChinPointPair } from '../model/datatypes';
-import { middlePoint, Point, rotatedRectangle, pointsAtDistanceNorm } from '../model/geometry';
+import {
+  middlePoint,
+  Point,
+  rotatedRectangle,
+  pointsAtDistanceNorm,
+  translateSegmentParallel
+} from '../model/geometry';
 import { ImageLoadResult } from '../services/backend.service';
 import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
 
@@ -28,9 +34,17 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         </defs>
         <rect x="0" y="0" width="1000" height="1000" fill-opacity="0.4" mask="url(#mask)" />
         <rect id="cropRect" x="0" y="0" width="200" height="200" fill="none" />
+
+        <!--  Photo dimensions annotations -->
+        <line id="heightLine" x1="0" y1="0" x2="0" y2="0" class="dimension-line" />
+        <text id="heightText" x="0" y="0" class="dimension-text" text-anchor="middle"></text>
+        <line id="widthLine" x1="0" y1="0" x2="0" y2="0" class="dimension-line" />
+        <text id="widthText" x="0" y="0" class="dimension-text" text-anchor="middle"></text>
+
         <line id="middleLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
         <line id="crownLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
         <line id="chinLine" x1="0" y1="0" x2="200" y2="200" class="annotation" />
+
         <ellipse id="faceEllipse" cx="100" cy="50" rx="100" ry="50" fill="none" class="annotation" />
       </svg>
 
@@ -91,6 +105,16 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         stroke-width: 2;
         stroke-dasharray: 5, 5;
         stroke-opacity: 0.7;
+      }
+
+      .dimension-text {
+        font-family: sans-serif;
+        font-size: 1.2em;
+        fill: lightgray;
+      }
+      .dimension-line {
+        stroke-width: 1;
+        stroke: lightgray;
       }
     `
   ]
@@ -153,6 +177,11 @@ export class LandmarkEditorComponent implements OnInit {
   private _cropArea: any = null;
   private _cropRect: any = null;
 
+  private _heightText: any;
+  private _heightLine: any;
+  private _widthText: any;
+  private _widthLine: any;
+
   chinPoint: Point;
   crownPoint: Point;
 
@@ -191,6 +220,11 @@ export class LandmarkEditorComponent implements OnInit {
     this._faceEllipse = thisEl.querySelector('#faceEllipse');
     this._cropArea = thisEl.querySelector('#cropArea');
     this._cropRect = thisEl.querySelector('#cropRect');
+
+    this._heightLine = thisEl.querySelector('#heightLine');
+    this._heightText = thisEl.querySelector('#heightText');
+    this._widthLine = thisEl.querySelector('#widthLine');
+    this._widthText = thisEl.querySelector('#widthText');
 
     interact('.landmark').draggable({
       // enable inertial throwing
@@ -392,11 +426,40 @@ export class LandmarkEditorComponent implements OnInit {
     svgElmt.setAttribute('transform', `rotate(${angle}, ${center.x}, ${center.y})`);
   }
 
-  private _renderSegment(svdElmt: any, p1: Point, p2: Point){
+  private _renderSegment(svdElmt: any, p1: Point, p2: Point) {
     svdElmt.setAttribute('x1', p1.x);
     svdElmt.setAttribute('y1', p1.y);
     svdElmt.setAttribute('x2', p2.x);
     svdElmt.setAttribute('y2', p2.y);
+  }
+
+  private _renderDimensionText(svgTextElmt: any, svgLineElmt: any, p1: Point, p2: Point, text: string) {
+    const p1s = pointsAtDistanceNorm(p1, p2, 10, p1);
+    const p2s = pointsAtDistanceNorm(p1, p2, 10, p2);
+
+    p1 = p1s[0];
+    p2 = p2s[0];
+
+    const pc = middlePoint(p1, p2);
+
+    svgTextElmt.textContent = text;
+    this._renderSegment(svgLineElmt, p1, p2);
+
+    const angleRad = p2.angle(p1);
+    let angleDeg = (angleRad * 180) / Math.PI;
+    let alignmentBaseline = 'hanging';
+    if (angleDeg > 90) {
+      angleDeg -= 180;
+      alignmentBaseline = 'hanging';
+    } else if (angleDeg < -90) {
+      angleDeg += 180;
+      alignmentBaseline = 'hanging';
+    }
+
+    svgTextElmt.setAttribute('x', pc.x);
+    svgTextElmt.setAttribute('y', pc.y);
+    svgTextElmt.setAttribute('alignment-baseline', alignmentBaseline);
+    svgTextElmt.setAttribute('transform', `rotate(${angleDeg}, ${pc.x}, ${pc.y})`);
   }
 
   renderAnnotations() {
@@ -407,10 +470,10 @@ export class LandmarkEditorComponent implements OnInit {
     this._renderSegment(this._middleLine, p1, p2);
 
     const faceHeight = p1.distTo(p2);
-    const crownSegment = pointsAtDistanceNorm(p1, p2, faceHeight*0.5, p1);
+    const crownSegment = pointsAtDistanceNorm(p1, p2, faceHeight * 0.5, p1);
     this._renderSegment(this._crownLine, crownSegment[0], crownSegment[1]);
 
-    const chinSegment = pointsAtDistanceNorm(p1, p2, faceHeight*0.5, p2);
+    const chinSegment = pointsAtDistanceNorm(p1, p2, faceHeight * 0.5, p2);
     this._renderSegment(this._chinLine, chinSegment[0], chinSegment[1]);
 
     // Render face ellipse
@@ -443,6 +506,9 @@ export class LandmarkEditorComponent implements OnInit {
       return ptPix.x < 0 || ptPix.x > this._imageWidth || ptPix.y < 0 || ptPix.y > this._imageHeight;
     });
     this._cropRect.setAttribute('stroke', invalidCrop ? 'red' : 'green');
+
+    // this._renderDimensionText(this._heightText, this._heightLine, points[2], points[1], '2in');
+    // this._renderDimensionText(this._widthText, this._widthLine, points[3], points[2], '2in');
   }
 
   updateLandMarks() {
