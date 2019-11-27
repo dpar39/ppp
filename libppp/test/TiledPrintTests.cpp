@@ -22,6 +22,7 @@ protected:
 
 void verifyEqualImage(const std::string & expectedImageFilePath, const cv::Mat & actualImage)
 {
+
     const auto expectedImage = cv::imread(expectedImageFilePath);
     const auto numDisctintPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
     EXPECT_LE(numDisctintPixels, 3) << "Actual image differs to image in file " << expectedImageFilePath;
@@ -40,23 +41,11 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 
     // Crop the photo to the right dimensions
     const auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
-
-    const auto expectedCropPath = pathCombine(resolvePath("libppp/test/data"), "000-cropped.png");
-#if MANUAL_CHECK // Set to 1 for manual check
-    cv::imwrite(expectedCropPath, croppedImage);
-#else
-    verifyEqualImage(expectedCropPath, croppedImage);
-#endif
+    benchmarkValidate(croppedImage, "_croppedPhoto");
 
     // Draw tiles into the printing canvas
-    const auto printPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
-
-    const auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "000-print.png");
-#if MANUAL_CHECK // Set to 1 for manual check
-    cv::imwrite(expectedPrintPath, printPhoto);
-#else
-    verifyEqualImage(expectedPrintPath, printPhoto);
-#endif
+    const auto tiledPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
+    benchmarkValidate(tiledPhoto, "_tiledPhoto");
 }
 
 TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
@@ -74,8 +63,6 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
     const auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
 
     const auto printPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
-
-    const auto expectedPrintPath = pathCombine(resolvePath("libppp/test/data"), "001-print.png");
-    cv::imwrite(expectedPrintPath, printPhoto);
+    benchmarkValidate(printPhoto);
 }
 } // namespace ppp

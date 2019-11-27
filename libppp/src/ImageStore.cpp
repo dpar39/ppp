@@ -93,7 +93,6 @@ cv::Mat ImageStore::getImage(const std::string & imageKey)
 }
 
 easyexif::EXIFInfoSPtr ImageStore::getExifInfo(const std::string & imageKey)
-
 {
     std::lock_guard<std::mutex> lg(m_mutex);
     boostImageToTopCache(imageKey);

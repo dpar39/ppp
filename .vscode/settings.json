@@ -180,15 +180,11 @@
     "cmake.buildDirectory": "${workspaceRoot}/build_darwin_debug_x64",
     "cmake.installPrefix": "${workspaceRoot}/install_darwin_debug_x64",
     "cmake.generator": "Ninja",
-    "cmake.configureArgs": [
-        "-DCMAKE_BUILD_TYPE=debug",
-        "-DCMAKE_C_COMPILER=clang",
-        "-DCMAKE_CXX_COMPILER=clang++"
-    ],
     "python.formatting.provider": "autopep8",
     "python.formatting.autopep8Args": [
         "--max-line-length=110"
     ],
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "/usr/local/bin/python3"
+    "python.pythonPath": "/usr/local/bin/python3",
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }

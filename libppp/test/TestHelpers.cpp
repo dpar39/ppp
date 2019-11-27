@@ -179,6 +179,24 @@ bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output)
     return true;
 }
 
+void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix)
+{
+    const std::string testName = ::testing::UnitTest::GetInstance()->current_test_info()->name();
+    const auto filename = testName + suffix + ".png";
+    const auto expectedImageFilePath = pathCombine(resolvePath("libppp/test/data"), filename);
+    if (fs::exists(expectedImageFilePath))
+    {
+        const auto expectedImage = cv::imread(expectedImageFilePath);
+        const auto numDisctintPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
+        EXPECT_LE(numDisctintPixels, 0) << "Actual image differs to image in file " << expectedImageFilePath;
+    }
+    else
+    {
+        cv::imwrite(expectedImageFilePath, actualImage);
+        FAIL() << "Benchmark file did not exist!";
+    }
+}
+
 void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual)
 {
     ASSERT_EQ(expected.size, actual.size) << "Images have different sizes";

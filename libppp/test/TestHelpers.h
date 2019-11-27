@@ -41,6 +41,8 @@ std::string getFileName(const std::string & filePath);
 
 bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output);
 
+void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix = "");
+
 void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual);
 
 void readConfigFromFile(const std::string & configFile, std::string & configString);
