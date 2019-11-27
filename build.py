@@ -91,7 +91,7 @@ def write_json(file_path, data):
 
 
 class ShellRunner(object):
-    def __init__(self, arch_name=None):
+    def __init__(self, arch_name=''):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
