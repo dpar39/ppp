@@ -91,7 +91,7 @@ def write_json(file_path, data):
 
 
 class ShellRunner(object):
-    def __init__(self, arch_name):
+    def __init__(self, arch_name=None):
         self._env = os.environ.copy()
         self._extra_paths = []
         self._arch_name = arch_name
@@ -877,6 +877,7 @@ class Builder(object):
         self.parse_arguments()
 
         # Extract testing dataset
+        self._shell = ShellRunner()
         self.extract_validation_data()
         self.bundle_config()
 
