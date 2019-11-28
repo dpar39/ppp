@@ -81,10 +81,11 @@ std::string PublicPppEngine::getImage(const std::string & imageKey) const
 std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const
 {
     const auto & imageStore = m_pPppEngine->getImageStore();
-    if (!imageStore->containsImage(imageId) || m_pPppEngine->detectLandMarks(imageId))
+    if (!imageStore->containsImage(imageId))
     {
         return "";
     }
+    m_pPppEngine->detectLandMarks(imageId);
     const auto & landMarks = imageStore->getLandMarks(imageId);
     return landMarks->toJson(false);
 }
