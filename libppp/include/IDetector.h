@@ -6,8 +6,7 @@
 
 namespace ppp
 {
-struct LandMarks;
-
+FWD_DECL(LandMarks)
 FWD_DECL(IDetector)
 
 class IDetector : NonCopyable

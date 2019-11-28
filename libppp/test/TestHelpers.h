@@ -12,12 +12,12 @@ namespace ppp
 {
 FWD_DECL(IImageStore)
 
-// image name prefix, rgb image, gray image, annotated landmarks, detected landmarks
-using DetectionCallback = std::function<std::pair<bool, cv::Mat>(const std::string &, const LandMarks &, LandMarks &)>;
+using DetectionCallback
+    = std::function<std::tuple<bool, cv::Mat, LandMarksSPtr>(const std::string &, const LandMarksSPtr &)>;
 
 struct ResultData final
 {
-    ResultData(std::string imgName, LandMarks annotated, LandMarks detected, bool isSuccess)
+    ResultData(std::string imgName, LandMarksSPtr annotated, LandMarksSPtr detected, bool isSuccess)
     : imageName(std::move(imgName))
     , annotation(std::move(annotated))
     , detection(std::move(detected))
@@ -26,8 +26,8 @@ struct ResultData final
     }
 
     std::string imageName;
-    LandMarks annotation;
-    LandMarks detection;
+    LandMarksSPtr annotation;
+    LandMarksSPtr detection;
     bool isSuccess;
 };
 
@@ -38,8 +38,6 @@ std::string pathCombine(const std::string & prefix, const std::string & suffix);
 void getImageFiles(const std::string & testImagesDir, std::vector<std::string> & imageFileNames);
 
 std::string getFileName(const std::string & filePath);
-
-bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output);
 
 void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix = "");
 
@@ -54,11 +52,9 @@ void processDatabase(const DetectionCallback & callback,
 
 void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnotations);
 
-void persistLandmarks(const std::string & imageFilePath, const LandMarks & detectedLandmarks);
+LandMarksSPtr loadLandmarks(const std::string & imageFilePath);
 
-void loadLandmarks(const std::string & imageFilePath, LandMarks & detectedLandmarks);
-
-void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm);
+void renderLandmarksOnImage(cv::Mat & image, const LandMarksSPtr & lm);
 
 template <typename T>
 static double median(std::vector<T> scores)

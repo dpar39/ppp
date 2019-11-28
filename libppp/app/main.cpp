@@ -251,9 +251,11 @@ int main(int argc, char ** argv)
     configureEngine(configFile.getValue(), engine);
 
     const auto imgKey = setImage(inputImage.getValue(), engine);
-
-    LandMarks landmarks;
-    engine.detectLandMarks(imgKey, landmarks);
+    if (!engine.detectLandMarks(imgKey))
+    {
+        return 1;
+    }
+    const auto landMarks = engine.getImageStore()->getLandMarks(imgKey);
 
     PhotoStandard ps(photoWidth.getValue(),
                      photoHeight.getValue(),
@@ -266,7 +268,7 @@ int main(int argc, char ** argv)
                         printResolution.getValue(),
                         printUnits.getValue());
 
-    const auto output = engine.createTiledPrint(imgKey, ps, cd, landmarks.crownPoint, landmarks.chinPoint);
+    const auto output = engine.createTiledPrint(imgKey, ps, cd, landMarks->crownPoint, landMarks->chinPoint);
 
     // Save the cropped image
     imwrite(outPhotoImagePath.getValue(), output, { cv::IMWRITE_PNG_COMPRESSION, 9 });

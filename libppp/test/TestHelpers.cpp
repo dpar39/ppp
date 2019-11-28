@@ -86,10 +86,9 @@ std::string getDirectory(const std::string & fullPath)
 /**
  * \brief Loads the landmarks manually annotated from a CSV file
  * \param csvFilePath Path to the CSV file containing the annotation in VIA format
- * \param landMarksMap image name to landmarks map
- * \return true if the method succeeds importing the data, false otherwise.
+ * \return image name to landMarks map
  */
-void importLandMarks(const std::string & csvFilePath, std::map<std::string, ppp::LandMarks> & landMarksMap)
+std::map<std::string, LandMarksSPtr> importLandMarks(const std::string & csvFilePath)
 {
     const std::string pattern
         = "(.*\\.(jpg|JPG|png|PNG)),\\d+,\"\\{\\}\",6,(\\d),\".*\"\"cx\"\":(\\d+),\"\"cy\"\":(\\d+)\\}\",\"\\{\\}\"";
@@ -99,6 +98,7 @@ void importLandMarks(const std::string & csvFilePath, std::map<std::string, ppp:
     std::string csv_content((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     const auto imageDir = getDirectory(csvFilePath);
 
+    std::map<std::string, LandMarksSPtr> result;
     for (auto it = std::sregex_iterator(csv_content.begin(), csv_content.end(), e); it != std::sregex_iterator(); ++it)
     {
         const auto & m = *it;
@@ -107,76 +107,38 @@ void importLandMarks(const std::string & csvFilePath, std::map<std::string, ppp:
             std::string imageName = m[1];
             auto fullImagePath = (fs::path(imageDir) / fs::path(imageName)).string();
             auto landmarkIdx = stoi(m[3]);
-            cv::Point coord(stoi(m[4]), stoi(m[5]));
+            cv::Point point(stoi(m[4]), stoi(m[5]));
+
+            if (result.find(fullImagePath) == result.end())
+                result[fullImagePath] = LandMarks::create();
+            auto & lm = *result[fullImagePath];
+
             switch (landmarkIdx)
             {
                 case 0:
-                    landMarksMap[fullImagePath].crownPoint = coord;
+                    lm.crownPoint = point;
                     break;
                 case 1:
-                    landMarksMap[fullImagePath].chinPoint = coord;
+                    lm.chinPoint = point;
                     break;
                 case 2:
-                    landMarksMap[fullImagePath].eyeLeftPupil = coord;
+                    lm.eyeLeftPupil = point;
                     break;
                 case 3:
-                    landMarksMap[fullImagePath].eyeRightPupil = coord;
+                    lm.eyeRightPupil = point;
                     break;
                 case 4:
-                    landMarksMap[fullImagePath].lipLeftCorner = coord;
+                    lm.lipLeftCorner = point;
                     break;
                 case 5:
-                    landMarksMap[fullImagePath].lipRightCorner = coord;
+                    lm.lipRightCorner = point;
                     break;
                 default:
                     throw std::runtime_error("Invalid landmark index when reading from CSV file");
             }
         }
     }
-}
-
-bool importSCFaceLandMarks(const std::string & txtFileName, cv::Mat & output)
-{
-    std::ifstream textFile(txtFileName);
-    std::string str;
-    auto numRows = 0;
-    auto numCols = 0;
-    std::vector<float> data;
-
-    while (getline(textFile, str))
-    {
-        std::stringstream stream(str);
-        auto numValuesInRow = 0;
-        while (true)
-        {
-            float value;
-            stream >> value;
-            if (!stream)
-            {
-                break;
-            }
-            data.push_back(value);
-            numValuesInRow++;
-        }
-        if (numRows == 0)
-        {
-            numCols = numValuesInRow;
-        }
-        else if (numValuesInRow == 0)
-        {
-            break; // Empty line
-        }
-        else if (numCols != numValuesInRow)
-        {
-            textFile.close();
-            return false;
-        }
-        numRows++;
-    }
-    const auto dataPtr = data.data();
-    output = cv::Mat(numRows, numCols, CV_32F, dataPtr, cv::Mat::AUTO_STEP).clone();
-    textFile.close();
-    return true;
+    return result;
 }
 
 void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix)
@@ -187,8 +149,8 @@ void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix)
     if (fs::exists(expectedImageFilePath))
     {
         const auto expectedImage = cv::imread(expectedImageFilePath);
-        const auto numDisctintPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
-        EXPECT_LE(numDisctintPixels, 0) << "Actual image differs to image in file " << expectedImageFilePath;
+        const auto numDistinctPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
+        EXPECT_EQ(numDistinctPixels, 0) << "Actual image differs to image in file " << expectedImageFilePath;
     }
     else
     {
@@ -223,8 +185,7 @@ void processDatabase(const DetectionCallback & callback,
 #endif
 
     const auto annotationFile = resolvePath(landmarksPath);
-    std::map<std::string, LandMarks> landMarksSet;
-    importLandMarks(annotationFile, landMarksSet);
+    const auto landMarksSet = importLandMarks(annotationFile);
 
     const auto imageStore = std::make_shared<ImageStore>();
     for (auto & annotatedImage : landMarksSet)
@@ -237,7 +198,6 @@ void processDatabase(const DetectionCallback & callback,
             // continue;
         }
 
-        LandMarks results;
         if (find_if(ignoredImages.begin(),
                     ignoredImages.end(),
                     [&imageFileName](const std::string & ignoreImageFile) {
@@ -254,56 +214,56 @@ void processDatabase(const DetectionCallback & callback,
 
         auto imageName = getFileName(imageFileName);
 
-        auto [isSuccess, inputImage] = callback(imageFileName, annotations, results);
+        auto [isSuccess, inputImage, landmarks] = callback(imageFileName, annotations);
 
         if (annotateResults)
         {
             cv::Scalar annotationColor(0, 30, 255);
             cv::Scalar detectionColor(250, 30, 0);
 
-            circle(inputImage, annotations.eyeLeftPupil, 5, annotationColor, 2);
-            circle(inputImage, annotations.eyeRightPupil, 5, annotationColor, 2);
-            circle(inputImage, annotations.lipLeftCorner, 5, annotationColor, 2);
-            circle(inputImage, annotations.lipRightCorner, 5, annotationColor, 2);
-            circle(inputImage, annotations.crownPoint, 5, annotationColor, 2);
-            circle(inputImage, annotations.chinPoint, 5, annotationColor, 2);
+            circle(inputImage, annotations->eyeLeftPupil, 5, annotationColor, 2);
+            circle(inputImage, annotations->eyeRightPupil, 5, annotationColor, 2);
+            circle(inputImage, annotations->lipLeftCorner, 5, annotationColor, 2);
+            circle(inputImage, annotations->lipRightCorner, 5, annotationColor, 2);
+            circle(inputImage, annotations->crownPoint, 5, annotationColor, 2);
+            circle(inputImage, annotations->chinPoint, 5, annotationColor, 2);
 
-            rectangle(inputImage, results.vjFaceRect, cv::Scalar(0, 128, 0), 2);
-            rectangle(inputImage, results.vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
-            rectangle(inputImage, results.vjRightEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
+            rectangle(inputImage, landmarks->vjFaceRect, cv::Scalar(0, 128, 0), 2);
+            rectangle(inputImage, landmarks->vjLeftEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
+            rectangle(inputImage, landmarks->vjRightEyeRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
 
             polylines(inputImage,
-                      std::vector<std::vector<cv::Point>> { results.lipContour1st, results.lipContour2nd },
+                      std::vector<std::vector<cv::Point>> { landmarks->lipContour1st, landmarks->lipContour2nd },
                       true,
                       detectionColor);
-            rectangle(inputImage, results.vjMouthRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
+            rectangle(inputImage, landmarks->vjMouthRect, cv::Scalar(0xA0, 0x52, 0x2D), 3);
 
-            circle(inputImage, results.eyeLeftPupil, 5, detectionColor, 2);
-            circle(inputImage, results.eyeRightPupil, 5, detectionColor, 2);
+            circle(inputImage, landmarks->eyeLeftPupil, 5, detectionColor, 2);
+            circle(inputImage, landmarks->eyeRightPupil, 5, detectionColor, 2);
 
-            circle(inputImage, results.lipLeftCorner, 5, detectionColor, 2);
-            circle(inputImage, results.lipRightCorner, 5, detectionColor, 2);
+            circle(inputImage, landmarks->lipLeftCorner, 5, detectionColor, 2);
+            circle(inputImage, landmarks->lipRightCorner, 5, detectionColor, 2);
 
-            circle(inputImage, results.crownPoint, 5, detectionColor, 2);
-            circle(inputImage, results.chinPoint, 5, detectionColor, 2);
+            circle(inputImage, landmarks->crownPoint, 5, detectionColor, 2);
+            circle(inputImage, landmarks->chinPoint, 5, detectionColor, 2);
         }
 
-        rd.emplace_back(imageFileName, annotations, results, isSuccess);
+        rd.emplace_back(imageFileName, annotations, landmarks, isSuccess);
     }
 }
 
-void adjustCrownChinCoefficients(const std::vector<LandMarks> & groundTruthAnnotations)
+void adjustCrownChinCoefficients(const std::vector<LandMarksSPtr> & groundTruthAnnotations)
 {
     std::vector<double> c1, c2;
     for (const auto & lm : groundTruthAnnotations)
     {
-        auto frown = (lm.eyeLeftPupil + lm.eyeRightPupil) / 2.0;
-        auto mouthCenter = (lm.lipLeftCorner + lm.lipRightCorner) / 2.0;
+        auto frown = (lm->eyeLeftPupil + lm->eyeRightPupil) / 2.0;
+        auto mouthCenter = (lm->lipLeftCorner + lm->lipRightCorner) / 2.0;
 
-        const auto refDist = norm(lm.eyeLeftPupil - lm.eyeRightPupil) + norm(frown - mouthCenter);
+        const auto refDist = norm(lm->eyeLeftPupil - lm->eyeRightPupil) + norm(frown - mouthCenter);
 
-        const auto chinCrown = norm(lm.crownPoint - lm.chinPoint);
-        const auto chinFrown = norm(frown - lm.chinPoint);
+        const auto chinCrown = norm(lm->crownPoint - lm->chinPoint);
+        const auto chinFrown = norm(frown - lm->chinPoint);
 
         c1.push_back(chinCrown / refDist);
         c2.push_back(chinFrown / refDist);
@@ -321,14 +281,7 @@ std::string getLandMarkFileFor(const std::string & imageFilePath)
     return testDataDir + "/" + imageFileName + ".json";
 }
 
-void persistLandmarks(const std::string & imageFilePath, const LandMarks & detectedLandmarks)
-{
-    const auto landmarksFilePath = getLandMarkFileFor(imageFilePath);
-    std::ofstream lmf(landmarksFilePath);
-    lmf << detectedLandmarks.toJson(true);
-}
-
-void loadLandmarks(const std::string & imageFilePath, LandMarks & detectedLandmarks)
+LandMarksSPtr loadLandmarks(const std::string & imageFilePath)
 {
     using namespace std;
     const auto landmarksFilePath = getLandMarkFileFor(imageFilePath);
@@ -339,50 +292,54 @@ void loadLandmarks(const std::string & imageFilePath, LandMarks & detectedLandma
         rapidjson::Document d;
         const auto lms = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
         d.Parse(lms.c_str());
-        detectedLandmarks.fromJson(d);
+        const auto landmarks = make_shared<LandMarks>();
+        landmarks->fromJson(d);
+        return landmarks;
     }
-    else
+
+    // Compute new landmarks
+    static auto configured = false;
+    static PppEngine engine;
+    if (!configured)
     {
-        // Compute new landmarks
-        static auto configured = false;
-        static PppEngine engine;
-        if (!configured)
-        {
-            std::string configString;
-            readConfigFromFile("", configString);
-            configured = engine.configure(configString);
-        }
-        const auto imgKey = engine.getImageStore()->setImage(imageFilePath);
-        engine.detectLandMarks(imgKey, detectedLandmarks);
-        persistLandmarks(imageFilePath, detectedLandmarks);
+        std::string configString;
+        readConfigFromFile("", configString);
+        configured = engine.configure(configString);
     }
+    const auto & store = engine.getImageStore();
+    const auto imgKey = store->setImage(imageFilePath);
+    EXPECT_TRUE(engine.detectLandMarks(imgKey));
+    const auto & landMarks = store->getLandMarks(imgKey);
+    std::ofstream lmf(landmarksFilePath);
+    lmf << landMarks->toJson(true);
+    return landMarks;
 }
 
-void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm)
+void renderLandmarksOnImage(cv::Mat & image, const LandMarksSPtr & lm)
 {
     using namespace cv;
     const Scalar detectionColor(250, 30, 0);
-    rectangle(image, lm.vjFaceRect, Scalar(0, 128, 0), 2);
-    rectangle(image, lm.vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
-    rectangle(image, lm.vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
+    rectangle(image, lm->vjFaceRect, Scalar(0, 128, 0), 2);
+    rectangle(image, lm->vjLeftEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
+    rectangle(image, lm->vjRightEyeRect, Scalar(0xA0, 0x52, 0x2D), 3);
 
-    polylines(image, std::vector<std::vector<Point>> { lm.lipContour1st, lm.lipContour2nd }, true, detectionColor);
-    rectangle(image, lm.vjMouthRect, Scalar(0xA0, 0x52, 0x2D), 3);
+    polylines(image, std::vector<std::vector<Point>> { lm->lipContour1st, lm->lipContour2nd }, true, detectionColor);
+    rectangle(image, lm->vjMouthRect, Scalar(0xA0, 0x52, 0x2D), 3);
 
-    circle(image, lm.eyeLeftPupil, 5, detectionColor, 2);
-    circle(image, lm.eyeRightPupil, 5, detectionColor, 2);
+    circle(image, lm->eyeLeftPupil, 5, detectionColor, 2);
+    circle(image, lm->eyeRightPupil, 5, detectionColor, 2);
 
-    circle(image, lm.eyeLeftCorner, 5, detectionColor, 2);
-    circle(image, lm.eyeRightCorner, 5, detectionColor, 2);
-    circle(image, lm.noseTip, 5, detectionColor, 2);
+    circle(image, lm->eyeLeftCorner, 5, detectionColor, 2);
+    circle(image, lm->eyeRightCorner, 5, detectionColor, 2);
+    circle(image, lm->noseTip, 5, detectionColor, 2);
 
-    circle(image, lm.lipLeftCorner, 5, detectionColor, 2);
-    circle(image, lm.lipRightCorner, 5, detectionColor, 2);
+    circle(image, lm->lipLeftCorner, 5, detectionColor, 2);
+    circle(image, lm->lipRightCorner, 5, detectionColor, 2);
 
-    circle(image, lm.crownPoint, 5, detectionColor, 2);
-    circle(image, lm.chinPoint, 5, detectionColor, 2);
+    circle(image, lm->crownPoint, 5, detectionColor, 2);
+    circle(image, lm->chinPoint, 5, detectionColor, 2);
 
-    for (const auto & pt : lm.allLandmarks)
+    for (const auto & pt : lm->allLandmarks)
     {
         circle(image, pt, 5, Scalar(40, 40, 190), 1);
     }
@@ -391,10 +348,9 @@ void renderLandmarksOnImage(cv::Mat & image, const LandMarks & lm)
 TEST(Research, ModelCoefficientsCalculation)
 {
     const auto annCsvFile = resolvePath("research/mugshot_frontal_original_all/via_region_data_dpd.csv");
-    std::map<std::string, LandMarks> landMarksMap;
-    importLandMarks(annCsvFile, landMarksMap);
+    const auto landMarksMap = importLandMarks(annCsvFile);
 
-    std::vector<LandMarks> annotations;
+    std::vector<LandMarksSPtr> annotations;
     annotations.reserve(landMarksMap.size());
     for (const auto & kv : landMarksMap)
     {

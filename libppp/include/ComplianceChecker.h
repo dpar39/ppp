@@ -13,7 +13,8 @@ public:
 
     void configure(rapidjson::Value & cfg) override;
 
-    std::string checkCompliance(const PhotoStandardSPtr & photoStandard,
+    std::string checkCompliance(const std::string & imgKey,
+                                const PhotoStandardSPtr & photoStandard,
                                 const cv::Point & crownPoint,
                                 const cv::Point & chinPoint,
                                 const std::vector<std::string> & complianceCheckNames) override;

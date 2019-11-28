@@ -13,7 +13,6 @@ namespace ppp
 {
 class FacePoseEstimatorTests : public testing::Test
 {
-
 protected:
 };
 
@@ -29,12 +28,11 @@ TEST_F(FacePoseEstimatorTests, canConfigure)
     const auto exif = store.getExifInfo(imgKey);
     const auto focalLengthPix = exif->focalLengthPix();
 
-    LandMarks landMarks;
-    loadLandmarks(imageFilePath, landMarks);
+    const auto landMarks = loadLandmarks(imageFilePath);
 
     FacePoseEstimator fpe;
 
-    Point2d center = cv::Point2d(img.cols / 2, img.rows / 2);
+    const auto center = Point2d(img.cols / 2, img.rows / 2);
 
     const auto rot = fpe.estimatePose(landMarks, focalLengthPix, center);
 
@@ -47,6 +45,6 @@ TEST_F(FacePoseEstimatorTests, canConfigure)
 
     renderLandmarksOnImage(img, landMarks);
 
-    cv::line(img, landMarks.noseTip, noseEndPoint2D[0], cv::Scalar(255, 0, 0), 2);
+    cv::line(img, landMarks->noseTip, noseEndPoint2D[0], cv::Scalar(255, 0, 0), 2);
 }
 } // namespace ppp

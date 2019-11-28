@@ -129,17 +129,18 @@ void PppEngine::verifyImageExists(const string & imageKey) const
     }
 }
 
-bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) const
+bool PppEngine::detectLandMarks(const string & imageKey) const
 {
     verifyImageExists(imageKey);
     // Convert the image to gray scale as needed by some algorithms
 
     const auto & inputImage = m_pImageStore->getImage(imageKey);
+    const auto & landMarks = m_pImageStore->getLandMarks(imageKey);
     cv::Mat grayImage;
     cvtColor(inputImage, grayImage, cv::COLOR_BGR2GRAY);
 
     // Detect the face
-    if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
+    if (!m_pFaceDetector->detectLandMarks(grayImage, *landMarks))
     {
         return false;
     }
@@ -147,13 +148,13 @@ bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) 
     if (!m_useDlibLandmarkDetection)
     {
         // Detect the eye pupils
-        if (!m_pEyesDetector->detectLandMarks(grayImage, landMarks))
+        if (!m_pEyesDetector->detectLandMarks(grayImage, *landMarks))
         {
             return false;
         }
 
         // Detect mouth landmarks
-        if (!m_pLipsDetector->detectLandMarks(inputImage, landMarks))
+        if (!m_pLipsDetector->detectLandMarks(inputImage, *landMarks))
         {
             return false;
         }
@@ -162,39 +163,39 @@ bool PppEngine::detectLandMarks(const string & imageKey, LandMarks & landMarks) 
     {
         using namespace dlib;
         // Detect the face
-        if (!m_pFaceDetector->detectLandMarks(grayImage, landMarks))
+        if (!m_pFaceDetector->detectLandMarks(grayImage, *landMarks))
         {
             return false;
         }
         array2d<bgr_pixel> dlibImage;
         assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
 
-        const auto & r = landMarks.vjFaceRect;
+        const auto & r = landMarks->vjFaceRect;
         const auto faceRect = rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
         auto shape = (*m_shapePredictor)(dlibImage, faceRect);
 
         const auto numParts = shape.num_parts();
-        landMarks.allLandmarks.clear();
-        landMarks.allLandmarks.reserve(numParts);
+        landMarks->allLandmarks.clear();
+        landMarks->allLandmarks.reserve(numParts);
         for (size_t i = 0; i < numParts; ++i)
         {
             auto & part = shape.part(i);
-            landMarks.allLandmarks.emplace_back(part.x(), part.y());
+            landMarks->allLandmarks.emplace_back(part.x(), part.y());
         }
 
-        const auto & lms = landMarks.allLandmarks;
-        landMarks.lipLeftCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_LEFT);
-        landMarks.lipRightCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_RIGHT);
-        landMarks.eyeLeftPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_LEFT);
-        landMarks.eyeRightPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_RIGHT);
-        landMarks.chinPoint = getLandMark(lms, LandMarkType::CHIN_LOWEST_POINT);
-        landMarks.noseTip = getLandMark(lms, LandMarkType::NOSE_TIP_POINT);
-        landMarks.eyeLeftCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_LEFT);
-        landMarks.eyeRightCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_RIGHT);
+        const auto & lms = landMarks->allLandmarks;
+        landMarks->lipLeftCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_LEFT);
+        landMarks->lipRightCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_RIGHT);
+        landMarks->eyeLeftPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_LEFT);
+        landMarks->eyeRightPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_RIGHT);
+        landMarks->chinPoint = getLandMark(lms, LandMarkType::CHIN_LOWEST_POINT);
+        landMarks->noseTip = getLandMark(lms, LandMarkType::NOSE_TIP_POINT);
+        landMarks->eyeLeftCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_LEFT);
+        landMarks->eyeRightCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_RIGHT);
     }
 
     // Estimate chin and crown point (maths from existing landmarks)
-    return m_pCrownChinEstimator->estimateCrownChin(landMarks);
+    return m_pCrownChinEstimator->estimateCrownChin(*landMarks);
 }
 
 cv::Point PppEngine::getLandMark(const std::vector<cv::Point> & landmarks, const LandMarkType type) const
@@ -248,9 +249,8 @@ std::string PppEngine::checkCompliance(const std::string & imageId,
                                        const cv::Point & chinPoint,
                                        const std::vector<std::string> & complianceCheckNames) const
 {
-    const auto & inputImage = m_pImageStore->getImage(imageId);
 
-    return m_complianceChecker->checkCompliance(photoStandard, crownPoint, chinPoint, complianceCheckNames);
+    return m_complianceChecker->checkCompliance(imageId, photoStandard, crownPoint, chinPoint, complianceCheckNames);
 
     return {};
 }

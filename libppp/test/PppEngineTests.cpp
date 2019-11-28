@@ -73,21 +73,23 @@ TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
 
     std::string imgKey = "a1b2c3d4";
 
-    LandMarks landmarks;
+    const auto landmarks = LandMarks::create();
 
     EXPECT_CALL(*m_pImageStore, containsImage(Ref(imgKey))).WillOnce(Return(true));
 
     EXPECT_CALL(*m_pImageStore, getImage(Ref(imgKey))).WillOnce(Return(dummyImage));
 
-    EXPECT_CALL(*m_pEyesDetector, detectLandMarks(_, Ref(landmarks))).WillOnce(Return(true));
+    EXPECT_CALL(*m_pImageStore, getLandMarks(Ref(imgKey))).WillOnce(Return(landmarks));
 
-    EXPECT_CALL(*m_pLipsDetector, detectLandMarks(_, Ref(landmarks))).WillOnce(Return(true));
+    EXPECT_CALL(*m_pEyesDetector, detectLandMarks(_, Ref(*landmarks))).WillOnce(Return(true));
 
-    EXPECT_CALL(*m_pFaceDetector, detectLandMarks(_, Ref(landmarks))).WillOnce(Return(true));
+    EXPECT_CALL(*m_pLipsDetector, detectLandMarks(_, Ref(*landmarks))).WillOnce(Return(true));
 
-    EXPECT_CALL(*m_pCrownChinEstimator, estimateCrownChin(Ref(landmarks))).WillOnce(Return(true));
+    EXPECT_CALL(*m_pFaceDetector, detectLandMarks(_, Ref(*landmarks))).WillOnce(Return(true));
+
+    EXPECT_CALL(*m_pCrownChinEstimator, estimateCrownChin(Ref(*landmarks))).WillOnce(Return(true));
 
     // Act
-    EXPECT_EQ(true, m_pppEngine->detectLandMarks(imgKey, landmarks));
+    EXPECT_EQ(true, m_pppEngine->detectLandMarks(imgKey));
 }
 } // namespace ppp

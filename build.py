@@ -140,7 +140,8 @@ class ShellRunner(object):
             cmd_args = cmd_args.split()
         cmd_all = []
         if IS_WINDOWS and self._arch_name in ['x64', 'x86']:
-            cmd_all = [self._vcvarsbat, self._arch_name] + '&& set CC=cl.exe && set CXX=cl.exe &&'.split(' ')
+            vs_arch = {'x64': 'x86_amd64', 'x86': 'x86'}
+            cmd_all = [self._vcvarsbat, vs_arch[self._arch_name]] + '&& set CC=cl.exe && set CXX=cl.exe &&'.split(' ')
         cmd_all = cmd_all + cmd_args
 
         if cmd_print:

@@ -29,29 +29,28 @@ protected:
 
 TEST_F(FaceDetectorTests, DISABLED_CanDetectFaces)
 {
-
     const auto inRoi = [](const cv::Rect & r, const cv::Point & p) -> bool {
         return p.x > r.x && p.x < r.x + r.width && p.y > r.y && p.y < r.y + r.height;
     };
     const auto imageStore = std::make_shared<ImageStore>();
     const auto process = [&](const std::string & imageFilePath,
-                             const LandMarks & manualAnnotations,
-                             LandMarks & detectedLandMarks) -> std::pair<bool, cv::Mat> {
+                             const LandMarksSPtr & manualAnnotations) -> std::tuple<bool, cv::Mat, LandMarksSPtr> {
         const auto imageKey = imageStore->setImage(imageFilePath);
         const auto rgbImage = imageStore->getImage(imageKey);
 
-        EXPECT_TRUE(m_pFaceDetector->detectLandMarks(rgbImage, detectedLandMarks))
+        const auto detectedLandMarks = LandMarks::create();
+        EXPECT_TRUE(m_pFaceDetector->detectLandMarks(rgbImage, *detectedLandMarks))
             << "Error detecting face in " << imageFilePath;
 
         // Check that the rectangle contains both eyes and mouth points
-        const auto faceRect = detectedLandMarks.vjFaceRect;
+        const auto faceRect = detectedLandMarks->vjFaceRect;
 
-        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.eyeLeftPupil));
-        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.eyeRightPupil));
-        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.lipLeftCorner));
-        EXPECT_TRUE(inRoi(faceRect, manualAnnotations.lipRightCorner));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations->eyeLeftPupil));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations->eyeRightPupil));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations->lipLeftCorner));
+        EXPECT_TRUE(inRoi(faceRect, manualAnnotations->lipRightCorner));
 
-        return { true, rgbImage };
+        return { true, rgbImage, detectedLandMarks };
     };
 
     std::vector<ResultData> rd;

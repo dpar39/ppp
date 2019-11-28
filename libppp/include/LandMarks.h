@@ -1,12 +1,16 @@
 #pragma once
 
+#include "CommonHelpers.h"
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 
 namespace ppp
 {
-struct LandMarks final
+FWD_DECL(LandMarks)
+
+class LandMarks final
 {
+public:
     std::string imageKey; ///<- Image ID that uniquely identifies the image being annotated
     // Eye Land marks
     cv::Point eyeLeftPupil; ///<- Position of the left eye pupil
@@ -38,5 +42,7 @@ struct LandMarks final
 
     std::string toJson(bool prettyJson) const;
     void fromJson(const rapidjson::Value & v);
+
+    static LandMarksSPtr create();
 };
 } // namespace ppp

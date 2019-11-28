@@ -13,7 +13,7 @@ class shape_predictor;
 
 namespace ppp
 {
-struct LandMarks;
+FWD_DECL(LandMarks)
 FWD_DECL(IDetector)
 FWD_DECL(ICrownChinEstimator)
 FWD_DECL(IImageStore)
@@ -61,7 +61,7 @@ public:
     // Native interface
     bool configure(const std::string & configString);
 
-    bool detectLandMarks(const std::string & imageKey, LandMarks & landMarks) const;
+    bool detectLandMarks(const std::string & imageKey) const;
 
     cv::Mat cropPicture(const std::string & imageKey,
                         PhotoStandard & ps,

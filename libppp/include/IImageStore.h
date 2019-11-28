@@ -11,6 +11,8 @@ FWD_DECL(EXIFInfo);
 namespace ppp
 {
 FWD_DECL(IImageStore)
+FWD_DECL(LandMarks);
+
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
 class IImageStore : NonCopyable
@@ -27,6 +29,8 @@ public:
 
     /*!@brief Gets the image EXIF info if available !*/
     virtual easyexif::EXIFInfoSPtr getExifInfo(const std::string & imageKey) = 0;
+
+    virtual LandMarksSPtr getLandMarks(const std::string & imageKey) = 0;
 
     /*!@brief Returns whether an image with the specified key is in the store !*/
     virtual bool containsImage(const std::string & imageKey) = 0;

@@ -14,6 +14,7 @@ struct ImageData final
 {
     cv::Mat image;
     easyexif::EXIFInfoSPtr exifInfo;
+    LandMarksSPtr landMarks;
     std::list<std::string>::iterator storeListOrder; ///<- Where in the image store order it is located
 };
 
@@ -26,9 +27,11 @@ public:
 
     bool containsImage(const std::string & imageKey) override;
 
+    void setStoreSize(size_t storeSize) override;
+
     cv::Mat getImage(const std::string & imageKey) override;
 
-    void setStoreSize(size_t storeSize) override;
+    LandMarksSPtr getLandMarks(const std::string & imageKey) override;
 
     easyexif::EXIFInfoSPtr getExifInfo(const std::string & imageKey) override;
 

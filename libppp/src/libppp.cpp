@@ -80,9 +80,13 @@ std::string PublicPppEngine::getImage(const std::string & imageKey) const
 
 std::string PublicPppEngine::detectLandmarks(const std::string & imageId) const
 {
-    LandMarks landMarks;
-    m_pPppEngine->detectLandMarks(imageId, landMarks);
-    return landMarks.toJson(false);
+    const auto & imageStore = m_pPppEngine->getImageStore();
+    if (!imageStore->containsImage(imageId) || m_pPppEngine->detectLandMarks(imageId))
+    {
+        return "";
+    }
+    const auto & landMarks = imageStore->getLandMarks(imageId);
+    return landMarks->toJson(false);
 }
 
 std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const std::string & request) const

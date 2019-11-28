@@ -5,8 +5,7 @@
 
 namespace ppp
 {
-struct LandMarks;
-
+FWD_DECL(LandMarks)
 FWD_DECL(FaceDetector)
 class FaceDetector final : public IDetector
 {

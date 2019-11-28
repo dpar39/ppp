@@ -15,7 +15,7 @@ FacePoseEstimator::FacePoseEstimator()
     m_modelPoints.emplace_back(150.0f, -150.0f, -125.0f); // Right mouth corner
 }
 
-cv::Vec3d FacePoseEstimator::estimatePose(const LandMarks & landMarks,
+cv::Vec3d FacePoseEstimator::estimatePose(const LandMarksSPtr & landMarks,
                                           const double focalLength,
                                           const cv::Point2d focalCenter)
 {
@@ -24,12 +24,12 @@ cv::Vec3d FacePoseEstimator::estimatePose(const LandMarks & landMarks,
 
     // 2D image points. If you change the image, you need to change vector
     const std::vector<Point2d> imagePoints {
-        landMarks.noseTip, // Nose tip
-        landMarks.chinPoint, // Chin
-        landMarks.eyeLeftCorner, // Left eye left corner
-        landMarks.eyeRightCorner, // Right eye right corner
-        landMarks.lipLeftCorner, // Left Mouth corner
-        landMarks.lipRightCorner // Right mouth corner
+        landMarks->noseTip, // Nose tip
+        landMarks->chinPoint, // Chin
+        landMarks->eyeLeftCorner, // Left eye left corner
+        landMarks->eyeRightCorner, // Right eye right corner
+        landMarks->lipLeftCorner, // Left Mouth corner
+        landMarks->lipRightCorner // Right mouth corner
     };
 
     m_cameraMatrix = (cv::Mat_<double>(3, 3) << focalLength, 0, focalCenter.x, 0, focalLength, focalCenter.y, 0, 0, 1);

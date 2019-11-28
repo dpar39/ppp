@@ -12,7 +12,7 @@ class FacePoseEstimator final : public IFacePoseEstimator
 public:
     FacePoseEstimator();
 
-    cv::Vec3d estimatePose(const LandMarks & landMarks, double focalLength, cv::Point2d focalCenter) override;
+    cv::Vec3d estimatePose(const LandMarksSPtr & landMarks, double focalLength, cv::Point2d focalCenter) override;
     void projectPoint(const std::vector<cv::Point3d> & point3ds, std::vector<cv::Point2d> & point2ds) const;
 
 private:

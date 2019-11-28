@@ -105,4 +105,9 @@ void LandMarks::fromJson(const rapidjson::Value & v)
     PARSE_POINT(crownPoint);
     PARSE_POINT(chinPoint);
 }
+
+LandMarksSPtr LandMarks::create()
+{
+    return std::make_shared<LandMarks>();
+}
 } // namespace ppp

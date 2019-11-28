@@ -5,6 +5,7 @@
 
 #include "EasyExif.h"
 #include "ImageStore.h"
+#include "LandMarks.h"
 #include "Utilities.h"
 
 namespace ppp
@@ -19,7 +20,7 @@ std::string ImageStore::storeImageData(const cv::Mat & image, const easyexif::EX
     {
         std::lock_guard<std::mutex> lg(m_mutex);
         const auto it = m_imageKeyOrder.insert(m_imageKeyOrder.end(), imageKey);
-        m_imageCollection[imageKey] = ImageData { image, exifInfo, it };
+        m_imageCollection[imageKey] = ImageData { image, exifInfo, std::make_shared<LandMarks>(), it };
     }
 
     handleStoreSize();
@@ -90,6 +91,13 @@ cv::Mat ImageStore::getImage(const std::string & imageKey)
     std::lock_guard<std::mutex> lg(m_mutex);
     boostImageToTopCache(imageKey);
     return m_imageCollection[imageKey].image;
+}
+
+LandMarksSPtr ImageStore::getLandMarks(const std::string & imageKey)
+{
+    std::lock_guard<std::mutex> lg(m_mutex);
+    boostImageToTopCache(imageKey);
+    return m_imageCollection[imageKey].landMarks;
 }
 
 easyexif::EXIFInfoSPtr ImageStore::getExifInfo(const std::string & imageKey)

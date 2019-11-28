@@ -5,8 +5,7 @@
 
 namespace ppp
 {
-struct LandMarks;
-
+FWD_DECL(LandMarks)
 FWD_DECL(ICrownChinEstimator)
 
 class ICrownChinEstimator : NonCopyable

@@ -1,17 +1,12 @@
 #include <gtest/gtest.h>
+#include <numeric>
 #include <vector>
 
-#include <LandMarks.h>
-#include <PppEngine.h>
-#include <Utilities.h>
-
-#include "TestHelpers.h"
-
+#include "FaceDetector.h"
 #include "IImageStore.h"
-#include <FaceDetector.h>
-#include <numeric>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include "LandMarks.h"
+#include "PppEngine.h"
+#include "TestHelpers.h"
 
 using namespace cv;
 
@@ -22,7 +17,7 @@ std::string pct(const double v)
     return std::to_string(v * 100) + "%";
 }
 
-class Stats
+class Stats final
 {
 public:
     double medianValue = 0;
@@ -94,10 +89,10 @@ protected:
                 continue;
             }
 
-            const auto errCrown = norm(r.annotation.crownPoint - r.detection.crownPoint);
-            const auto errChin = norm(r.annotation.chinPoint - r.detection.chinPoint);
-            const auto crownChinActualDist = norm(r.annotation.chinPoint - r.annotation.crownPoint);
-            const auto crownChinEstimatedDist = norm(r.detection.chinPoint - r.detection.crownPoint);
+            const auto errCrown = norm(r.annotation->crownPoint - r.detection->crownPoint);
+            const auto errChin = norm(r.annotation->chinPoint - r.detection->chinPoint);
+            const auto crownChinActualDist = norm(r.annotation->chinPoint - r.annotation->crownPoint);
+            const auto crownChinEstimatedDist = norm(r.detection->chinPoint - r.detection->crownPoint);
 
             crownChinEstimationErrors.push_back((errCrown + errChin) / crownChinActualDist);
             scalingErrors.push_back(abs(crownChinEstimatedDist - crownChinActualDist) / crownChinActualDist);
@@ -108,6 +103,17 @@ protected:
         std::cout << "Scale errors" << s << std::endl;
         std::cout << "Crown-Chin estimation relative error: " << crownChinStats << std::endl;
     }
+
+    void runSingleImage(const std::string & imageFilePath) const
+    {
+        const auto & imageStore = m_pPppEngine->getImageStore();
+        const auto imgKey = imageStore->setImage(imageFilePath);
+        auto inputImage = imageStore->getImage(imgKey);
+        const auto success = m_pPppEngine->detectLandMarks(imgKey);
+        const auto detectedLandMarks = imageStore->getLandMarks(imgKey);
+        EXPECT_TRUE(success) << "Failed to process image " << imageFilePath;
+        renderLandmarksOnImage(inputImage, detectedLandMarks);
+    }
 };
 
 TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
@@ -117,24 +123,24 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     std::vector<double> relativeErrors;
 
     const auto process = [&](const std::string & imageFileName,
-                             const LandMarks & annotations,
-                             LandMarks & detectedLandMarks) -> std::pair<bool, cv::Mat> {
+                             const LandMarksSPtr & annotations) -> std::tuple<bool, cv::Mat, LandMarksSPtr> {
         const auto imagePrefix = getFileName(imageFileName);
         const auto & imageStore = m_pPppEngine->getImageStore();
         const auto imgKey = imageStore->setImage(imageFileName);
         const auto rgbImage = imageStore->getImage(imgKey);
 
-        const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
+        const auto success = m_pPppEngine->detectLandMarks(imgKey);
+        const auto detectedLandMarks = imageStore->getLandMarks(imgKey);
 
         EXPECT_TRUE(success) << "Error detecting landmarks in " << imagePrefix;
 
         const double maxEyeAllowedError = 25;
-        const auto leftEyeError = norm(detectedLandMarks.eyeLeftPupil - annotations.eyeLeftPupil);
-        const auto rightEyeError = norm(detectedLandMarks.eyeRightPupil - annotations.eyeRightPupil);
+        const auto leftEyeError = norm(detectedLandMarks->eyeLeftPupil - annotations->eyeLeftPupil);
+        const auto rightEyeError = norm(detectedLandMarks->eyeRightPupil - annotations->eyeRightPupil);
 
         const double maxLipCornerAllowedError = 25;
-        const auto leftLipsError = norm(detectedLandMarks.lipLeftCorner - annotations.lipLeftCorner);
-        const auto rightLipsError = norm(detectedLandMarks.lipRightCorner - annotations.lipRightCorner);
+        const auto leftLipsError = norm(detectedLandMarks->lipLeftCorner - annotations->lipLeftCorner);
+        const auto rightLipsError = norm(detectedLandMarks->lipRightCorner - annotations->lipRightCorner);
 
         leftEyeErrors.push_back(leftEyeError);
         rightEyeErrors.push_back(rightEyeError);
@@ -160,8 +166,8 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         }
 
         // Validate chin-crown distance error
-        const auto expectedDistance = norm(annotations.chinPoint - annotations.crownPoint);
-        const auto actualDistance = norm(detectedLandMarks.chinPoint - detectedLandMarks.crownPoint);
+        const auto expectedDistance = norm(annotations->chinPoint - annotations->crownPoint);
+        const auto actualDistance = norm(detectedLandMarks->chinPoint - detectedLandMarks->crownPoint);
 
         constexpr auto maxError = (36.0 - 32.0) / 34.0;
         const auto relError = abs(expectedDistance - actualDistance) / expectedDistance;
@@ -171,7 +177,7 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
         {
             std::cout << " *** Estimation of face height too large for image " << imagePrefix << std::endl;
         }
-        return { accepted, rgbImage };
+        return { accepted, rgbImage, detectedLandMarks };
     };
 
     std::vector<int> excludeList = {
@@ -207,41 +213,11 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
 
 TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
 {
-    using namespace std;
-    const string imageFileName = "012_frontal.jpg";
-    const auto imageFilePath = resolvePath("research/mugshot_frontal_original_all/" + imageFileName);
-
-    LandMarks detectedLandMarks;
-
-    const auto & imageStore = m_pPppEngine->getImageStore();
-    const auto imgKey = imageStore->setImage(imageFilePath);
-    auto inputImage = imageStore->getImage(imgKey);
-    const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
-
-    EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
-
-    using namespace cv;
-
-    renderLandmarksOnImage(inputImage, detectedLandMarks);
+    runSingleImage(resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg"));
 }
 
-TEST_F(PppEngineIntegrationTests, DISABLED_babyTest)
+TEST_F(PppEngineIntegrationTests, babyTest)
 {
-    using namespace std;
-    const string imageFileName = "20191021_155155.jpg";
-    const auto imageFilePath = resolvePath("research/my_database/" + imageFileName);
-
-    LandMarks detectedLandMarks;
-
-    const auto & imageStore = m_pPppEngine->getImageStore();
-    const auto imgKey = imageStore->setImage(imageFilePath);
-    auto inputImage = imageStore->getImage(imgKey);
-    const auto success = m_pPppEngine->detectLandMarks(imgKey, detectedLandMarks);
-
-    EXPECT_TRUE(success) << "Failed to process image " << imageFileName;
-
-    using namespace cv;
-
-    renderLandmarksOnImage(inputImage, detectedLandMarks);
+    runSingleImage(resolvePath("research/my_database/20191021_155155.jpg"));
 }
 } // namespace ppp

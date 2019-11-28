@@ -16,7 +16,8 @@ public:
     /*!@brief Configure general parameters for compliance checks:  !*/
     virtual void configure(rapidjson::Value & cfg) = 0;
 
-    virtual std::string checkCompliance(const PhotoStandardSPtr & photoStandard,
+    virtual std::string checkCompliance(const std::string & imgKey,
+                                        const PhotoStandardSPtr & photoStandard,
                                         const cv::Point & crownPoint,
                                         const cv::Point & chinPoint,
                                         const std::vector<std::string> & complianceCheckNames)

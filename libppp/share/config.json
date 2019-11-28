@@ -1,6 +1,8 @@
 {
     "complianceChecks": {
-
+        "photoResolution": {
+            
+        }
     },
     "haarCascadeDir": "share/haarcascades",
     "faceDetector": {
