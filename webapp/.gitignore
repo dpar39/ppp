@@ -38,7 +38,6 @@ liblibppp.so
 liblibppp.dylib
 libpppwrapper.py
 src/assets/icons/icon-*.png
-package-lock.json
 
 # This is the emscripten output
 src/assets/libppp.wasm
