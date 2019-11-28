@@ -156,7 +156,6 @@ class ShellRunner(object):
             p.wait()
         if p.returncode != 0:
             print('Command "%s" exited with code %d' % (' '.join(cmd_args), p.returncode))
-            print(p.stdout.read())
             sys.exit(p.returncode)
 
     def _detect_vs_version(self):

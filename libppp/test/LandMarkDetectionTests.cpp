@@ -216,7 +216,7 @@ TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
     runSingleImage(resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg"));
 }
 
-TEST_F(PppEngineIntegrationTests, babyTest)
+TEST_F(PppEngineIntegrationTests, DISABLED_babyTest)
 {
     runSingleImage(resolvePath("research/my_database/20191021_155155.jpg"));
 }
