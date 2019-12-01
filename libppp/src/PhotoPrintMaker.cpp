@@ -32,7 +32,6 @@ Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
     const auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
 
     const auto centerTop = centerCrop + Point2d(chinCrownVec * (cropHeightPix / faceHeightPix / 2.0));
-
     const auto chinCrown90degRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
     const auto centerLeft = centerCrop + chinCrown90degRotated * (cropWidthPix / faceHeightPix / 2.0);
 
@@ -88,22 +87,16 @@ Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard & ps,
                                               const Point & crownPoint,
                                               const Point & chinPoint) const
 {
-    if (ps.eyesHeightMM() <= 0)
+    if (ps.crownTopMM() <= 0)
     {
         // Estimate the center of the picture to be the median point between the crown point and the chin point
         return (crownPoint + chinPoint) / 2.0;
     }
 
-    const auto eyeCrownToFaceHeightRatio = 0.5;
-
-    const auto crownToPictureBottomMM = eyeCrownToFaceHeightRatio * ps.faceHeightMM() + ps.eyesHeightMM();
-
-    const auto crownToCenterMM = crownToPictureBottomMM - ps.photoHeightMM() / 2;
-
-    const auto mmToPixRatio = norm(crownPoint - chinPoint) / ps.faceHeightMM();
-
-    const auto crownToCenterPix = mmToPixRatio * crownToCenterMM;
-
+    const auto pixelsPerMM = norm(crownPoint - chinPoint) / ps.faceHeightMM();
+    const auto crownTopPix = ps.crownTopMM() * pixelsPerMM;
+    const auto picHeightPix = ps.photoHeightMM() * pixelsPerMM;
+    const auto crownToCenterPix = picHeightPix / 2.0 - crownTopPix;
     return Utilities::pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }
 } // namespace ppp

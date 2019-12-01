@@ -15,17 +15,19 @@ FWD_DECL(PhotoStandard)
 class PhotoStandard final
 {
 private:
-    double m_picHeight_mm; ///<- Height of the passport photo in mm
-    double m_picWidth_mm; ///<- Width of the passport photo in mm
-    double m_faceHeight_mm; ///<- Height of the face in mm
-    double m_eyesHeight_mm; ///<- Distance from the bottom of the picture to the eyes in mm (zero or negative means not
-                            ///< provided)
+    double m_picHeight_mm; ///<- Height of the photo [mm]
+    double m_picWidth_mm; ///<- Width of the photo [mm]
+    double m_faceHeight_mm; ///<- Height of the face (crown to chin distance) [mm]
+    double m_crownTop_mm; ///<- Distance from the top of the photo to the crown [mm] (zero if not provided)
+    double m_printResolution_dpi; ///<- Standard required print resolution (dots per inch)
 
 public:
     PhotoStandard(double picWidth,
                   double picHeight,
                   double faceHeight,
-                  double eyesHeight = 0.0,
+                  double crownTop,
+                  const double eyeLineBottom,
+                  double printResolution,
                   const std::string & units = "mm");
 
     double photoWidthMM() const;
@@ -34,8 +36,8 @@ public:
 
     double faceHeightMM() const;
 
-    double eyesHeightMM() const;
+    double crownTopMM() const;
 
-    static PhotoStandardSPtr fromJson(rapidjson::Value & photoStandardJson);
+    static PhotoStandardSPtr fromJson(const rapidjson::Value & photoStandardJson);
 };
 } // namespace ppp

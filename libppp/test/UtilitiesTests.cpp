@@ -68,3 +68,23 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
 //    ASSERT_EQ(actual, expected);
 //}
 } // namespace ppp
+
+TEST(UtilititesTests, TestLineIntersection)
+{
+
+    EXPECT_THROW(Utilities::lineLineIntersection(Point2d(0, 0), Point2d(1, 1), Point2d(1, 0), Point2d(2, 1)),
+                 std::runtime_error);
+
+    // Valid test cases
+    const auto testCases = vector<tuple<Point2d, Point2d, Point2d, Point2d, Point2d>> {
+        make_tuple(Point2d(-1, -1), Point2d(1, 1), Point2d(-1, 1), Point2d(1, -1), Point2d(0, 0)),
+        make_tuple(Point2d(15, 10), Point2d(49, 25), Point2d(29, 5), Point2d(22, 28), Point2d(26.0011, 14.8534))
+    };
+
+    for (const auto & tc : testCases)
+    {
+        const auto intersectPoint = Utilities::lineLineIntersection(get<0>(tc), get<1>(tc), get<2>(tc), get<3>(tc));
+        const auto & expectedPoint = get<4>(tc);
+        EXPECT_LE(norm(expectedPoint - intersectPoint), 0.01);
+    }
+}

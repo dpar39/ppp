@@ -1,5 +1,6 @@
 
 #include "ComplianceChecker.h"
+#include "PhotoStandard.h"
 
 namespace ppp
 {
@@ -16,6 +17,12 @@ std::string ComplianceChecker::checkCompliance(const std::string & imgKey,
 {
     for (const auto & checkName : complianceCheckNames)
     {
+        if (checkName == "inputResolution")
+        {
+            photoStandard->faceHeightMM();
+            const auto distPix = norm(crownPoint - chinPoint);
+            
+        }
     }
     return "";
 }

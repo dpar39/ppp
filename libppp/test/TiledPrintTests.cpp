@@ -24,13 +24,13 @@ void verifyEqualImage(const std::string & expectedImageFilePath, const cv::Mat &
 {
 
     const auto expectedImage = cv::imread(expectedImageFilePath);
-    const auto numDisctintPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
-    EXPECT_LE(numDisctintPixels, 3) << "Actual image differs to image in file " << expectedImageFilePath;
+    const auto numDistinctPixels = countNonZero(sum(cv::abs(expectedImage - actualImage)));
+    EXPECT_LE(numDistinctPixels, 3) << "Actual image differs to image in file " << expectedImageFilePath;
 }
 
 TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 {
-    const PhotoStandard passportStandard(35.0, 45.0, 34.0);
+    const PhotoStandard passportStandard(35.0, 45.0, 34.0, 0.0, 0.0, 300, "mm");
     const CanvasDefinition canvasDefinition(6, 4, 300, "inch");
 
     const auto & imageFileName = resolvePath("research/sample_test_images/000.jpg");
@@ -50,7 +50,7 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 
 TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
 {
-    const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, "inch");
+    const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, 0.0, 300, "inch");
     const CanvasDefinition canvasDefinition(6, 4, 300, "inch", 0, 1.5 / 25.4);
 
     const auto & imageFileName = resolvePath("research/my_database/20191021_155155.jpg");
@@ -61,7 +61,6 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
 
     // Crop the photo to the right dimensions
     const auto croppedImage = m_pPhotoPrintMaker->cropPicture(image, crownPos, chinPos, passportStandard);
-
     const auto printPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvasDefinition, passportStandard, croppedImage);
     benchmarkValidate(printPhoto);
 }

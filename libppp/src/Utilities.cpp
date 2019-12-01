@@ -283,6 +283,10 @@ double Utilities::toMM(const double v, const std::string & units)
     {
         return v * 10.0;
     }
+    if (units == "pixel" || units == "pix")
+    {
+        return v;
+    }
     throw std::runtime_error("Unknown input units when creating the photo standard definition");
 }
 
@@ -332,13 +336,13 @@ cv::Point2d Utilities::pointInLineAtDistance(cv::Point2d p0, cv::Point2d p1, dou
 }
 
 std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv::Point> & contour,
-                                                            cv::Point2d pline1,
-                                                            cv::Point2d p2Line)
+                                                            const cv::Point2d pLine1,
+                                                            const cv::Point2d pLine2)
 {
     std::vector<cv::Point2d> result;
-    const auto A2 = p2Line.y - pline1.y;
-    const auto B2 = pline1.x - p2Line.x;
-    const auto C2 = A2 * pline1.x + B2 * pline1.y;
+    const auto A2 = pLine2.y - pLine1.y;
+    const auto B2 = pLine1.x - pLine2.x;
+    const auto C2 = A2 * pLine1.x + B2 * pLine1.y;
 
     const auto numVertex = contour.size();
     const auto numSegments = contour.front() == contour.back() ? numVertex - 1 : numVertex;
@@ -364,6 +368,34 @@ std::vector<cv::Point2d> Utilities::contourLineIntersection(const std::vector<cv
         }
     }
     return result;
+}
+
+cv::Point2d Utilities::lineLineIntersection(const cv::Point2d & p1,
+                                            const cv::Point2d & p2,
+                                            const cv::Point2d & q1,
+                                            const cv::Point2d & q2)
+{
+    const auto x1 = p1.x;
+    const auto y1 = p1.y;
+    const auto x2 = p2.x;
+    const auto y2 = p2.y;
+
+    const auto x3 = q1.x;
+    const auto y3 = q1.y;
+    const auto x4 = q2.x;
+    const auto y4 = q2.y;
+
+    const auto d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (d == 0)
+    {
+        throw std::runtime_error("Lines are parallel ");
+    }
+
+    const auto a = (x1 * y2 - y1 * x2);
+    const auto b = (x3 * y4 - y3 * x4);
+    const auto x = (a * (x3 - x4) - b * (x1 - x2)) / d;
+    const auto y = (a * (y3 - y4) - b * (y1 - y2)) / d;
+    return cv::Point2d(x, y);
 }
 
 cv::Point Utilities::convert(const dlib::point & pt)

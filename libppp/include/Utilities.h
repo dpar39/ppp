@@ -8,6 +8,22 @@
 #include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 
+#define VALIDATE_GT(v, min)                                                                                            \
+    if ((v) <= (min))                                                                                                  \
+        throw std::runtime_error(std::string(#v) + " should be greater than " + std::to_string((min)));
+
+#define VALIDATE_LT(v, max)                                                                                            \
+    if ((v) >= (max))                                                                                                  \
+        throw std::runtime_error(std::string(#v) + " should be less than " + std::to_string((max)));
+
+#define VALIDATE_GE(v, min)                                                                                            \
+    if ((v) < (min))                                                                                                   \
+        throw std::runtime_error(std::string(#v) + " should be greater or equal than " + std::to_string((min)));
+
+#define VALIDATE_LE(v, max)                                                                                            \
+    if ((v) < (max))                                                                                                   \
+        throw std::runtime_error(std::string(#v) + " should be less or equal than " + std::to_string((max)));
+
 namespace dlib
 {
 class rectangle;
@@ -70,12 +86,16 @@ public:
     /*!@brief Calculates the intersection points between a line and a contour
     *  @param[in] contour vector of 2D points
     *  @param[in] p1Line First point defining the line
-    *  @param[in] p2Line Second point defining the line
+    *  @param[in] pLine2 Second point defining the line
     *  @returns Vector of intersection point between the contour and the line
     !*/
     static std::vector<cv::Point2d> contourLineIntersection(const std::vector<cv::Point> & contour,
                                                             cv::Point2d p1Line,
-                                                            cv::Point2d p2Line);
+                                                            cv::Point2d pLine2);
+    static cv::Point2d lineLineIntersection(const cv::Point2d & p1,
+                                            const cv::Point2d & p2,
+                                            const cv::Point2d & q1,
+                                            const cv::Point2d & q2);
 
     static cv::Mat rotateImage(const cv::Mat & inputImage, int rotationAngleDegrees);
 
@@ -86,6 +106,7 @@ public:
     /**
      * \brief Serializes a JSON document to std::string
      * \param d Json document to serialize
+     * \param pretty If true, generated json is prettified, otherwise minified
      * \return the serialized string for the Json document
      */
     static std::string serializeJson(rapidjson::Document & d, bool pretty);
@@ -107,5 +128,27 @@ public:
                             static_cast<const BYTE *>(static_cast<const void *>(&x)) + sizeof(x));
         std::reverse(v.begin(), v.end()); // Little Endian notation
         return v;
+    }
+
+    template <class T>
+    struct dependent_false : std::false_type
+    {
+    };
+    template <typename T>
+    static T getField(const rapidjson::Value & v, const std::string & fieldName, const T defaultValue)
+    {
+        if (!v.HasMember(fieldName))
+            return defaultValue;
+        if constexpr (std::is_floating_point<T>::value)
+            return v[fieldName].GetDouble();
+        else if constexpr (std::is_integral<T>::value)
+            return v[fieldName].GetInt();
+        else if constexpr (std::is_same<bool, T>::value)
+            return v[fieldName].GetBool();
+        else if constexpr (std::is_same<std::string, T>::value || std::is_same<char *, T>::value)
+            return v[fieldName].GetString();
+        else
+            static_assert(dependent_false<T>::value, "Must be floating point, integral, boolean or string");
+        return defaultValue;
     }
 };

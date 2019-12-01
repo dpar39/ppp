@@ -117,10 +117,16 @@ std::string PublicPppEngine::checkCompliance(const std::string & request) const
 
     const std::string imageId = d[IMAGE_ID].GetString();
     const auto ps = PhotoStandard::fromJson(d[PHOTO_STANDARD]);
-    auto crownPoint = fromJson(d[CROWN_POINT]);
-    auto chinPoint = fromJson(d[CHIN_POINT]);
+    const auto crownPoint = fromJson(d[CROWN_POINT]);
+    const auto chinPoint = fromJson(d[CHIN_POINT]);
 
     vector<std::string> complianceCheckNames;
+
+    auto array = d[COMPLIANCE_CHECKS].GetArray();
+    for (rapidjson::SizeType i = 0; i < array.Size(); i++)
+    {
+        complianceCheckNames.push_back(array[i].GetString());
+    }
 
     return m_pPppEngine->checkCompliance(imageId, ps, crownPoint, chinPoint, complianceCheckNames);
 }

@@ -8,6 +8,7 @@
 #include "ImageStore.h"
 #include "PppEngine.h"
 #include "TestHelpers.h"
+#include "Utilities.h"
 #include <map>
 
 #if _MSC_VER >= 1910 // VS 2017
@@ -255,6 +256,7 @@ void processDatabase(const DetectionCallback & callback,
 void adjustCrownChinCoefficients(const std::vector<LandMarksSPtr> & groundTruthAnnotations)
 {
     std::vector<double> c1, c2;
+    std::vector<double> crownEyeLineNormalizedDistances;
     for (const auto & lm : groundTruthAnnotations)
     {
         auto frown = (lm->eyeLeftPupil + lm->eyeRightPupil) / 2.0;
@@ -267,10 +269,17 @@ void adjustCrownChinCoefficients(const std::vector<LandMarksSPtr> & groundTruthA
 
         c1.push_back(chinCrown / refDist);
         c2.push_back(chinFrown / refDist);
+
+        const auto eyeLineCenter
+            = Utilities::lineLineIntersection(lm->crownPoint, lm->chinPoint, lm->eyeLeftPupil, lm->eyeRightPupil);
+        const auto frownDistance = norm(cv::Point2d(lm->crownPoint) - eyeLineCenter);
+
+        crownEyeLineNormalizedDistances.push_back(frownDistance / chinCrown);
     }
 
     std::cout << "Chin-crown normalization: " << median(c1) << std::endl;
     std::cout << "Chin-frown normalization: " << median(c2) << std::endl;
+    std::cout << "Crown-Eye distance / Chin-crown ratio: " << median(crownEyeLineNormalizedDistances) << std::endl;
 }
 
 std::string getLandMarkFileFor(const std::string & imageFilePath)
@@ -285,13 +294,10 @@ LandMarksSPtr loadLandmarks(const std::string & imageFilePath)
 {
     using namespace std;
     const auto landmarksFilePath = getLandMarkFileFor(imageFilePath);
-    std::ifstream fs(landmarksFilePath);
-    if (fs.good())
+    rapidjson::Document d;
+
+    if (loadJson(landmarksFilePath, d))
     {
-        // Deserialize previously computed landmarks
-        rapidjson::Document d;
-        const auto lms = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
-        d.Parse(lms.c_str());
         const auto landmarks = make_shared<LandMarks>();
         landmarks->fromJson(d);
         return landmarks;
@@ -345,7 +351,20 @@ void renderLandmarksOnImage(cv::Mat & image, const LandMarksSPtr & lm)
     }
 }
 
-TEST(Research, ModelCoefficientsCalculation)
+bool loadJson(const std::string & filePath, rapidjson::Document & d)
+{
+
+    std::ifstream fs(filePath);
+    if (fs.good())
+    {
+        const auto content = std::string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
+        d.Parse(content.c_str());
+        return true;
+    }
+    return false;
+}
+
+TEST(Research, ModelRatiosCalculations)
 {
     const auto annCsvFile = resolvePath("research/mugshot_frontal_original_all/via_region_data_dpd.csv");
     const auto landMarksMap = importLandMarks(annCsvFile);

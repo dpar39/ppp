@@ -4787,10 +4787,10 @@
         "dimensions": {
             "pictureWidth": 40.0,
             "pictureHeight": 60.0,
+            "faceHeight": 42.0,
             "units": "mm",
             "dpi": 300.0,
-            "crownTop": 5.0,
-            "chinEyeLine": 18.0
+            "crownTop": 5.0
         },
         "backgroundColor": "#ffffff",
         "printable": true,
@@ -7168,9 +7168,9 @@
         "dimensions": {
             "pictureWidth": 35.0,
             "pictureHeight": 45.0,
+            "faceHeight": 33.0,
             "units": "mm",
             "dpi": 600.0,
-            "faceHeight": 33.0,
             "crownTop": 5.0
         },
         "backgroundColor": "#ffffff",
@@ -7249,10 +7249,10 @@
         "dimensions": {
             "pictureWidth": 35.0,
             "pictureHeight": 45.0,
+            "faceHeight": 28.0,
             "units": "mm",
             "dpi": 600.0,
-            "crownTop": 5.0,
-            "chinEyeLine": 12.0
+            "crownTop": 5.0
         },
         "backgroundColor": "#ffffff",
         "printable": true,

@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <string>
 
 #define FWD_DECL(classname)                                                                                            \
     class classname;                                                                                                   \
@@ -64,3 +63,15 @@ DEFINE_STR(CROWN_POINT, crownPoint)
 DEFINE_STR(CHIN_POINT, chinPoint)
 DEFINE_STR(EXIF_INFO, EXIFInfo);
 DEFINE_STR(AS_BASE64, asBase64);
+
+DEFINE_STR(UNITS, units);
+
+// Photo requirement fields
+DEFINE_STR(PHOTO_WIDTH, pictureWidth);
+DEFINE_STR(PHOTO_HEIGHT, pictureHeight);
+DEFINE_STR(PHOTO_FACE_HEIGHT, faceHeight);
+DEFINE_STR(PHOTO_CROWN_TOP, crownTop);
+DEFINE_STR(PHOTO_EYELINE_BOTTOM, bottomEyeLine);
+DEFINE_STR(PHOTO_RESOLUTION, dpi);
+
+DEFINE_STR(COMPLIANCE_CHECKS, complianceChecks);

@@ -56,6 +56,8 @@ LandMarksSPtr loadLandmarks(const std::string & imageFilePath);
 
 void renderLandmarksOnImage(cv::Mat & image, const LandMarksSPtr & lm);
 
+bool loadJson(const std::string & filePath, rapidjson::Document & d);
+
 template <typename T>
 static double median(std::vector<T> scores)
 {

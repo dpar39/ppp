@@ -179,18 +179,25 @@ int main(int argc, char ** argv)
                                         false,
                                         2.0,
                                         dimensionTypeDescription);
-    TCLAP::ValueArg<double> faceHeight("",
-                                       "faceHeight",
-                                       "Photo standard: distance from chin to top of the head",
-                                       false,
-                                       1.29,
-                                       dimensionTypeDescription);
+    TCLAP::ValueArg<double> faceHeightDistance("",
+                                               "faceHeight",
+                                               "Photo standard: distance from chin to top of the head",
+                                               false,
+                                               1.29,
+                                               dimensionTypeDescription);
     TCLAP::ValueArg<double> bottomEyeLine("",
                                           "bottomEyeLine",
                                           "Photo standard: distance from bottom of photo to the eye line",
                                           false,
                                           1.18,
                                           dimensionTypeDescription);
+    TCLAP::ValueArg<double> topCrownDistance("",
+                                             "topCrown",
+                                             "Photo standard: distance from top of photo to the crown point",
+                                             false,
+                                             0.0,
+                                             dimensionTypeDescription);
+
     TCLAP::ValueArg<std::string> photoUnits("",
                                             "photoUnits",
                                             "Units for the photo size",
@@ -199,9 +206,10 @@ int main(int argc, char ** argv)
                                             "[mm | cm | inch]");
     cmd.add(photoWidth);
     cmd.add(photoHeight);
-    cmd.add(faceHeight);
+    cmd.add(faceHeightDistance);
     cmd.add(bottomEyeLine);
     cmd.add(photoUnits);
+    cmd.add(topCrownDistance);
 
     // Print definition arguments:
     TCLAP::ValueArg<double> printWidth("", "printWidth", "Print definition: width", false, 2.0, dimensionTypeDescription);
@@ -259,8 +267,10 @@ int main(int argc, char ** argv)
 
     PhotoStandard ps(photoWidth.getValue(),
                      photoHeight.getValue(),
-                     faceHeight.getValue(),
+                     faceHeightDistance.getValue(),
+                     topCrownDistance.getValue(),
                      bottomEyeLine.getValue(),
+                     printResolution.getValue(),
                      photoUnits.getValue());
 
     CanvasDefinition cd(printWidth.getValue(),
