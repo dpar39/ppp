@@ -8,7 +8,7 @@
 namespace ppp
 {
 FWD_DECL(PhotoPrintMaker)
-class CanvasDefinition;
+class PrintDefinition;
 class PhotoStandard;
 
 class PhotoPrintMaker final : public IPhotoPrintMaker
@@ -22,7 +22,7 @@ public:
                         const PhotoStandard & ps) override;
 
     // Creates a tiled photo from the cropped photo
-    cv::Mat tileCroppedPhoto(const CanvasDefinition & canvas,
+    cv::Mat tileCroppedPhoto(const PrintDefinition & canvas,
                              const PhotoStandard & ps,
                              const cv::Mat & croppedImage) override;
 

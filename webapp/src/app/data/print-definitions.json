@@ -14,5 +14,10 @@
         "units": "inch",
         "gutter": 0,
         "padding": 0.06
+    },
+    {
+        "name": "Digital Only",
+        "height": 0,
+        "width": 0
     }
 ]

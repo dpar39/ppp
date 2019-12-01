@@ -1,12 +1,12 @@
 //
 //
 #include "libppp.h"
-#include "CanvasDefinition.h"
 #include "EasyExif.h"
 #include "ImageStore.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
 #include "PppEngine.h"
+#include "PrintDefinition.h"
 #include "Utilities.h"
 
 #include <opencv2/imgcodecs.hpp>
@@ -96,7 +96,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     d.Parse(request.c_str());
 
     const auto ps = PhotoStandard::fromJson(d[PHOTO_STANDARD]);
-    const auto canvas = CanvasDefinition::fromJson(d[PRINT_DEFINITION]);
+    const auto canvas = PrintDefinition::fromJson(d[PRINT_DEFINITION]);
     auto crownPoint = fromJson(d[CROWN_POINT]);
     auto chinPoint = fromJson(d[CHIN_POINT]);
     auto asBase64Encode = false;

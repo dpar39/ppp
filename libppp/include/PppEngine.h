@@ -20,7 +20,7 @@ FWD_DECL(IImageStore)
 FWD_DECL(IPhotoPrintMaker)
 FWD_DECL(IComplianceChecker)
 
-class CanvasDefinition;
+class PrintDefinition;
 class PhotoStandard;
 
 FWD_DECL(PppEngine)
@@ -65,13 +65,13 @@ public:
 
     cv::Mat cropPicture(const std::string & imageKey,
                         PhotoStandard & ps,
-                        CanvasDefinition & canvas,
+                        PrintDefinition & canvas,
                         cv::Point & crownMark,
                         cv::Point & chinMark) const;
 
     cv::Mat createTiledPrint(const std::string & imageKey,
                              PhotoStandard & ps,
-                             CanvasDefinition & canvas,
+                             PrintDefinition & canvas,
                              cv::Point & crownMark,
                              cv::Point & chinMark) const;
 

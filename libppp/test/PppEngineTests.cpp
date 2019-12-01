@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "CanvasDefinition.h"
 #include "LandMarks.h"
 #include "PhotoStandard.h"
+#include "PrintDefinition.h"
 
 #include "MockCrownChinEstimator.h"
 #include "MockDetector.h"

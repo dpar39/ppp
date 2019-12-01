@@ -2,7 +2,7 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-#include "CanvasDefinition.h"
+#include "PrintDefinition.h"
 #include "PhotoPrintMaker.h"
 #include "PhotoStandard.h"
 
@@ -31,7 +31,7 @@ void verifyEqualImage(const std::string & expectedImageFilePath, const cv::Mat &
 TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 {
     const PhotoStandard passportStandard(35.0, 45.0, 34.0, 0.0, 0.0, 300, "mm");
-    const CanvasDefinition canvasDefinition(6, 4, 300, "inch");
+    const PrintDefinition canvasDefinition(6, 4, 300, "inch");
 
     const auto & imageFileName = resolvePath("research/sample_test_images/000.jpg");
     const cv::Point2d crownPos(941, 999);
@@ -51,7 +51,7 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
 {
     const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, 0.0, 300, "inch");
-    const CanvasDefinition canvasDefinition(6, 4, 300, "inch", 0, 1.5 / 25.4);
+    const PrintDefinition canvasDefinition(6, 4, 300, "inch", 0, 1.5 / 25.4);
 
     const auto & imageFileName = resolvePath("research/my_database/20191021_155155.jpg");
     const cv::Point2d crownPos(1155, 310);

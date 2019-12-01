@@ -11,11 +11,10 @@ class Mat;
 
 namespace ppp
 {
-class PhotoStandard;
 
-FWD_DECL(CanvasDefinition)
+FWD_DECL(PrintDefinition)
 
-class CanvasDefinition final
+class PrintDefinition final
 {
     double m_canvasWidth_mm { 0.0 }; ///<- Output canvas width in mm
     double m_canvasHeight_mm { 0.0 }; ///<- Output canvas height in mm
@@ -24,12 +23,12 @@ class CanvasDefinition final
     double m_padding_mm { 1.5 };
 
 public:
-    CanvasDefinition(double canvasWidth,
-                     double canvasHeight,
-                     double dpi,
-                     const std::string & units,
-                     double gutter = 0.0,
-                     double padding = 0.0);
+    PrintDefinition(double width,
+                    double height,
+                    double dpi,
+                    const std::string & units,
+                    double gutter = 0.0,
+                    double padding = 0.0);
 
     double height() const;
 
@@ -57,7 +56,7 @@ public:
     //     border: 0.1,
     //     units: "inch"
     // }
-    /*!@brief Construct a CanvasDefinition from JSON data !*/
-    static CanvasDefinitionSPtr fromJson(rapidjson::Value & canvas);
+    /*!@brief Construct a PrintDefinition from JSON data !*/
+    static PrintDefinitionSPtr fromJson(rapidjson::Value & canvas);
 };
 } // namespace ppp

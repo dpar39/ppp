@@ -4,9 +4,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <tclap/CmdLine.h>
 
-#include "CanvasDefinition.h"
 #include "IImageStore.h"
 #include "LandMarks.h"
+#include "PrintDefinition.h"
 
 #include "PhotoDecorator.h"
 
@@ -273,10 +273,7 @@ int main(int argc, char ** argv)
                      printResolution.getValue(),
                      photoUnits.getValue());
 
-    CanvasDefinition cd(printWidth.getValue(),
-                        printHeight.getValue(),
-                        printResolution.getValue(),
-                        printUnits.getValue());
+    PrintDefinition cd(printWidth.getValue(), printHeight.getValue(), printResolution.getValue(), printUnits.getValue());
 
     const auto output = engine.createTiledPrint(imgKey, ps, cd, landMarks->crownPoint, landMarks->chinPoint);
 

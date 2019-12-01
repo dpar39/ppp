@@ -1,5 +1,4 @@
 #include "PppEngine.h"
-#include "CanvasDefinition.h"
 #include "ComplianceChecker.h"
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
@@ -9,6 +8,7 @@
 #include "LipsDetector.h"
 #include "PhotoPrintMaker.h"
 #include "PhotoStandard.h"
+#include "PrintDefinition.h"
 #include "Utilities.h"
 
 #include <dlib/image_processing/shape_predictor.h>
@@ -217,7 +217,7 @@ cv::Point PppEngine::getLandMark(const std::vector<cv::Point> & landmarks, const
 
 cv::Mat PppEngine::cropPicture(const string & imageKey,
                                PhotoStandard & ps,
-                               CanvasDefinition & canvas,
+                               PrintDefinition & canvas,
                                cv::Point & crownMark,
                                cv::Point & chinMark) const
 {
@@ -228,7 +228,7 @@ cv::Mat PppEngine::cropPicture(const string & imageKey,
 
 cv::Mat PppEngine::createTiledPrint(const string & imageKey,
                                     PhotoStandard & ps,
-                                    CanvasDefinition & canvas,
+                                    PrintDefinition & canvas,
                                     cv::Point & crownMark,
                                     cv::Point & chinMark) const
 {

@@ -1,5 +1,5 @@
 #include "PhotoPrintMaker.h"
-#include "CanvasDefinition.h"
+#include "PrintDefinition.h"
 #include "PhotoStandard.h"
 #include "Utilities.h"
 
@@ -46,7 +46,7 @@ Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
     return cropImage;
 }
 
-Mat PhotoPrintMaker::tileCroppedPhoto(const CanvasDefinition & canvas,
+Mat PhotoPrintMaker::tileCroppedPhoto(const PrintDefinition & canvas,
                                       const PhotoStandard & ps,
                                       const Mat & croppedImage)
 {

@@ -6,7 +6,7 @@
 
 namespace ppp
 {
-class CanvasDefinition;
+class PrintDefinition;
 class PhotoStandard;
 
 FWD_DECL(IPhotoPrintMaker)
@@ -24,7 +24,7 @@ public:
                                 const PhotoStandard & ps)
         = 0;
 
-    virtual cv::Mat tileCroppedPhoto(const CanvasDefinition & canvas,
+    virtual cv::Mat tileCroppedPhoto(const PrintDefinition & canvas,
                                      const PhotoStandard & ps,
                                      const cv::Mat & croppedImage)
         = 0;
