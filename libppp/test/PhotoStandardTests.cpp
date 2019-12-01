@@ -18,7 +18,6 @@ TEST(PhotoStandardTests, canLoadAllPredefinedPhotoStandardsFromJson)
         const std::string standardId = d[i]["id"].GetString();
         try
         {
-            std::cout << standardId << std::endl;
             PhotoStandard::fromJson(ps);
         }
         catch (const std::exception & ex)

@@ -10,7 +10,7 @@ class CrownChinEstimator final : public ICrownChinEstimator
 {
 public:
     void configure(rapidjson::Value & config) override;
-    bool estimateCrownChin(LandMarks & landmarks) override;
+    bool estimateCrownChin(LandMarks & landMarks) override;
 
 private:
     double m_chinCrownCoeff { 1.7699 };

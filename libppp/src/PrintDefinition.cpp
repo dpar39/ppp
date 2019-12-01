@@ -66,9 +66,7 @@ PrintDefinitionSPtr PrintDefinition::fromJson(rapidjson::Value & canvas)
 {
     const auto width = Utilities::getField(canvas, PRINT_WIDTH, 0.0);
     const auto height = Utilities::getField(canvas, PRINT_HEIGHT, 0.0);
-
-    const auto resolution = canvas["resolution"].GetFloat();
-
+    const auto resolution = Utilities::getField(canvas, PRINT_RESOLUTION, 0.0);
     const auto padding = Utilities::getField(canvas, PRINT_PADDING, 0.0);
     const auto gutter = Utilities::getField(canvas, PRINT_GUTTER, 0.0);
     const auto units = Utilities::getField(canvas, UNITS, std::string("mm"));

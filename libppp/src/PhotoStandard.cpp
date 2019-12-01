@@ -8,13 +8,13 @@ PhotoStandard::PhotoStandard(const double picWidth,
                              const double faceHeight,
                              double crownTop,
                              const double eyeLineBottom,
-                             const double printResolution,
+                             const double picResolution,
                              const std::string & units)
 {
     VALIDATE_GT(picWidth, 0);
     VALIDATE_GT(picHeight, 0);
     VALIDATE_GT(faceHeight, 0);
-    VALIDATE_GT(printResolution, 0);
+    VALIDATE_GT(picResolution, 0);
     VALIDATE_GE(crownTop, 0);
     VALIDATE_GE(eyeLineBottom, 0);
     VALIDATE_LT(faceHeight, picHeight);
@@ -32,7 +32,7 @@ PhotoStandard::PhotoStandard(const double picWidth,
     m_picHeight_mm = Utilities::toMM(picHeight, units);
     m_faceHeight_mm = Utilities::toMM(faceHeight, units);
     m_crownTop_mm = Utilities::toMM(crownTop, units);
-    m_printResolution_dpi = printResolution;
+    m_picResolution_dpi = picResolution;
 }
 
 double PhotoStandard::photoWidthMM() const
@@ -55,12 +55,17 @@ double PhotoStandard::crownTopMM() const
     return m_crownTop_mm;
 }
 
+double PhotoStandard::resolutionDpi() const
+{
+    return m_picResolution_dpi;
+}
+
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(const rapidjson::Value & photoStandardJson)
 {
     const auto picHeight = photoStandardJson[PHOTO_HEIGHT].GetDouble();
     const auto picWidth = photoStandardJson[PHOTO_WIDTH].GetDouble();
     const auto faceHeight = photoStandardJson[PHOTO_FACE_HEIGHT].GetDouble();
-    const auto printResolution = Utilities::getField(photoStandardJson, PHOTO_RESOLUTION, 300.0);
+    const auto picResolution = Utilities::getField(photoStandardJson, PHOTO_RESOLUTION, 300.0);
     const auto units = Utilities::getField(photoStandardJson, UNITS, std::string("mm"));
     const auto crownTop = Utilities::getField(photoStandardJson, PHOTO_CROWN_TOP, 0.0);
     const auto bottomEyeLine = Utilities::getField(photoStandardJson, PHOTO_EYELINE_BOTTOM, 0.0);
@@ -70,7 +75,7 @@ std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(const rapidjson::Value & 
                                            faceHeight,
                                            crownTop,
                                            bottomEyeLine,
-                                           printResolution,
+                                           picResolution,
                                            units);
 }
 } // namespace ppp

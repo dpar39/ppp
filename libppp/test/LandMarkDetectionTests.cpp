@@ -63,7 +63,7 @@ public:
     }
 };
 
-class PppEngineIntegrationTests : public testing::Test
+class LandMarkDetectionTests : public testing::Test
 {
 protected:
     PppEngineSPtr m_pPppEngine = std::make_shared<PppEngine>();
@@ -116,7 +116,7 @@ protected:
     }
 };
 
-TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
+TEST_F(LandMarkDetectionTests, EndToEndDetectioWorks)
 {
     std::vector<double> leftEyeErrors, rightEyeErrors;
     std::vector<double> leftLipsErrors, rightLipsErrors;
@@ -211,12 +211,12 @@ TEST_F(PppEngineIntegrationTests, EndToEndDetectioWorks)
     processResults(resultsData);
 }
 
-TEST_F(PppEngineIntegrationTests, DevelopementTestSingleCase)
+TEST_F(LandMarkDetectionTests, DevelopementTestSingleCase)
 {
     runSingleImage(resolvePath("research/mugshot_frontal_original_all/012_frontal.jpg"));
 }
 
-TEST_F(PppEngineIntegrationTests, DISABLED_babyTest)
+TEST_F(LandMarkDetectionTests, DISABLED_babyTest)
 {
     runSingleImage(resolvePath("research/my_database/20191021_155155.jpg"));
 }

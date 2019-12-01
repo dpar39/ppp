@@ -14,7 +14,7 @@ void CrownChinEstimator::configure(rapidjson::Value & config)
 
 bool CrownChinEstimator::estimateCrownChin(LandMarks & landMarks)
 {
-    // Using normalised distance to be the sum of the distance between eye pupils and the distance mouth to frown
+    // Using normalized distance to be the sum of the distance between eye pupils and the distance mouth to frown
     // Distance chin to crown is estimated as 1.7699 of that value with correlation 0.7954
     // Distance chin to frown is estimated as 0.8945 of that value with correlation 0.8426
 
@@ -37,11 +37,11 @@ bool CrownChinEstimator::estimateCrownChin(LandMarks & landMarks)
         mouthCenterPoint /= mouthAve;
     }
 
-    const auto normalisedDistancePixels = norm(landMarks.eyeLeftPupil - landMarks.eyeRightPupil)
+    const auto normalizedDistancePixels = norm(landMarks.eyeLeftPupil - landMarks.eyeRightPupil)
         + norm(frownPointPix - mouthCenterPoint);
 
-    const auto chinFrownDistancePix = m_chinFrownCoeff * normalisedDistancePixels;
-    const auto chinCrownDistancePix = m_chinCrownCoeff * normalisedDistancePixels;
+    const auto chinFrownDistancePix = m_chinFrownCoeff * normalizedDistancePixels;
+    const auto chinCrownDistancePix = m_chinCrownCoeff * normalizedDistancePixels;
 
     if (landMarks.chinPoint == cv::Point())
     {

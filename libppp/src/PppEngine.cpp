@@ -217,7 +217,6 @@ cv::Point PppEngine::getLandMark(const std::vector<cv::Point> & landmarks, const
 
 cv::Mat PppEngine::cropPicture(const string & imageKey,
                                PhotoStandard & ps,
-                               PrintDefinition & canvas,
                                cv::Point & crownMark,
                                cv::Point & chinMark) const
 {
@@ -228,13 +227,18 @@ cv::Mat PppEngine::cropPicture(const string & imageKey,
 
 cv::Mat PppEngine::createTiledPrint(const string & imageKey,
                                     PhotoStandard & ps,
-                                    PrintDefinition & canvas,
+                                    PrintDefinition & pd,
                                     cv::Point & crownMark,
                                     cv::Point & chinMark) const
 {
 
-    const auto croppedImage = cropPicture(imageKey, ps, canvas, crownMark, chinMark);
-    auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(canvas, ps, croppedImage);
+    const auto croppedImage = cropPicture(imageKey, ps, crownMark, chinMark);
+    if (pd.heightPixels() == 0 || pd.widthPixels() == 0)
+    {
+        // Simply return a single photo as cropped
+        return croppedImage;
+    }
+    auto tiledPrintPhoto = m_pPhotoPrintMaker->tileCroppedPhoto(pd, ps, croppedImage);
     return tiledPrintPhoto;
 }
 

@@ -65,13 +65,12 @@ public:
 
     cv::Mat cropPicture(const std::string & imageKey,
                         PhotoStandard & ps,
-                        PrintDefinition & canvas,
                         cv::Point & crownMark,
                         cv::Point & chinMark) const;
 
     cv::Mat createTiledPrint(const std::string & imageKey,
                              PhotoStandard & ps,
-                             PrintDefinition & canvas,
+                             PrintDefinition & pd,
                              cv::Point & crownMark,
                              cv::Point & chinMark) const;
 
