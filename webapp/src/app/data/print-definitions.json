@@ -1,5 +1,6 @@
 [
     {
+        "text": "6″ x 4″",
         "height": 4,
         "width": 6,
         "resolution": 300,
@@ -8,6 +9,7 @@
         "padding": 0.06
     },
     {
+        "text": "5″ x 7″",
         "height": 5,
         "width": 7,
         "resolution": 300,
@@ -16,8 +18,9 @@
         "padding": 0.06
     },
     {
-        "name": "Digital Only",
+        "text": "Digital Size",
         "height": 0,
-        "width": 0
+        "width": 0,
+        "resolution": 0
     }
 ]

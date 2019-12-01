@@ -84,6 +84,9 @@ export class PrintDefinitionSelectorComponent {
   }
 
   getStringRepr(pd: PrintDefinition): string {
+    if (pd.text) {
+      return pd.text;
+    }
     const units = pd.units === 'inch' ? '″' : pd.units;
     return `${pd.height} x ${pd.width}${units} [${pd.resolution}dpi]`;
   }
