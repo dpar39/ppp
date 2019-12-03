@@ -59,8 +59,13 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const PrintDefinition & pd, const PhotoSta
 
     const Size tileSizePixels(roundInteger(ps.photoWidth()), roundInteger(ps.photoHeight()));
     // Resize input crop to the print resolution
-    Mat tileInCanvas;
-    resize(croppedImage, tileInCanvas, tileSizePixels);
+    Mat templateImage;
+    resize(croppedImage, templateImage, tileSizePixels);
+    if (pd.width() <= 0 || pd.height() <= 0)
+    {
+        // This is digital size output
+        return templateImage;
+    }
 
     const auto canvasWidthPixels = pd.totalWidth();
     const auto canvasHeightPixels = pd.totalHeight();
@@ -82,7 +87,7 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const PrintDefinition & pd, const PhotoSta
         for (auto col = 0; col < numPhotoCols; ++col)
         {
             Point topLeft(xOffset + col * dx, yOffset + row * dy);
-            tileInCanvas.copyTo(printPhoto(Rect(topLeft, tileSizePixels)));
+            templateImage.copyTo(printPhoto(Rect(topLeft, tileSizePixels)));
         }
     }
     return printPhoto;

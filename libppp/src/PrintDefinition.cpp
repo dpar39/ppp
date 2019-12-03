@@ -10,12 +10,12 @@ PrintDefinition::PrintDefinition(const double width,
                                  const double gutter,
                                  const double padding)
 {
-    VALIDATE_GT(width, 0);
-    VALIDATE_GT(height, 0);
+    VALIDATE_GE(width, 0);
+    VALIDATE_GE(height, 0);
     VALIDATE_GE(gutter, 0);
     VALIDATE_GE(padding, 0);
-    VALIDATE_LT(gutter, std::min(width, height));
-    VALIDATE_LT(padding, std::min(width, height));
+    VALIDATE_LE(gutter, std::min(width, height));
+    VALIDATE_LE(padding, std::min(width, height));
     m_canvasWidth = width;
     m_canvasHeight = height;
     m_resolution_dpi = dpi;
