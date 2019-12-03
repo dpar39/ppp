@@ -15,30 +15,34 @@ FWD_DECL(PhotoStandard)
 class PhotoStandard final
 {
 private:
-    double m_picHeight_mm; ///<- Height of the photo [mm]
-    double m_picWidth_mm; ///<- Width of the photo [mm]
-    double m_faceHeight_mm; ///<- Height of the face (crown to chin distance) [mm]
-    double m_crownTop_mm; ///<- Distance from the top of the photo to the crown [mm] (zero if not provided)
-    double m_picResolution_dpi; ///<- Standard required print resolution (dots per inch)
+    double m_photoHeight; ///<- Height of the photo [mm]
+    double m_photoWidth; ///<- Width of the photo [mm]
+    double m_faceHeight; ///<- Height of the face (crown to chin distance) [mm]
+    double m_crownTop; ///<- Distance from the top of the photo to the crown [mm] (zero if not provided)
+    mutable double m_resolution_dpi; ///<- Standard required print resolution (dots per inch)
+
+    std::string m_units;
 
 public:
-    PhotoStandard(double picWidth,
-                  double picHeight,
+    PhotoStandard(double photoWidth,
+                  double photoHeight,
                   double faceHeight,
                   double crownTop,
                   double eyeLineBottom,
                   double picResolution,
                   const std::string & units = "mm");
 
-    double photoWidthMM() const;
+    double photoWidth(const std::string & units = "pixel") const;
 
-    double photoHeightMM() const;
+    double photoHeight(const std::string & units = "pixel") const;
 
-    double faceHeightMM() const;
+    double faceHeight(const std::string & units = "pixel") const;
 
-    double crownTopMM() const;
+    double crownTop(const std::string & units = "pixel") const;
 
     double resolutionDpi() const;
+
+    void overrideResolution(double newDpi) const;
 
     static PhotoStandardSPtr fromJson(const rapidjson::Value & photoStandardJson);
 };

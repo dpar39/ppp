@@ -28,8 +28,8 @@ Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
 
     const auto faceHeightPix = norm(chinCrownVec);
 
-    const auto cropHeightPix = ps.photoHeightMM() / ps.faceHeightMM() * faceHeightPix;
-    const auto cropWidthPix = ps.photoWidthMM() / ps.photoHeightMM() * cropHeightPix;
+    const auto cropHeightPix = ps.photoHeight() / ps.faceHeight() * faceHeightPix;
+    const auto cropWidthPix = ps.photoWidth() / ps.photoHeight() * cropHeightPix;
 
     const auto centerTop = centerCrop + Point2d(chinCrownVec * (cropHeightPix / faceHeightPix / 2.0));
     const auto chinCrown90DegRotated = Point2d(chinCrownVec.y, -chinCrownVec.x);
@@ -48,25 +48,31 @@ Mat PhotoPrintMaker::cropPicture(const Mat & originalImage,
 
 Mat PhotoPrintMaker::tileCroppedPhoto(const PrintDefinition & pd, const PhotoStandard & ps, const Mat & croppedImage)
 {
-    const auto printResolution = ps.resolutionDpi();
-    const auto canvasWidthPixels = pd.widthPixels();
-    const auto canvasHeightPixels = pd.heightPixels();
-    const auto canvasPaddingPixels = pd.paddingPixels();
+    if (ps.resolutionDpi() > pd.resolutionDpi())
+    {
+        pd.overrideResolution(ps.resolutionDpi());
+    }
+    else if (ps.resolutionDpi() < pd.resolutionDpi())
+    {
+        ps.overrideResolution(pd.resolutionDpi());
+    }
 
-    const auto numPhotoRows = floorInteger(pd.height() / (ps.photoHeightMM() + pd.border()));
-    const auto numPhotoCols = floorInteger(pd.width() / (ps.photoWidthMM() + pd.border()));
-
-    const Size tileSizePixels(roundInteger(pd.resolutionPixPerMM() * ps.photoWidthMM()),
-                              roundInteger(pd.resolutionPixPerMM() * ps.photoHeightMM()));
-
-    // Resize input crop to the canvas output
+    const Size tileSizePixels(roundInteger(ps.photoWidth()), roundInteger(ps.photoHeight()));
+    // Resize input crop to the print resolution
     Mat tileInCanvas;
     resize(croppedImage, tileInCanvas, tileSizePixels);
 
+    const auto canvasWidthPixels = pd.totalWidth();
+    const auto canvasHeightPixels = pd.totalHeight();
+    const auto canvasPaddingPixels = pd.padding();
+
+    const auto numPhotoRows = floorInteger(pd.height() / (ps.photoHeight() + pd.gutter()));
+    const auto numPhotoCols = floorInteger(pd.width() / (ps.photoWidth() + pd.gutter()));
+
     Mat printPhoto(canvasHeightPixels, canvasWidthPixels, croppedImage.type(), m_backgroundColor);
 
-    const auto dx = roundInteger((ps.photoWidthMM() + pd.border()) * pd.resolutionPixPerMM());
-    const auto dy = roundInteger((ps.photoHeightMM() + pd.border()) * pd.resolutionPixPerMM());
+    const auto dx = roundInteger(ps.photoWidth() + pd.gutter());
+    const auto dy = roundInteger(ps.photoHeight() + pd.gutter());
 
     const auto xOffset = canvasPaddingPixels;
     const auto yOffset = canvasPaddingPixels;
@@ -86,15 +92,15 @@ Point2d PhotoPrintMaker::centerCropEstimation(const PhotoStandard & ps,
                                               const Point & crownPoint,
                                               const Point & chinPoint) const
 {
-    if (ps.crownTopMM() <= 0)
+    if (ps.crownTop() <= 0)
     {
         // Estimate the center of the picture to be the median point between the crown point and the chin point
         return (crownPoint + chinPoint) / 2.0;
     }
 
-    const auto pixelsPerMM = norm(crownPoint - chinPoint) / ps.faceHeightMM();
-    const auto crownTopPix = ps.crownTopMM() * pixelsPerMM;
-    const auto picHeightPix = ps.photoHeightMM() * pixelsPerMM;
+    const auto pixelsPerUnits = norm(crownPoint - chinPoint) / ps.faceHeight();
+    const auto crownTopPix = ps.crownTop() * pixelsPerUnits;
+    const auto picHeightPix = ps.photoHeight() * pixelsPerUnits;
     const auto crownToCenterPix = picHeightPix / 2.0 - crownTopPix;
     return Utilities::pointInLineAtDistance(crownPoint, chinPoint, crownToCenterPix);
 }

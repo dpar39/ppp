@@ -16,11 +16,13 @@ FWD_DECL(PrintDefinition)
 
 class PrintDefinition final
 {
-    double m_canvasWidth_mm { 0.0 }; ///<- Output canvas width in mm
-    double m_canvasHeight_mm { 0.0 }; ///<- Output canvas height in mm
-    double m_resolution_ppmm { 0.0 }; ///<- Resolution in pixels per mm
-    double m_gutter_mm { 0.0 }; ///<- Separation between passport photos in the canvas in mm
-    double m_padding_mm { 1.5 };
+    double m_canvasWidth { 0.0 }; ///<- Output canvas width in mm
+    double m_canvasHeight { 0.0 }; ///<- Output canvas height in mm
+    mutable double m_resolution_dpi { 0.0 }; ///<- Resolution in pixels per mm
+    double m_gutter { 0.0 }; ///<- Separation between passport photos in the canvas in mm
+    double m_padding { 1.5 };
+
+    std::string m_units; ///<- Units of the input dimensions
 
 public:
     PrintDefinition(double width,
@@ -30,23 +32,17 @@ public:
                     double gutter = 0.0,
                     double padding = 0.0);
 
-    double height() const;
+    double height(const std::string & units = "pixel") const;
 
-    double width() const;
+    double width(const std::string & units = "pixel") const;
 
-    double resolutionPixPerMM() const;
+    double gutter(const std::string & units = "pixel") const;
 
-    double border() const;
+    double padding(const std::string & units = "pixel") const;
 
-    double padding() const;
+    double totalWidth(const std::string & units = "pixel") const;
 
-    int widthPixels() const;
-
-    int heightPixels() const;
-
-    int gutterPixel() const;
-
-    int paddingPixels() const;
+    double totalHeight(const std::string & units = "pixel") const;
 
     // canvas:
     // {
@@ -58,5 +54,8 @@ public:
     // }
     /*!@brief Construct a PrintDefinition from JSON data !*/
     static PrintDefinitionSPtr fromJson(rapidjson::Value & canvas);
+    double resolutionDpi() const;
+
+    void overrideResolution(double newDpi) const;
 };
 } // namespace ppp

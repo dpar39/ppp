@@ -63,11 +63,6 @@ public:
 
     bool detectLandMarks(const std::string & imageKey) const;
 
-    cv::Mat cropPicture(const std::string & imageKey,
-                        PhotoStandard & ps,
-                        cv::Point & crownMark,
-                        cv::Point & chinMark) const;
-
     cv::Mat createTiledPrint(const std::string & imageKey,
                              PhotoStandard & ps,
                              PrintDefinition & pd,

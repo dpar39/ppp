@@ -65,14 +65,21 @@ public:
 
     static std::string base64Encode(const std::vector<BYTE> & rawStr);
 
-    /*!@brief Convert a distance to millimeters
-    * @param[in] v Value to convert
-    * @param[in] units Units (accepted values are "inch", "mm" and "cm"
-    !*/
-    static double toMM(double v, const std::string & units);
+    /**
+     * \brief Converts a dimension to pixels
+     * \param v Value to convert to pixels
+     * \param units Value units (e.g. 'inch' or 'cm' or 'mm')
+     * \param dpi Resolution in dots per inch
+     * \return Equivalent value in pixels
+     */
+    static double toPixels(double v, const std::string & units, double dpi);
 
-    static std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(cv::Point2d p1,
-                                                                                cv::Point2d p2,
+    static double fromPixel(double v, const std::string & units, double dpi);
+
+    static double convert(double v, const std::string & from, const std::string & to, double dpi);
+
+    static std::pair<cv::Point2d, cv::Point2d> pointsAtDistanceNormalToCentreOf(const cv::Point2d & p1,
+                                                                                const cv::Point2d & p2,
                                                                                 double d);
 
     /*!@brief Calculates the coordinate of a point in the line defined by two points
@@ -111,9 +118,9 @@ public:
      */
     static std::string serializeJson(rapidjson::Document & d, bool pretty);
 
-    static void setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm);
+    static void setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_dpi);
 
-    static std::string encodeImageAsPng(const cv::Mat & image, bool encodeBase64, double resolution_ppmm = 0);
+    static std::string encodeImageAsPng(const cv::Mat & image, bool encodeBase64, double resolution_dpi = 0);
 
     /**
      * \brief Converts the value held by a variable into a byte vector in Little Endian notation

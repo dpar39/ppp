@@ -3,79 +3,86 @@
 
 namespace ppp
 {
-PhotoStandard::PhotoStandard(const double picWidth,
-                             const double picHeight,
+PhotoStandard::PhotoStandard(const double photoWidth,
+                             const double photoHeight,
                              const double faceHeight,
                              double crownTop,
                              const double eyeLineBottom,
                              const double picResolution,
                              const std::string & units)
 {
-    VALIDATE_GT(picWidth, 0);
-    VALIDATE_GT(picHeight, 0);
+    VALIDATE_GT(photoWidth, 0);
+    VALIDATE_GT(photoHeight, 0);
     VALIDATE_GT(faceHeight, 0);
     VALIDATE_GT(picResolution, 0);
     VALIDATE_GE(crownTop, 0);
     VALIDATE_GE(eyeLineBottom, 0);
-    VALIDATE_LT(faceHeight, picHeight);
+    VALIDATE_LT(faceHeight, photoHeight);
 
     if (crownTop <= 0 && eyeLineBottom > 0)
     {
         // Convert eye line to bottom distance into crown top distance
         constexpr const auto alpha = 0.477196;
-        crownTop = picHeight - eyeLineBottom - alpha * faceHeight;
+        crownTop = photoHeight - eyeLineBottom - alpha * faceHeight;
     }
 
-    VALIDATE_LT(crownTop, picHeight - faceHeight);
+    VALIDATE_LT(crownTop, photoHeight - faceHeight);
 
-    m_picWidth_mm = Utilities::toMM(picWidth, units);
-    m_picHeight_mm = Utilities::toMM(picHeight, units);
-    m_faceHeight_mm = Utilities::toMM(faceHeight, units);
-    m_crownTop_mm = Utilities::toMM(crownTop, units);
-    m_picResolution_dpi = picResolution;
+    m_photoWidth = photoWidth;
+    m_photoHeight = photoHeight;
+    m_faceHeight = faceHeight;
+    m_crownTop = crownTop;
+    m_resolution_dpi = picResolution;
+    m_units = units;
 }
 
-double PhotoStandard::photoWidthMM() const
+double PhotoStandard::photoWidth(const std::string & units) const
 {
-    return m_picWidth_mm;
+    return Utilities::convert(m_photoWidth, m_units, units, m_resolution_dpi);
 }
 
-double PhotoStandard::photoHeightMM() const
+double PhotoStandard::photoHeight(const std::string & units) const
 {
-    return m_picHeight_mm;
+
+    return Utilities::convert(m_photoHeight, m_units, units, m_resolution_dpi);
 }
 
-double PhotoStandard::faceHeightMM() const
+double PhotoStandard::faceHeight(const std::string & units) const
 {
-    return m_faceHeight_mm;
+    return Utilities::convert(m_faceHeight, m_units, units, m_resolution_dpi);
 }
 
-double PhotoStandard::crownTopMM() const
+double PhotoStandard::crownTop(const std::string & units) const
 {
-    return m_crownTop_mm;
+    return Utilities::convert(m_crownTop, m_units, units, m_resolution_dpi);
 }
 
 double PhotoStandard::resolutionDpi() const
 {
-    return m_picResolution_dpi;
+    return m_resolution_dpi;
+}
+
+void PhotoStandard::overrideResolution(const double newDpi) const
+{
+    m_resolution_dpi = newDpi;
 }
 
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(const rapidjson::Value & photoStandardJson)
 {
-    const auto picHeight = photoStandardJson[PHOTO_HEIGHT].GetDouble();
-    const auto picWidth = photoStandardJson[PHOTO_WIDTH].GetDouble();
+    const auto photoHeight = photoStandardJson[PHOTO_HEIGHT].GetDouble();
+    const auto photoWidth = photoStandardJson[PHOTO_WIDTH].GetDouble();
     const auto faceHeight = photoStandardJson[PHOTO_FACE_HEIGHT].GetDouble();
-    const auto picResolution = Utilities::getField(photoStandardJson, PHOTO_RESOLUTION, 300.0);
+    const auto resolution = Utilities::getField(photoStandardJson, PHOTO_RESOLUTION, 300.0);
     const auto units = Utilities::getField(photoStandardJson, UNITS, std::string("mm"));
     const auto crownTop = Utilities::getField(photoStandardJson, PHOTO_CROWN_TOP, 0.0);
     const auto bottomEyeLine = Utilities::getField(photoStandardJson, PHOTO_EYELINE_BOTTOM, 0.0);
 
-    return std::make_shared<PhotoStandard>(picWidth,
-                                           picHeight,
+    return std::make_shared<PhotoStandard>(photoWidth,
+                                           photoHeight,
                                            faceHeight,
                                            crownTop,
                                            bottomEyeLine,
-                                           picResolution,
+                                           resolution,
                                            units);
 }
 } // namespace ppp

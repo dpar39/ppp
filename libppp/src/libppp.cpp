@@ -107,7 +107,7 @@ std::string PublicPppEngine::createTiledPrint(const std::string & imageId, const
     }
 
     const auto result = m_pPppEngine->createTiledPrint(imageId, *ps, *canvas, crownPoint, chinPoint);
-    return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolutionPixPerMM());
+    return Utilities::encodeImageAsPng(result, asBase64Encode, canvas->resolutionDpi());
 }
 
 std::string PublicPppEngine::checkCompliance(const std::string & request) const

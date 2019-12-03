@@ -1,4 +1,4 @@
-#include "Utilities.h"
+﻿#include "Utilities.h"
 
 #include <numeric>
 
@@ -9,6 +9,7 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <unordered_set>
 
 namespace cv
 {
@@ -269,28 +270,61 @@ uint32_t updateCrc(uint32_t crc, const unsigned char * buf, const size_t len)
     return crc;
 }
 
-double Utilities::toMM(const double v, const std::string & units)
+double Utilities::toPixels(const double v, const std::string & units, const double dpi)
 {
-    if (units == "mm")
+    if (units == "pixel")
     {
         return v;
     }
     if (units == "inch")
     {
-        return v * 25.4;
+        return v * dpi;
+    }
+    if (units == "mm")
+    {
+        return v * dpi / 25.4;
     }
     if (units == "cm")
     {
-        return v * 10.0;
+        return v * dpi / 2.54;
     }
-    if (units == "pixel" || units == "pix")
+    throw std::runtime_error("Unknown input units when converting to pixels");
+}
+
+double Utilities::fromPixel(const double v, const std::string & units, const double dpi)
+{
+    if (units == "pixel")
     {
         return v;
     }
-    throw std::runtime_error("Unknown input units when creating the photo standard definition");
+    if (units == "inch")
+    {
+        return v / dpi;
+    }
+    if (units == "mm")
+    {
+        return v / dpi * 25.4;
+    }
+    if (units == "cm")
+    {
+        return v / dpi * 2.54;
+    }
+    throw std::runtime_error("Unknown input units when converting to pixels");
 }
 
-std::pair<cv::Point2d, cv::Point2d> Utilities::pointsAtDistanceNormalToCentreOf(cv::Point2d p1, cv::Point2d p2, double d)
+double Utilities::convert(const double v, const std::string & from, const std::string & to, const double dpi)
+{
+    if (from == to)
+    {
+        return v; // Nothing to convert, great!
+    }
+    const auto pixEquivalent = toPixels(v, from, dpi);
+    return fromPixel(pixEquivalent, to, dpi);
+}
+
+std::pair<cv::Point2d, cv::Point2d> Utilities::pointsAtDistanceNormalToCentreOf(const cv::Point2d & p1,
+                                                                                const cv::Point2d & p2,
+                                                                                const double d)
 {
     if (p1 == p2)
     {
@@ -418,10 +452,10 @@ The following values are defined for the unit specifier:
 pHYs has to go before IDAT chunk
 */
 
-void Utilities::setPngResolutionDpi(std::vector<BYTE> & imageStream, double resolution_ppmm)
+void Utilities::setPngResolutionDpi(std::vector<BYTE> & imageStream, const double resolution_dpi)
 {
     const auto chunkLenBytes = toBytes(9);
-    auto resolutionBytes = toBytes(roundInteger(resolution_ppmm * 1000));
+    auto resolutionBytes = toBytes(roundInteger(resolution_dpi * 1000.0 / 25.4));
     const std::string physStr = "pHYs";
 
     auto pHYsChunk(chunkLenBytes);
@@ -443,13 +477,13 @@ void Utilities::setPngResolutionDpi(std::vector<BYTE> & imageStream, double reso
     }
 }
 
-std::string Utilities::encodeImageAsPng(const cv::Mat & image, const bool encodeBase64, double resolution_ppmm)
+std::string Utilities::encodeImageAsPng(const cv::Mat & image, const bool encodeBase64, double resolution_dpi)
 {
     std::vector<BYTE> pictureData;
     imencode(".png", image, pictureData);
-    if (resolution_ppmm > 0)
+    if (resolution_dpi > 0)
     {
-        setPngResolutionDpi(pictureData, resolution_ppmm);
+        setPngResolutionDpi(pictureData, resolution_dpi);
     }
     if (encodeBase64)
     {

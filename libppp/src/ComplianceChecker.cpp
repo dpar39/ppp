@@ -19,7 +19,7 @@ std::string ComplianceChecker::checkCompliance(const std::string & imgKey,
     {
         if (checkName == "inputResolution")
         {
-            photoStandard->faceHeightMM();
+            photoStandard->faceHeight();
             const auto distPix = norm(crownPoint - chinPoint);
             
         }

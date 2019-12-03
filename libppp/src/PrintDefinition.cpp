@@ -10,56 +10,48 @@ PrintDefinition::PrintDefinition(const double width,
                                  const double gutter,
                                  const double padding)
 {
-    m_canvasWidth_mm = Utilities::toMM(width, units);
-    m_canvasHeight_mm = Utilities::toMM(height, units);
-    m_resolution_ppmm = dpi / Utilities::toMM(1, units);
-    m_gutter_mm = Utilities::toMM(gutter, units);
-    m_padding_mm = Utilities::toMM(padding, units);
+    VALIDATE_GT(width, 0);
+    VALIDATE_GT(height, 0);
+    VALIDATE_GE(gutter, 0);
+    VALIDATE_GE(padding, 0);
+    VALIDATE_LT(gutter, std::min(width, height));
+    VALIDATE_LT(padding, std::min(width, height));
+    m_canvasWidth = width;
+    m_canvasHeight = height;
+    m_resolution_dpi = dpi;
+    m_gutter = gutter;
+    m_padding = padding;
+    m_units = units;
 }
 
-double PrintDefinition::height() const
+double PrintDefinition::height(const std::string & units) const
 {
-    return m_canvasHeight_mm;
+    return Utilities::convert(m_canvasHeight, m_units, units, m_resolution_dpi);
 }
 
-double PrintDefinition::width() const
+double PrintDefinition::width(const std::string & units) const
 {
-    return m_canvasWidth_mm;
+    return Utilities::convert(m_canvasWidth, m_units, units, m_resolution_dpi);
 }
 
-double PrintDefinition::resolutionPixPerMM() const
+double PrintDefinition::gutter(const std::string & units) const
 {
-    return m_resolution_ppmm;
+    return Utilities::convert(m_gutter, m_units, units, m_resolution_dpi);
 }
 
-double PrintDefinition::border() const
+double PrintDefinition::padding(const std::string & units) const
 {
-    return m_gutter_mm;
+    return Utilities::convert(m_padding, m_units, units, m_resolution_dpi);
 }
 
-double PrintDefinition::padding() const
+double PrintDefinition::totalWidth(const std::string & units) const
 {
-    return m_padding_mm;
+    return Utilities::convert(m_canvasWidth + 2 * m_padding, m_units, units, m_resolution_dpi);
 }
 
-int PrintDefinition::widthPixels() const
+double PrintDefinition::totalHeight(const std::string & units) const
 {
-    return ceilInteger((m_canvasWidth_mm + 2 * m_padding_mm) * m_resolution_ppmm);
-}
-
-int PrintDefinition::heightPixels() const
-{
-    return ceilInteger((m_canvasHeight_mm + 2 * m_padding_mm) * m_resolution_ppmm);
-}
-
-int PrintDefinition::gutterPixel() const
-{
-    return ceilInteger(m_gutter_mm * m_resolution_ppmm);
-}
-
-int PrintDefinition::paddingPixels() const
-{
-    return ceilInteger(m_padding_mm * m_resolution_ppmm);
+    return Utilities::convert(m_canvasHeight + 2 * m_padding, m_units, units, m_resolution_dpi);
 }
 
 PrintDefinitionSPtr PrintDefinition::fromJson(rapidjson::Value & canvas)
@@ -72,5 +64,15 @@ PrintDefinitionSPtr PrintDefinition::fromJson(rapidjson::Value & canvas)
     const auto units = Utilities::getField(canvas, UNITS, std::string("mm"));
     const auto cd = std::make_shared<PrintDefinition>(width, height, resolution, units, gutter, padding);
     return cd;
+}
+
+double PrintDefinition::resolutionDpi() const
+{
+    return m_resolution_dpi;
+}
+
+void PrintDefinition::overrideResolution(const double newDpi) const
+{
+    m_resolution_dpi = newDpi;
 }
 } // namespace ppp
