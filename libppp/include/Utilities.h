@@ -21,7 +21,7 @@
         throw std::runtime_error(std::string(#v) + " should be greater or equal than " + std::to_string((min)));
 
 #define VALIDATE_LE(v, max)                                                                                            \
-    if ((v) < (max))                                                                                                   \
+    if ((v) > (max))                                                                                                   \
         throw std::runtime_error(std::string(#v) + " should be less or equal than " + std::to_string((max)));
 
 namespace dlib
