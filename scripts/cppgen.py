@@ -25,7 +25,21 @@ TEMPLATES = {
                 "template": "${script_dir}/cpp-templates/ClassTypeTests.cpp"
             }
         ]
+    },
+    "trivial": {
+        "description": "Generates a simple class header and source file",
+        "files": [
+             {
+                "target": "${src_path}/include/${class_name}.h",
+                "template": "${script_dir}/cpp-templates/TrivialClassHeader.h"
+            },
+            {
+                "target": "${src_path}/src/${class_name}.cpp",
+                "template": "${script_dir}/cpp-templates/ClassTypeSource.cpp"
+            },
+        ]
     }
+
 }
 
 

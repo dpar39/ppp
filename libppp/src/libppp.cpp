@@ -122,10 +122,10 @@ std::string PublicPppEngine::checkCompliance(const std::string & request) const
 
     vector<std::string> complianceCheckNames;
 
-    auto array = d[COMPLIANCE_CHECKS].GetArray();
+    const auto array = d[COMPLIANCE_CHECKS].GetArray();
     for (rapidjson::SizeType i = 0; i < array.Size(); i++)
     {
-        complianceCheckNames.push_back(array[i].GetString());
+        complianceCheckNames.emplace_back(array[i].GetString());
     }
 
     return m_pPppEngine->checkCompliance(imageId, ps, crownPoint, chinPoint, complianceCheckNames);
