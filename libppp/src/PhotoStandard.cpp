@@ -67,6 +67,13 @@ void PhotoStandard::overrideResolution(const double newDpi) const
     m_resolution_dpi = newDpi;
 }
 
+PhotoStandardSPtr PhotoStandard::fromJson(const std::string & photoStandardJson)
+{
+    rapidjson::Document d;
+    d.Parse(photoStandardJson.c_str());
+    return fromJson(d);
+}
+
 std::shared_ptr<PhotoStandard> PhotoStandard::fromJson(const rapidjson::Value & photoStandardJson)
 {
     const auto photoHeight = photoStandardJson[PHOTO_HEIGHT].GetDouble();

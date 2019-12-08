@@ -69,7 +69,7 @@ TEST(UtilitiesTests, TestBase64EncodeDecode)
 //}
 } // namespace ppp
 
-TEST(UtilititesTests, TestLineIntersection)
+TEST(UtilitiesTests, TestLineIntersection)
 {
 
     EXPECT_THROW(Utilities::lineLineIntersection(Point2d(0, 0), Point2d(1, 1), Point2d(1, 0), Point2d(2, 1)),

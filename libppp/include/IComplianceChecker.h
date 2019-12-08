@@ -7,6 +7,7 @@ namespace ppp
 {
 FWD_DECL(IComplianceChecker)
 FWD_DECL(PhotoStandard)
+FWD_DECL(ComplianceResult)
 
 class IComplianceChecker : NonCopyable
 {
@@ -16,11 +17,11 @@ public:
     /*!@brief Configure general parameters for compliance checks:  !*/
     virtual void configure(rapidjson::Value & cfg) = 0;
 
-    virtual std::string checkCompliance(const std::string & imgKey,
-                                        const PhotoStandardSPtr & photoStandard,
-                                        const cv::Point & crownPoint,
-                                        const cv::Point & chinPoint,
-                                        const std::vector<std::string> & complianceCheckNames)
+    virtual std::vector<ComplianceResultSPtr> checkCompliance(const std::string & imgKey,
+                                                              const PhotoStandardSPtr & photoStandard,
+                                                              const cv::Point & crownPoint,
+                                                              const cv::Point & chinPoint,
+                                                              const std::vector<std::string> & complianceCheckNames)
         = 0;
 };
 } // namespace ppp

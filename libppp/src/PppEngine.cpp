@@ -1,5 +1,6 @@
 #include "PppEngine.h"
 #include "ComplianceChecker.h"
+#include "ComplianceResult.h"
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
@@ -240,8 +241,15 @@ std::string PppEngine::checkCompliance(const std::string & imageId,
                                        const std::vector<std::string> & complianceCheckNames) const
 {
 
-    return m_complianceChecker->checkCompliance(imageId, photoStandard, crownPoint, chinPoint, complianceCheckNames);
-
-    return {};
+    const auto results
+        = m_complianceChecker->checkCompliance(imageId, photoStandard, crownPoint, chinPoint, complianceCheckNames);
+    rapidjson::Document d;
+    d.SetArray();
+    auto & alloc = d.GetAllocator();
+    for (const auto & result : results)
+    {
+        d.PushBack(result->toJson(alloc).Move(), alloc);
+    }
+    return Utilities::serializeJson(d, false);
 }
 } // namespace ppp

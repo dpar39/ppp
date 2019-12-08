@@ -47,7 +47,7 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorks)
 
 TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
 {
-    const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, 0.0, 300, "inch");
+    const PhotoStandard passportStandard(2, 2, 1.1875, 0.0, 0.0, 300, "inch");
     const PrintDefinition printDefinition(6, 4, 300, "inch", 0, 1.5 / 25.4);
 
     const auto & imageFileName = resolvePath("research/my_database/20191021_155155.jpg");
@@ -64,7 +64,7 @@ TEST_F(PhotoPrintMakerTests, TestCroppingWorksWithPadding)
 
 TEST_F(PhotoPrintMakerTests, DigitalSize)
 {
-    const PhotoStandard passportStandard(2, 2, 19.0 / 16.0, 0.0, 0.0, 300, "inch");
+    const PhotoStandard passportStandard(2, 2, 1.1875, 0.0, 0.0, 300, "inch");
     const PrintDefinition printDefinition(0, 0, 0, "inch", 0, 0);
 
     const auto & imageFileName = resolvePath("research/my_database/20191021_155155.jpg");

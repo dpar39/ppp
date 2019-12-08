@@ -21,6 +21,17 @@
     typedef std::deque<std::shared_ptr<classname>> classname##SPtrDeque;                                               \
     typedef std::shared_ptr<std::deque<std::shared_ptr<classname>>> classname##SPtrDequeSPtr;
 
+#define DECL_READONLY_PROPERTY(type, name)                                                                             \
+private:                                                                                                               \
+    type m_prop##name;                                                                                                 \
+                                                                                                                       \
+public:                                                                                                                \
+    const type & get##name() const                                                                                     \
+    {                                                                                                                  \
+        return m_prop##name;                                                                                           \
+    }                                                                                                                  \
+    constexpr static const char * STR_##name = #name;
+
 namespace cv
 {
 FWD_DECL(CascadeClassifier);

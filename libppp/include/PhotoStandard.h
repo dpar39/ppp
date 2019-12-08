@@ -45,5 +45,6 @@ public:
     void overrideResolution(double newDpi) const;
 
     static PhotoStandardSPtr fromJson(const rapidjson::Value & photoStandardJson);
+    static PhotoStandardSPtr fromJson(const std::string & photoStandardJson);
 };
 } // namespace ppp

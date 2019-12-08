@@ -67,8 +67,8 @@ Mat PhotoPrintMaker::tileCroppedPhoto(const PrintDefinition & pd, const PhotoSta
         return templateImage;
     }
 
-    const auto canvasWidthPixels = pd.totalWidth();
-    const auto canvasHeightPixels = pd.totalHeight();
+    const auto canvasWidthPixels = roundInteger(pd.totalWidth());
+    const auto canvasHeightPixels = roundInteger(pd.totalHeight());
     const auto canvasPaddingPixels = pd.padding();
 
     const auto numPhotoRows = floorInteger(pd.height() / (ps.photoHeight() + pd.gutter()));
