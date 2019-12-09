@@ -21,7 +21,12 @@ std::vector<ComplianceResultSPtr> ComplianceChecker::checkCompliance(
     std::vector<ComplianceResultSPtr> results;
     using namespace std;
     using namespace rapidjson;
-    for (const auto & checkName : complianceCheckNames)
+
+    // Get access to some data we need
+
+    // m_imageStore
+
+        for (const auto & checkName : complianceCheckNames)
     {
         if (checkName == CHECK_INPUT_RESOLUTION)
         {

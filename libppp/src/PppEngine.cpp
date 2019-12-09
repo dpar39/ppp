@@ -4,6 +4,7 @@
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
+#include "FileSystem.h"
 #include "ImageStore.h"
 #include "LandMarks.h"
 #include "LipsDetector.h"
@@ -79,19 +80,22 @@ bool PppEngine::configure(const std::string & configString)
     {
         auto & shapePredictor = config["shapePredictor"];
         m_shapePredictor = std::make_shared<dlib::shape_predictor>();
+
         const auto shapePredictorFile = shapePredictor["file"].GetString();
-        if (ifstream(shapePredictorFile).good())
-        {
-            dlib::deserialize(shapePredictorFile) >> *m_shapePredictor;
-        }
-        else
-        {
-            const auto shapePredictorFileContent = shapePredictor["data"].GetString();
-            const auto shapePredictorFileContentLen = shapePredictor["data"].GetStringLength();
-            auto spData = Utilities::base64Decode(shapePredictorFileContent, shapePredictorFileContentLen);
-            Imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
-            deserialize(*m_shapePredictor, stream);
-        }
+        FileSystem::loadFile(shapePredictorFile, [this, &shapePredictor](const bool success, std::istream & stream) {
+            if (success)
+            {
+                deserialize(*m_shapePredictor, stream);
+            }
+            else
+            {
+                const auto shapePredictorFileContent = shapePredictor["data"].GetString();
+                const auto shapePredictorFileContentLen = shapePredictor["data"].GetStringLength();
+                auto spData = Utilities::base64Decode(shapePredictorFileContent, shapePredictorFileContentLen);
+                Imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
+                deserialize(*m_shapePredictor, stream);
+            }
+        });
 
         // Prepare landmark mapping
         set<int> missingLandMarks;

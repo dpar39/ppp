@@ -587,7 +587,8 @@ class Builder(object):
             'ALLOW_MEMORY_GROWTH': 1,
             'DISABLE_EXCEPTION_CATCHING': 0,
             'TOTAL_MEMORY': 268435456,  # 268MB is too much?
-            'WASM': 1
+            'WASM': 1,
+            'FETCH': 1
         }
 
         if as_compiler_args:

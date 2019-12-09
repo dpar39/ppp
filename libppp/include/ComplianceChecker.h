@@ -2,6 +2,8 @@
 
 #include "IComplianceChecker.h"
 
+#include <opencv2/core/core.hpp>
+
 DEFINE_STR(CHECK_INPUT_RESOLUTION, inpuResolution)
 
 namespace ppp
@@ -32,7 +34,7 @@ private:
                                          const PhotoStandardSPtr & photoStandard,
                                          const cv::Point & crownPoint,
                                          const cv::Point & chinPoint) const;
-
+    /// ICAO requirements
     // Blurred
     // Looking Away
     // Ink marks/creased
@@ -56,5 +58,10 @@ private:
     // Veil over face
     // Mouth open
     // Presence of other faces or toys too close to face
+
+    // Photo not older than 6 months
+
+private:
+    cv::Mat m_psCropped;
 };
 } // namespace ppp
