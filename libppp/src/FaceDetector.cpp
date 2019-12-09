@@ -1,4 +1,5 @@
 #include "FaceDetector.h"
+#include "FileSystem.h"
 #include "LandMarks.h"
 #include "Utilities.h"
 
@@ -104,6 +105,14 @@ void FaceDetector::calculateScaleSearch(const Size & inputImageSize,
 
 void FaceDetector::configure(rapidjson::Value & config)
 {
+    const std::string file = config["faceDetector"]["haarCascade"]["file"].GetString();
+
+    FileSystem::loadFile(file, [this](const bool success, std::istream & stream) {
+        if (success)
+        {
+            m_pFaceCascadeClassifier = Utilities::loadClassifierFromStream(stream);
+        }
+    });
     const auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
     m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
 

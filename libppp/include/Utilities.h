@@ -52,10 +52,10 @@ int floorInteger(TNumber x)
 class Utilities final
 {
 public:
-    /*!@brief Loads a cascade classifier from file
-    *  @param[in] haarCascadeData Haar cascade XML data possibly encoded as a base64 string
-    *  @returns The classifier loaded into memory
-    !*/
+    static cv::CascadeClassifierSPtr loadClassifierFromStream(std::istream & s);
+
+    static cv::CascadeClassifierSPtr createHaarClassifier(const std::string & xmlHaarCascadeStr);
+
     static std::shared_ptr<cv::CascadeClassifier> loadClassifierFromBase64(const char * haarCascadeData);
 
     /*!@brief Calculates CRC value for a buffer of specified length !*/

@@ -26,7 +26,7 @@ std::vector<ComplianceResultSPtr> ComplianceChecker::checkCompliance(
 
     // m_imageStore
 
-        for (const auto & checkName : complianceCheckNames)
+    for (const auto & checkName : complianceCheckNames)
     {
         if (checkName == CHECK_INPUT_RESOLUTION)
         {

@@ -668,7 +668,7 @@ class Builder(object):
         """
         Extracts validation imageset with annotations from a password protected zip file
         These images were requested at http://www.scface.org/ and are copyrighted,
-        so please do not share them without obatining written consent
+        so please do not share them without obtaining written consent
         """
         research_dir = os.path.join(self._root_dir, 'research')
 
@@ -770,6 +770,8 @@ class Builder(object):
 
         os.chdir(self._root_dir)
         if self._arch_name == 'wasm':
+            shutil.copytree(self.repo_path('libppp/share'),
+                            self.repo_path('webapp/src/assets'))
             shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'),
                             self.repo_path('webapp/src/assets/config.bundle.json'))
             shutil.copyfile(self.build_path('libppp/libppp.js'),
@@ -880,7 +882,7 @@ class Builder(object):
         # Extract testing dataset
         self._shell = ShellRunner()
         self.extract_validation_data()
-        self.bundle_config()
+        #self.bundle_config()
 
         for arch in self._arch_names:
             self._arch_name = arch

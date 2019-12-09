@@ -154,23 +154,18 @@ std::string Utilities::base64Encode(const std::vector<BYTE> & rawStr)
     return result;
 }
 
-cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeData)
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromStream(std::istream & s)
 {
-    static const std::string XML_START = "<?xml";
-    std::string xmlHaarCascadeStr;
-    if (std::equal(XML_START.begin(), XML_START.end(), haarCascadeData))
-    {
-        xmlHaarCascadeStr.assign(haarCascadeData);
-    }
-    else
-    {
-        auto a = base64Decode(haarCascadeData, strlen(haarCascadeData));
-        xmlHaarCascadeStr.assign(a.begin(), a.end());
-    }
-    auto classifier = std::make_shared<cv::CascadeClassifier>();
+    const auto xmlHaarCascadeStr = std::string(std::istreambuf_iterator<char>(s), std::istreambuf_iterator<char>());
+    return createHaarClassifier(xmlHaarCascadeStr);
+}
+
+cv::CascadeClassifierSPtr Utilities::createHaarClassifier(const std::string & xmlHaarCascadeStr)
+{
     try
     {
-        cv::FileStorage fs(xmlHaarCascadeStr, cv::FileStorage::READ | cv::FileStorage::MEMORY);
+        auto classifier = std::make_shared<cv::CascadeClassifier>();
+        const cv::FileStorage fs(xmlHaarCascadeStr, cv::FileStorage::READ | cv::FileStorage::MEMORY);
         classifier->read(fs.getFirstTopLevelNode());
         if (classifier->empty())
         {
@@ -180,8 +175,25 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarC
     }
     catch (std::exception & e)
     {
-        throw e;
+        throw;
     }
+}
+
+cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeData)
+{
+    static const std::string XML_START = "<?xml";
+    std::string xmlHaarCascadeStr;
+    if (std::equal(XML_START.begin(), XML_START.end(), haarCascadeData))
+    {
+
+        xmlHaarCascadeStr.assign(haarCascadeData);
+    }
+    else
+    {
+        auto a = base64Decode(haarCascadeData, strlen(haarCascadeData));
+        xmlHaarCascadeStr.assign(a.begin(), a.end());
+    }
+    return createHaarClassifier(xmlHaarCascadeStr);
 }
 
 uint32_t Utilities::crc32(uint32_t crc, const uint8_t * begin, const uint8_t * end)
