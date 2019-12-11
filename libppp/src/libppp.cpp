@@ -46,6 +46,11 @@ bool PublicPppEngine::configure(const char * jsonConfig) const
     return m_pPppEngine->configure(jsonConfig);
 }
 
+bool PublicPppEngine::isConfigured() const
+{
+    return m_pPppEngine->isConfigured();
+}
+
 std::string PublicPppEngine::setImage(const char * bufferData, const size_t bufferLength) const
 {
     const auto & imageStore = m_pPppEngine->getImageStore();
@@ -160,6 +165,13 @@ bool configure(const char * config_json)
 {
     using namespace ppp;
     TRYRUN(g_c_pppInstance.configure(config_json););
+}
+
+EMSCRIPTEN_KEEPALIVE
+bool is_configured()
+{
+    using namespace ppp;
+    return g_c_pppInstance.isConfigured();
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -4,6 +4,9 @@
 
 #include <functional>
 #include <istream>
+#include <utility>
+
+struct emscripten_fetch_t;
 
 using PathMapper = std::function<std::string(const std::string &)>;
 
@@ -22,5 +25,20 @@ public:
 
 private:
     static PathMapper s_pathMapper;
+};
+
+using ConfigLoaded = std::function<void(bool)>;
+
+class ConfigLoader
+{
+public:
+    explicit ConfigLoader(std::string filePathOrContent, ConfigLoaded completeCallback = nullptr);
+
+private:
+    ConfigLoaded _loadedCallback;
+
+    std::string _currentDir;
+
+    // std::unordered_map<emscripten_fetch_t *, FileLoadResult> g_callbacks = {};
 };
 } // namespace ppp

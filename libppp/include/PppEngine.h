@@ -58,6 +58,7 @@ public:
                        const IImageStoreSPtr & pImageStore = nullptr,
                        const IComplianceCheckerSPtr & pComplianceChecker = nullptr);
 
+    bool isConfigured() const;
     // Native interface
     bool configure(const std::string & configFilePathOrString);
 

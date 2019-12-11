@@ -7,9 +7,14 @@ namespace ppp
 {
 class MockDetector : public IDetector
 {
-public:
-    MOCK_METHOD1(configure, void(rapidjson::Value &));
 
+private:
+    void configureInternal(rapidjson::Value &) override
+    {
+        m_isConfigured = true;
+    }
+
+public:
     MOCK_METHOD2(detectLandMarks, bool(const cv::Mat &, LandMarks &));
 };
 } // namespace ppp

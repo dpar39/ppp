@@ -34,6 +34,8 @@ public:
 
     bool configure(const char * jsonConfig) const;
 
+    bool isConfigured() const;
+
     /*!@brief Stores the image for processing
     *  param[in] bufferData Pointer to the image data
     *  param[in] bufferLength Length of the image data (if 0 or negative we assume it is base64 string)
@@ -95,6 +97,8 @@ extern "C"
     int get_image(const char * img_id, char * out_buf);
 
     bool configure(const char * config_json);
+
+    bool is_configured();
 
     bool detect_landmarks(const char * img_id, char * landmarks);
 

@@ -53,20 +53,6 @@ public:
     }
 };
 
-TEST_F(PppEngineTests, DISABLED_ConfigureWorks)
-{
-    EXPECT_CALL(*m_pFaceDetector, configure(_)).Times(1);
-    EXPECT_CALL(*m_pEyesDetector, configure(_)).Times(1);
-    EXPECT_CALL(*m_pLipsDetector, configure(_)).Times(1);
-    EXPECT_CALL(*m_pCrownChinEstimator, configure(_)).Times(1);
-
-    EXPECT_CALL(*m_pImageStore, setStoreSize(42));
-
-    EXPECT_CALL(*m_pPhotoPrintMaker, configure(_)).Times(1);
-
-    m_pppEngine->configure("{ imageStoreSize: 42 }");
-}
-
 TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
 {
     const cv::Mat dummyImage(2, 3, CV_8UC3, cv::Scalar(10, 20, 30));

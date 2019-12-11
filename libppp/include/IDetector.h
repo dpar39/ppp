@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CommonHelpers.h"
+#include "IConfigurable.h"
+
 #include <opencv2/core/core.hpp>
 #include <rapidjson/document.h>
 
@@ -9,12 +11,9 @@ namespace ppp
 FWD_DECL(LandMarks)
 FWD_DECL(IDetector)
 
-class IDetector : NonCopyable
+class IDetector : NonCopyable, public IConfigurable
 {
 public:
-    /*!@brief Configures the detector from Json data !*/
-    virtual void configure(rapidjson::Value & config) = 0;
-
     /*!@brief Detects a subset of landmarks and stores them !
      *  @returns true if the intended landmarks were detected and can be used as input for subsequent detection, false
      * otherwise !*/

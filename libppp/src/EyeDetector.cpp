@@ -10,7 +10,7 @@ using namespace std;
 
 namespace ppp
 {
-void EyeDetector::configure(rapidjson::Value & cfg)
+void EyeDetector::configureInternal(rapidjson::Value & cfg)
 {
     auto & edCfg = cfg["eyesDetector"];
 
@@ -28,6 +28,7 @@ void EyeDetector::configure(rapidjson::Value & cfg)
         m_leftEyeCascadeClassifier = loadCascade("Left");
         m_rightEyeCascadeClassifier = loadCascade("Right");
     }
+    m_isConfigured = true;
 }
 
 bool EyeDetector::detectLandMarks(const cv::Mat & grayImage, LandMarks & landMarks)

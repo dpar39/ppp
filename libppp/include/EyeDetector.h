@@ -8,10 +8,12 @@ FWD_DECL(EyeDetector)
 
 class EyeDetector final : public IDetector
 {
-public:
-    void configure(rapidjson::Value & cfg) override;
 
+public:
     bool detectLandMarks(const cv::Mat & grayImage, LandMarks & landMarks) override;
+
+protected:
+    void configureInternal(rapidjson::Value & cfg) override;
 
 private:
     cv::Mat m_leftCornerKernel;
@@ -66,4 +68,5 @@ private:
 
     void scaleToFastSize(const cv::Mat & src, cv::Mat & dst) const;
 };
+
 } // namespace ppp

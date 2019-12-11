@@ -73,7 +73,13 @@ if ('function' === typeof importScripts) {
             ptr = _stringToPtr(config);
             Module._configure(ptr);
             Module._free(ptr);
-            postMessage({cmd: 'onRuntimeInitialized'});
+            const interval = setInterval(()=> {
+                if (Module._is_configured())
+                    clearInterval(interval);
+                    console.info('Engine configured and ready to be used');
+                    postMessage({cmd: 'onRuntimeInitialized'});
+            }, 50);
+
         });
     };
 

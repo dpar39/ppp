@@ -772,11 +772,12 @@ class Builder(object):
 
         os.chdir(self._root_dir)
         if self._arch_name == 'wasm':
-            shutil.copyfile(self.build_path('libppp/libppp.js'),
-                            self.repo_path('webapp/src/assets/libppp.js'))
-            shutil.copyfile(self.build_path('libppp/libppp.wasm'),
-                            self.repo_path('webapp/src/assets/libppp.wasm'))
+            # Copy build artifacts
+            for build_artifact in ['libppp.js', 'libppp.wasm']:
+                shutil.copy(self.build_path(os.path.join('libppp', build_artifact)),
+                            self.repo_path('webapp/src/assets'))
 
+            # Copy resources (models, etc.)
             root_src_dir = self.repo_path('libppp/share')
             root_dst_dir = self.repo_path('webapp/src/assets/')
             for src_dir, _, files in os.walk(root_src_dir):

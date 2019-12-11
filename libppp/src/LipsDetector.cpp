@@ -11,7 +11,7 @@ using namespace std;
 
 namespace ppp
 {
-void LipsDetector::configure(rapidjson::Value & config)
+void LipsDetector::configureInternal(rapidjson::Value & config)
 {
     auto & lipsDetectorCfg = config["lipsDetector"];
     m_useHaarCascades = lipsDetectorCfg["useHaarCascade"].GetBool();
@@ -23,6 +23,7 @@ void LipsDetector::configure(rapidjson::Value & config)
         const auto haarClassifierBase64 = lipsDetectorCfg["haarCascade"]["data"].GetString();
         m_pMouthCascadeClassifier = Utilities::loadClassifierFromBase64(haarClassifierBase64);
     }
+    m_isConfigured = true;
 }
 
 bool LipsDetector::detectLandMarks(const Mat & inputImage, LandMarks & landmarks)

@@ -62,8 +62,15 @@ struct Imemstream : virtual Membuf, std::istream
     }
 };
 
+bool PppEngine::isConfigured() const
+{
+    return m_shapePredictor != nullptr && m_pFaceDetector->isConfigured() && m_pEyesDetector->isConfigured()
+        && m_pLipsDetector->isConfigured();
+}
+
 bool PppEngine::configure(const std::string & configFilePathOrContent)
 {
+
     std::ifstream ifs(configFilePathOrContent, std::ios_base::in);
     rapidjson::Document config;
     if (ifs.good())

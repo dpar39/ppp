@@ -7,11 +7,12 @@ namespace ppp
 {
 FWD_DECL(LandMarks)
 FWD_DECL(FaceDetector)
+
 class FaceDetector final : public IDetector
 {
-public:
-    void configure(rapidjson::Value & config) override;
+    void configureInternal(rapidjson::Value & config) override;
 
+public:
     bool detectLandMarks(const cv::Mat & inputImage, LandMarks & landmarks) override;
 
 private:
@@ -25,6 +26,7 @@ private:
                               cv::Size & minFaceSize,
                               cv::Size & maxFaceSize) const;
 
+private:
     std::shared_ptr<dlib::frontal_face_detector> m_frontalFaceDetector;
 };
 } // namespace ppp
