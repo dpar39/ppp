@@ -141,7 +141,8 @@ class ShellRunner(object):
         cmd_all = []
         if IS_WINDOWS and self._arch_name in ['x64', 'x86']:
             vs_arch = {'x64': 'x86_amd64', 'x86': 'x86'}
-            cmd_all = [self._vcvarsbat, vs_arch[self._arch_name]] + '&& set CC=cl.exe && set CXX=cl.exe &&'.split(' ')
+            cmd_all = [self._vcvarsbat, vs_arch[self._arch_name]] + \
+                '&& set CC=cl.exe && set CXX=cl.exe &&'.split(' ')
         cmd_all = cmd_all + cmd_args
 
         if cmd_print:
@@ -587,8 +588,9 @@ class Builder(object):
             'ALLOW_MEMORY_GROWTH': 1,
             'DISABLE_EXCEPTION_CATCHING': 0,
             'TOTAL_MEMORY': 268435456,  # 268MB is too much?
+            'RESERVED_FUNCTION_POINTERS': 1,
+            'FETCH': 1,
             'WASM': 1,
-            'FETCH': 1
         }
 
         if as_compiler_args:
@@ -770,14 +772,23 @@ class Builder(object):
 
         os.chdir(self._root_dir)
         if self._arch_name == 'wasm':
-            shutil.copytree(self.repo_path('libppp/share'),
-                            self.repo_path('webapp/src/assets'))
-            shutil.copyfile(self.repo_path('libppp/share/config.bundle.json'),
-                            self.repo_path('webapp/src/assets/config.bundle.json'))
             shutil.copyfile(self.build_path('libppp/libppp.js'),
                             self.repo_path('webapp/src/assets/libppp.js'))
             shutil.copyfile(self.build_path('libppp/libppp.wasm'),
                             self.repo_path('webapp/src/assets/libppp.wasm'))
+
+            root_src_dir = self.repo_path('libppp/share')
+            root_dst_dir = self.repo_path('webapp/src/assets/')
+            for src_dir, _, files in os.walk(root_src_dir):
+                dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
+                if not os.path.exists(dst_dir):
+                    os.makedirs(dst_dir)
+                for file_ in files:
+                    src_file = os.path.join(src_dir, file_)
+                    dst_file = os.path.join(dst_dir, file_)
+                    if os.path.exists(dst_file):
+                        os.remove(dst_file)
+                    shutil.copy(src_file, dst_dir)
 
     def build_android(self):
         """
@@ -882,7 +893,7 @@ class Builder(object):
         # Extract testing dataset
         self._shell = ShellRunner()
         self.extract_validation_data()
-        #self.bundle_config()
+        # self.bundle_config()
 
         for arch in self._arch_names:
             self._arch_name = arch

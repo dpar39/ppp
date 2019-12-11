@@ -31,7 +31,7 @@ if ('function' === typeof importScripts) {
 
         return new Promise((resolve, reject) => {
             const start = new Date();
-            xhr.open('GET', 'config.bundle.json');
+            xhr.open('GET', 'config.json');
             xhr.onprogress = oEvent => {
                 if (oEvent.total > 0 && oEvent.loaded >= 0) {
                     const elapsedTimeMs = new Date() - start;

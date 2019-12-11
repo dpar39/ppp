@@ -59,7 +59,7 @@ public:
                        const IComplianceCheckerSPtr & pComplianceChecker = nullptr);
 
     // Native interface
-    bool configure(const std::string & configString);
+    bool configure(const std::string & configFilePathOrString);
 
     bool detectLandMarks(const std::string & imageKey) const;
 

@@ -16,11 +16,12 @@
     landmarking task.
 */
 
+#include <iostream>
+#include <unordered_set>
+
 #include <dlib/data_io.h>
 #include <dlib/image_processing.h>
-#include <iostream>
 #include <rapidjson/document.h>
-#include <unordered_set>
 
 using namespace dlib;
 using namespace std;

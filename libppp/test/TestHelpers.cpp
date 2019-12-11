@@ -5,10 +5,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "FileSystem.h"
 #include "ImageStore.h"
 #include "PppEngine.h"
 #include "TestHelpers.h"
 #include "Utilities.h"
+
 #include <map>
 
 #if _MSC_VER >= 1910 // VS 2017
@@ -169,7 +171,7 @@ void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual)
 
 void readConfigFromFile(const std::string & configFile, std::string & configString)
 {
-    const auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.bundle.json") : configFile;
+    const auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.json") : configFile;
     std::ifstream fs(configFilePath, std::ios_base::in);
     configString.assign(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
 }

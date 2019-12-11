@@ -1,4 +1,7 @@
-#include "PppEngine.h"
+
+#include <istream>
+#include <streambuf>
+
 #include "ComplianceChecker.h"
 #include "ComplianceResult.h"
 #include "CrownChinEstimator.h"
@@ -10,6 +13,7 @@
 #include "LipsDetector.h"
 #include "PhotoPrintMaker.h"
 #include "PhotoStandard.h"
+#include "PppEngine.h"
 #include "PrintDefinition.h"
 #include "Utilities.h"
 
@@ -58,11 +62,24 @@ struct Imemstream : virtual Membuf, std::istream
     }
 };
 
-bool PppEngine::configure(const std::string & configString)
+bool PppEngine::configure(const std::string & configFilePathOrContent)
 {
-
+    std::ifstream ifs(configFilePathOrContent, std::ios_base::in);
     rapidjson::Document config;
-    config.Parse(configString.c_str());
+    if (ifs.good())
+    {
+        // We are on a filesystem, let's get the config's directory
+        const auto found = configFilePathOrContent.find_last_of("/\\");
+        const auto dir = found != std::string::npos ? configFilePathOrContent.substr(0, found) : "";
+
+        const std::string configString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        config.Parse(configString.c_str());
+        FileSystem::setPathMapper([dir](const std::string & v) { return dir + "/" + v; });
+    }
+    else
+    {
+        config.Parse(configFilePathOrContent);
+    }
 
     m_pFaceDetector->configure(config);
     m_pEyesDetector->configure(config);

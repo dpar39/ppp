@@ -110,11 +110,13 @@ void FaceDetector::configure(rapidjson::Value & config)
     FileSystem::loadFile(file, [this](const bool success, std::istream & stream) {
         if (success)
         {
+            std::cout << "Classifier about to load" <<std::endl;
             m_pFaceCascadeClassifier = Utilities::loadClassifierFromStream(stream);
+            std::cout << "Classifier loaded" <<std::endl;
         }
     });
-    const auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
-    m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
+    // const auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
+    // m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
 
     m_useDlibFaceDetection = config["useDlibFaceDetection"].GetBool();
 

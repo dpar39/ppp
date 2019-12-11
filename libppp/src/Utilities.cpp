@@ -1,6 +1,7 @@
 ﻿#include "Utilities.h"
 
 #include <numeric>
+#include <unordered_set>
 
 #include <dlib/geometry/rectangle.h>
 #include <opencv2/imgcodecs.hpp>
@@ -9,7 +10,6 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include <unordered_set>
 
 namespace cv
 {
@@ -162,21 +162,14 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromStream(std::istream & s)
 
 cv::CascadeClassifierSPtr Utilities::createHaarClassifier(const std::string & xmlHaarCascadeStr)
 {
-    try
+    auto classifier = std::make_shared<cv::CascadeClassifier>();
+    const cv::FileStorage fs(xmlHaarCascadeStr, cv::FileStorage::READ | cv::FileStorage::MEMORY);
+    classifier->read(fs.getFirstTopLevelNode());
+    if (classifier->empty())
     {
-        auto classifier = std::make_shared<cv::CascadeClassifier>();
-        const cv::FileStorage fs(xmlHaarCascadeStr, cv::FileStorage::READ | cv::FileStorage::MEMORY);
-        classifier->read(fs.getFirstTopLevelNode());
-        if (classifier->empty())
-        {
-            throw std::runtime_error("Failed to load classifier from configuration");
-        }
-        return classifier;
+        throw std::runtime_error("Failed to load classifier from configuration");
     }
-    catch (std::exception & e)
-    {
-        throw;
-    }
+    return classifier;
 }
 
 cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarCascadeData)
@@ -185,7 +178,6 @@ cv::CascadeClassifierSPtr Utilities::loadClassifierFromBase64(const char * haarC
     std::string xmlHaarCascadeStr;
     if (std::equal(XML_START.begin(), XML_START.end(), haarCascadeData))
     {
-
         xmlHaarCascadeStr.assign(haarCascadeData);
     }
     else
