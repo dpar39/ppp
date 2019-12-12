@@ -90,11 +90,8 @@ void FileSystem::loadFile(const std::string & filePathOrUrl, FileLoadResult call
         callback(false, m);
     }*/
 #else
-    auto fs = std::ifstream(fullPath.c_str());
+    auto fs = std::ifstream(fullPath.c_str(), std::ios::binary);
     callback(fs.good(), fs);
-    // if (fs.good())
-    //     fileContent.assign(std::istreambuf_iterator<char>(s), std::istreambuf_iterator<char>()) ;
-    // callback(fileContent);
 #endif
 }
 
