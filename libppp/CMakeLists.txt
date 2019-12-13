@@ -177,7 +177,7 @@ if (NOT ANDROID AND NOT IOS AND NOT DEFINED EMSCRIPTEN)
     # Build dlib's shape prediction model trainer
     #----------------------------------------------
     add_executable(trainer
-        ${CMAKE_CURRENT_SOURCE_DIR}/share/trainer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/trainer/trainer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/share/config.json
     )
     target_link_libraries(trainer dlib::dlib)
