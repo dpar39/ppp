@@ -46,7 +46,7 @@ struct Imemstream : virtual Membuf, std::istream
 //    attr.onerror = failure;
 //    emscripten_fetch(&attr, outputFilename);
 //}
-
+FileProcessedCallback FileSystem::s_fileProcessedCallback;
 PathMapper FileSystem::s_pathMapper = [](const std::string & s) -> std::string { return s; };
 
 void FileSystem::loadFile(const std::string & filePathOrUrl, FileLoadResult callback)
@@ -65,9 +65,8 @@ void FileSystem::loadFile(const std::string & filePathOrUrl, FileLoadResult call
         g_callbacks.erase(fetch);
         emscripten_fetch_close(fetch);
 
-        if (g_callbacks.empty())
-        {
-        }
+        if (s_fileProcessedCallback)
+            s_fileProcessedCallback();
     };
     attr.onerror = [](emscripten_fetch_t * fetch) {
         auto m = Imemstream(nullptr, 0);
@@ -98,6 +97,11 @@ void FileSystem::loadFile(const std::string & filePathOrUrl, FileLoadResult call
 void FileSystem::setPathMapper(const PathMapper pathMapper)
 {
     s_pathMapper = std::move(pathMapper);
+}
+
+void FileSystem::onFileLoaded(FileProcessedCallback fileProcessedCallback)
+{
+    s_fileProcessedCallback = fileProcessedCallback;
 }
 
 ConfigLoader::ConfigLoader(std::string filePathOrContent, ConfigLoaded completeCallback)

@@ -71,14 +71,23 @@ if ('function' === typeof importScripts) {
     Module.onRuntimeInitialized = () => {
         _retrieveApplicationData().then(config => {
             ptr = _stringToPtr(config);
-            Module._configure(ptr);
+
+            var fnPtr = Module.addFunction(() => {
+                console.info('Engine configured and ready to be used');
+                postMessage({cmd: 'onRuntimeInitialized'});
+            }, 'v');
+
+            Module._configure(ptr, fnPtr);
             Module._free(ptr);
-            const interval = setInterval(()=> {
-                if (Module._is_configured())
-                    clearInterval(interval);
-                    console.info('Engine configured and ready to be used');
-                    postMessage({cmd: 'onRuntimeInitialized'});
-            }, 50);
+
+
+
+            // const interval = setInterval(()=> {
+            //     if (Module._is_configured())
+            //         clearInterval(interval);
+            //         console.info('Engine configured and ready to be used');
+            //         postMessage({cmd: 'onRuntimeInitialized'});
+            // }, 50);
 
         });
     };

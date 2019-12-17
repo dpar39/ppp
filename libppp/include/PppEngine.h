@@ -60,7 +60,7 @@ public:
 
     bool isConfigured() const;
     // Native interface
-    bool configure(const std::string & configFilePathOrString);
+    bool configure(const std::string & configFilePathOrString, int callback);
 
     bool detectLandMarks(const std::string & imageKey) const;
 

@@ -40,10 +40,11 @@ PublicPppEngine::~PublicPppEngine()
     delete m_pPppEngine;
 }
 
-bool PublicPppEngine::configure(const char * jsonConfig) const
-{
 
-    return m_pPppEngine->configure(jsonConfig);
+
+bool PublicPppEngine::configure(const char * jsonConfig, int callback) const
+{
+    return m_pPppEngine->configure(jsonConfig, callback);
 }
 
 bool PublicPppEngine::isConfigured() const
@@ -161,10 +162,10 @@ bool set_image(const char * img_buf, int img_buf_size, char * img_metadata)
 }
 
 EMSCRIPTEN_KEEPALIVE
-bool configure(const char * config_json)
+bool configure(const char * config_json, int callback)
 {
     using namespace ppp;
-    TRYRUN(g_c_pppInstance.configure(config_json););
+    TRYRUN(g_c_pppInstance.configure(config_json, callback););
 }
 
 EMSCRIPTEN_KEEPALIVE

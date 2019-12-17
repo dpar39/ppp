@@ -116,7 +116,8 @@
         "__tuple": "cpp",
         "bit": "cpp",
         "coroutine": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "*.idl": "cpp"
     },
     "files.exclude": {
         "**/.git": true,
@@ -185,6 +186,6 @@
         "--max-line-length=110"
     ],
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "env\\Scripts\\python.exe",
+    "python.pythonPath": "/usr/local/bin/python3",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }

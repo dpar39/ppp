@@ -12,6 +12,8 @@ using PathMapper = std::function<std::string(const std::string &)>;
 
 using FileLoadResult = std::function<void(bool, std::istream &)>;
 
+using FileProcessedCallback = std::function<void()>;
+
 namespace ppp
 {
 FWD_DECL(FileSystem);
@@ -23,8 +25,12 @@ public:
 
     static void setPathMapper(PathMapper pathMapper);
 
+    static void onFileLoaded(FileProcessedCallback fileProcessedCallback);
+
 private:
     static PathMapper s_pathMapper;
+
+    static FileProcessedCallback s_fileProcessedCallback;
 };
 
 using ConfigLoaded = std::function<void(bool)>;

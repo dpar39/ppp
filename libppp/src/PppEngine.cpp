@@ -68,8 +68,13 @@ bool PppEngine::isConfigured() const
         && m_pLipsDetector->isConfigured();
 }
 
-bool PppEngine::configure(const std::string & configFilePathOrContent)
+bool PppEngine::configure(const std::string & configFilePathOrContent, int callback)
 {
+    FileSystem::onFileLoaded([callback, this](){
+        typedef void VoidFn();
+        if (isConfigured())
+            ((VoidFn*)callback)();
+    });
 
     std::ifstream ifs(configFilePathOrContent, std::ios_base::in);
     rapidjson::Document config;
@@ -103,13 +108,14 @@ bool PppEngine::configure(const std::string & configFilePathOrContent)
     if (m_useDlibLandmarkDetection)
     {
         auto & shapePredictor = config["shapePredictor"];
-        m_shapePredictor = std::make_shared<dlib::shape_predictor>();
+
 
         const auto shapePredictorFile = shapePredictor["file"].GetString();
         FileSystem::loadFile(shapePredictorFile, [this, &shapePredictor](const bool success, std::istream & stream) {
+            const auto shapePredictorObj = std::make_shared<dlib::shape_predictor>();
             if (success)
             {
-                deserialize(*m_shapePredictor, stream);
+                deserialize(*shapePredictorObj, stream);
             }
             else
             {
@@ -117,8 +123,9 @@ bool PppEngine::configure(const std::string & configFilePathOrContent)
                 const auto shapePredictorFileContentLen = shapePredictor["data"].GetStringLength();
                 auto spData = Utilities::base64Decode(shapePredictorFileContent, shapePredictorFileContentLen);
                 Imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
-                deserialize(*m_shapePredictor, stream);
+                deserialize(*shapePredictorObj, stream);
             }
+            m_shapePredictor = shapePredictorObj;
         });
 
         // Prepare landmark mapping

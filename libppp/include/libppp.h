@@ -32,7 +32,7 @@ public:
     PublicPppEngine(PublicPppEngine &&) = delete;
     PublicPppEngine & operator=(PublicPppEngine &&) = delete;
 
-    bool configure(const char * jsonConfig) const;
+    bool configure(const char * jsonConfig, int callback) const;
 
     bool isConfigured() const;
 
@@ -96,7 +96,7 @@ extern "C"
 
     int get_image(const char * img_id, char * out_buf);
 
-    bool configure(const char * config_json);
+    bool configure(const char * config_json, int callback);
 
     bool is_configured();
 
