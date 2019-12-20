@@ -32,7 +32,7 @@ public:
     PublicPppEngine(PublicPppEngine &&) = delete;
     PublicPppEngine & operator=(PublicPppEngine &&) = delete;
 
-    bool configure(const char * jsonConfig, int callback) const;
+    bool configure(const char * jsonConfig, void * callback) const;
 
     bool isConfigured() const;
 

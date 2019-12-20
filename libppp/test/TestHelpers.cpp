@@ -5,7 +5,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "FileSystem.h"
+#include "ConfigLoader.h"
 #include "ImageStore.h"
 #include "PppEngine.h"
 #include "TestHelpers.h"
@@ -169,6 +169,15 @@ void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual)
     ASSERT_EQ(0, cv::countNonZero(diff)) << "Images are not the same pixel by pixel";
 }
 
+ConfigLoaderSPtr getConfigLoader(const std::string & configFile)
+{
+    auto configFilePath = configFile;
+    if (!configFile.empty())
+        configFilePath = resolvePath("libppp/share/config.json");
+    const auto configLoader = std::make_shared<ConfigLoader>(configFilePath);
+    return configLoader;
+}
+
 void readConfigFromFile(const std::string & configFile, std::string & configString)
 {
     const auto configFilePath = configFile.empty() ? resolvePath("libppp/share/config.json") : configFile;
@@ -312,7 +321,7 @@ LandMarksSPtr loadLandmarks(const std::string & imageFilePath)
     {
         std::string configString;
         readConfigFromFile("", configString);
-        configured = engine.configure(configString);
+        configured = engine.configure(configString, nullptr);
     }
     const auto & store = engine.getImageStore();
     const auto imgKey = store->setImage(imageFilePath);

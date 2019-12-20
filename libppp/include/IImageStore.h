@@ -1,7 +1,12 @@
 #pragma once
 
 #include "CommonHelpers.h"
-#include <opencv2/core/core.hpp>
+#include "IConfigurable.h"
+
+namespace cv
+{
+class Mat;
+}
 
 namespace easyexif
 {
@@ -15,7 +20,7 @@ FWD_DECL(LandMarks);
 
 /*!@brief Caches input images that are going to be processed.
  * Only a certain amount of images are kept at any point in time. */
-class IImageStore : NonCopyable
+class IImageStore : NonCopyable, public IConfigurable
 {
 public:
     /*!@brief Loads an image from file and returns the imageKey for later retrieval !*/

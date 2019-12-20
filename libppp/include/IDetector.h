@@ -4,7 +4,6 @@
 #include "IConfigurable.h"
 
 #include <opencv2/core/core.hpp>
-#include <rapidjson/document.h>
 
 namespace ppp
 {

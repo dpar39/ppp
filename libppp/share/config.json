@@ -39,7 +39,9 @@
         "chinCrownCoeff": 1.7096,
         "chinFrownCoeff": 0.8929
     },
-    "imageStoreSize": 32,
+    "imageStore": {
+        "size": 32 
+    }, 
     "photoPrintMaker": {
         "background": [
             128,

@@ -1,4 +1,5 @@
 #include "PhotoPrintMaker.h"
+#include "ConfigLoader.h"
 #include "PhotoStandard.h"
 #include "PrintDefinition.h"
 #include "Utilities.h"
@@ -10,9 +11,9 @@ using namespace cv;
 namespace ppp
 {
 
-void PhotoPrintMaker::configure(rapidjson::Value & cfg)
+void PhotoPrintMaker::configureInternal(const ConfigLoaderSPtr & cfg)
 {
-    auto & ppmConfig = cfg["photoPrintMaker"];
+    auto & ppmConfig = cfg->get({ "photoPrintMaker" });
     const auto rgbArr = ppmConfig["background"].GetArray();
     m_backgroundColor = Scalar(rgbArr[0].GetInt(), rgbArr[1].GetInt(), rgbArr[2].GetInt());
 }

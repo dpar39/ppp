@@ -6,6 +6,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <opencv2/core/core.hpp>
+
 namespace ppp
 {
 
@@ -34,6 +36,9 @@ public:
     LandMarksSPtr getLandMarks(const std::string & imageKey) override;
 
     easyexif::EXIFInfoSPtr getExifInfo(const std::string & imageKey) override;
+
+protected:
+    void configureInternal(const ConfigLoaderSPtr & config) override;
 
 private:
     ///<- Stores the images currently being processing

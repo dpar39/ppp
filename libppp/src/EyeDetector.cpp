@@ -4,15 +4,16 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <queue>
 
+#include "ConfigLoader.h"
 #include "Utilities.h"
 
 using namespace std;
 
 namespace ppp
 {
-void EyeDetector::configureInternal(rapidjson::Value & cfg)
+void EyeDetector::configureInternal(const ConfigLoaderSPtr & cfg)
 {
-    auto & edCfg = cfg["eyesDetector"];
+    auto & edCfg = cfg->get({ "eyesDetector" });
 
     createCornerKernels();
 

@@ -11,6 +11,7 @@
 namespace ppp
 {
 FWD_DECL(IImageStore)
+FWD_DECL(ConfigLoader)
 
 using DetectionCallback
     = std::function<std::tuple<bool, cv::Mat, LandMarksSPtr>(const std::string &, const LandMarksSPtr &)>;
@@ -43,7 +44,7 @@ void benchmarkValidate(const cv::Mat & actualImage, const std::string & suffix =
 
 void verifyEqualImages(const cv::Mat & expected, const cv::Mat & actual);
 
-void readConfigFromFile(const std::string & configFile, std::string & configString);
+ConfigLoaderSPtr getConfigLoader(const std::string & configFile = "");
 
 void processDatabase(const DetectionCallback & callback,
                      const std::vector<std::string> & ignoredImages,

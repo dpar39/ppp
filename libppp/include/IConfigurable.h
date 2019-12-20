@@ -1,12 +1,15 @@
 #pragma once
-#include <rapidjson/document.h>
+
+namespace ppp
+{
+FWD_DECL(ConfigLoader);
 
 class IConfigurable
 {
 public:
     virtual ~IConfigurable() = default;
 
-    void configure(rapidjson::Value & config)
+    void configure(const ConfigLoaderSPtr & config)
     {
         m_isConfigured = false;
         configureInternal(config);
@@ -18,7 +21,8 @@ public:
     }
 
 protected:
-    virtual void configureInternal(rapidjson::Value & config) = 0;
+    virtual void configureInternal(const ConfigLoaderSPtr & config) = 0;
 
     bool m_isConfigured = false;
 };
+} // namespace ppp

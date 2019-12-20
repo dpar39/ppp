@@ -1,5 +1,5 @@
 #include "FaceDetector.h"
-#include "FileSystem.h"
+#include "ConfigLoader.h"
 #include "LandMarks.h"
 #include "Utilities.h"
 
@@ -103,11 +103,11 @@ void FaceDetector::calculateScaleSearch(const Size & inputImageSize,
     maxFaceSize = Size(maxFaceSizePix, maxFaceSizePix);
 }
 
-void FaceDetector::configureInternal(rapidjson::Value & config)
+void FaceDetector::configureInternal(const ConfigLoaderSPtr & config)
 {
     m_isConfigured = false;
-    const std::string file = config["faceDetector"]["haarCascade"]["file"].GetString();
-    FileSystem::loadFile(file, [this](const bool success, std::istream & stream) {
+
+    config->loadResource({ "faceDetector", "haarCascade" }, [this](const bool success, std::istream & stream) {
         if (success)
         {
             m_pFaceCascadeClassifier = Utilities::loadClassifierFromStream(stream);
@@ -115,10 +115,7 @@ void FaceDetector::configureInternal(rapidjson::Value & config)
         }
     });
 
-    // const auto xmlBase64Data(config["faceDetector"]["haarCascade"]["data"].GetString());
-    // m_pFaceCascadeClassifier = Utilities::loadClassifierFromBase64(xmlBase64Data);
-
-    m_useDlibFaceDetection = config["useDlibFaceDetection"].GetBool();
+    m_useDlibFaceDetection = config->get({ "useDlibFaceDetection" }).GetBool();
 
     /*if (m_useDlibFaceDetection)
     {

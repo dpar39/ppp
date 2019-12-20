@@ -53,7 +53,7 @@ public:
     }
 };
 
-TEST_F(PppEngineTests, LandMarkDetectionWorkflowHappyPath)
+TEST_F(PppEngineTests, DISABLED_LandMarkDetectionWorkflowHappyPath)
 {
     const cv::Mat dummyImage(2, 3, CV_8UC3, cv::Scalar(10, 20, 30));
 

@@ -2,6 +2,7 @@
 #include "LandMarks.h"
 #include "Utilities.h"
 
+#include "ConfigLoader.h"
 #include <algorithm>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
@@ -11,9 +12,9 @@ using namespace std;
 
 namespace ppp
 {
-void LipsDetector::configureInternal(rapidjson::Value & config)
+void LipsDetector::configureInternal(const ConfigLoaderSPtr & config)
 {
-    auto & lipsDetectorCfg = config["lipsDetector"];
+    auto & lipsDetectorCfg = config->get({ "lipsDetector" });
     m_useHaarCascades = lipsDetectorCfg["useHaarCascade"].GetBool();
 
     m_useColorSegmentationAlgorithm = lipsDetectorCfg["useColorSegmentation"].GetBool();

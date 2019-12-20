@@ -7,7 +7,7 @@
 #include "CrownChinEstimator.h"
 #include "EyeDetector.h"
 #include "FaceDetector.h"
-#include "FileSystem.h"
+#include "ConfigLoader.h"
 #include "ImageStore.h"
 #include "LandMarks.h"
 #include "LipsDetector.h"
@@ -41,26 +41,8 @@ PppEngine::PppEngine(const IDetectorSPtr & pFaceDetector,
 , m_complianceChecker(pComplianceChecker ? pComplianceChecker : make_shared<ComplianceChecker>())
 , m_pPhotoPrintMaker(pPhotoPrintMaker ? pPhotoPrintMaker : make_shared<PhotoPrintMaker>())
 , m_pImageStore(pImageStore ? pImageStore : make_shared<ImageStore>())
-, m_useDlibLandmarkDetection(false)
 {
 }
-
-struct Membuf : std::streambuf
-{
-    Membuf(char const * base, const size_t size)
-    {
-        char * p(const_cast<char *>(base));
-        this->setg(p, p, p + size);
-    }
-};
-struct Imemstream : virtual Membuf, std::istream
-{
-    Imemstream(char const * base, const size_t size)
-    : Membuf(base, size)
-    , std::istream(static_cast<std::streambuf *>(this))
-    {
-    }
-};
 
 bool PppEngine::isConfigured() const
 {
@@ -68,92 +50,60 @@ bool PppEngine::isConfigured() const
         && m_pLipsDetector->isConfigured();
 }
 
-bool PppEngine::configure(const std::string & configFilePathOrContent, int callback)
+bool PppEngine::configure(const std::string & configFilePathOrContent, void * callback)
 {
-    FileSystem::onFileLoaded([callback, this](){
+    const auto configLoader = std::make_shared<ConfigLoader>(configFilePathOrContent, [callback, this]() {
         typedef void VoidFn();
-        if (isConfigured())
-            ((VoidFn*)callback)();
+        if (isConfigured() && callback != nullptr)
+            reinterpret_cast<VoidFn *>(callback)();
     });
 
-    std::ifstream ifs(configFilePathOrContent, std::ios_base::in);
-    rapidjson::Document config;
-    if (ifs.good())
-    {
-        // We are on a filesystem, let's get the config's directory
-        const auto found = configFilePathOrContent.find_last_of("/\\");
-        const auto dir = found != std::string::npos ? configFilePathOrContent.substr(0, found) : "";
-
-        const std::string configString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-        config.Parse(configString.c_str());
-        FileSystem::setPathMapper([dir](const std::string & v) { return dir + "/" + v; });
-    }
-    else
-    {
-        config.Parse(configFilePathOrContent);
-    }
-
-    m_pFaceDetector->configure(config);
-    m_pEyesDetector->configure(config);
-    m_pLipsDetector->configure(config);
-    m_pCrownChinEstimator->configure(config);
-
-    const size_t imageStoreSize = config["imageStoreSize"].GetInt();
-    m_pImageStore->setStoreSize(imageStoreSize);
-
-    m_pPhotoPrintMaker->configure(config);
-
-    m_useDlibLandmarkDetection = config["useDlibLandmarkDetection"].GetBool();
-
-    if (m_useDlibLandmarkDetection)
-    {
-        auto & shapePredictor = config["shapePredictor"];
-
-
-        const auto shapePredictorFile = shapePredictor["file"].GetString();
-        FileSystem::loadFile(shapePredictorFile, [this, &shapePredictor](const bool success, std::istream & stream) {
-            const auto shapePredictorObj = std::make_shared<dlib::shape_predictor>();
-            if (success)
-            {
-                deserialize(*shapePredictorObj, stream);
-            }
-            else
-            {
-                const auto shapePredictorFileContent = shapePredictor["data"].GetString();
-                const auto shapePredictorFileContentLen = shapePredictor["data"].GetStringLength();
-                auto spData = Utilities::base64Decode(shapePredictorFileContent, shapePredictorFileContentLen);
-                Imemstream stream(reinterpret_cast<char *>(&spData[0]), spData.size());
-                deserialize(*shapePredictorObj, stream);
-            }
+    configLoader->loadResource({ "shapePredictor" }, [this](const bool success, std::istream & stream) {
+        const auto shapePredictorObj = std::make_shared<dlib::shape_predictor>();
+        if (stream.good())
+        {
+            deserialize(*shapePredictorObj, stream);
             m_shapePredictor = shapePredictorObj;
-        });
-
-        // Prepare landmark mapping
-        set<int> missingLandMarks;
-        auto array = shapePredictor["missingPoints"].GetArray();
-        for (rapidjson::SizeType i = 0; i < array.Size(); i++)
-        {
-            missingLandMarks.insert(array[i].GetInt());
         }
+    });
 
-        m_landmarkIndexMapping = { { LandMarkType::EYE_PUPIL_CENTER_LEFT, std::vector<int> { 38, 39, 41, 42 } },
-                                   { LandMarkType::EYE_PUPIL_CENTER_RIGHT, std::vector<int> { 44, 45, 47, 48 } },
-                                   { LandMarkType::MOUTH_CORNER_LEFT, std::vector<int> { 49 } },
-                                   { LandMarkType::MOUTH_CORNER_RIGHT, std::vector<int> { 55 } },
-                                   { LandMarkType::CHIN_LOWEST_POINT, std::vector<int> { 9 } },
-                                   { LandMarkType::NOSE_TIP_POINT, std::vector<int> { 34 } },
-                                   { LandMarkType::EYE_OUTER_CORNER_LEFT, std::vector<int> { 37 } },
-                                   { LandMarkType::EYE_OUTER_CORNER_RIGHT, std::vector<int> { 46 } } };
+    m_pFaceDetector->configure(configLoader);
+    m_pEyesDetector->configure(configLoader);
+    m_pLipsDetector->configure(configLoader);
+    m_pCrownChinEstimator->configure(configLoader);
+    m_pImageStore->configure(configLoader);
 
-        for (auto & kv : m_landmarkIndexMapping)
+    m_pPhotoPrintMaker->configure(configLoader);
+
+    const auto & spConfig = configLoader->get({ "shapePredictor" });
+
+    // Prepare landmark mapping
+    set<int> missingLandMarks;
+    const auto & array = spConfig["missingPoints"].GetArray();
+    for (rapidjson::SizeType i = 0; i < array.Size(); i++)
+    {
+        missingLandMarks.insert(array[i].GetInt());
+    }
+    m_landmarkIndexMapping = { { LandMarkType::EYE_PUPIL_CENTER_LEFT, std::vector<int> { 38, 39, 41, 42 } },
+                               { LandMarkType::EYE_PUPIL_CENTER_RIGHT, std::vector<int> { 44, 45, 47, 48 } },
+                               { LandMarkType::MOUTH_CORNER_LEFT, std::vector<int> { 49 } },
+                               { LandMarkType::MOUTH_CORNER_RIGHT, std::vector<int> { 55 } },
+                               { LandMarkType::CHIN_LOWEST_POINT, std::vector<int> { 9 } },
+                               { LandMarkType::NOSE_TIP_POINT, std::vector<int> { 34 } },
+                               { LandMarkType::EYE_OUTER_CORNER_LEFT, std::vector<int> { 37 } },
+                               { LandMarkType::EYE_OUTER_CORNER_RIGHT, std::vector<int> { 46 } } };
+
+    for (auto & kv : m_landmarkIndexMapping)
+    {
+        for (auto & idx : kv.second)
         {
-            for (auto & idx : kv.second)
-            {
-                const auto offset = std::distance(missingLandMarks.begin(), missingLandMarks.upper_bound(idx));
-                idx -= offset + 1;
-            }
+            const auto offset = std::distance(missingLandMarks.begin(), missingLandMarks.upper_bound(idx));
+            idx -= offset + 1;
         }
     }
+
+    m_configLoader = configLoader;
+
     return true;
 }
 
@@ -181,54 +131,37 @@ bool PppEngine::detectLandMarks(const string & imageKey) const
         return false;
     }
 
-    if (!m_useDlibLandmarkDetection)
+    using namespace dlib;
+    // Detect the face
+    if (!m_pFaceDetector->detectLandMarks(grayImage, *landMarks))
     {
-        // Detect the eye pupils
-        if (!m_pEyesDetector->detectLandMarks(grayImage, *landMarks))
-        {
-            return false;
-        }
-
-        // Detect mouth landmarks
-        if (!m_pLipsDetector->detectLandMarks(inputImage, *landMarks))
-        {
-            return false;
-        }
+        return false;
     }
-    else
+    array2d<bgr_pixel> dlibImage;
+    assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
+
+    const auto & r = landMarks->vjFaceRect;
+    const auto faceRect = rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
+    auto shape = (*m_shapePredictor)(dlibImage, faceRect);
+
+    const auto numParts = shape.num_parts();
+    landMarks->allLandmarks.clear();
+    landMarks->allLandmarks.reserve(numParts);
+    for (size_t i = 0; i < numParts; ++i)
     {
-        using namespace dlib;
-        // Detect the face
-        if (!m_pFaceDetector->detectLandMarks(grayImage, *landMarks))
-        {
-            return false;
-        }
-        array2d<bgr_pixel> dlibImage;
-        assign_image(dlibImage, cv_image<bgr_pixel>(inputImage));
-
-        const auto & r = landMarks->vjFaceRect;
-        const auto faceRect = rectangle(r.x, r.y, r.x + r.width, r.y + r.height);
-        auto shape = (*m_shapePredictor)(dlibImage, faceRect);
-
-        const auto numParts = shape.num_parts();
-        landMarks->allLandmarks.clear();
-        landMarks->allLandmarks.reserve(numParts);
-        for (size_t i = 0; i < numParts; ++i)
-        {
-            auto & part = shape.part(i);
-            landMarks->allLandmarks.emplace_back(part.x(), part.y());
-        }
-
-        const auto & lms = landMarks->allLandmarks;
-        landMarks->lipLeftCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_LEFT);
-        landMarks->lipRightCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_RIGHT);
-        landMarks->eyeLeftPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_LEFT);
-        landMarks->eyeRightPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_RIGHT);
-        landMarks->chinPoint = getLandMark(lms, LandMarkType::CHIN_LOWEST_POINT);
-        landMarks->noseTip = getLandMark(lms, LandMarkType::NOSE_TIP_POINT);
-        landMarks->eyeLeftCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_LEFT);
-        landMarks->eyeRightCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_RIGHT);
+        auto & part = shape.part(i);
+        landMarks->allLandmarks.emplace_back(part.x(), part.y());
     }
+
+    const auto & lms = landMarks->allLandmarks;
+    landMarks->lipLeftCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_LEFT);
+    landMarks->lipRightCorner = getLandMark(lms, LandMarkType::MOUTH_CORNER_RIGHT);
+    landMarks->eyeLeftPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_LEFT);
+    landMarks->eyeRightPupil = getLandMark(lms, LandMarkType::EYE_PUPIL_CENTER_RIGHT);
+    landMarks->chinPoint = getLandMark(lms, LandMarkType::CHIN_LOWEST_POINT);
+    landMarks->noseTip = getLandMark(lms, LandMarkType::NOSE_TIP_POINT);
+    landMarks->eyeLeftCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_LEFT);
+    landMarks->eyeRightCorner = getLandMark(lms, LandMarkType::EYE_OUTER_CORNER_RIGHT);
 
     // Estimate chin and crown point (maths from existing landmarks)
     return m_pCrownChinEstimator->estimateCrownChin(*landMarks);

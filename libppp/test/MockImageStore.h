@@ -6,7 +6,7 @@
 namespace ppp
 {
 
-class MockImageStore : public IImageStore
+class MockImageStore final : public IImageStore
 {
 public:
     MOCK_METHOD1(getImage, cv::Mat(const std::string &));
@@ -19,5 +19,7 @@ public:
 
     MOCK_METHOD1(setImage, std::string(const std::string &));
     MOCK_METHOD2(setImage, std::string(const char *, size_t));
+
+    MOCK_METHOD1(configureInternal, void(const ConfigLoaderSPtr &));
 };
 } // namespace ppp

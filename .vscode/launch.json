@@ -42,7 +42,7 @@
             "stopOnEntry": false,
             "program": "${workspaceFolder}/build.py",
             "args": [
-                "-a", "x64",
+                "-a", "wasm",
                 "--build_config=release"
             ]
         },

@@ -19,6 +19,8 @@ FWD_DECL(ICrownChinEstimator)
 FWD_DECL(IImageStore)
 FWD_DECL(IPhotoPrintMaker)
 FWD_DECL(IComplianceChecker)
+FWD_DECL(ConfigLoader)
+
 
 class PrintDefinition;
 class PhotoStandard;
@@ -60,7 +62,7 @@ public:
 
     bool isConfigured() const;
     // Native interface
-    bool configure(const std::string & configFilePathOrString, int callback);
+    bool configure(const std::string & configFilePathOrString, void * callback);
 
     bool detectLandMarks(const std::string & imageKey) const;
 
@@ -87,8 +89,8 @@ private:
     IPhotoPrintMakerSPtr m_pPhotoPrintMaker;
     IImageStoreSPtr m_pImageStore;
 
+    ConfigLoaderSPtr m_configLoader;
     std::shared_ptr<dlib::shape_predictor> m_shapePredictor;
-    bool m_useDlibLandmarkDetection;
 
     std::unordered_map<LandMarkType, std::vector<int>, EnumClassHash> m_landmarkIndexMapping;
 

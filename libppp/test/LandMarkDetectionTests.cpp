@@ -70,12 +70,8 @@ protected:
 
     void SetUp() override
     {
-        // std::string configString;
-        // readConfigFromFile("", configString);
-        // m_pPppEngine->configure(configString);
-
         const auto configFile = resolvePath("libppp/share/config.json");
-        m_pPppEngine->configure(configFile);
+        m_pPppEngine->configure(configFile, 0);
     }
 
     void processResults(const std::vector<ResultData> & resultsData) const

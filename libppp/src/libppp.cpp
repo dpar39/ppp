@@ -40,9 +40,7 @@ PublicPppEngine::~PublicPppEngine()
     delete m_pPppEngine;
 }
 
-
-
-bool PublicPppEngine::configure(const char * jsonConfig, int callback) const
+bool PublicPppEngine::configure(const char * jsonConfig, void * callback) const
 {
     return m_pPppEngine->configure(jsonConfig, callback);
 }
@@ -165,7 +163,7 @@ EMSCRIPTEN_KEEPALIVE
 bool configure(const char * config_json, int callback)
 {
     using namespace ppp;
-    TRYRUN(g_c_pppInstance.configure(config_json, callback););
+    TRYRUN(g_c_pppInstance.configure(config_json, (void *) callback););
 }
 
 EMSCRIPTEN_KEEPALIVE

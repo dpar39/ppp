@@ -17,13 +17,8 @@ protected:
     void SetUp() override
     {
         m_pFaceDetector = std::make_shared<FaceDetector>();
-        std::string configString;
-        readConfigFromFile("", configString);
-
-        rapidjson::Document config;
-        config.Parse(configString.c_str());
-
-        m_pFaceDetector->configure(config);
+        const auto configLoader = getConfigLoader();
+        m_pFaceDetector->configure(configLoader);
     }
 };
 

@@ -14,8 +14,6 @@ class PhotoStandard;
 class PhotoPrintMaker final : public IPhotoPrintMaker
 {
 public:
-    void configure(rapidjson::Value & cfg) override;
-
     cv::Mat cropPicture(const cv::Mat & originalImage,
                         const cv::Point & crownPoint,
                         const cv::Point & chinPoint,
@@ -30,6 +28,8 @@ private:
     cv::Point2d centerCropEstimation(const PhotoStandard & ps,
                                      const cv::Point & crownPoint,
                                      const cv::Point & chinPoint) const;
+
+    void configureInternal(const ConfigLoaderSPtr & cfg) override;
 
     cv::Scalar m_backgroundColor = cv::Scalar(128, 128, 128);
 };

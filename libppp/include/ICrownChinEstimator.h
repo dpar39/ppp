@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include "CommonHelpers.h"
-#include <rapidjson/document.h>
 
 namespace ppp
 {
 FWD_DECL(LandMarks)
+FWD_DECL(ConfigLoader)
 FWD_DECL(ICrownChinEstimator)
 
 class ICrownChinEstimator : NonCopyable
@@ -14,7 +14,7 @@ public:
     virtual ~ICrownChinEstimator() = default;
 
     /*!@brief Configures the detector from Json data !*/
-    virtual void configure(rapidjson::Value & config) = 0;
+    virtual void configure(const ConfigLoaderSPtr & config) = 0;
 
     /*!@brief Estimate chin and crown point from the available landmarks!
      *  The result is written in the same LandMark structure !*/

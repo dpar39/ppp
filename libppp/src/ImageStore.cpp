@@ -4,6 +4,7 @@
 #include <regex>
 
 #include "EasyExif.h"
+#include "ConfigLoader.h"
 #include "ImageStore.h"
 #include "LandMarks.h"
 #include "Utilities.h"
@@ -105,6 +106,13 @@ easyexif::EXIFInfoSPtr ImageStore::getExifInfo(const std::string & imageKey)
     std::lock_guard<std::mutex> lg(m_mutex);
     boostImageToTopCache(imageKey);
     return m_imageCollection[imageKey].exifInfo;
+}
+
+void ImageStore::configureInternal(const ConfigLoaderSPtr & config)
+{
+    auto & imageStoreCfg = config->get({ "imageStore" });
+    const size_t imageStoreSize = imageStoreCfg["size"].GetInt();
+    setStoreSize(imageStoreSize);
 }
 
 void ImageStore::setStoreSize(const size_t storeSize)

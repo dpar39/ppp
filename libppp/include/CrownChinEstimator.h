@@ -9,7 +9,8 @@ FWD_DECL(CrownChinEstimator)
 class CrownChinEstimator final : public ICrownChinEstimator
 {
 public:
-    void configure(rapidjson::Value & config) override;
+    void configure(const ConfigLoaderSPtr & config) override;
+
     bool estimateCrownChin(LandMarks & landMarks) override;
 
 private:

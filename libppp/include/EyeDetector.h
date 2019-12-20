@@ -13,7 +13,7 @@ public:
     bool detectLandMarks(const cv::Mat & grayImage, LandMarks & landMarks) override;
 
 protected:
-    void configureInternal(rapidjson::Value & cfg) override;
+    void configureInternal(const ConfigLoaderSPtr & cfg) override;
 
 private:
     cv::Mat m_leftCornerKernel;

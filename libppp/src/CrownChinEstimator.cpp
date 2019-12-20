@@ -1,13 +1,14 @@
 ﻿#include "CrownChinEstimator.h"
+#include "ConfigLoader.h"
 #include "LandMarks.h"
 #include "Utilities.h"
 
 namespace ppp
 {
 
-void CrownChinEstimator::configure(rapidjson::Value & config)
+void CrownChinEstimator::configure(const ConfigLoaderSPtr & config)
 {
-    auto & lipsDetectorCfg = config["crownChinEstimator"];
+    auto & lipsDetectorCfg = config->get({ "crownChinEstimator" });
     m_chinCrownCoeff = lipsDetectorCfg["chinCrownCoeff"].GetDouble();
     m_chinFrownCoeff = lipsDetectorCfg["chinFrownCoeff"].GetDouble();
 }

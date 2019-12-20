@@ -7,7 +7,7 @@ namespace ppp
 
 class LipsDetector final : public IDetector
 {
-    void configureInternal(rapidjson::Value & config) override;
+    void configureInternal(const ConfigLoaderSPtr & config) override;
 
 public:
     bool detectLandMarks(const cv::Mat & inputImage, LandMarks & landmarks) override;

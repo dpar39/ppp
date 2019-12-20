@@ -22,7 +22,7 @@ void configureEngine(const string & configFilePath, PppEngine & engine)
     // Read configuration file
     std::ifstream fs(configFilePath, std::ios_base::in);
     const std::string configString((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
-    if (!engine.configure(configString))
+    if (!engine.configure(configString, nullptr))
     {
         std::cerr << "Unable to load engine configuration. Exiting " << std::endl;
         std::terminate();

@@ -1,22 +1,21 @@
 #pragma once
 
 #include "CommonHelpers.h"
+#include "IConfigurable.h"
 #include <opencv2/core/core.hpp>
-#include <rapidjson/document.h>
 
 namespace ppp
 {
-class PrintDefinition;
-class PhotoStandard;
+FWD_DECL(PrintDefinition)
+FWD_DECL(PhotoStandard)
+FWD_DECL(ConfigLoader)
 
 FWD_DECL(IPhotoPrintMaker)
 
-class IPhotoPrintMaker : NonCopyable
+class IPhotoPrintMaker : NonCopyable, public IConfigurable
 {
 public:
     virtual ~IPhotoPrintMaker() = default;
-
-    virtual void configure(rapidjson::Value & cfg) = 0;
 
     virtual cv::Mat cropPicture(const cv::Mat & originalImage,
                                 const cv::Point & crownPoint,

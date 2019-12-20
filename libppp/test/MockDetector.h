@@ -5,11 +5,11 @@
 
 namespace ppp
 {
-class MockDetector : public IDetector
+class MockDetector final : public IDetector
 {
 
 private:
-    void configureInternal(rapidjson::Value &) override
+    void configureInternal(const ConfigLoaderSPtr &) override
     {
         m_isConfigured = true;
     }
