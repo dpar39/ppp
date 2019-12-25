@@ -1,7 +1,5 @@
 import { Component, Output, Input } from '@angular/core';
 import { PhotoStandard } from '../model/datatypes';
-import { EventEmitter } from '@angular/core';
-
 import { PhotoStandardService } from '../services/photo-standard.service';
 
 @Component({
@@ -51,7 +49,7 @@ export class PhotoStandardSelectorComponent {
     this._allStandards = psService.getAllPhotoStandards();
     this.photoStandard = psService.getSelectedStandard();
 
-    psService.photoStandardSelected.subscribe(ps => {
+    psService.photoStandardSelected.subscribe((ps: PhotoStandard) => {
       if (ps !== this.photoStandard) {
         this.photoStandard = ps;
       }
@@ -68,6 +66,7 @@ export class PhotoStandardSelectorComponent {
     }
     this._collapsed = value;
     this._selectableStandards = this._allStandards;
+    this.sortByImportance();
   }
 
   public get selectableStandards() {
@@ -80,15 +79,39 @@ export class PhotoStandardSelectorComponent {
   }
 
   getFlagClass(ps: PhotoStandard): string {
-    return 'flag-icon flag-icon-' + ps.id.substr(0, 2);
+    return 'flag-icon flag-icon-' + this.getCountryCode(ps);
   }
 
-  filterPhotoStandard(evnt) {
-    const text = evnt.target.value.toLowerCase();
+  getCountryCode(ps: PhotoStandard): string {
+    return ps.id.substr(0, 2);
+  }
+
+  filterPhotoStandard(event) {
+    const text = event.target.value.toLowerCase();
     if (!text) {
       this._selectableStandards = this._allStandards;
       return;
     }
-    this._selectableStandards = this._allStandards.filter(ps => ps.text.toLowerCase().includes(text));
+    this._selectableStandards = this._allStandards.filter(
+      ps => ps.country.toLowerCase().includes(text) || ps.text.toLowerCase().includes(text)
+    );
+    this.sortByImportance();
+  }
+
+  sortByImportance() {
+    const cc = this.psService.getCountryCode().toLowerCase();
+    if (cc) {
+      this._selectableStandards.sort((a: PhotoStandard, b: PhotoStandard) => {
+        const ccA = this.getCountryCode(a);
+        if (ccA === cc) {
+          return -1;
+        }
+        const ccB = this.getCountryCode(b);
+        if (ccB === cc) {
+          return +1;
+        }
+        return 0;
+      });
+    }
   }
 }

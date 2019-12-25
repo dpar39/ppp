@@ -8,7 +8,7 @@ export class SettingsService {
   constructor(private localStorage: LocalStorageService) {}
 
   getDarkMode() {
-    let darkMode = this.localStorage.getItem(DARK_MODE);
+    const darkMode = this.localStorage.getItem(DARK_MODE);
     if (darkMode != null) {
       return darkMode;
     }
@@ -25,8 +25,10 @@ export class SettingsService {
     }
     this.localStorage.setItem(DARK_MODE, darkMode);
   }
-  
+
   resetThemePreferences() {
     this.localStorage.removeItem(DARK_MODE);
   }
+
+
 }

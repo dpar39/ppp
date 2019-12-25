@@ -45,7 +45,7 @@ if ('function' === typeof importScripts) {
                     if (progress > lastProgress) {
                         postMessage({
                             cmd: 'onAppDataLoadingProgress',
-                            progressPct: progress * 100,
+                            progressPct: progress * 50,
                             step: 'Loading config'
                         });
                         lastProgress = progress;
@@ -57,7 +57,7 @@ if ('function' === typeof importScripts) {
             xhr.onload = e => {
                 postMessage({
                     cmd: 'onAppDataLoadingProgress',
-                    progressPct: lastProgress * 100,
+                    progressPct: 50,
                     step: 'Initializing ...'
                 });
 
@@ -79,16 +79,6 @@ if ('function' === typeof importScripts) {
 
             Module._configure(ptr, fnPtr);
             Module._free(ptr);
-
-
-
-            // const interval = setInterval(()=> {
-            //     if (Module._is_configured())
-            //         clearInterval(interval);
-            //         console.info('Engine configured and ready to be used');
-            //         postMessage({cmd: 'onRuntimeInitialized'});
-            // }, 50);
-
         });
     };
 

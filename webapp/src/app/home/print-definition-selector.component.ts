@@ -15,7 +15,7 @@ import { PrintDefinitionService } from '../services/print-definition.service';
       </ion-card-content>
     </ion-card>
     <ion-list *ngIf="!collapsed">
-      <ion-list-header class="ion-no-padding">
+      <ion-list-header class="ion-no-padding" >
         <ion-searchbar
           placeholder="Search Print Definitions"
           (ionInput)="filterPrintDefinition($event)"
