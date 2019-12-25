@@ -24,7 +24,7 @@ import { PhotoStandardService } from '../services/photo-standard.service';
       <ion-item *ngFor="let ps of selectableStandards" (click)="setSelected(ps)">
         <span [class]="getFlagClass(ps)"></span>
         <ion-label class="ion-margin-start"> {{ ps.text }} </ion-label>
-        <ion-button color="success" icon-only><ion-icon name="create"></ion-icon></ion-button>
+        <ion-button icon-only><ion-icon name="create"></ion-icon></ion-button>
       </ion-item>
     </ion-list>
   `,
@@ -70,7 +70,23 @@ export class PhotoStandardSelectorComponent {
   }
 
   public get selectableStandards() {
-    return this._selectableStandards != null ? this._selectableStandards : this._allStandards;
+    const selectableStandards = this._selectableStandards != null ? this._selectableStandards : this._allStandards;
+
+    const cc = this.psService.getCountryCode().toLowerCase();
+    if (cc) {
+      selectableStandards.sort((a: PhotoStandard, b: PhotoStandard) => {
+        const ccA = this.getCountryCode(a);
+        if (ccA === cc) {
+          return -1;
+        }
+        const ccB = this.getCountryCode(b);
+        if (ccB === cc) {
+          return +1;
+        }
+        return 0;
+      });
+    }
+    return selectableStandards;
   }
 
   public setSelected(ps: PhotoStandard): void {
@@ -99,19 +115,6 @@ export class PhotoStandardSelectorComponent {
   }
 
   sortByImportance() {
-    const cc = this.psService.getCountryCode().toLowerCase();
-    if (cc) {
-      this._selectableStandards.sort((a: PhotoStandard, b: PhotoStandard) => {
-        const ccA = this.getCountryCode(a);
-        if (ccA === cc) {
-          return -1;
-        }
-        const ccB = this.getCountryCode(b);
-        if (ccB === cc) {
-          return +1;
-        }
-        return 0;
-      });
-    }
+
   }
 }

@@ -30,5 +30,4 @@ export class SettingsService {
     this.localStorage.removeItem(DARK_MODE);
   }
 
-
 }
