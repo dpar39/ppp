@@ -8,7 +8,8 @@ import { PrintDefinitionService } from '../services/print-definition.service';
 import { PrintDefinitionSelectorComponent } from './print-definition-selector.component';
 import { BackEndService } from '../services/backend.service';
 import { PhotoStandardService } from '../services/photo-standard.service';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { LocalStorageService } from '../services/local-storage.service';
 
 describe('HomePage', () => {
   let component: HomePage;
@@ -17,8 +18,8 @@ describe('HomePage', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [HomePage, LandmarkEditorComponent, PhotoStandardSelectorComponent, PrintDefinitionSelectorComponent],
-      imports: [IonicModule.forRoot()],
-      providers: [HttpClientModule, BackEndService, PhotoStandardService, PrintDefinitionService]
+      imports: [IonicModule.forRoot(), HttpClientModule],
+      providers: [HttpClient, LocalStorageService, BackEndService, PhotoStandardService, PrintDefinitionService]
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePage);

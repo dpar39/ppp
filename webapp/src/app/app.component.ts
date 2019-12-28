@@ -30,7 +30,7 @@ import { SwUpdate } from '@angular/service-worker';
             </ion-list>
           </ion-content>
         </ion-menu>
-        <ion-router-outlet id="main-content">Loading</ion-router-outlet>
+        <ion-router-outlet id="main-content">Loading ...</ion-router-outlet>
       </ion-split-pane>
     </ion-app>
   `,

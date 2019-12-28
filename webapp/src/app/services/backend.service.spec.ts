@@ -1,5 +1,4 @@
-import { TestBed, inject } from '@angular/core/testing';
-
+import { TestBed } from '@angular/core/testing';
 import { BackEndService } from './backend.service';
 import { CrownChinPointPair } from '../model/datatypes';
 
@@ -15,10 +14,10 @@ function toc() {
 async function createFile(url: string, type: string = 'image/jpeg') {
   const idx = url.lastIndexOf('/');
   const filename = idx >= 0 ? url.substring(idx + 1) : url;
-  let response = await fetch(url);
-  let data = await response.blob();
-  let metadata = { type: type };
-  let file = new File([data], filename, metadata);
+  const response = await fetch(url);
+  const data = await response.blob();
+  const metadata = { type };
+  const file = new File([data], filename, metadata);
   return file;
 }
 

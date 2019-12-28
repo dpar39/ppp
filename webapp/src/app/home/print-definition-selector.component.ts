@@ -6,7 +6,7 @@ import { PrintDefinitionService } from '../services/print-definition.service';
   selector: 'app-print-definition-selector',
   template: `
     <ion-card *ngIf="collapsed" (click)="collapsed = false">
-      <ion-card-header>
+      <ion-card-header class="half-padding">
         Selected print output
       </ion-card-header>
       <ion-card-content>
@@ -27,7 +27,11 @@ import { PrintDefinitionService } from '../services/print-definition.service';
       </ion-item>
     </ion-list>
   `,
-  styles: []
+  styles: [`
+    .half-padding {
+      padding: 6px 16px !important;
+    }
+  `]
 })
 export class PrintDefinitionSelectorComponent {
   public printDefinition: PrintDefinition = new PrintDefinition('__unknown__', 'Loading ...');
