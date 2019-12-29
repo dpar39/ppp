@@ -32,7 +32,7 @@ import { PrintDefinitionService } from '../services/print-definition.service';
             <!-- Load image and edit landmarks -->
             <ion-grid class="ion-no-padding">
               <ion-row>
-                <ion-col>
+                <ion-col class="ion-no-padding">
                   <div id="dropZone" appDragDrop (onFileDropped)="loadImage($event)">
                     <app-landmark-editor
                       [inputPhoto]="imageLoadResult"
@@ -264,6 +264,7 @@ export class HomePage implements OnInit {
 
   onLandmarksEdited(crownChinPointPair: CrownChinPointPair) {
     this.crownChinPointPair = crownChinPointPair;
+    this.beService.updateCrownChin(crownChinPointPair);
     this.createPrint();
   }
 

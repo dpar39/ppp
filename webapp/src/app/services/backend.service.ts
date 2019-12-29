@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TiledPhotoRequest } from '../model/datatypes';
+import { TiledPhotoRequest, CrownChinPointPair } from '../model/datatypes';
 
 export class ImageLoadResult {
   constructor(public imgKey: string, public imgDataUrl: string, public exifInfo: any) {}
@@ -8,6 +8,7 @@ export class ImageLoadResult {
 
 @Injectable()
 export class BackEndService {
+
   runtimeInitialized: EventEmitter<boolean> = new EventEmitter();
   appLoadingProgressReported: EventEmitter<number> = new EventEmitter();
 
@@ -107,5 +108,9 @@ export class BackEndService {
   }
   getRuntimeInitialized(): boolean {
     return this._runtimeInitialized;
+  }
+
+  updateCrownChin(crownChinPointPair: CrownChinPointPair) {
+    this._cacheLandmarks = crownChinPointPair;
   }
 }

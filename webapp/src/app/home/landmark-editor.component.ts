@@ -28,7 +28,7 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
       <svg class="box" [style.visibility]="landmarkVisibility" pointer-events="none">
         <defs>
           <mask id="mask" x="0" y="0" width="100%" height="100%">
-            <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+            <rect id="imageArea" x="0" y="0" width="100%" height="100%" fill="#ffffff" />
             <rect id="cropArea" x="0" y="0" width="200" height="200" fill="#000" />
           </mask>
         </defs>
@@ -78,7 +78,7 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
         border: 1px solid #363434;
         border-radius: 5px;
         margin: 0 auto;
-        background: #333;
+        background: #303030;
       }
 
       @media (max-aspect-ratio: 5/4) {
@@ -175,6 +175,7 @@ export class LandmarkEditorComponent implements OnInit {
   private _chinLine: any = null;
   private _faceEllipse: any = null;
   private _cropArea: any = null;
+  private _imageArea: any = null;
   private _cropRect: any = null;
 
   private _heightText: any;
@@ -219,6 +220,8 @@ export class LandmarkEditorComponent implements OnInit {
 
     this._faceEllipse = thisEl.querySelector('#faceEllipse');
     this._cropArea = thisEl.querySelector('#cropArea');
+    this._imageArea = thisEl.querySelector('#imageArea');
+
     this._cropRect = thisEl.querySelector('#cropRect');
 
     this._heightLine = thisEl.querySelector('#heightLine');
@@ -401,7 +404,7 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   screenToPixel(pt: Point | any, round = false): Point {
-    if (pt.x === undefined || pt.y == undefined) {
+    if (pt.x === undefined || pt.y === undefined) {
       pt = this.getMarkScreenCenter(pt);
     }
     const xPrime = (pt.x - this._xLeft) / this._ratio;
@@ -497,6 +500,12 @@ export class LandmarkEditorComponent implements OnInit {
     const scale = faceHeight / this._photoDimensions.faceHeight;
     const dx = this._photoDimensions.pictureHeight * scale;
     const dy = this._photoDimensions.pictureWidth * scale;
+
+    const svgElmt = this._imageArea;
+    svgElmt.setAttribute('x', this._xLeft);
+    svgElmt.setAttribute('y', this._yTop);
+    svgElmt.setAttribute('width', this._imageWidth * this._ratio);
+    svgElmt.setAttribute('height', this._imageHeight * this._ratio);
 
     this._setRotatedRect(this._cropArea, cropCenter, dx, dy, angleDeg);
     this._setRotatedRect(this._cropRect, cropCenter, dx, dy, angleDeg);
