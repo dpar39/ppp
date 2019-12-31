@@ -48,10 +48,12 @@ export class PhotoStandardService {
     if (cc) {
       return cc.country_code || cc.alpha2; // e.g. "US"
     }
-    //const key = 'f006103a2a5632a2e6987fde2445cf66';
-    //const req = `http://api.ipstack.com/check?access_key=${key}`;
 
-    const req = 'https://api.ipgeolocationapi.com/geolocate';
+    let req = 'https://api.ipgeolocationapi.com/geolocate';
+    if (location.protocol === 'http:') {
+      const key = 'f006103a2a5632a2e6987fde2445cf66';
+      req = `http://api.ipstack.com/check?access_key=${key}`;
+    }
     this.http.get(req).subscribe(res => {
       this.localStorage.setItem(COUNTRY_CODE, res);
     });
