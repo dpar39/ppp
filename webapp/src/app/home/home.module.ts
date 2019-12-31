@@ -10,7 +10,6 @@ import { PrintDefinitionSelectorComponent } from './print-definition-selector.co
 import { PhotoStandardSelectorComponent } from './photo-standard-selector.component';
 import { OnlyNumberDirective } from '../directives/only-numbers.directive';
 
-import { PhotoStandardService } from '../services/photo-standard.service';
 import { BackEndService } from '../services/backend.service';
 import { DragDropDirective } from '../directives/drag-drop.directive';
 
@@ -32,7 +31,7 @@ const routes: Routes = [
     DragDropDirective
   ],
   entryComponents: [],
-  providers: [BackEndService, PhotoStandardService],
+  providers: [BackEndService],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

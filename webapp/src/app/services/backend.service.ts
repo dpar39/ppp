@@ -40,10 +40,8 @@ export class BackEndService {
           case 'onRuntimeInitialized':
             this._runtimeInitialized = true;
             this.runtimeInitialized.emit(true);
-            console.debug('WASM module initialized and configured!');
             break;
           case 'onImageSet':
-            console.debug(`Image has been set: ${e.data.imgKey}`);
             const imageKey = e.data.imgKey;
             const exifInfo = e.data.EXIFInfo;
             const imageDataUrl = this.createPngDataUrl(e.data.pngUrl);
@@ -86,7 +84,7 @@ export class BackEndService {
   retrieveLandmarks(imgKey: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this._onLandmarksDetected = resolve;
-      this.worker.postMessage({ cmd: 'detectLandmarks', imgKey: imgKey });
+      this.worker.postMessage({ cmd: 'detectLandmarks', imgKey });
     });
   }
 

@@ -178,6 +178,12 @@ export class HomePage implements OnInit {
     //  this.echoString = '' + this.beService._isMobilePlatform;
   }
 
+  ionViewDidEnter() {
+    const ps = this.photoStandard;
+    this.photoStandard = null;
+    this.photoStandard = ps;
+  }
+
   processInputImage() {
     if (!this.appReady || !this.pendingFile) {
       return; // Nothing to do yet

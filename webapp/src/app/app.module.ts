@@ -11,6 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { HttpClientModule } from '@angular/common/http';
+import { PhotoStandardService } from './services/photo-standard.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -23,7 +24,12 @@ import { HttpClientModule } from '@angular/common/http';
     BrowserModule,
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
-  providers: [StatusBar, SplashScreen, { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  providers: [
+    StatusBar,
+    SplashScreen,
+     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    PhotoStandardService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

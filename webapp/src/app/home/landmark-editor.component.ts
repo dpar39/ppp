@@ -1,5 +1,6 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
+import { Platform } from '@ionic/angular';
 
 import interact from 'interactjs';
 import { CrownChinPointPair } from '../model/datatypes';
@@ -12,6 +13,7 @@ import {
 } from '../model/geometry';
 import { ImageLoadResult } from '../services/backend.service';
 import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
+
 
 @Component({
   selector: 'app-landmark-editor',
@@ -55,8 +57,6 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
   styles: [
     `
       .landmark {
-        width: 1em;
-        height: 1em;
         border: 1px solid green;
         border-radius: 50%;
         background-color: greenyellow;
@@ -83,13 +83,13 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
 
       @media (max-aspect-ratio: 5/4) {
         #viewport {
-          height: 46vh;
+          height: 75vh;
         }
       }
 
       @media (min-aspect-ratio: 4/5) {
         #viewport {
-          height: 40vh;
+          height: 75vh;
         }
       }
 
@@ -101,8 +101,8 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
       }
 
       .annotation {
-        stroke: orange;
-        stroke-width: 2;
+        stroke: lightgray;
+        stroke-width: 1.5;
         stroke-dasharray: 5, 5;
         stroke-opacity: 0.7;
       }
@@ -148,13 +148,16 @@ export class LandmarkEditorComponent implements OnInit {
   @Input()
   set photoDimensions(value: PhotoDimensions) {
     this._photoDimensions = value;
-    this.renderLandMarks();
+    this._needsUpdate = true;
+    //this.renderLandMarks();
   }
 
-  constructor(private _el: ElementRef) {
+  constructor(private _el: ElementRef, private _platform: Platform) {
     this.crownPoint = new Point(0, 0);
     this.chinPoint = new Point(0, 0);
   }
+
+  private _needsUpdate = false;
   private _imageWidth = 0;
   private _imageHeight = 0;
   private _viewPortWidth = 0;
@@ -170,6 +173,7 @@ export class LandmarkEditorComponent implements OnInit {
   private _viewPortElmt: any = null;
   private _crownMarkElmt: any = null;
   private _chinMarkElmt: any = null;
+  private _crownChinMarkSize = 16;
   private _middleLine: any = null;
   private _crownLine: any = null;
   private _chinLine: any = null;
@@ -213,6 +217,15 @@ export class LandmarkEditorComponent implements OnInit {
     this._viewPortElmt = thisEl.querySelector('#viewport');
     this._crownMarkElmt = thisEl.querySelector('#crownMark');
     this._chinMarkElmt = thisEl.querySelector('#chinMark');
+
+    if (this._platform.is('mobile')) {
+      this._crownChinMarkSize = 24;
+    }
+    const lmSize = '' + this._crownChinMarkSize + 'px';
+    this._crownMarkElmt.style.width = lmSize;
+    this._crownMarkElmt.style.height = lmSize;
+    this._chinMarkElmt.style.width = lmSize;
+    this._chinMarkElmt.style.height = lmSize;
 
     this._middleLine = thisEl.querySelector('#middleLine');
     this._crownLine = thisEl.querySelector('#crownLine');
@@ -317,6 +330,12 @@ export class LandmarkEditorComponent implements OnInit {
     //   angleScale.scale = 1;
     // }
   }
+  ngAfterViewChecked() {
+    if (this._needsUpdate) {
+      this.renderLandMarks();
+      this._needsUpdate = false;
+    }
+  }
 
   getImageDataUrl() {
     if (!this._imageLoadResult || !this._imageLoadResult.imgDataUrl) {
@@ -326,6 +345,9 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   zoomFit(): void {
+    if (!(this._imageWidth > 0) || !(this._imageHeight > 0)) {
+      return;
+    }
     const xRatio = this._viewPortWidth / this._imageWidth;
     const yRatio = this._viewPortHeight / this._imageHeight;
     this._ratio = xRatio < yRatio ? xRatio : yRatio;
@@ -343,16 +365,21 @@ export class LandmarkEditorComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
+    if (!this._imgElmt || this._imgElmt.style.visibility !== 'visible') {
+      return;
+    }
     this.calculateViewPort();
     this.zoomFit();
     this.renderImage();
     this.renderLandMarks();
   }
 
+  @HostListener('contextmenu', ['$event'])
+  onRightClick(event) {
+    event.preventDefault();
+  }
+
   renderImage(): void {
-    if (this._imageWidth <= 0 || this._imageHeight <= 0) {
-      return;
-    }
     const xw = this._imageWidth * this._ratio;
     const yh = this._imageHeight * this._ratio;
     this._imgElmt.width = xw;
@@ -385,8 +412,8 @@ export class LandmarkEditorComponent implements OnInit {
       this._imageWidth > 100 &&
       this._imageHeight > 100
     ) {
-      const p1 = this.pixelToScreen(this._crownMarkElmt, this.crownPoint);
-      const p2 = this.pixelToScreen(this._chinMarkElmt, this.chinPoint);
+      const p1 = this.pixelToScreen(this.crownPoint);
+      const p2 = this.pixelToScreen(this.chinPoint);
       this.translateElement(this._crownMarkElmt, p1);
       this.translateElement(this._chinMarkElmt, p2);
       this.renderAnnotations();
@@ -396,10 +423,10 @@ export class LandmarkEditorComponent implements OnInit {
     }
   }
 
-  pixelToScreen(elmt: any, pt: Point): Point {
+  pixelToScreen(pt: Point): Point {
     return new Point(
-      this._xLeft + pt.x * this._ratio - elmt.clientWidth / 2,
-      this._yTop + pt.y * this._ratio - elmt.clientHeight / 2
+      this._xLeft + pt.x * this._ratio - this._crownChinMarkSize/2,
+      this._yTop + pt.y * this._ratio - this._crownChinMarkSize/2
     );
   }
 
@@ -416,8 +443,8 @@ export class LandmarkEditorComponent implements OnInit {
   }
 
   getMarkScreenCenter(elmt: any) {
-    const x = parseFloat(elmt.getAttribute('x')) + (elmt.clientWidth + 0.5) / 2.0;
-    const y = parseFloat(elmt.getAttribute('y')) + (elmt.clientHeight + 0.5) / 2.0;
+    const x = parseFloat(elmt.getAttribute('x')) + (this._crownChinMarkSize ) / 2.0;
+    const y = parseFloat(elmt.getAttribute('y')) + (this._crownChinMarkSize ) / 2.0;
     return new Point(x, y);
   }
 

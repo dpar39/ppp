@@ -16,9 +16,15 @@ const routes: Routes = [
     loadChildren: './settings/settings.module#SettingsPageModule'
   },
   {
+    path: 'standards',
+    loadChildren: './photo-standard/photo-standard.module#PhotoStandardPageModule'
+  },
+  {
     path: 'about',
     loadChildren: './about/about.module#AboutPageModule'
-  },  { path: 'compliance-checks', loadChildren: './compliance-checks/compliance-checks.module#ComplianceChecksPageModule' }
+  },
+  { path: 'compliance-checks', loadChildren: './compliance-checks/compliance-checks.module#ComplianceChecksPageModule' },
+  { path: 'photo-standard', loadChildren: './photo-standard/photo-standard.module#PhotoStandardPageModule' }
 
 ];
 

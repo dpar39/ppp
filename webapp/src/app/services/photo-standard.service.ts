@@ -34,7 +34,7 @@ export class PhotoStandardService {
 
   setSelectedStandard(ps: PhotoStandard): void {
     this._selectedOne = ps;
-    this.photoStandardSelected.emit(this._selectedOne);
+    this.photoStandardSelected.emit(ps);
   }
 
   addNewStandard(ps: PhotoStandard): void {}

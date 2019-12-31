@@ -3,6 +3,8 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { PhotoStandardSelectorComponent } from './photo-standard-selector.component';
 import { HttpClientModule } from '@angular/common/http';
 import { IonicModule } from '@ionic/angular';
+import { RouterTestingModule } from '@angular/router/testing';
+import { PhotoStandardService } from '../services/photo-standard.service';
 
 describe('PhotoStandardSelectorComponent', () => {
   let component: PhotoStandardSelectorComponent;
@@ -11,7 +13,8 @@ describe('PhotoStandardSelectorComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [PhotoStandardSelectorComponent],
-      imports: [HttpClientModule, IonicModule]
+      imports: [HttpClientModule, IonicModule, RouterTestingModule],
+      providers: [PhotoStandardService]
     }).compileComponents();
   }));
 
