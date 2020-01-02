@@ -1,7 +1,7 @@
 # [Photo ID Creator](https://myphotoidapp.firebaseapp.com/) - A tool to prepare photo IDs
 <!-- Travis-CI Build Status: [![Build Status](https://travis-ci.org/dpar39/ppp.svg?branch=master)](https://travis-ci.org/dpar39/ppp) -->
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp)
+<!--  [![Build Status](https://ci.appveyor.com/api/projects/status/github/dpar39/ppp?svg=true)](https://ci.appveyor.com/project/dpar39/ppp) -->
 
 This app allows users to create passport photos with automatic picture size and rotation cropped to comply with the standards accepted in most countries. Users get a tiled photo in your favorite print format (e.g. 4"x6" or 5"x7") with the appropriate resolution ready for printing.
 
@@ -75,25 +75,25 @@ This application is currently provided in two forms: As a command line utility o
 ### Building the command line application and run C++ unit tests
 
 ```batch
-python build.py --test
+python build.py --test -a x64
 ```
 
 ### Building the web application
 
 ```batch
-python build.py --emscripten --web
+python build.py --test -a wasm web
 ```
 
 ### Building the Android application
 
 ```batch
-python build.py --emscripten --web --android
+python build.py -a wasm web android
 ```
 
 ### Generating a Visual Studio project/solutions for C++ development
 
 ```batch
-python build.py --gen_vs_sln --build_config=debug
+python build.py --gen_vs_sln -bdebug
 ```
 
 ## Building the Android App on a Debian based Linux OS
