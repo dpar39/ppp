@@ -83,13 +83,13 @@ import { PhotoDimensions, getCroppingCenter } from '../model/photodimensions';
 
       @media (max-aspect-ratio: 5/4) {
         #viewport {
-          height: 75vh;
+          height: 50vh;
         }
       }
 
       @media (min-aspect-ratio: 4/5) {
         #viewport {
-          height: 75vh;
+          height: 55vh;
         }
       }
 

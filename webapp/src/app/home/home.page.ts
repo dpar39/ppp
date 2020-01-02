@@ -86,13 +86,13 @@ import { PrintDefinitionService } from '../services/print-definition.service';
               </ion-row>
               <ion-row>
                 <ion-col class="ion-no-padding"
-                  ><!-- Compliance checks -->
+                  ><!-- Compliance checks 
                   <ion-card>
                     <ion-card-header>Compliance Checks</ion-card-header>
                     <ion-card-content>
                       <ion-label class="ion-margin-start"> </ion-label>
                     </ion-card-content>
-                  </ion-card>
+                  </ion-card>-->
                 </ion-col>
               </ion-row>
             </ion-grid>

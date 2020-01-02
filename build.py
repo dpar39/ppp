@@ -103,7 +103,6 @@ class ShellRunner(object):
                 self.set_env_var('CC', 'clang')
                 self.set_env_var('CXX', 'clang++')
                 self.set_env_var('CXXFLAGS', '-fPIC')
-                # self.set_env_var('LD_LIBRARY_PATH', self._install_dir)
 
         # Add tools like ninja and swig to the current PATH
         this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -895,7 +894,7 @@ class Builder(object):
         # Extract testing dataset
         self._shell = ShellRunner()
         self.extract_validation_data()
-        # self.bundle_config()
+        # self.bundle_config()  # No longer needed as new we serve models with raw data.
 
         for arch in self._arch_names:
             self._arch_name = arch

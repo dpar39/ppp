@@ -13,7 +13,7 @@ cache:
 
 branches:
   only:
-    - emscripten
+    - master
 
 max_jobs: 1
 
@@ -24,8 +24,8 @@ platform:
   - x64
 
 build_script:
-  - python build.py --test
-  - python build.py --web --emscripten --test
+  - python build.py --test -a x64
+  - python build.py --test -a wasm web
 
 deploy_script:
   - cd webapp
