@@ -1,0 +1,110 @@
+{
+    "complianceChecks": {
+        "photoResolution": {
+            
+        }
+    },
+    "haarCascadeDir": "share/haarcascades",
+    "faceDetector": {
+        "haarCascade": {
+            "file": "haarcascades/haarcascade_frontalface_alt2.xml",
+            "embed": "text",
+            "data": null
+        }
+    },
+    "eyesDetector": {
+        "useHaarCascade": false,
+        "haarCascadeLeft": {
+            "file": "haarcascades/ojoI.xml",
+            "embed": false,
+            "data": null
+        },
+        "haarCascadeRight": {
+            "file": "haarcascades/ojoD.xml",
+            "embed": false,
+            "data": null
+        }
+    },
+    "lipsDetector": {
+        "useHaarCascade": false,
+        "useColorSegmentation": true,
+        "haarCascade": {
+            "file": "haarcascades/Mouth.xml",
+            "embed": false,
+            "data": null
+        }
+    },
+    "crownChinEstimator": {
+        "description": "Using normalized distance to be the sum of the distance between eye pupils and the distance mouth center to frown point.",
+        "chinCrownCoeff": 1.7096,
+        "chinFrownCoeff": 0.8929
+    },
+    "imageStore": {
+        "size": 32 
+    }, 
+    "photoPrintMaker": {
+        "background": [
+            128,
+            128,
+            128
+        ]
+    },
+    "useDlibLandmarkDetection": true,
+    "useDlibFaceDetection": false,
+    "shapePredictor": {
+        "missingPoints": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            35,
+            36,
+            50,
+            51,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            59,
+            60
+        ],
+        "file": "sp_model.dat",
+        "embed": "base64",
+        "data": null,
+        "landmarksIndexMapping": {
+            "eyePupilLeft": [ 38, 39, 41, 42 ],
+            "eyePupilRight": [ 44, 45, 47, 48 ],
+            "mouthCornerLeft": [ 49 ],
+            "mouthCornerRight": [ 55 ],
+            "chinPoint": [ 9 ]
+        }
+    }
+}
