@@ -19,7 +19,9 @@ jobs:
     - name: cache bazel
       uses: actions/cache@v3
       with:
-        key: bazel
+        key: ${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}
         path: |
           .bazel/
           .bazel_cache
