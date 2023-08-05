@@ -1,0 +1,7 @@
+{
+  "name": "PhotoIDCreator",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

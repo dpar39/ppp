@@ -1,0 +1,71 @@
+FROM ubuntu:22.04
+
+# System packages that facilitate the build process
+RUN apt-get update --fix-missing \
+    && DEBIAN_FRONTEND="noninteractive" apt-get -y install \
+        git \
+        wget \
+        curl \
+        sudo \
+        bzip2 \
+        unzip \
+        cmake \
+        ccache \
+        python3 \
+        python3-pip \
+        python3-venv \
+        python-is-python3 \
+        ninja-build \
+        lsb-release \
+        protobuf-compiler \
+        software-properties-common \
+    && apt-get clean
+
+RUN pip install numpy
+
+# Install node.js 16.x
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && apt-get clean
+
+# Install bazel
+RUN apt-get install -y apt-transport-https curl gnupg \
+    && curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg \
+    && mv bazel-archive-keyring.gpg /usr/share/keyrings \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | \
+    tee /etc/apt/sources.list.d/bazel.list \
+    && apt-get update && apt-get -y install bazel
+
+# Install chrome headless for testing
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable xvfb \
+    && apt-get clean
+
+# Install emsdk and disable warnings as errors when building with Bazel
+RUN git clone https://github.com/emscripten-core/emsdk.git \
+    && cd emsdk \
+    && ./emsdk install 3.1.21 \
+    && ./emsdk activate 3.1.21 \
+    && sed -i '/name = "wasm_warnings_as_errors"/{n;s/.*/            enabled = False,/}' /emsdk/bazel/emscripten_toolchain/toolchain.bzl
+
+RUN mkdir /cmake
+COPY cmake/*.cmake /cmake/
+COPY cmake/CMakeLists.txt /cmake/
+
+SHELL ["/bin/bash", "-c"]
+
+# Build third party libraries with Emscripten
+RUN source /emsdk/emsdk_env.sh \
+    && emcmake cmake -H/cmake -B/emscripten -DCMAKE_BUILD_TYPE=Release -G Ninja \
+    && rm -r ./emscripten
+
+# Build third party libraries with default C++ compiler
+RUN cmake -H/cmake -B/native -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja \
+    && rm -r ./native
+
+RUN ln -sf /thirdparty/install_linux_relwithdebinfo/include/opencv4/opencv2 /thirdparty/install_linux_relwithdebinfo/include/opencv2
+RUN ln -sf /thirdparty/install_emscripten_release/include/opencv4/opencv2 /thirdparty/install_emscripten_release/include/opencv2
+

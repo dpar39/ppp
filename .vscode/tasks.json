@@ -1,0 +1,140 @@
+{
+    "version": "2.0.0",
+    "linux": {
+        "options": {
+            "env": {
+                "python": "python3"
+            }
+        }
+    },
+    "windows": {
+        "options": {
+            "env": {
+                "python": "python.exe"
+            }
+        }
+    },
+    "tasks": [
+        {
+            "label": "Web: Serve (Ionic)",
+            "script": "start",
+            "type": "npm",
+            "options": {
+                "cwd": "${workspaceFolder}/webapp"
+            },
+            "group": "build",
+            "problemMatcher": {
+                "owner": "typescript",
+                "source": "ts",
+                "applyTo": "allDocuments",
+                "fileLocation": [
+                    "relative",
+                    "${cwd}"
+                ],
+                "pattern": {
+                    "regexp": "^\\s*(?:ERROR in )?([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "code": 5,
+                    "message": 6
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "Compiling\\.\\.\\.$"
+                    },
+                    "endsPattern": {
+                        "regexp": "Compiled successfully\\.$|Failed to compile"
+                    }
+                }
+            },
+            "isBackground": true
+        },
+        {
+            "label": "Web: Serve (Flask)",
+            "type": "shell",
+            "command": "python -m flask run --no-reload",
+            "options": {
+                "env": {
+                    "FLASK_APP": "webapp/server/app.py",
+                    "FLASK_ENV": "development",
+                    "FLASK_DEBUG": "0"
+                }
+            },
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Format C++ code",
+            "command": "libppp/format-all.sh",
+            "type": "shell",
+            "group": "build"
+        },
+        {
+            "label": "x64: Refresh Compile Commands",
+            "command": "npm run compdb:native:dbg",
+            "type": "shell",
+            "group": "build"
+        },
+        {
+            "label": "x64: Build Debug",
+            "command": "npm run build:native:debug",
+            "type": "shell",
+            "group": "build"
+        },
+        {
+            "label": "x64: Build Release",
+            "command": "npm run build:native:release",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "wasm: Build Release",
+            "command": "npm run build:wasm:release",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "wasm: Build Debug",
+            "command": "npm run build:wasm:debug",
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Web: Build",
+            "command": "run gen-app-info && run gen-pwa-icons && npx ionic build --prod",
+            "options": {
+                "cwd": "${workspaceFolder}/webapp"
+            },
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Web: Test",
+            "command": "npx ng test --browsers=ChromeHeadless --watch=false",
+            "options": {
+                "cwd": "${workspaceFolder}/webapp"
+            },
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Web: Deply Firebase",
+            "command": "npx firebase use myphotoidapp && npx firebase deploy",
+            "options": {
+                "cwd": "${workspaceFolder}/webapp"
+            },
+            "type": "shell",
+            "problemMatcher": [],
+            "group": "build"
+        },
+    ]
+}

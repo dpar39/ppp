@@ -1,0 +1,47 @@
+# Tensorflow needs remote repo
+common --experimental_repo_remote_exec
+build --disk_cache=.bazel_cache
+
+build --enable_platform_specific_config
+build --sandbox_writable_path=$CCACHE_DIR
+build --verbose_failures
+build --spawn_strategy=standalone
+
+build --cxxopt=-std=c++17
+build --cxxopt=-Wno-sign-compare
+build --cxxopt=-Wno-ignored-attributes
+build --cxxopt=-Wno-deprecated-declarations
+build --cxxopt=-Wno-comment
+build --cxxopt=-Wno-sequence-point
+build --cxxopt=-Wno-unused-variable
+build --cxxopt=-Wno-array-parameter
+build --cxxopt=-Wno-deprecated-copy
+build --cxxopt=-Wno-unused-result
+
+build --copt=-Wno-unused-function
+build --cxxopt=-Wno-unused-but-set-variable
+
+build --cxxopt=-DMEDIAPIPE_MOBILE=1
+build --define='absl=1'
+build --define='MEDIAPIPE_DISABLE_GPU=1'
+
+build:wasm --crosstool_top=@emsdk//emscripten_toolchain:everything
+build:wasm --cpu=wasm
+build:wasm --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+build:wasm --cxxopt=-Wno-deprecated-builtins
+build:wasm --cxxopt=-Wno-implicit-const-int-float-conversion
+build:wasm --cxxopt=-Wno-unused-private-field
+build:wasm --cxxopt=-Wno-deprecated-non-prototype
+build:wasm --cxxopt=-Wno-error=array-parameter
+
+build:wasm --copt=-sUSE_PTHREADS=0
+build:wasm --features=exceptions
+build:wasm --copt=-Os
+
+build:wasm --linkopt=-sUSE_PTHREADS=0
+build:wasm --linkopt=-Os
+build:wasm --linkopt=--bind
+build:wasm --linkopt=-sINITIAL_MEMORY=134217728
+build:wasm --linkopt=-sALLOW_MEMORY_GROWTH=1
+build:wasm --linkopt=--preload-file=/src/mediapipe@/mediapipe

@@ -1,0 +1,56 @@
+/.vs
+/env
+CMakeLists.txt.user
+/.vscode/.ropeproject
+.bash_history
+.ccache
+/tmp*
+
+bazel-*
+.bazel/
+.bazel_cache/
+.ccache/
+
+# Build and install directories
+/build_*
+/install_*
+/thirdparty/*
+!/thirdparty/CMakeLists.txt
+!/thirdparty/*.cmake
+
+/node_modules
+/research/*.asv
+
+/research/mugshot_frontal_original_all
+*.ldb
+*.pyc
+.idea/*
+.DS_Store
+
+# Generated assets
+libppp/swig/*.cxx
+libppp/share/config.bundle.json
+
+tests-report.xml
+
+### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
+# The external link: Differs on Windows vs macOS/Linux, so we can't check it in. The pattern needs to not have a trailing / because it's a symlink on macOS/Linux.
+/external
+# Bazel output symlinks: Same reasoning as /external. You need the * because people can change the name of the directory your repository is cloned into, changing the bazel-<workspace_name> symlink.
+/bazel-*
+# Compiled output -> don't check in
+compile_commands.json
+# Directory where clangd puts its indexing work
+.cache/
+
+### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
+# Compiled output -> don't check in
+compile_commands.json
+# Directory where clangd puts its indexing work
+.cache/
+
+### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
+# Compiled output -> don't check in
+/compile_commands.json
+# Directory where clangd puts its indexing work
+/.cache/

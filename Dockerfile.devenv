@@ -1,0 +1,48 @@
+####################################################
+# From here on we have devcontainer utilities
+####################################################
+FROM dpar39/ppp-base:latest
+
+RUN apt-get update --fix-missing \
+    && DEBIAN_FRONTEND="noninteractive" apt-get -y install \
+        bash-completion \
+        unzip \
+        clang-format-14 \
+        clangd \
+        ccache \
+    && sudo apt-get clean
+RUN ln -sf /usr/bin/clang-format-14 /usr/bin/clang-format
+
+RUN  curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz \
+    | tar xvz -C /tmp/ \
+    && sudo mv /tmp/docker/docker /usr/bin/docker
+
+RUN npm install -g autocomplete
+
+##################################################
+# Create the playpen user
+##################################################
+ARG USER_NAME
+ARG USER_UID
+ARG USER_GID
+ARG REPO_ROOT=/data/photo-id-generator
+
+ENV HOME=/home/$USER_NAME
+RUN groupadd --gid $USER_GID $USER_NAME; exit 0
+RUN useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME \
+    && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
+    && chmod 0440 /etc/sudoers.d/$USER_NAME \
+    && chown -R $USER_NAME $HOME
+
+USER ${USER_NAME}
+
+# VSCode preparations
+RUN mkdir -p $HOME/.vscode-server/extensions
+
+# Shell preparations
+RUN echo "[[ -f /src/.devcontainer/.bashrc ]] && source /src/.devcontainer/.bashrc" >> $HOME/.bashrc
+RUN npm completion >> $HOME/.bashrc
+
+ENV REPO_ROOT $REPO_ROOT
+ENV CCACHE_DIR /src/.ccache
+ENV CCACHE_SIZE 20G

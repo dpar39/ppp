@@ -1,0 +1,29 @@
+{
+  "name": "ppp",
+  "version": "2.0.0",
+  "description": "Tools for building",
+  "scripts": {
+    "docker:build:base": "docker build -t dpar39/ppp-base -f Dockerfile.base .",
+    "docker:push:base": "docker push dpar39/ppp-base",
+    "compdb": "bash build.sh compdb",
+    "build:native:release": "bash build.sh native:release",
+    "build:native:debug": "bash build.sh native:debug",
+    "build:wasm:debug": "bash build.sh wasm:debug",
+    "build:wasm:release": "bash build.sh wasm:release",
+    "test:native": "bazel-bin/libppp/ppp_test --gtest_output='xml:tests-report.xml'",
+    "deploy:wasm": "bash -c 'SRC=\"bazel-bin/libppp/ppp-wasm-wrap\" ; DST=\"webapp/src/assets\" ; rm -f $DST/ppp-wasm.{data,wasm,js} ; cp $SRC/ppp-wasm.{data,wasm,js} \"$DST\" && cp libppp/share/config.json $DST'",
+    "wasm:all": "npm run build:wasm:release && npm run deploy:wasm",
+    "web:all": "cd webapp && npm install && npm build:all && cd ..",
+    "firebase:deploy": "bash -c 'pushd webapp ; npx firebase use --token $FIREBASE_DEPLOY_KEY myphotoidapp && npx firebase deploy --token $FIREBASE_DEPLOY_KEY --non-interactive ; popd'",
+    "docker:build:server": "docker build -t photoidcreator.azurecr.io/server webapp/",
+    "docker:push:server": "docker push photoidcreator.azurecr.io/server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dpar39/ppp.git"
+  },
+  "author": "Darien Pardinas Diaz",
+  "license": "MIT",
+  "dependencies": {
+  }
+}

@@ -1,0 +1,4 @@
+gunicorn
+Flask
+requests
+gevent

@@ -1,0 +1,46 @@
+{
+    "faceMesh": {
+        "graph": {
+            "file": "face_landmarks.pbtxt",
+            "embed": false,
+            "data": null
+        }
+    },
+    "crownChinEstimator": {
+        "description": "Using normalized distance to be the sum of the distance between eye pupils and the distance mouth center to frown point.",
+        "chinCrownCoeff": 1.24481,
+        "chinFrownCoeff": 0.64961
+    },
+    "imageStore": {
+        "size": 32
+    },
+    "photoPrintMaker": {
+        "background": [
+            128,
+            128,
+            128
+        ]
+    },
+    "complianceChecks": {
+        "Photograph requirements": {
+            "Uniform Background": [],
+            "Background Color Match": []
+        },
+        "Image requirements": {
+            "Brightness": [],
+            "Contrast": [],
+            "Pixel Resolution": [],
+            "Blur Noise": [],
+            "Impulsive Noise": []
+        },
+        "Biometric requirements": {
+            "Head Pose": [],
+            "Eyes Open": [],
+            "Eyes Gaze": [],
+            "Mouth Closed": [],
+            "Natural Skin Color": [],
+            "Uniform Illumination": [],
+            "Glasses Off": []
+        }
+    }
+}

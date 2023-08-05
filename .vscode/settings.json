@@ -1,0 +1,103 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    // General
+    "workbench.colorCustomizations": {
+        "tab.activeBorder": "#ff0000",
+        "tab.activeBackground": "#030000",
+        "list.hoverBackground": "#09322f",
+        "titleBar.activeBackground": "#8d3838",
+    },
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 2000,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "./thirdparty/android-ndk-r15c": true,
+        "./thirdparty/sdk-tools-*": true,
+        "./thirdparty/gradle-*": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "/bazelcache": true,
+        "**/bower_components": true
+    },
+    "files.trimTrailingWhitespace": true,
+    "editor.autoIndent": "brackets",
+    // Python setup
+    "isort.args": [
+        "--atomic",
+        "--force-single-line-imports",
+        "--from-first",
+        "YES",
+        "--line-length",
+        "120"
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": false,
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": [
+        "--line-length=120"
+    ],
+    "python.testing.cwd": "${workspaceFolder}/webapp/server",
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    // Typescript setup
+    "prettier.singleQuote": true,
+    "prettier.printWidth": 100,
+    // C++ Setup
+    "testMate.cpp.test.advancedExecutables": [
+        {
+            "name": "Unit Tests Debug",
+            "description": "${relDirpath}/",
+            "pattern": "bazel-bin/libppp/*{_test}*",
+        }
+    ],
+    "testMate.cpp.test.workingDirectory": "${workspaceFolder}",
+    "testMate.cpp.debug.configTemplate": {
+        "type": "lldb",
+        "program": "${exec}",
+        "args": "${args}",
+        "cwd": "${workspaceFolder}",
+        "initCommands": [
+            "settings set target.disable-aslr false"
+        ],
+        "relativePathBase": "${workspaceFolder}",
+        "externalConsole": false,
+        "sourceMap": {
+            "/proc/self/cwd": "${workspaceFolder}",
+        },
+        "env": {
+            "GLOG_v": "0",
+            "GLOG_minloglevel": "0"
+        },
+        "preLaunchTask": "x64: Build Debug"
+    },
+    "clangd.arguments": [
+        "-log=verbose",
+        "-pretty",
+        "--compile-commands-dir=."
+    ],
+    // Miscellaneous
+    "cSpell.diagnosticLevel": "Hint",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "${workspaceFolder}/webapp/server",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": false,
+    "typescript.tsc.autoDetect": "off",
+    "npm.autoDetect": "off",
+    "python.testing.promptToConfigure": false,
+    "terminal.integrated.scrollback": 20000,
+}

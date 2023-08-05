@@ -1,0 +1,67 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++: ppp_test",
+            "type": "lldb",
+            "program": "bazel-bin/libppp/ppp_test",
+            "request": "launch",
+            "initCommands": [
+                "settings set target.disable-aslr false"
+            ],
+            "sourceMap": {
+                "/proc/self/cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Code Generator",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "program": "${workspaceFolder}/scripts/cppgen.py",
+            "args": [
+                "--path",
+                "libppp",
+                "--name",
+                "ComplianceChecker",
+                "--namespace",
+                "ppp",
+                // "--overwrite-not!"
+            ]
+        },
+        {
+            "name": "Python: Bodypix",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "program": "${workspaceFolder}/research/bodypix/freeze_bodypix.py",
+            "args": []
+        },
+        {
+            "name": "Debug Ionic (Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://127.0.0.1:8100",
+            "webRoot": "${workspaceFolder}/webapp",
+            "sourceMaps": true,
+            "preLaunchTask": "Web: Serve (Ionic)"
+        },
+        {
+            "name": "Flask Server (*)",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "console": "integratedTerminal",
+            "env": {
+                "FLASK_APP": "webapp/server/app.py",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "0"
+            },
+            "args": [
+                "run",
+                "--no-reload"
+            ],
+            "jinja": false
+        }
+    ]
+}

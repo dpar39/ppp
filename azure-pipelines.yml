@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+
+trigger:
+  - main
+
+pr:
+  branches:
+    include:
+      - "main"
+
+stages:
+- stage: build
+  jobs:
+    - job: build
+      pool:
+        name: Self-Hosted
+        # vmImage: 'ubuntu-22.04'
+      steps:
+      - task: Cache@2
+        displayName: Cache Sample images
+        inputs:
+          key: mugshot_frontal_original_all
+          path: research/mugshot_frontal_original_all
+
+      - task: Bash@3
+        displayName: Build, Test, Deploy
+        inputs:
+          filePath: dock.sh
+          arguments: ./cicd-all.sh
+        env:
+          FIREBASE_TOKEN: $(FIREBASE_TOKEN)
+
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: 'tests-report.xml'
+          failTaskOnFailedTests: true

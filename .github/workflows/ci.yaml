@@ -1,0 +1,30 @@
+name: build and publish app
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  ci-build-ppp:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 0
+
+    - name: cache bazel
+      uses: actions/cache@v3
+      with:
+        key: bazel
+        path: |
+          .bazel/
+          .bazel_cache
+
+    - name: build and run tests
+      run: ./cicd-all.sh
+      env:
+        MUGSHOT_ZIP_PASSWORD: ${{ secrets.MUGSHOT_ZIP_PASSWORD }}

@@ -1,0 +1,49 @@
+{
+    "name": "PPP-DevEnv",
+    "dockerFile": "../Dockerfile.devenv",
+    "context": ".",
+    "settings": {
+        "terminal.integrated.shell.linux.profile": "/bin/bash"
+    },
+    "containerUser": "${env:USER}",
+    "remoteUser": "${env:USER}",
+    "extensions": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "xaver.clang-format",
+        "twxs.cmake",
+        "ms-python.python",
+        "vadimcn.vscode-lldb",
+        "matepek.vscode-catch2-test-adapter",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "DavidAnson.vscode-markdownlint",
+        "natewallace.angular2-inline",
+        "jakethashi.vscode-angular2-emmet",
+        "angular.ng-template",
+        "vscode-icons-team.vscode-icons",
+        "esbenp.prettier-vscode"
+    ],
+    "workspaceFolder": "/src",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/src,type=bind",
+    "mounts": [
+        "source=${env:HOME}/.ssh,target=/home/${env:USER}/.ssh,type=bind",
+        "source=${env:HOME}/.gitconfig,target=/home/${env:USER}/.gitconfig,type=bind",
+        "source=ppp-vscode-extensions,target=/home/${env:USER}/.vscode-server/extensions,type=volume",
+        "source=/,target=/hostfs,type=bind,consistency=delegated"
+    ],
+    "postCreateCommand": "sudo chown -R ${env:USER} /src",
+    "build": {
+        "args": {
+            "USER_NAME": "${env:USER}",
+            "USER_UID": "${env:USER_UID}",
+            "USER_GID": "${env:USER_GID}",
+            "REPO_ROOT": "${localWorkspaceFolder}"
+        }
+    },
+    "runArgs": [
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "-h",
+        "ppp-devenv"
+    ]
+}
