@@ -57,7 +57,6 @@ private:
     // Veil over face
     // Mouth open
     // Presence of other faces or toys too close to face
-
     // Photo not older than 6 months
 
 private:

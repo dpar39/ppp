@@ -16,23 +16,23 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: set up docker buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: cache docker layers
-      uses: actions/cache@v2
+    - name: restore cached bazel
+      id: cache-bazel-restore
+      uses: actions/cache/restore@v3
       with:
-        path: .buildx-cache
-        key: $-buildx-$
-        restore-keys: |
-          $-buildx-
+        path: |
+          .bazel
+        key: ${{ runner.os }}-bazel
 
     - name: build and run tests
       run: ./cicd-all.sh
       env:
         MUGSHOT_ZIP_PASSWORD: ${{ secrets.MUGSHOT_ZIP_PASSWORD }}
 
-    - name: move docker layer cache
-      run: |
-        rm -rf .buildx-cache
-        mv .buildx-cache-new .buildx-cache
+    - name: save bazel cache
+      id: cache-bazel-save
+      uses: actions/cache/save@v3
+      with:
+        path: |
+          .bazel
+        key: ${{ steps.cache-bazel-restore.outputs.cache-primary-key }}
