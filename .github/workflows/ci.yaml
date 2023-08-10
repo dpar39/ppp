@@ -16,23 +16,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: restore cached bazel
-      id: cache-bazel-restore
-      uses: actions/cache/restore@v3
+    - name: bazel cache
+      uses: actions/cache@v3
       with:
         path: |
           .bazel
-        key: ${{ runner.os }}-bazel
+        key: ${{ runner.os }}-bazel-${{ hashFiles('WORKSPACE', '.bazelrc', 'BUILD') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-
+          ${{ runner.os }}-
 
     - name: build and run tests
       run: ./cicd-all.sh
       env:
         MUGSHOT_ZIP_PASSWORD: ${{ secrets.MUGSHOT_ZIP_PASSWORD }}
-
-    - name: save bazel cache
-      id: cache-bazel-save
-      uses: actions/cache/save@v3
-      with:
-        path: |
-          .bazel
-        key: ${{ steps.cache-bazel-restore.outputs.cache-primary-key }}

@@ -1,7 +1,6 @@
 TODOs:
 
 - Take down dependency to search images that are copyrighted
-- Create GitHub pipeline with Bazel cache
 - Update README.md
 - Generate npm package with publishing
 - Remove all code not being used, keep a copy in legacy branch
