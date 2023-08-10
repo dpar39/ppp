@@ -8,4 +8,4 @@ include(ResolveRapidJSON)
 ResolveRapidJSON(1.1.0)
 
 include(ResolveOpenCV)
-ResolveOpenCV(4.5.3)
+ResolveOpenCV(4.8.0)

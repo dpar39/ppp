@@ -32,11 +32,11 @@ _run_ npm install \
     && _run_ npx ng test --browsers=ChromeHeadless --watch=false \
     && _run_ npx ionic build --prod
 
-# Deploy to firebase
-if [ "$BUILD_SOURCEBRANCH" == "refs/heads/main" ]; then
-    _success_ "Deploying to firebase ... "
-    npx firebase deploy --token "$FIREBASE_TOKEN" --non-interactive --project myphotoidapp
-fi
+# # Deploy to firebase
+# if [ "$BUILD_SOURCEBRANCH" == "refs/heads/main" ]; then
+#     _success_ "Deploying to firebase ... "
+#     npx firebase deploy --token "$FIREBASE_TOKEN" --non-interactive --project myphotoidapp
+# fi
 
 popd > /dev/null
 _success_ "---------------------- DONE ----------------------"

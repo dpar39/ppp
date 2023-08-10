@@ -7,9 +7,10 @@ CMakeLists.txt.user
 /tmp*
 
 bazel-*
-.bazel/
-.bazel_cache/
 .ccache/
+.buildx-*/
+.bazel/
+explain.txt
 
 # Build and install directories
 /build_*
@@ -27,6 +28,9 @@ bazel-*
 .idea/*
 .DS_Store
 
+# Notes file
+Notes.txt
+
 # Generated assets
 libppp/swig/*.cxx
 libppp/share/config.bundle.json
@@ -43,14 +47,5 @@ compile_commands.json
 # Directory where clangd puts its indexing work
 .cache/
 
-### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
-# Compiled output -> don't check in
-compile_commands.json
-# Directory where clangd puts its indexing work
-.cache/
 
-### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
-# Compiled output -> don't check in
-/compile_commands.json
-# Directory where clangd puts its indexing work
-/.cache/
+

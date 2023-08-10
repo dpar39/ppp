@@ -4,7 +4,7 @@
 FROM dpar39/ppp-base:latest
 
 RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND="noninteractive" apt-get -y install \
+    && apt-get -y install \
         bash-completion \
         unzip \
         clang-format-14 \

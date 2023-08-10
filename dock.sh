@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -vx
 
 _run_() { echo -e "\033[0;33m$*\033[0m"; $*; }
 _info_() { echo -e "\033[1;34m$*\033[0m"; }
@@ -15,11 +16,16 @@ if [ ! -f /.dockerenv ]; then
     REPO_ROOT="$(cd $DOCK_DIR &> /dev/null && pwd)"
     SCRIPT_DIR_REL=$(realpath --relative-to=$REPO_ROOT "$PWD")
 
-    docker build -t docker-ci -f $DOCK_DIR/Dockerfile.builder \
-       --build-arg "USER_NAME=$(whoami)" \
-       --build-arg "USER_UID=$(id -u)" \
-       --build-arg "USER_GID=$(id -g)" \
-       "$DOCK_DIR" >/dev/null
+    # --load \
+    # --cache-from type=local,src=$DOCK_DIR/.buildx-cache \
+    # --cache-to type=local,dest=$DOCK_DIR/.buildx-cache-new \
+    if [ -z ${SKIP_DOCKER_BUILD+x} ]; then
+        docker build --progress=plain -t docker-ci -f $DOCK_DIR/Dockerfile.builder \
+        --build-arg "USER_NAME=$(whoami)" \
+        --build-arg "USER_UID=$(id -u)" \
+        --build-arg "USER_GID=$(id -g)" \
+        "$DOCK_DIR" >/dev/null
+    fi
 
     if [ -t 1 ] ; then IT_ARGS=-it; else IT_ARGS= ; fi
     if (return 0 2>/dev/null) ; then # sourced by another script

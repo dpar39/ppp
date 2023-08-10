@@ -23,6 +23,7 @@ git_repository(
   remote = "https://github.com/google/mediapipe",
   # branch = "v0.8.11",
   commit = "6cdc6443b6a7ed662744e2a2ce2d58d9c83e6d6f",
+  shallow_since = "1662687532 +0000"
 )
 
 new_local_repository(
