@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "checkJs": false,
+    "baseUrl": ".",
+    "strictNullChecks": true,
+    "rootDir": "lib",
+    "types": [
+      "node",
+      "jest"
+    ],
+    "lib": [
+      "ESNext",
+      "WebWorker",
+      "DOM"
+    ],
+    "noEmit": false,
+    "outDir": "dist",
+    "declaration": true,
+    "composite": true,
+    "incremental": true,
+  },
+  "include": [
+    "lib/**/*.json",
+    "lib/**/*.ts"
+  ]
+}

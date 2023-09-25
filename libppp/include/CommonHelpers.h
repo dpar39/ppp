@@ -1,6 +1,11 @@
 #pragma once
 #include <memory>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define THROW_ERROR(exception_type, message)                                                                           \
+    throw exception_type(std::string(__FILE__ ":" TOSTRING(__LINE__) ": ") + (message));
+
 #define FWD_DECL(classname)                                                                                            \
     class classname;                                                                                                   \
     typedef std::shared_ptr<classname> classname##SPtr;                                                                \
@@ -31,10 +36,6 @@ public:                                                                         
         return m_prop##name;                                                                                           \
     }                                                                                                                  \
     constexpr static const char * STR_##name = #name;
-
-namespace cv {
-FWD_DECL(CascadeClassifier);
-}
 
 using BYTE = uint8_t;
 

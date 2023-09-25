@@ -5,7 +5,8 @@
   "scripts": {
     "docker:build:base": "docker build -t dpar39/ppp-base -f Dockerfile.base .",
     "docker:push:base": "docker push dpar39/ppp-base",
-    "compdb": "bash build.sh compdb",
+    "compdb:native": "bash build.sh compdb:native",
+    "compdb:wasm": "bash build.sh compdb:native",
     "build:native:release": "bash build.sh native:release",
     "build:native:debug": "bash build.sh native:debug",
     "build:wasm:debug": "bash build.sh wasm:debug",
@@ -16,7 +17,9 @@
     "web:all": "cd webapp && npm install && npm build:all && cd ..",
     "firebase:deploy": "bash -c 'pushd webapp ; npx firebase use --token $FIREBASE_DEPLOY_KEY myphotoidapp && npx firebase deploy --token $FIREBASE_DEPLOY_KEY --non-interactive ; popd'",
     "docker:build:server": "docker build -t photoidcreator.azurecr.io/server webapp/",
-    "docker:push:server": "docker push photoidcreator.azurecr.io/server"
+    "docker:push:server": "docker push photoidcreator.azurecr.io/server",
+    "build:ts": "rollup -c --bundleConfigAsCjs",
+    "test": "npx jest"
   },
   "repository": {
     "type": "git",
@@ -24,6 +27,34 @@
   },
   "author": "Darien Pardinas Diaz",
   "license": "MIT",
-  "dependencies": {
-  }
+  "main": "dist/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/tests/*.test.js"
+    ]
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-replace": "^5.0.2",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/plugin-wasm": "^6.1.1",
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.11.18",
+    "jest": "^29.5.0",
+    "rollup": "^3.10.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.2"
+  },
+  "files": [
+    "dist/*"
+  ]
 }

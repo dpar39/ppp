@@ -74,8 +74,14 @@
             "group": "build"
         },
         {
-            "label": "x64: Refresh Compile Commands",
-            "command": "npm run compdb:native:dbg",
+            "label": "compdb: native",
+            "command": "npm run compdb:native",
+            "type": "shell",
+            "group": "build"
+        },
+        {
+            "label": "compdb: wasm",
+            "command": "npm run compdb:native",
             "type": "shell",
             "group": "build"
         },
@@ -108,7 +114,7 @@
         },
         {
             "label": "Web: Build",
-            "command": "run gen-app-info && run gen-pwa-icons && npx ionic build --prod",
+            "command": "npx gen-app-info && npx gen-pwa-icons && npx ionic build --prod",
             "options": {
                 "cwd": "${workspaceFolder}/webapp"
             },

@@ -29,18 +29,24 @@ build:wasm --cpu=wasm
 build:wasm --crosstool_top=@emsdk//emscripten_toolchain:everything
 build:wasm --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
+build:wasm --cxxopt=-Os
 build:wasm --cxxopt=-Wno-deprecated-builtins
 build:wasm --cxxopt=-Wno-implicit-const-int-float-conversion
 build:wasm --cxxopt=-Wno-unused-private-field
 build:wasm --cxxopt=-Wno-deprecated-non-prototype
+build:wasm --cxxopt=-fexceptions
 
-build:wasm --copt=-sUSE_PTHREADS=0
-build:wasm --features=exceptions
 build:wasm --copt=-Os
+build:wasm --copt=-sUSE_PTHREADS=0
+build:wasm --copt=-fexceptions
 
-build:wasm --linkopt=-sUSE_PTHREADS=0
 build:wasm --linkopt=-Os
 build:wasm --linkopt=--bind
+build:wasm --linkopt=-fexceptions
+build:wasm --linkopt=-sEXPORT_EXCEPTION_HANDLING_HELPERS=1
+build:wasm --linkopt=-sUSE_PTHREADS=0
+build:wasm --linkopt=-sMODULARIZE=1
+build:wasm --linkopt=-sEXPORT_NAME=pppWasmApi
 build:wasm --linkopt=-sINITIAL_MEMORY=134217728
 build:wasm --linkopt=-sALLOW_MEMORY_GROWTH=1
 build:wasm --linkopt=--preload-file=/src/mediapipe@/mediapipe
