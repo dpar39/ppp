@@ -2,27 +2,32 @@
     "name": "PPP-DevEnv",
     "dockerFile": "../Dockerfile.devenv",
     "context": ".",
-    "settings": {
-        "terminal.integrated.shell.linux.profile": "/bin/bash"
-    },
     "containerUser": "${env:USER}",
     "remoteUser": "${env:USER}",
-    "extensions": [
-        "llvm-vs-code-extensions.vscode-clangd",
-        "xaver.clang-format",
-        "twxs.cmake",
-        "ms-python.python",
-        "vadimcn.vscode-lldb",
-        "matepek.vscode-catch2-test-adapter",
-        "streetsidesoftware.code-spell-checker",
-        "eamodio.gitlens",
-        "DavidAnson.vscode-markdownlint",
-        "natewallace.angular2-inline",
-        "jakethashi.vscode-angular2-emmet",
-        "angular.ng-template",
-        "vscode-icons-team.vscode-icons",
-        "esbenp.prettier-vscode"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "xaver.clang-format",
+                "twxs.cmake",
+                "ms-python.python",
+                "vadimcn.vscode-lldb",
+                "matepek.vscode-catch2-test-adapter",
+                "streetsidesoftware.code-spell-checker",
+                "eamodio.gitlens",
+                "DavidAnson.vscode-markdownlint",
+                "natewallace.angular2-inline",
+                "jakethashi.vscode-angular2-emmet",
+                "angular.ng-template",
+                "vscode-icons-team.vscode-icons",
+                "esbenp.prettier-vscode",
+                "Orta.vscode-jest"
+            ]
+        },
+        "settings": {
+            "terminal.integrated.shell.linux.profile": "/bin/bash"
+        }
+    },
     "workspaceFolder": "/src",
     "workspaceMount": "source=${localWorkspaceFolder},target=/src,type=bind",
     "mounts": [

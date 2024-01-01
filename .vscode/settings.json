@@ -2,10 +2,8 @@
 {
     // General
     "workbench.colorCustomizations": {
-        "tab.activeBorder": "#ff0000",
         "tab.activeBackground": "#030000",
-        "list.hoverBackground": "#09322f",
-        "titleBar.activeBackground": "#8d3838",
+        "list.hoverBackground": "#09322f"
     },
     "terminal.integrated.defaultProfile.linux": "bash",
     "files.autoSave": "afterDelay",
@@ -45,7 +43,7 @@
     "python.testing.cwd": "${workspaceFolder}/webapp/server",
     "[python]": {
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         },
         "editor.defaultFormatter": "ms-python.black-formatter"
     },

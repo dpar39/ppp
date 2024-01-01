@@ -1,6 +1,14 @@
 # [Photo ID Creator](https://myphotoidapp.firebaseapp.com/) - A tool to prepare photo IDs
 
-This project implements a web-based application that creates photographs in compliance with many ID forms and documents such as passports, visas, licenses, etc. The application takes as input a photograph of a person's face and automatically applies resizing and rotation to comply with the specified photo requirement. Then, the user can generate a tiled photo for a given print format such as 4x6" or 5x7" and have it printed at home or at your nearest photo center.
+<p align="center">
+  <a href="https://github.com/dpar39/ppp/actions/workflows/ci.yaml"  title="workflow" style="display:inline-block;">
+    <img src="https://github.com/dpar39/ppp/actions/workflows/ci.yaml/badge.svg" alt="build status"/>
+  </a>
+  <a href="https://www.buymeacoffee.com/dpar39" title="Buy me a coffee" style="display: inline-block; margin-left:10px">
+    <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-$5-blue?logo=buy-me-a-coffee&style=flat" alt="Buy me a coffee"/>
+  </a>
+</p>
+This project implements a web-based application to create photographs in compliance with many ID forms and documents such as passports, visas, licenses, etc. The application takes as input a photograph of a person's face and automatically applies resizing and rotation to comply with the specified photo ID requirement. Then, the user can generate a tiled photo for a given print format such as 4x6" or 5x7" and have it printed at home or at your nearest photo center.
 
 <div style="text-align:center"><img src ="docs/workflow.png"/></div>
 
@@ -18,7 +26,7 @@ The application is made out out two components, a C++ library compiled to WebAss
 
 Image processing algorithms of the application are developed in modern C++ and compiled to WebAssembly with Emscripten. The C++ code lives inside folder `libppp` and is built using [Bazel](https://bazel.build/). Originally, all C++ code was building with [CMake](https://cmake.org/), but since the app now uses [MediaPipe](https://developers.google.com/mediapipe/solutions), it only made sense to move the build system to Bazel given the complexities of porting MediaPipe to a CMake-based build system.
 
-Libraries used in C++:
+Libraries used in C++ code:
 
 - OpenCV (core, imgproc, imgcodecs, objdetect, etc.)
 - MediaPipe and its dependencies (TensorFlow Lite)
@@ -27,7 +35,7 @@ Libraries used in C++:
 The front-end of the application is built using
 
 - Ionic Framework with Angular
-- Interact.js (for gesture processing)
+- Interact.js (for gesture handling)
 - ngx-color-picker (color picker component)
 - flag-icons (icons of country flags)
 
@@ -81,19 +89,11 @@ wsl -d Ubuntu-22.04 docker run hello-world
 
 If you want to do Typescript/Javascript development directly on Windows, install Node.js and NPM on Windows. With Powershell this can be achieved via `winget install OpenJS.NodeJS.LTS --accept-source-agreements`.
 
-## Algorithm in a nutshell
+## Cropping to photo standard dimentions
 
-In order to crop and scale the face of the person to a particular passport requirement, the following approach was investigated. Given the set of detected facial landmarks *A*, *B*, *C* and *D*, we would like to estimate *P* and *Q* with accuracy that is sufficient to ensure that the face in the output photo fall within the limits of the size requirements. In other words, the estimated location of the crown (*P’*) and chin point (*Q’*) should be such that the distance *P’Q’* scaled by the distance between the ideal location of the crown (*P*) and chin point (*Q*) falls within the tolerance range allowed in photo ID specifications. For instance, for the case of Australian passport, the allowed scale drift range is **±5.88%** given that the face height (chin to crown) must be between 32mm and 36mm: $\sqrt{\$4}$
-
-To develop and validate the proposed approach, facial landmarks from the [SCFace database](http://www.scface.org/) were used. The SCFace database contains images for 130 different subjects and frontal images of each individual were carefully annotated by the [Biometric Recognition Group - ATVS at Escuela Politecnica Superior of the Universidad Autonoma de Madrid [ATVS]](https://atvs.ii.uam.es/scfacedb_landmarks.html).
-The procedure to estimate *P’* and *Q’* from *A*, *B*, *C* and *D* is as follow: Firstly, points *M* and *N* are found as the center of segments *AB* and *CD* respectively. *P’* and *Q’* are expected to fall in the line that passes through *M* and *N*. Then using a normalization distance *KK = |AB| + |MN|* and scale constants *α* and *β*, we estimate *P’Q’* = *αKK* and *M’Q’* = *βKK*. From the dataset *α* and *β* were adjusted to minimize the estimation error of *P'* and *Q'*.
+In order to crop and scale the face of the person to a particular passport requirement, the following approach was investigated. Given the set of detected facial landmarks *A*, *B*, *C* and *D*, we would like to estimate *P* and *Q* with accuracy that is sufficient to ensure that the face in the output photo fall within the limits of the size requirements. In other words, the estimated location of the crown (*P’*) and chin point (*Q’*) should be such that the distance *P’Q’* scaled by the distance between the ideal location of the crown (*P*) and chin point (*Q*) falls within the tolerance range allowed in photo ID specifications. For instance, for the case of Australian passport, the allowed scale drift range is **±5.88%** given that the face height (chin to crown) must be between 32mm and 36mm: $\dfrac{1}{2} \times \dfrac{36 - 32}{0.5 \times (32+36)} = \pm 5.88$%.
 
 <div style="text-align:center"><img src ="docs/key-facial-landmarks.png"/></div>
 
-### Update
-
-
-## How to run it
-
-This application is currently provided in two forms: As a command line utility or as a [Firebase web app](https://myphotoidapp.firebaseapp.com/) fully running on the browser (i.e. backend only serves static files). The web app can also be built and run on Android using [Ionic capacitor](https://capacitor.ionicframework.com/), but this is still not well supported. The software is fully cross-platform, written in C++ and TypeScript, and has been built on Windows 10 with Visual Studio 2015 and 2017, Linux Mint with GCC 8.x and Mac with Clang 7.0. Non C++17 compliant compilers can also be used, but boost/filesystem is needed to build and run C++ unit tests.
-
+To develop and validate the proposed approach, facial landmarks from the [SCFace database](http://www.scface.org/) were used. The SCFace database contains images for 130 different subjects and frontal images of each individual were carefully annotated by the [Biometric Recognition Group - ATVS at Escuela Politecnica Superior of the Universidad Autonoma de Madrid [ATVS]](https://atvs.ii.uam.es/scfacedb_landmarks.html).
+The procedure to estimate *P’* and *Q’* from *A*, *B*, *C* and *D* is as follow: Firstly, points *M* and *N* are found as the center of segments *AB* and *CD* respectively. *P’* and *Q’* are expected to fall in the line that passes through *M* and *N*. Then using a normalization distance *KK = |AB| + |MN|* and scale constants *α* and *β*, we estimate *P’Q’* = *αKK* and *M’Q’* = *βKK*. From the dataset *α* and *β* were adjusted to minimize the estimation error of *P'* and *Q'*.
